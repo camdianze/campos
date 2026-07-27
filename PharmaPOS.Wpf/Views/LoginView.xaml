@@ -8,38 +8,107 @@
              Background="White">
 
     <UserControl.Resources>
+        <!-- 입력 칸: 테두리 두께는 2로 고정하고 색만 바꾼다.
+             포커스 때 두께를 늘리면 안쪽 글자가 1px 밀려 떨리기 때문이다. -->
         <Style x:Key="FigmaInputStyle" TargetType="TextBox">
-            <Setter Property="Background"      Value="#F3F3F3"/>
-            <Setter Property="Foreground"      Value="Black"/>
-            <Setter Property="CaretBrush"      Value="Black"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding"         Value="12,10"/>
-            <Setter Property="FontSize"        Value="16"/>
-            <Setter Property="Height"          Value="45"/>
+            <Setter Property="Background"      Value="#F3F4F6"/>
+            <Setter Property="Foreground"      Value="#111827"/>
+            <Setter Property="CaretBrush"      Value="#111827"/>
+            <Setter Property="BorderBrush"     Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding"         Value="12,0"/>
+            <Setter Property="FontSize"        Value="14"/>
+            <Setter Property="Height"          Value="42"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8" SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center" Focusable="False"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#D1D5DB"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="Root" Property="Background"  Value="White"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#2563EB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="FigmaPasswordStyle" TargetType="PasswordBox">
-            <Setter Property="Background"      Value="#F3F3F3"/>
-            <Setter Property="Foreground"      Value="Black"/>
-            <Setter Property="CaretBrush"      Value="Black"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding"         Value="12,10"/>
-            <Setter Property="FontSize"        Value="16"/>
-            <Setter Property="Height"          Value="45"/>
+            <Setter Property="Background"      Value="#F3F4F6"/>
+            <Setter Property="Foreground"      Value="#111827"/>
+            <Setter Property="CaretBrush"      Value="#111827"/>
+            <Setter Property="BorderBrush"     Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding"         Value="12,0"/>
+            <Setter Property="FontSize"        Value="14"/>
+            <Setter Property="Height"          Value="42"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8" SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center" Focusable="False"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#D1D5DB"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="Root" Property="Background"  Value="White"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#2563EB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
+        <!-- 이전 #BF5B92E5는 알파 75%라 흰 배경 위에서 흰 글자와의 대비가 부족했다.
+             불투명 색으로 고정하고, IsBusy로 실제 비활성이 되므로 상태별 색을 준다. -->
         <Style x:Key="FigmaPrimaryButton" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
+            <Setter Property="Background"      Value="#2563EB"/>
             <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="16"/>
+            <Setter Property="FontSize"        Value="14"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor"          Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8" SnapsToDevicePixels="True">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#1D4ED8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#1E40AF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Background" Value="#A8C0F2"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -47,7 +116,7 @@
 
         <Style x:Key="FigmaLinkButton" TargetType="Button">
             <Setter Property="Background"      Value="Transparent"/>
-            <Setter Property="Foreground"      Value="Black"/>
+            <Setter Property="Foreground"      Value="#6B7280"/>
             <Setter Property="FontSize"        Value="12"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor"          Value="Hand"/>
@@ -55,7 +124,18 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="Label"
+                                   Text="{TemplateBinding Content}"
+                                   Margin="{TemplateBinding Padding}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   Background="Transparent"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Label" Property="Foreground"      Value="#2563EB"/>
+                                <Setter TargetName="Label" Property="TextDecorations" Value="Underline"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -72,24 +152,28 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Login"
-                   FontSize="40" Foreground="Black"
-                   Margin="0,0,0,30"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="Login"
+                       FontSize="28" FontWeight="SemiBold" Foreground="#111827"/>
+            <TextBlock Text="Sign in to continue"
+                       FontSize="13" Foreground="#6B7280"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
 
-        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+        <!-- 라벨은 입력값(14px)보다 작게 둔다. 이전에는 24px이라 제목만큼 튀었다. -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
             <TextBlock Text="ID"
-                       FontSize="24" FontWeight="Light" Foreground="Black"
-                       Margin="0,0,0,8"/>
+                       FontSize="12" FontWeight="SemiBold" Foreground="#6B7280"
+                       Margin="0,0,0,6"/>
             <TextBox x:Name="UsernameInput"
                      Style="{StaticResource FigmaInputStyle}"
                      Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+        <StackPanel Grid.Row="2" Margin="0,0,0,12">
             <TextBlock Text="Password"
-                       FontSize="24" FontWeight="Light" Foreground="Black"
-                       Margin="0,0,0,8"/>
+                       FontSize="12" FontWeight="SemiBold" Foreground="#6B7280"
+                       Margin="0,0,0,6"/>
             <PasswordBox x:Name="PasswordInput"
                          Style="{StaticResource FigmaPasswordStyle}"/>
         </StackPanel>
@@ -103,7 +187,7 @@
 
             <CheckBox Grid.Column="0"
                       Content="Remember me"
-                      FontSize="12" Foreground="Black"
+                      FontSize="12" Foreground="#6B7280"
                       VerticalAlignment="Center"
                       IsChecked="{Binding RememberMe}"/>
 
@@ -119,18 +203,22 @@
                     Command="{Binding ForgotPasswordCommand}"/>
         </Grid>
 
+        <!-- IsDefault="True"라 아이디/비밀번호 칸에서 Enter를 눌러도 로그인된다. -->
         <Button Grid.Row="4"
                 Content="Login"
                 Style="{StaticResource FigmaPrimaryButton}"
-                Width="110" Height="45"
-                HorizontalAlignment="Right"
-                Margin="0,0,0,20"
+                Height="42"
+                IsDefault="True"
+                Margin="0,0,0,10"
                 Command="{Binding LoginCommand}"
                 CommandParameter="{Binding ElementName=PasswordInput}"/>
 
+        <!-- MinHeight로 자리를 미리 잡아둔다. 없으면 에러가 뜰 때 폼 전체가 위로 밀린다. -->
         <TextBlock Grid.Row="5"
                    Text="{Binding ErrorMessage}"
-                   Foreground="Red"
+                   Foreground="#DC2626"
+                   FontSize="12"
+                   MinHeight="18"
                    TextWrapping="Wrap"/>
     </Grid>
 </UserControl>

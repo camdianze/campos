@@ -5,7 +5,6 @@ using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Entities;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
-using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 public partial class LoginView : UserControl
@@ -20,6 +19,17 @@ public partial class LoginView : UserControl
         loginViewModel.ForgotPasswordRequested += OnForgotPasswordRequested;
 
         DataContext = loginViewModel;
+
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
+    {
+        // Remember me로 아이디가 이미 채워져 있으면 비밀번호 칸부터 입력하게 한다.
+        if (DataContext is LoginViewModel { Username.Length: > 0 })
+            PasswordInput.Focus();
+        else
+            UsernameInput.Focus();
     }
 
     private void OnLoginSucceeded(User loggedInUser)
