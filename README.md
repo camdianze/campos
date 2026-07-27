@@ -93,18 +93,20 @@ WPF ──────> Application ──> Domain
 
 ### 빌드 및 실행
 
-솔루션 파일 경로에 공백과 `&` 가 포함되어 있어 **PowerShell에서는 반드시 따옴표로 감싸야 합니다.**
+저장소 루트에서 실행합니다.
 
 ```powershell
 # 빌드
-dotnet build "Lightweight Digital Inventory Management & POS System\Lightweight Digital Inventory Management & POS System.slnx"
+dotnet build PharmaPOS.slnx
 
 # 실행
-dotnet run --project "Lightweight Digital Inventory Management & POS System"
+dotnet run --project PharmaPOS.Wpf
 
 # 배포용 게시 (자체 포함 단일 실행 파일, win-x64)
-dotnet publish "Lightweight Digital Inventory Management & POS System" -p:PublishProfile=FolderProfile
+dotnet publish PharmaPOS.Wpf -p:PublishProfile=FolderProfile
 ```
+
+게시 결과물은 `PharmaPOS.exe` 입니다.
 
 ### 최초 실행
 

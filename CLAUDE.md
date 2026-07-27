@@ -10,27 +10,27 @@ Code comments and design rationale are written in Korean; all user-facing string
 
 ## Build & Run
 
-The solution file lives **inside** the WPF project folder, not at the repo root, and its path contains spaces and `&` — always quote it in PowerShell.
-
 ```powershell
 # Build everything
-dotnet build "Lightweight Digital Inventory Management & POS System\Lightweight Digital Inventory Management & POS System.slnx"
+dotnet build PharmaPOS.slnx
 
 # Run the app
-dotnet run --project "Lightweight Digital Inventory Management & POS System"
+dotnet run --project PharmaPOS.Wpf
 
 # Build a single class library (faster feedback on Application/DataAccess changes)
 dotnet build PharmaPOS.Application
 
 # Publish (self-contained single-file win-x64; FolderProfile.pubxml targets the user's Desktop)
-dotnet publish "Lightweight Digital Inventory Management & POS System" -p:PublishProfile=FolderProfile
+dotnet publish PharmaPOS.Wpf -p:PublishProfile=FolderProfile
 ```
+
+The WPF project directory is `PharmaPOS.Wpf`, but `AssemblyName` is pinned to `PharmaPOS`, so build output and the published executable are `PharmaPOS.dll` / `PharmaPOS.exe`. `RootNamespace` is deliberately left as `Lightweight_Digital_Inventory_Management___POS_System` to match the existing C# and XAML namespaces — the folder rename did not touch namespaces.
 
 There is **no test project** and no linter configured. Verification is: `dotnet build` plus running the app. The build currently emits 4 `CS0105` duplicate-using warnings (`ServiceCollectionExtensions.cs:12`, `LoginView.xaml.cs:8`) — pre-existing, harmless.
 
 ### Runtime state
 
-The database is created on first launch at `%APPDATA%\PharmaPOS\pharmapos.db` (see [App.xaml.cs](Lightweight%20Digital%20Inventory%20Management%20&%20POS%20System/App.xaml.cs)). Delete that folder to reset the app to its first-run state, which forces the initial-setup screen (facility + first Administrator) instead of login.
+The database is created on first launch at `%APPDATA%\PharmaPOS\pharmapos.db` (see [App.xaml.cs](PharmaPOS.Wpf/App.xaml.cs)). Delete that folder to reset the app to its first-run state, which forces the initial-setup screen (facility + first Administrator) instead of login.
 
 ## Architecture
 
@@ -47,13 +47,13 @@ WPF app ──> Application ──> Domain
 | `PharmaPOS.Domain` | Entities (`Product`, `User`, `Inventory`, `StockTransaction`, `Facility`) and enums. No dependencies, no logic. |
 | `PharmaPOS.Application` | Business rules. Service implementations + the `I*Repository` interfaces they depend on (`Repositories/`). Also owns password hashing/policy and SMTP abstractions (`Security/`, `PasswordPolicy/`). |
 | `PharmaPOS.DataAccess` | SQLite implementations of the repository interfaces, schema creation, backup/export. |
-| `Lightweight Digital Inventory Management & POS System` | WPF UI (Views/ViewModels), DI composition root, and the platform-specific service implementations that Application can't provide (DPAPI, receipt printing). |
+| `PharmaPOS.Wpf` | WPF UI (Views/ViewModels), DI composition root, and the platform-specific service implementations that Application can't provide (DPAPI, receipt printing). |
 
 Repository interfaces live in **Application**, implementations in **DataAccess** — this is what keeps the dependency arrow inverted. When adding a data operation, add the interface next to its consumers in `PharmaPOS.Application/Repositories/`, implement it in `PharmaPOS.DataAccess/Repositories/`, then register it.
 
 ### Composition root
 
-[Composition/ServiceCollectionExtensions.cs](Lightweight%20Digital%20Inventory%20Management%20&%20POS%20System/Composition/ServiceCollectionExtensions.cs) is the *only* place an interface is bound to an implementation. Lifetimes follow a deliberate rule: infrastructure and stateless policy objects are `Singleton`; repositories, services, and ViewModels are `Transient`. Any new service must be registered here or `GetRequiredService` throws at runtime.
+[Composition/ServiceCollectionExtensions.cs](PharmaPOS.Wpf/Composition/ServiceCollectionExtensions.cs) is the *only* place an interface is bound to an implementation. Lifetimes follow a deliberate rule: infrastructure and stateless policy objects are `Singleton`; repositories, services, and ViewModels are `Transient`. Any new service must be registered here or `GetRequiredService` throws at runtime.
 
 The container is exposed as the static `App.Services`. Views resolve from it directly in their constructors — there is no view-locator or navigation framework.
 
@@ -61,9 +61,9 @@ The container is exposed as the static `App.Services`. Views resolve from it dir
 
 Hand-rolled and imperative. A single `MainWindow` has its `Content` swapped:
 
-- [App.xaml.cs](Lightweight%20Digital%20Inventory%20Management%20&%20POS%20System/App.xaml.cs) picks `InitialSetupView` or `LoginView` based on `IInitialSetupRepository.IsSetupCompleteAsync()`.
+- [App.xaml.cs](PharmaPOS.Wpf/App.xaml.cs) picks `InitialSetupView` or `LoginView` based on `IInitialSetupRepository.IsSetupCompleteAsync()`.
 - On successful login, `LoginView` builds `MainShellViewModel` (carrying the logged-in `User`) and swaps in `MainShellView`.
-- [Shell/MainShellView.xaml.cs](Lightweight%20Digital%20Inventory%20Management%20&%20POS%20System/Shell/MainShellView.xaml.cs) is the navigation hub — one click handler per destination, each resolving services and constructing the target ViewModel by hand.
+- [Shell/MainShellView.xaml.cs](PharmaPOS.Wpf/Shell/MainShellView.xaml.cs) is the navigation hub — one click handler per destination, each resolving services and constructing the target ViewModel by hand.
 
 **ViewModels never navigate.** They raise C# events (`NavigateBack`, `LoginSucceeded`, `RequestAddUserDialog`, …) and the code-behind handles them. Two wiring styles coexist:
 
@@ -72,7 +72,7 @@ Hand-rolled and imperative. A single `MainWindow` has its `Content` swapped:
 
 The logged-in user is threaded manually as `FacilityId` / `UserId` / `Role` constructor parameters — there is no ambient session or current-user service. Preserve this when adding screens.
 
-MVVM base is minimal and local: `ViewModelBase` (`SetProperty`) and `RelayCommand` in [ViewModels/Base/](Lightweight%20Digital%20Inventory%20Management%20&%20POS%20System/ViewModels/Base/). No MVVM toolkit, no source generators.
+MVVM base is minimal and local: `ViewModelBase` (`SetProperty`) and `RelayCommand` in [ViewModels/Base/](PharmaPOS.Wpf/ViewModels/Base/). No MVVM toolkit, no source generators.
 
 ### Result objects, not exceptions
 

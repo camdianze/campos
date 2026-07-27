@@ -3,6 +3,9 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- 게시 결과물이 PharmaPOS.exe가 되도록 고정한다.
+         RootNamespace는 기존 C#/XAML 네임스페이스와 맞추기 위해 그대로 둔다. -->
+    <AssemblyName>PharmaPOS</AssemblyName>
     <RootNamespace>Lightweight_Digital_Inventory_Management___POS_System</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
