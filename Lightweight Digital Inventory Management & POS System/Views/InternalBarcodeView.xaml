@@ -1,0 +1,50 @@
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.InternalBarcodeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="420" d:DesignHeight="420">
+
+    <Grid Width="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Internal Barcode" FontSize="22" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <TextBlock Grid.Row="1" Text="{Binding ProductName}" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <TextBlock Text="Internal Barcode"/>
+            <TextBox Text="{Binding InternalBarcode, Mode=OneWay}" IsReadOnly="True"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Margin="0,0,0,10">
+            <TextBlock Text="Label Quantity"/>
+            <TextBox Text="{Binding LabelQuantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+            <TextBlock Text="Printer"/>
+            <ComboBox ItemsSource="{Binding AvailablePrinters}" SelectedItem="{Binding SelectedPrinter}"/>
+        </StackPanel>
+
+        <Grid Grid.Row="4" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Back" Margin="0,0,5,0" Padding="0,8" Command="{Binding BackCommand}"/>
+            <Button Grid.Column="1" Content="Generate" Margin="5,0,5,0" Padding="0,8" Command="{Binding GenerateBarcodeCommand}"/>
+            <Button Grid.Column="2" Content="Print Label" Margin="5,0,0,0" Padding="0,8" Command="{Binding PrintLabelCommand}"/>
+        </Grid>
+
+        <TextBlock Grid.Row="5" Text="{Binding Message}" Foreground="Red" Margin="0,10,0,0" TextWrapping="Wrap"/>
+    </Grid>
+</UserControl>

@@ -1,0 +1,129 @@
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Background="White"
+             d:DesignWidth="800" d:DesignHeight="450">
+
+
+    <UserControl.Resources>
+        <Style x:Key="HistoryCardBtn" TargetType="Button">
+            <Setter Property="Background"          Value="#FBFCFF"/>
+            <Setter Property="BorderBrush"         Value="#BF5B92E5"/>
+            <Setter Property="BorderThickness"     Value="1.5"/>
+            <Setter Property="Cursor"              Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment"   Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="20" Margin="0,0,28,52">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" Opacity="0.08"
+                                                  BlurRadius="10" ShadowDepth="2"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#EDF0FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="40,32,40,32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 제목 -->
+        <TextBlock Grid.Row="0"
+                   Text="History"
+                   FontSize="32" FontWeight="Light"
+                   Foreground="#121212"
+                   Margin="0,0,0,8"/>
+
+        <TextBlock Grid.Row="1"
+                   Text="Select a history type to view records."
+                   FontSize="14" Foreground="#6C757D"
+                   Margin="0,0,0,32"/>
+
+        <!-- 카드 2개 -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Sale History -->
+            <Button Grid.Column="0" Style="{StaticResource HistoryCardBtn}"
+                    Margin="0,0,16,0" Click="OnSaleHistoryClick">
+                <Grid>
+                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
+                                Margin="32,28,0,0">
+                        <TextBlock Text="Sale History"
+                                   FontSize="30" Foreground="#121212" Width="181"/>
+                        <TextBlock Text="View all sales transactions"
+                                   FontSize="13" Foreground="#6C757D"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+                    <TextBlock Text="🛒" FontSize="75"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Margin="0,60,0,0"/>
+                </Grid>
+            </Button>
+
+            <!-- Adjustment History -->
+            <Button Grid.Column="1" Style="{StaticResource HistoryCardBtn}"
+                    Margin="16,0,0,0" Click="OnAdjustmentHistoryClick">
+                <Grid Margin="0,0,-21,0">
+                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
+                                Margin="32,28,0,0">
+                        <TextBlock Text="Adjustment History"
+                                   FontSize="30" Foreground="#121212" Width="283"/>
+                        <TextBlock Text="View all inventory adjustments"
+                                   FontSize="13" Foreground="#6C757D"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+                    <TextBlock Text="✏️" FontSize="75"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Margin="0,60,0,0"/>
+                </Grid>
+            </Button>
+        </Grid>
+
+        <!-- 뒤로 버튼 -->
+        <Button Grid.Row="2"
+                Content="← Back"
+                VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                Height="36" Padding="16,0"
+                Background="#F0F0F0" Foreground="#121212"
+                BorderThickness="0" Cursor="Hand"
+                Click="OnBackClick">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+    </Grid>
+</UserControl>

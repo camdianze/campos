@@ -1,0 +1,78 @@
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.SalesHistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="850" d:DesignHeight="550">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Sales History" FontSize="22" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="90"/>
+            </Grid.ColumnDefinitions>
+
+            <DatePicker Grid.Column="0" SelectedDate="{Binding DateFrom}" Margin="0,0,5,0"/>
+            <DatePicker Grid.Column="1" SelectedDate="{Binding DateTo}" Margin="5,0,5,0"/>
+
+            <TextBox Grid.Column="2"
+                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="5,0,5,0" Padding="6"/>
+
+            <ComboBox Grid.Column="3"
+                      ItemsSource="{Binding AvailablePaymentMethods}"
+                      SelectedItem="{Binding SelectedPaymentMethod}"
+                      Margin="5,0,5,0"/>
+
+            <Button Grid.Column="4" Content="Search" Margin="5,0,5,0" Padding="0,4" Command="{Binding SearchCommand}"/>
+            <Button Grid.Column="5" Content="Reset" Margin="5,0,0,0" Padding="0,4" Command="{Binding ResetCommand}"/>
+        </Grid>
+
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Results}"
+                  SelectedItem="{Binding SelectedLine}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*"/>
+                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
+                <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice}" Width="90"/>
+                <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal}" Width="90"/>
+                <DataGridTextColumn Header="Payment" Binding="{Binding PaymentMethod}" Width="110"/>
+                <DataGridTextColumn Header="Sold By" Binding="{Binding Username}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="3" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Back" Margin="0,0,5,0" Padding="0,8" Click="OnBackClick"/>
+            <Button Grid.Column="1" Content="View Detail" Margin="5,0,5,0" Padding="0,8" Command="{Binding ViewDetailCommand}"/>
+            <Button Grid.Column="2" Content="Reprint Receipt" Margin="5,0,5,0" Padding="0,8" Command="{Binding ReprintReceiptCommand}"/>
+            <Button Grid.Column="3" Content="Export" Margin="5,0,0,0" Padding="0,8" Command="{Binding ExportCommand}"/>
+        </Grid>
+
+        <TextBlock Grid.Row="4" Text="{Binding Message}" Foreground="Red" Margin="0,10,0,0" TextWrapping="Wrap"/>
+    </Grid>
+</UserControl>

@@ -1,0 +1,195 @@
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.BackupExportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
+             mc:Ignorable="d"
+             Background="White"
+             d:DesignWidth="500" d:DesignHeight="700">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="11"/>
+            <Setter Property="FontWeight"   Value="SemiBold"/>
+            <Setter Property="Foreground"   Value="#6C757D"/>
+            <Setter Property="Margin"       Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="PriBtn" TargetType="Button">
+            <Setter Property="Background"      Value="#BF5B92E5"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height"          Value="36"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#121212"/>
+        </Style>
+
+        <Style x:Key="DangerBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
+            <Setter Property="Background" Value="#E53E3E"/>
+        </Style>
+
+        <Style x:Key="FieldInput" TargetType="TextBox">
+            <Setter Property="Background"               Value="#F3F3F3"/>
+            <Setter Property="BorderThickness"          Value="0"/>
+            <Setter Property="Height"                   Value="36"/>
+            <Setter Property="FontSize"                 Value="13"/>
+            <Setter Property="Padding"                  Value="10,8"/>
+            <Setter Property="Foreground"               Value="#212529"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Width="420" Margin="0,24,0,24" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 제목 -->
+            <TextBlock Grid.Row="0"
+                       Text="Backup / Export"
+                       FontSize="28" FontWeight="Light"
+                       Foreground="#121212" Margin="0,0,0,28"/>
+
+            <!-- Import Products -->
+            <StackPanel Grid.Row="1" Margin="0,0,0,24">
+                <TextBlock Text="IMPORT PRODUCTS" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="CSV 또는 Excel 파일에서 제품을 가져옵니다."
+                           FontSize="12" Foreground="#6C757D" Margin="0,0,0,10"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="90"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding ImportFilePath}"
+                             IsReadOnly="True"
+                             Style="{StaticResource FieldInput}"
+                             Margin="0,0,8,0"/>
+                    <Button Grid.Column="1" Content="Browse"
+                            Style="{StaticResource SecBtn}"
+                            Padding="12,0"
+                            Command="{Binding SelectImportFileCommand}"/>
+                </Grid>
+                <Button Content="📥  Import Products"
+                        Style="{StaticResource PriBtn}"
+                        Padding="16,0"
+                        HorizontalAlignment="Left"
+                        Command="{Binding ImportProductsCommand}"/>
+            </StackPanel>
+
+            <!-- DB Backup -->
+            <StackPanel Grid.Row="2" Margin="0,0,0,24">
+                <TextBlock Text="DATABASE BACKUP" Style="{StaticResource SectionLabel}"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="90"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding BackupLocation}"
+                             IsReadOnly="True"
+                             Style="{StaticResource FieldInput}"
+                             Margin="0,0,8,0"/>
+                    <Button Grid.Column="1" Content="Browse"
+                            Style="{StaticResource SecBtn}"
+                            Padding="12,0"
+                            Command="{Binding SelectBackupLocationCommand}"/>
+                </Grid>
+                <Button Content="💾  Create DB Backup"
+                        Style="{StaticResource SecBtn}"
+                        Padding="16,0"
+                        HorizontalAlignment="Left"
+                        Command="{Binding CreateDbBackupCommand}"/>
+            </StackPanel>
+
+            <!-- Export Data -->
+            <StackPanel Grid.Row="3" Margin="0,0,0,24">
+                <TextBlock Text="EXPORT DATA" Style="{StaticResource SectionLabel}"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding AvailableExportTypes}"
+                              SelectedItem="{Binding SelectedExportType}"
+                              Height="36" Margin="0,0,8,0"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton Content="CSV"   IsChecked="{Binding IsCsvFormat}"
+                                     Foreground="#121212" FontSize="13" Margin="0,0,16,0"/>
+                        <RadioButton Content="Excel"
+                                     IsChecked="{Binding IsCsvFormat, Converter={StaticResource InverseBoolConverter}}"
+                                     Foreground="#121212" FontSize="13"/>
+                    </StackPanel>
+                </Grid>
+                <Button Content="📤  Export Data"
+                        Style="{StaticResource SecBtn}"
+                        Padding="16,0"
+                        HorizontalAlignment="Left"
+                        Command="{Binding ExportDataCommand}"/>
+            </StackPanel>
+
+            <!-- Restore DB -->
+            <StackPanel Grid.Row="4" Margin="0,0,0,24">
+                <TextBlock Text="RESTORE DATABASE" Style="{StaticResource SectionLabel}"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="90"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding BackupFilePath}"
+                             IsReadOnly="True"
+                             Style="{StaticResource FieldInput}"
+                             Margin="0,0,8,0"/>
+                    <Button Grid.Column="1" Content="Browse"
+                            Style="{StaticResource SecBtn}"
+                            Padding="12,0"
+                            Command="{Binding SelectBackupFileCommand}"/>
+                </Grid>
+                <Button Content="🔄  Restore DB"
+                        Style="{StaticResource DangerBtn}"
+                        Padding="16,0"
+                        HorizontalAlignment="Left"
+                        Command="{Binding RestoreDbCommand}"/>
+            </StackPanel>
+
+            <!-- 뒤로 + 메시지 -->
+            <StackPanel Grid.Row="5">
+                <Button Content="← Back"
+                        Style="{StaticResource SecBtn}"
+                        Padding="16,0"
+                        HorizontalAlignment="Left"
+                        Click="OnBackClick"
+                        Margin="0,0,0,12"/>
+                <TextBlock Text="{Binding Message}"
+                           Foreground="#E53E3E"
+                           TextWrapping="Wrap" FontSize="13"/>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

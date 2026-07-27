@@ -1,0 +1,151 @@
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.ProductListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Background="White"
+             d:DesignWidth="800" d:DesignHeight="550">
+
+    <UserControl.Resources>
+        <Style x:Key="PriBtn" TargetType="Button">
+            <Setter Property="Background"      Value="#BF5B92E5"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height"          Value="36"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#BBBBBB"/>
+                                <Setter Property="Foreground" Value="#888888"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#121212"/>
+        </Style>
+
+        <Style x:Key="DangerBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
+            <Setter Property="Background" Value="#E53E3E"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="28,24,28,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Products"
+                   FontSize="28" FontWeight="Light"
+                   Foreground="#121212" Margin="0,0,0,20"/>
+
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="160"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
+                     Background="#F3F3F3" BorderThickness="0"
+                     Padding="10,8" FontSize="13" Height="36"
+                     VerticalContentAlignment="Center"
+                     Margin="0,0,8,0"/>
+
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding AvailableStatusFilters}"
+                      SelectedItem="{Binding SelectedStatusFilter}"
+                      Height="36"/>
+        </Grid>
+
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Products}"
+                  SelectedItem="{Binding SelectedProduct}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  BorderThickness="1"
+                  BorderBrush="#E0E0E0"
+                  RowBackground="White"
+                  AlternatingRowBackground="#F8F9FA"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="#E0E0E0"
+                  RowHeight="36">
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background"      Value="#F1F3F5"/>
+                    <Setter Property="Foreground"      Value="#6C757D"/>
+                    <Setter Property="FontSize"        Value="12"/>
+                    <Setter Property="FontWeight"      Value="SemiBold"/>
+                    <Setter Property="Padding"         Value="10,0"/>
+                    <Setter Property="Height"          Value="38"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="BorderBrush"     Value="#E0E0E0"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Product Name"     Binding="{Binding ProductName}"     Width="*"/>
+                <DataGridTextColumn Header="Generic Name"     Binding="{Binding GenericName}"     Width="*"/>
+                <DataGridTextColumn Header="Barcode"          Binding="{Binding Barcode}"         Width="120"/>
+                <DataGridTextColumn Header="Internal Barcode" Binding="{Binding InternalBarcode}" Width="120"/>
+                <DataGridTextColumn Header="Selling Price"    Binding="{Binding SellingPrice}"    Width="100"/>
+                <DataGridTextColumn Header="Status"           Binding="{Binding Status}"          Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="3" Margin="0,14,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="← Back"
+                    Style="{StaticResource SecBtn}"
+                    Padding="16,0" Click="OnBackClick" Margin="0,0,8,0"/>
+
+            <Button Grid.Column="2" Content="Add Product"
+                    Style="{StaticResource PriBtn}"
+                    Padding="16,0" Command="{Binding AddProductCommand}" Margin="0,0,8,0"/>
+
+            <Button Grid.Column="3" Content="Edit"
+                    Style="{StaticResource SecBtn}"
+                    Padding="16,0" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
+
+            <Button Grid.Column="4" Content="Deactivate"
+                    Style="{StaticResource DangerBtn}"
+                    Padding="16,0" Command="{Binding DeactivateCommand}" Margin="0,0,8,0"/>
+
+            <Button Grid.Column="5" Content="Print Barcode"
+                    Style="{StaticResource SecBtn}"
+                    Padding="16,0" Command="{Binding PrintInternalBarcodeCommand}"/>
+        </Grid>
+
+        <TextBlock Grid.Row="4"
+                   Text="{Binding Message}"
+                   Foreground="#E53E3E"
+                   TextWrapping="Wrap" FontSize="13"
+                   Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

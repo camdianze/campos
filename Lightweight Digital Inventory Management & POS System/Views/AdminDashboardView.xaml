@@ -1,0 +1,142 @@
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.AdminDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Background="#F8F9FA"
+             d:DesignWidth="800" d:DesignHeight="560">
+
+    <UserControl.Resources>
+        <Style x:Key="PriBtn" TargetType="Button">
+            <Setter Property="Background"      Value="#BF5B92E5"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height"          Value="40"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#5B92E5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#121212"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="28,24,28,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="Administrator Dashboard"
+                       FontSize="28" FontWeight="Light"
+                       Foreground="#121212" Margin="0,0,0,24"/>
+
+            <!-- 지표 카드 6개 -->
+            <UniformGrid Grid.Row="1" Columns="3" Rows="2" Margin="0,0,0,24">
+
+                <Border Background="White" CornerRadius="12" Margin="6" Padding="16,14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="8" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Daily Sales" FontSize="12" Foreground="#6C757D" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Metrics.DailySalesAmount}" FontSize="24" FontWeight="SemiBold" Foreground="#121212"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Margin="6" Padding="16,14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="8" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Transactions" FontSize="12" Foreground="#6C757D" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Metrics.DailyTransactionCount}" FontSize="24" FontWeight="SemiBold" Foreground="#121212"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Margin="6" Padding="16,14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="8" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Inventory Value" FontSize="12" Foreground="#6C757D" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Metrics.TotalInventoryValue}" FontSize="24" FontWeight="SemiBold" Foreground="#121212"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Margin="6" Padding="16,14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="8" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Active Products" FontSize="12" Foreground="#6C757D" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Metrics.TotalActiveProducts}" FontSize="24" FontWeight="SemiBold" Foreground="#121212"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Margin="6" Padding="16,14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="8" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Low Stock" FontSize="12" Foreground="#6C757D" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Metrics.LowStockAlertCount}" FontSize="24" FontWeight="SemiBold" Foreground="#DD6B20"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Margin="6" Padding="16,14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="8" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Expiry Alert" FontSize="12" Foreground="#6C757D" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Metrics.ExpiryAlertCount}" FontSize="24" FontWeight="SemiBold" Foreground="#E53E3E"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- 이동 버튼들 -->
+            <UniformGrid Grid.Row="2" Columns="3" Rows="2" Margin="0,0,0,20">
+                <Button Content="📦  Product Management"  Style="{StaticResource PriBtn}" Margin="6" Command="{Binding ProductManagementCommand}"/>
+                <Button Content="👥  User Management"     Style="{StaticResource PriBtn}" Margin="6" Command="{Binding UserManagementCommand}"/>
+                <Button Content="📊  Inventory Overview"  Style="{StaticResource SecBtn}" Margin="6" Command="{Binding InventoryOverviewCommand}"/>
+                <Button Content="🛒  Sales History"       Style="{StaticResource SecBtn}" Margin="6" Command="{Binding SalesHistoryCommand}"/>
+                <Button Content="📈  Reports"             Style="{StaticResource SecBtn}" Margin="6" Command="{Binding ReportsCommand}"/>
+                <Button Content="💾  Backup / Export"     Style="{StaticResource SecBtn}" Margin="6" Command="{Binding BackupExportCommand}"/>
+            </UniformGrid>
+
+            <StackPanel Grid.Row="3">
+                <Button Content="← Back"
+                        Style="{StaticResource SecBtn}"
+                        HorizontalAlignment="Left"
+                        Padding="16,0" Width="90"
+                        Click="OnBackClick"/>
+                <TextBlock Text="{Binding Message}"
+                           Foreground="#E53E3E"
+                           TextWrapping="Wrap" FontSize="13"
+                           Margin="0,10,0,0"/>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
