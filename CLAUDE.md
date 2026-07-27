@@ -108,4 +108,6 @@ Marked with `TODO` in source: label-printer hardware integration (`InternalBarco
 
 ## Repository notes
 
-This directory is **not** a git repository — there is no version control, so changes are unrecoverable once overwritten. `Converters.zip` in the WPF project is a stray artifact, not a build input.
+Git repository on branch `master`, pushed to the private remote `camdianze/campos`. `.gitignore` at the root excludes build output (`bin/`, `obj/`), `.vs/`, `*.user`, and — importantly — `*.db` / `*.db-wal` / `*.db-shm`, since backup-export files contain real account hashes and sales records.
+
+`Converters.zip` in the WPF project is tracked but is a stray artifact, not a build input.
