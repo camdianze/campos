@@ -6,21 +6,147 @@
              xmlns:converters="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
              mc:Ignorable="d"
              Background="White"
-             d:DesignWidth="860" d:DesignHeight="600">
+             d:DesignWidth="960" d:DesignHeight="600">
 
+    <!--
+        표 정렬에 대해. 손대기 전에 아래 세 가지를 알고 있어야 한다.
+
+        1) TreeView는 기본적으로 자식 항목을 왼쪽으로 들여쓴다. 그러면 제품 행과 배치 행의
+           고정 컬럼이 들여쓴 만큼 어긋나서, 컬럼 폭을 똑같이 맞춰도 줄이 맞지 않는다.
+           그래서 RowBase에서 TreeViewItem 템플릿을 직접 짜 들여쓰기를 없애고, 펼침 화살표를
+           행 안의 고정 24px 컬럼으로 넣었다. 제품 행이든 배치 행이든 같은 x좌표에서 시작한다.
+
+        2) 세로 구분선은 각 셀의 왼쪽 테두리로 그린다. 그래서 위아래 여백(Padding)을
+           행 템플릿이 아니라 셀 하나하나가 들고 있다. 행 템플릿에 Padding을 주면
+           선이 행 높이를 다 채우지 못하고 위아래가 끊겨 점선처럼 보인다.
+
+        3) 헤더 / 제품 행 / 배치 행의 ColumnDefinitions는 반드시 같아야 한다.
+           하나를 바꾸면 나머지 둘도 같이 바꾼다.
+           PRODUCT만 *이고 나머지는 고정폭이다. 즉 창을 넓히면 늘어나는 건 이름 컬럼뿐이고
+           STOCK~STATUS는 오른쪽 끝에 붙어 있는다. 데이터 컬럼을 왼쪽으로 당기고 싶다면
+           PRODUCT에 MaxWidth를 걸고 마지막 컬럼을 *로 바꾸면 된다.
+    -->
     <UserControl.Resources>
         <converters:UnixToDateConverter x:Key="UnixToDateConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <Style TargetType="TreeViewItem">
+        <!-- 셀 공통: 왼쪽 세로 구분선 + 안쪽 여백 -->
+        <Style x:Key="Cell" TargetType="Border">
+            <Setter Property="BorderBrush"     Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1,0,0,0"/>
+            <Setter Property="Padding"         Value="12,10"/>
+        </Style>
+
+        <!-- 첫 컬럼은 왼쪽에 선을 긋지 않는다 (표 바깥 테두리와 겹친다) -->
+        <Style x:Key="FirstCell" TargetType="Border" BasedOn="{StaticResource Cell}">
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- 상태 배지. 심각한 순서대로 Expired > Low > Expiring.
+             제품 행(접힌 상태)은 배치 상태의 합집합이라 안쪽 문제가 빠짐없이 보이고,
+             펼치면 배치 행에서 어느 배치 때문인지 구분된다.
+             한 배치가 Expired이면서 Expiring일 수는 없지만(정의상 배타적),
+             제품 행은 배치가 여러 개라 셋이 동시에 뜰 수 있다. -->
+        <Style x:Key="Badge" TargetType="Border">
+            <Setter Property="CornerRadius"      Value="5"/>
+            <Setter Property="Padding"           Value="8,2"/>
+            <Setter Property="Margin"            Value="0,2,4,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="BadgeText" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="RowBase" TargetType="TreeViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Padding"                    Value="0"/>
-            <Setter Property="BorderThickness"            Value="0"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TreeViewItem">
+                        <StackPanel>
+                            <Border x:Name="Row"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{StaticResource BorderBrushSoft}"
+                                    BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ToggleButton x:Name="Expander" Grid.Column="0"
+                                                  Focusable="False" ClickMode="Press"
+                                                  VerticalAlignment="Center"
+                                                  IsChecked="{Binding IsExpanded, Mode=TwoWay,
+                                                              RelativeSource={RelativeSource TemplatedParent}}">
+                                        <ToggleButton.Template>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border Background="Transparent" Width="24" Height="24">
+                                                    <Path x:Name="Chevron"
+                                                          Data="M0,0 L4,4 L0,8"
+                                                          Stroke="{StaticResource MutedTextBrush}" StrokeThickness="1.6"
+                                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          RenderTransformOrigin="0.5,0.5"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="Chevron" Property="RenderTransform">
+                                                            <Setter.Value>
+                                                                <RotateTransform Angle="90"/>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Chevron" Property="Stroke"
+                                                                Value="{StaticResource PrimaryBrush}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </ToggleButton.Template>
+                                    </ToggleButton>
+
+                                    <!-- Margin 없음: 위아래 여백은 셀이 들고 있어야 세로선이 안 끊긴다 -->
+                                    <ContentPresenter Grid.Column="1"
+                                                      ContentSource="Header"
+                                                      HorizontalAlignment="Stretch"
+                                                      VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <ItemsPresenter x:Name="ItemsHost"/>
+                        </StackPanel>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="False">
+                                <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <!-- 배치가 없는 행은 화살표 자리를 비운다. Collapsed가 아니라 Hidden이어야
+                                 24px 자리가 유지돼 컬럼이 계속 맞는다. -->
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                            <!-- SourceName="Row"가 없으면 자식 행에 마우스를 올려도 부모가 같이 밝아진다. -->
+                            <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Row" Property="Background"
+                                        Value="{StaticResource PrimarySoftBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BatchRow" TargetType="TreeViewItem" BasedOn="{StaticResource RowBase}">
+            <Setter Property="Background" Value="{StaticResource SubtleSurfaceBrush}"/>
         </Style>
     </UserControl.Resources>
 
     <Grid Margin="28,24,28,24">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -35,7 +161,7 @@
                    Margin="0,0,0,20"/>
 
         <!-- 필터 바 -->
-        <Grid Grid.Row="1" Margin="0,0,0,12">
+        <Grid Grid.Row="1" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="150"/>
@@ -57,7 +183,6 @@
                       Content="Low Stock Only"
                       IsChecked="{Binding LowStockOnly}"
                       VerticalAlignment="Center"
-                      Foreground="{StaticResource TextBrush}" FontSize="13"
                       Margin="0,0,8,0"/>
 
             <ComboBox Grid.Column="3"
@@ -66,42 +191,90 @@
                       Height="36"/>
         </Grid>
 
-        <!-- TreeView -->
-        <TreeView Grid.Row="2"
-                  ItemsSource="{Binding GroupedItems}"
-                  BorderThickness="1"
-                  BorderBrush="{StaticResource BorderBrushSoft}"
-                  Background="White">
+        <!-- 컬럼 헤더. 좌측 24는 행 템플릿의 펼침 화살표 컬럼과 맞춘 것이다. -->
+        <Border Grid.Row="2"
+                Background="{StaticResource SubtleSurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrushSoft}"
+                BorderThickness="1,1,1,1"
+                CornerRadius="8,8,0,0"
+                Padding="24,0,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"   MinWidth="200"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="190"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- TreeViewItem 헤더는 기본적으로 내용 크기에만 맞춰져서 폭을 채우지 않는다.
-                 그러면 아래 템플릿의 Grid에서 * 컬럼이 0으로 찌그러져 약품명과 'Total:'이
-                 서로 붙어 보인다. Stretch를 줘야 컬럼이 제 폭을 갖는다. -->
-            <TreeView.ItemContainerStyle>
-                <Style TargetType="TreeViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                </Style>
-            </TreeView.ItemContainerStyle>
+                <Border Grid.Column="0" Style="{StaticResource FirstCell}">
+                    <TextBlock Text="PRODUCT" Style="{StaticResource EyebrowLabel}" Margin="0"/>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource Cell}">
+                    <TextBlock Text="STOCK" Style="{StaticResource EyebrowLabel}" Margin="0"
+                               HorizontalAlignment="Right"/>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Cell}">
+                    <TextBlock Text="PRICE" Style="{StaticResource EyebrowLabel}" Margin="0"
+                               HorizontalAlignment="Right"/>
+                </Border>
+                <Border Grid.Column="3" Style="{StaticResource Cell}">
+                    <TextBlock Text="EXPIRY" Style="{StaticResource EyebrowLabel}" Margin="0"/>
+                </Border>
+                <Border Grid.Column="4" Style="{StaticResource Cell}">
+                    <TextBlock Text="STATUS" Style="{StaticResource EyebrowLabel}" Margin="0"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 목록 -->
+        <TreeView Grid.Row="3"
+                  ItemsSource="{Binding GroupedItems}"
+                  ItemContainerStyle="{StaticResource RowBase}"
+                  BorderThickness="1,0,1,1"
+                  BorderBrush="{StaticResource BorderBrushSoft}"
+                  Background="White"
+                  HorizontalContentAlignment="Stretch"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Batches}">
+                <HierarchicalDataTemplate ItemsSource="{Binding Batches}"
+                                          ItemContainerStyle="{StaticResource BatchRow}">
 
-                    <!-- 약품 헤더 행 -->
-                    <Border Padding="12,10"
-                            BorderBrush="{StaticResource BorderBrushSoft}"
-                            BorderThickness="0,0,0,1">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="90"/>
-                                <ColumnDefinition Width="90"/>
-                                <ColumnDefinition Width="70"/>
-                                <ColumnDefinition Width="70"/>
-                            </Grid.ColumnDefinitions>
+                    <!-- 제품 행 -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"   MinWidth="200"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="190"/>
+                        </Grid.ColumnDefinitions>
 
-                            <!-- 약품명 + 만료임박 뱃지 -->
-                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                <TextBlock FontSize="14" FontWeight="SemiBold"
-                                           Text="{Binding ProductName}">
+                        <Border Grid.Column="0" Style="{StaticResource FirstCell}">
+                            <TextBlock Text="{Binding ProductName}"
+                                       FontSize="14" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsLowStock}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+
+                        <!-- 현재고 / 기준 재고 -->
+                        <Border Grid.Column="1" Style="{StaticResource Cell}">
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TotalQuantity}"
+                                           FontSize="14" FontWeight="SemiBold">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -113,73 +286,102 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <Border Background="#FEF3C7" CornerRadius="5"
-                                        Padding="8,2" Margin="8,0,0,0"
-                                        VerticalAlignment="Center"
-                                        Visibility="{Binding HasExpiringSoon, Converter={StaticResource BoolToVis}}">
-                                    <TextBlock Text="⚠️ Expiring" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="#92400E"/>
-                                </Border>
+                                <TextBlock Text="{Binding SafetyStockLevel, StringFormat=' / {0}'}"
+                                           FontSize="13"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           VerticalAlignment="Center"/>
                             </StackPanel>
+                        </Border>
 
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding TotalQuantity, StringFormat='Total: {0}'}"
+                        <Border Grid.Column="2" Style="{StaticResource Cell}">
+                            <TextBlock Text="{Binding SellingPrice, StringFormat='${0:F2}'}"
+                                       FontSize="13" Foreground="{StaticResource MutedTextBrush}"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- 배치 중 가장 빠른 만료일 -->
+                        <Border Grid.Column="3" Style="{StaticResource Cell}">
+                            <TextBlock Text="{Binding EarliestExpiryDate, Converter={StaticResource UnixToDateConverter}}"
                                        FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                        VerticalAlignment="Center"/>
+                        </Border>
 
-                            <TextBlock Grid.Column="2"
-                                       Text="{Binding SellingPrice, StringFormat='${0:F2}'}"
-                                       FontSize="13" Foreground="{StaticResource MutedTextBrush}"
-                                       VerticalAlignment="Center"/>
+                        <!-- 배지가 셋 다 뜰 수 있어 WrapPanel로 둔다. 컬럼이 좁아지면 다음 줄로 내려간다. -->
+                        <Border Grid.Column="4" Style="{StaticResource Cell}">
+                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Style="{StaticResource Badge}"
+                                        Background="{StaticResource DangerBrush}"
+                                        Visibility="{Binding HasExpired, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Expired" Style="{StaticResource BadgeText}" Foreground="White"/>
+                                </Border>
+                                <Border Style="{StaticResource Badge}" Background="#FEE2E2"
+                                        Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Low" Style="{StaticResource BadgeText}"
+                                               Foreground="{StaticResource DangerBrush}"/>
+                                </Border>
+                                <Border Style="{StaticResource Badge}" Background="#FEF3C7"
+                                        Visibility="{Binding HasExpiringSoon, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Expiring" Style="{StaticResource BadgeText}" Foreground="#92400E"/>
+                                </Border>
+                            </WrapPanel>
+                        </Border>
+                    </Grid>
 
-                            <!-- HorizontalAlignment을 주지 않으면 뱃지가 70px 컬럼을 통째로 채워
-                                 글자만 왼쪽에 붙은 넓적한 상자가 된다. -->
-                            <Border Grid.Column="3"
-                                    Background="#FEE2E2" CornerRadius="5"
-                                    Padding="8,2"
-                                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                                    Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="Low" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource DangerBrush}"/>
-                            </Border>
-                        </Grid>
-                    </Border>
-
-                    <!-- 배치 자식 행 -->
+                    <!-- 배치 행 -->
                     <HierarchicalDataTemplate.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="{StaticResource SubtleSurfaceBrush}"
-                                    Padding="32,8,12,8"
-                                    BorderBrush="{StaticResource BorderBrushSoft}"
-                                    BorderThickness="0,0,0,1">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="90"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="70"/>
-                                    </Grid.ColumnDefinitions>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"   MinWidth="200"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="190"/>
+                                </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Column="0"
-                                               Text="{Binding BatchNumber}"
-                                               FontSize="13" Foreground="{StaticResource TextBrush}"/>
+                                <!-- 들여쓰기는 첫 컬럼 안에서만 준다. 오른쪽 고정 컬럼은 그대로 줄이 맞는다. -->
+                                <Border Grid.Column="0" Style="{StaticResource FirstCell}">
+                                    <TextBlock Text="{Binding BatchNumber}"
+                                               FontSize="13" Foreground="{StaticResource MutedTextBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="20,0,0,0" VerticalAlignment="Center"/>
+                                </Border>
 
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding CurrentQuantity}"
-                                               FontSize="13" Foreground="{StaticResource TextBrush}"/>
+                                <Border Grid.Column="1" Style="{StaticResource Cell}">
+                                    <TextBlock Text="{Binding CurrentQuantity}"
+                                               FontSize="13" Foreground="{StaticResource TextBrush}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Border>
 
-                                    <TextBlock Grid.Column="2"
-                                               Text="{Binding ExpiryDate, Converter={StaticResource UnixToDateConverter}}"
-                                               FontSize="13" Foreground="{StaticResource TextBrush}"/>
+                                <!-- 판매가는 제품 단위 값이라 배치 행에서는 비워둔다 -->
+                                <Border Grid.Column="2" Style="{StaticResource Cell}"/>
 
-                                    <Border Grid.Column="3"
-                                            Background="#FFE0E0" CornerRadius="4"
-                                            Padding="6,2" VerticalAlignment="Center"
-                                            Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="Low" FontSize="11" Foreground="{StaticResource DangerBrush}"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
+                                <Border Grid.Column="3" Style="{StaticResource Cell}">
+                                    <TextBlock Text="{Binding ExpiryDate, Converter={StaticResource UnixToDateConverter}}"
+                                               FontSize="13" Foreground="{StaticResource TextBrush}"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+
+                                <!-- 어느 배치가 임박/만료인지 여기서 구분된다. 제품 행은 이걸 합친 결과다. -->
+                                <Border Grid.Column="4" Style="{StaticResource Cell}">
+                                    <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Style="{StaticResource Badge}"
+                                                Background="{StaticResource DangerBrush}"
+                                                Visibility="{Binding IsExpired, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="Expired" Style="{StaticResource BadgeText}" Foreground="White"/>
+                                        </Border>
+                                        <Border Style="{StaticResource Badge}" Background="#FEE2E2"
+                                                Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="Low" Style="{StaticResource BadgeText}"
+                                                       Foreground="{StaticResource DangerBrush}"/>
+                                        </Border>
+                                        <Border Style="{StaticResource Badge}" Background="#FEF3C7"
+                                                Visibility="{Binding IsExpiringSoon, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="Expiring" Style="{StaticResource BadgeText}" Foreground="#92400E"/>
+                                        </Border>
+                                    </WrapPanel>
+                                </Border>
+                            </Grid>
                         </DataTemplate>
                     </HierarchicalDataTemplate.ItemTemplate>
 
@@ -188,7 +390,7 @@
         </TreeView>
 
         <!-- 하단 버튼 -->
-        <Grid Grid.Row="3" Margin="0,14,0,0">
+        <Grid Grid.Row="4" Margin="0,14,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -198,23 +400,20 @@
 
             <Button Grid.Column="0" Content="← Back"
                     Style="{StaticResource SecondaryBtn}"
-                    Padding="16,0" Click="OnBackClick" Margin="0,0,8,0"/>
+                    Click="OnBackClick" Margin="0,0,8,0"/>
 
             <Button Grid.Column="2" Content="Stock-in"
                     Style="{StaticResource PrimaryBtn}"
-                    Padding="16,0"
                     Command="{Binding StockInCommand}" Margin="0,0,8,0"/>
 
             <Button Grid.Column="3" Content="Adjustment"
                     Style="{StaticResource PrimaryBtn}"
-                    Padding="16,0"
                     Command="{Binding AdjustmentCommand}"/>
         </Grid>
 
-        <TextBlock Grid.Row="4"
+        <TextBlock Grid.Row="5"
                    Text="{Binding Message}"
-                   Foreground="{StaticResource DangerBrush}"
-                   TextWrapping="Wrap" FontSize="13"
-                   Margin="0,8,0,0"/>
+                   Style="{StaticResource ErrorText}"
+                   MinHeight="18" Margin="0,8,0,0"/>
     </Grid>
 </UserControl>
