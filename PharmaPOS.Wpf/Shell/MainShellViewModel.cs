@@ -24,10 +24,10 @@ public class MainShellViewModel : ViewModelBase
         set => SetProperty(ref _alertCount, value);
     }
 
-    public RelayCommand ChangePasswordCommand { get; }
+    public RelayCommand MyPageCommand { get; }
     public RelayCommand LogoutCommand { get; }
 
-    public event Action? ChangePasswordRequested;
+    public event Action? MyPageRequested;
     public event Action? LogoutRequested;
 
     public MainShellViewModel(User loggedInUser, IAlertService alertService)
@@ -46,7 +46,7 @@ public class MainShellViewModel : ViewModelBase
 
         IsAdministrator = loggedInUser.Role == UserRole.Administrator;
 
-        ChangePasswordCommand = new RelayCommand(_ => ChangePasswordRequested?.Invoke());
+        MyPageCommand = new RelayCommand(_ => MyPageRequested?.Invoke());
         LogoutCommand = new RelayCommand(_ => LogoutRequested?.Invoke());
 
         _ = LoadAlertsAsync();

@@ -43,6 +43,38 @@
             </Setter>
         </Style>
 
+        <!-- TopBtn의 파랑 변형. BasedOn으로 Background만 바꾸면 hover 때 템플릿이
+             회색을 다시 칠해버려서 템플릿째 따로 둔다. BottomCardBtnPrimary도 같은 이유다. -->
+        <Style x:Key="TopBtnPrimary" TargetType="Button">
+            <Setter Property="Background"      Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Height"          Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="10,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryPressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="BottomCardBtn" TargetType="Button">
             <Setter Property="Background"      Value="{StaticResource SurfaceBrush}"/>
             <Setter Property="Foreground"      Value="{StaticResource TextBrush}"/>
@@ -68,6 +100,34 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#DBEAFE"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BottomCardBtnPrimary" TargetType="Button">
+            <Setter Property="Background"      Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="FontSize"        Value="14"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Height"          Value="60"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="12" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryPressedBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -100,10 +160,10 @@
                        VerticalAlignment="Center"
                        Margin="0,0,40,0"/>
 
-            <Button Grid.Column="1" Content="Change ID/PW"
-                    Style="{StaticResource TopBtn}"
-                    Command="{Binding ChangePasswordCommand}"
-                    Width="100" Margin="0,0,8,0"/>
+            <Button Grid.Column="1" Content="My Page"
+                    Style="{StaticResource TopBtnPrimary}"
+                    Command="{Binding MyPageCommand}"
+                    Width="80" Margin="0,0,8,0"/>
 
             <Button Grid.Column="2" Content="Logout"
                     Style="{StaticResource TopBtn}"
@@ -347,17 +407,16 @@
             </Border>
         </Grid>
 
-        <!-- 하단 버튼 (관리자: 5개) -->
+        <!-- 하단 버튼 (관리자: 4개). Recovery Settings는 My Page 안으로 옮겼다. -->
         <UniformGrid Grid.Row="3" Rows="1" Margin="50,0,50,24"
                      Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVis}}">
-            <Button Content="⚙️  Admin Dashboard"   Style="{StaticResource BottomCardBtn}" Click="OnAdminDashboardClick"  Margin="0,0,6,0"/>
-            <Button Content="🔐  Recovery Settings" Style="{StaticResource BottomCardBtn}" Click="OnRecoverySettingsClick" Margin="3,0"/>
-            <Button Content="💊  Products"          Style="{StaticResource BottomCardBtn}" Click="OnProductsClick"         Margin="3,0"/>
-            <Button Content="✏️  Adjustment"        Style="{StaticResource BottomCardBtn}" Click="OnAdjustmentClick"       Margin="3,0"/>
-            <Button Content="📊  History"     Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"     Margin="6,0,0,0"/>
+            <Button Content="⚙️  Admin Dashboard" Style="{StaticResource BottomCardBtnPrimary}" Click="OnAdminDashboardClick" Margin="0,0,6,0"/>
+            <Button Content="💊  Products"        Style="{StaticResource BottomCardBtn}" Click="OnProductsClick"       Margin="3,0"/>
+            <Button Content="✏️  Adjustment"      Style="{StaticResource BottomCardBtn}" Click="OnAdjustmentClick"     Margin="3,0"/>
+            <Button Content="📊  History"         Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"        Margin="6,0,0,0"/>
         </UniformGrid>
 
-        <!-- 하단 버튼 (직원: 4개) -->
+        <!-- 하단 버튼 (직원: 3개) -->
         <UniformGrid Grid.Row="3" Rows="1" Margin="50,0,50,24">
             <UniformGrid.Style>
                 <Style TargetType="UniformGrid">
@@ -369,10 +428,9 @@
                     </Style.Triggers>
                 </Style>
             </UniformGrid.Style>
-            <Button Content="🔐  Recovery Settings" Style="{StaticResource BottomCardBtn}" Click="OnRecoverySettingsClick" Margin="0,0,6,0"/>
-            <Button Content="💊  Products"          Style="{StaticResource BottomCardBtn}" Click="OnProductsClick"         Margin="3,0"/>
-            <Button Content="✏️  Adjustment"        Style="{StaticResource BottomCardBtn}" Click="OnAdjustmentClick"       Margin="3,0"/>
-            <Button Content="📊  History"     Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"     Margin="6,0,0,0"/>
+            <Button Content="💊  Products"   Style="{StaticResource BottomCardBtn}" Click="OnProductsClick"   Margin="0,0,6,0"/>
+            <Button Content="✏️  Adjustment" Style="{StaticResource BottomCardBtn}" Click="OnAdjustmentClick" Margin="3,0"/>
+            <Button Content="📊  History"    Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"    Margin="6,0,0,0"/>
         </UniformGrid>
 
     </Grid>

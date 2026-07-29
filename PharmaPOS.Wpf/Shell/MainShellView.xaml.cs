@@ -22,7 +22,7 @@ public partial class MainShellView : UserControl
             if (DataContext is MainShellViewModel viewModel)
             {
                 viewModel.LogoutRequested += OnLogoutRequested;
-                viewModel.ChangePasswordRequested += () => OnChangePasswordRequested(viewModel);
+                viewModel.MyPageRequested += () => OnMyPageRequested(viewModel);
             }
         };
     }
@@ -37,21 +37,12 @@ public partial class MainShellView : UserControl
         }
     }
 
-    private void OnChangePasswordRequested(MainShellViewModel shellViewModel)
+    // 비밀번호 변경과 복구 설정은 My Page 안으로 들어갔다. 셸은 My Page만 연다.
+    private void OnMyPageRequested(MainShellViewModel shellViewModel)
     {
         var parentWindow = Window.GetWindow(this) as MainWindow;
-        if (parentWindow is null) return;
-
-        var changePasswordService = App.Services.GetRequiredService<IChangePasswordService>();
-        var changePasswordViewModel = new ChangePasswordViewModel(changePasswordService, shellViewModel.CurrentUser);
-
-        changePasswordViewModel.NavigateBackToLogin += () =>
-        {
-            App.CurrentShellViewModel = null;
-            parentWindow.Content = new LoginView();
-        };
-
-        parentWindow.Content = new ChangePasswordView { DataContext = changePasswordViewModel };
+        if (parentWindow is not null)
+            parentWindow.Content = new MyPageView(shellViewModel.CurrentUser);
     }
 
     // ── 알림 팝업 ─────────────────────────────────────────────────────────
@@ -184,20 +175,5 @@ public partial class MainShellView : UserControl
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
             parentWindow.Content = historyView;
-    }
-    private void OnRecoverySettingsClick(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is not MainShellViewModel shellViewModel) return;
-
-        var recoverySettingsService = App.Services.GetRequiredService<IRecoverySettingsService>();
-        var recoverySettingsViewModel = new RecoverySettingsViewModel(
-            recoverySettingsService, shellViewModel.CurrentUser.UserId, shellViewModel.CurrentUser.Username);
-
-        var recoverySettingsView = new RecoverySettingsView();
-        recoverySettingsView.AttachViewModel(recoverySettingsViewModel);
-
-        var parentWindow = Window.GetWindow(this) as MainWindow;
-        if (parentWindow is not null)
-            parentWindow.Content = recoverySettingsView;
     }
 }

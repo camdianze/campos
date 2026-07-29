@@ -30,6 +30,10 @@ public class ChangePasswordViewModel : ViewModelBase
 
     public RelayCommand CancelCommand { get; }
 
+    /// <summary>취소했을 때. 아무것도 바뀌지 않았으므로 들어온 화면으로 되돌아간다.</summary>
+    public event Action? NavigateBack;
+
+    /// <summary>비밀번호가 실제로 바뀌었을 때. 기존 세션을 유지할 수 없어 재로그인이 필요하다.</summary>
     public event Action? NavigateBackToLogin;
 
     public ChangePasswordViewModel(IChangePasswordService changePasswordService, User currentUser)
@@ -37,7 +41,7 @@ public class ChangePasswordViewModel : ViewModelBase
         _changePasswordService = changePasswordService;
         _currentUser = currentUser;
 
-        CancelCommand = new RelayCommand(_ => NavigateBackToLogin?.Invoke());
+        CancelCommand = new RelayCommand(_ => NavigateBack?.Invoke());
     }
 
     public async void ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
