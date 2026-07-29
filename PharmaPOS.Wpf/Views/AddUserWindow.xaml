@@ -8,68 +8,7 @@
         SizeToContent="Height"
         Width="380">
 
-    <Window.Resources>
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="13"/>
-            <Setter Property="Foreground" Value="#6C757D"/>
-            <Setter Property="Margin"     Value="0,0,0,6"/>
-        </Style>
-        <Style x:Key="FieldInput" TargetType="TextBox">
-            <Setter Property="Background"               Value="#F3F3F3"/>
-            <Setter Property="BorderThickness"          Value="0"/>
-            <Setter Property="Height"                   Value="36"/>
-            <Setter Property="FontSize"                 Value="13"/>
-            <Setter Property="Padding"                  Value="10,8"/>
-            <Setter Property="Foreground"               Value="#212529"/>
-            <Setter Property="CaretBrush"               Value="#212529"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-        <Style x:Key="FieldPassword" TargetType="PasswordBox">
-            <Setter Property="Background"      Value="#F3F3F3"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="Padding"         Value="10,8"/>
-            <Setter Property="Foreground"      Value="#212529"/>
-        </Style>
-        <Style x:Key="PrimaryBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="16,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="SecondaryBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#F0F0F0"/>
-            <Setter Property="Foreground"      Value="#212529"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="16,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-
+    <!-- 스타일은 App.xaml 공통 테마에서 온다. -->
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -82,8 +21,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Add User"
-                   FontSize="24" FontWeight="Light"
-                   Foreground="#212529" Margin="0,0,0,20"/>
+                   Style="{StaticResource PageTitle}" Margin="0,0,0,20"/>
 
         <StackPanel Grid.Row="1" Margin="0,0,0,14">
             <TextBlock Text="Username" Style="{StaticResource FieldLabel}"/>
@@ -102,7 +40,7 @@
 
         <StackPanel Grid.Row="4" Margin="0,0,0,20">
             <TextBlock Text="Role" Style="{StaticResource FieldLabel}"/>
-            <ComboBox x:Name="RoleComboBox" Height="36"/>
+            <ComboBox x:Name="RoleComboBox"/>
         </StackPanel>
 
         <Grid Grid.Row="5" Margin="0,0,0,10">
@@ -119,7 +57,6 @@
         </Grid>
 
         <TextBlock x:Name="MessageText" Grid.Row="6"
-                   Foreground="#E53E3E"
-                   TextWrapping="Wrap" FontSize="13"/>
+                   Style="{StaticResource ErrorText}" MinHeight="18"/>
     </Grid>
 </Window>

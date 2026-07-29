@@ -10,51 +10,6 @@
 
     <UserControl.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBoolConverter"/>
-
-        <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"     Value="11"/>
-            <Setter Property="FontWeight"   Value="SemiBold"/>
-            <Setter Property="Foreground"   Value="#6C757D"/>
-            <Setter Property="Margin"       Value="0,0,0,10"/>
-        </Style>
-
-        <Style x:Key="PriBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SecBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="Foreground" Value="#121212"/>
-        </Style>
-
-        <Style x:Key="DangerBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
-            <Setter Property="Background" Value="#E53E3E"/>
-        </Style>
-
-        <Style x:Key="FieldInput" TargetType="TextBox">
-            <Setter Property="Background"               Value="#F3F3F3"/>
-            <Setter Property="BorderThickness"          Value="0"/>
-            <Setter Property="Height"                   Value="36"/>
-            <Setter Property="FontSize"                 Value="13"/>
-            <Setter Property="Padding"                  Value="10,8"/>
-            <Setter Property="Foreground"               Value="#212529"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -71,14 +26,14 @@
             <!-- 제목 -->
             <TextBlock Grid.Row="0"
                        Text="Backup / Export"
-                       FontSize="28" FontWeight="Light"
-                       Foreground="#121212" Margin="0,0,0,28"/>
+                       Style="{StaticResource PageTitle}"
+                       Margin="0,0,0,28"/>
 
             <!-- Import Products -->
             <StackPanel Grid.Row="1" Margin="0,0,0,24">
-                <TextBlock Text="IMPORT PRODUCTS" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="IMPORT PRODUCTS" Style="{StaticResource EyebrowLabel}"/>
                 <TextBlock Text="CSV 또는 Excel 파일에서 제품을 가져옵니다."
-                           FontSize="12" Foreground="#6C757D" Margin="0,0,0,10"/>
+                           FontSize="12" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,10"/>
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -90,12 +45,12 @@
                              Style="{StaticResource FieldInput}"
                              Margin="0,0,8,0"/>
                     <Button Grid.Column="1" Content="Browse"
-                            Style="{StaticResource SecBtn}"
+                            Style="{StaticResource SecondaryBtn}"
                             Padding="12,0"
                             Command="{Binding SelectImportFileCommand}"/>
                 </Grid>
                 <Button Content="📥  Import Products"
-                        Style="{StaticResource PriBtn}"
+                        Style="{StaticResource PrimaryBtn}"
                         Padding="16,0"
                         HorizontalAlignment="Left"
                         Command="{Binding ImportProductsCommand}"/>
@@ -103,7 +58,7 @@
 
             <!-- DB Backup -->
             <StackPanel Grid.Row="2" Margin="0,0,0,24">
-                <TextBlock Text="DATABASE BACKUP" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="DATABASE BACKUP" Style="{StaticResource EyebrowLabel}"/>
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -115,12 +70,12 @@
                              Style="{StaticResource FieldInput}"
                              Margin="0,0,8,0"/>
                     <Button Grid.Column="1" Content="Browse"
-                            Style="{StaticResource SecBtn}"
+                            Style="{StaticResource SecondaryBtn}"
                             Padding="12,0"
                             Command="{Binding SelectBackupLocationCommand}"/>
                 </Grid>
                 <Button Content="💾  Create DB Backup"
-                        Style="{StaticResource SecBtn}"
+                        Style="{StaticResource SecondaryBtn}"
                         Padding="16,0"
                         HorizontalAlignment="Left"
                         Command="{Binding CreateDbBackupCommand}"/>
@@ -128,7 +83,7 @@
 
             <!-- Export Data -->
             <StackPanel Grid.Row="3" Margin="0,0,0,24">
-                <TextBlock Text="EXPORT DATA" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="EXPORT DATA" Style="{StaticResource EyebrowLabel}"/>
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -140,14 +95,14 @@
                               Height="36" Margin="0,0,8,0"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <RadioButton Content="CSV"   IsChecked="{Binding IsCsvFormat}"
-                                     Foreground="#121212" FontSize="13" Margin="0,0,16,0"/>
+                                     Foreground="{StaticResource TextBrush}" FontSize="13" Margin="0,0,16,0"/>
                         <RadioButton Content="Excel"
                                      IsChecked="{Binding IsCsvFormat, Converter={StaticResource InverseBoolConverter}}"
-                                     Foreground="#121212" FontSize="13"/>
+                                     Foreground="{StaticResource TextBrush}" FontSize="13"/>
                     </StackPanel>
                 </Grid>
                 <Button Content="📤  Export Data"
-                        Style="{StaticResource SecBtn}"
+                        Style="{StaticResource SecondaryBtn}"
                         Padding="16,0"
                         HorizontalAlignment="Left"
                         Command="{Binding ExportDataCommand}"/>
@@ -155,7 +110,7 @@
 
             <!-- Restore DB -->
             <StackPanel Grid.Row="4" Margin="0,0,0,24">
-                <TextBlock Text="RESTORE DATABASE" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="RESTORE DATABASE" Style="{StaticResource EyebrowLabel}"/>
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -167,7 +122,7 @@
                              Style="{StaticResource FieldInput}"
                              Margin="0,0,8,0"/>
                     <Button Grid.Column="1" Content="Browse"
-                            Style="{StaticResource SecBtn}"
+                            Style="{StaticResource SecondaryBtn}"
                             Padding="12,0"
                             Command="{Binding SelectBackupFileCommand}"/>
                 </Grid>
@@ -181,13 +136,13 @@
             <!-- 뒤로 + 메시지 -->
             <StackPanel Grid.Row="5">
                 <Button Content="← Back"
-                        Style="{StaticResource SecBtn}"
+                        Style="{StaticResource SecondaryBtn}"
                         Padding="16,0"
                         HorizontalAlignment="Left"
                         Click="OnBackClick"
                         Margin="0,0,0,12"/>
                 <TextBlock Text="{Binding Message}"
-                           Foreground="#E53E3E"
+                           Foreground="{StaticResource DangerBrush}"
                            TextWrapping="Wrap" FontSize="13"/>
             </StackPanel>
         </Grid>

@@ -10,62 +10,6 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Foreground" Value="#6C757D"/>
-            <Setter Property="Margin"     Value="0,0,0,6"/>
-        </Style>
-
-        <Style x:Key="FieldInput" TargetType="TextBox">
-            <Setter Property="Background"               Value="#F3F3F3"/>
-            <Setter Property="BorderThickness"          Value="0"/>
-            <Setter Property="Height"                   Value="36"/>
-            <Setter Property="FontSize"                 Value="13"/>
-            <Setter Property="Padding"                  Value="10,8"/>
-            <Setter Property="Foreground"               Value="#212529"/>
-            <Setter Property="CaretBrush"               Value="#212529"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-
-        <Style x:Key="FieldPassword" TargetType="PasswordBox">
-            <Setter Property="Background"      Value="#F3F3F3"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="Padding"         Value="10,8"/>
-            <Setter Property="Foreground"      Value="#212529"/>
-        </Style>
-
-        <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="11"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#6C757D"/>
-            <Setter Property="Margin"     Value="0,0,0,12"/>
-        </Style>
-
-        <Style x:Key="PriBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SecBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="Foreground" Value="#121212"/>
-        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -81,20 +25,19 @@
             <!-- 제목 -->
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
                 <TextBlock Text="Recovery Settings"
-                           FontSize="28" FontWeight="Light"
-                           Foreground="#121212" Margin="0,0,0,8"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#6C757D" FontSize="13"
+                           Style="{StaticResource PageTitle}" Margin="0,0,0,8"/>
+                <TextBlock Style="{StaticResource Caption}"
                            Text="Set up at least one recovery method in case you forget your password."/>
             </StackPanel>
 
             <!-- 보안 질문 -->
             <StackPanel Grid.Row="1" Margin="0,0,0,24">
-                <TextBlock Text="SECURITY QUESTION" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="SECURITY QUESTION" Style="{StaticResource EyebrowLabel}"/>
 
                 <TextBlock Text="Question" Style="{StaticResource FieldLabel}"/>
                 <ComboBox ItemsSource="{Binding AvailableSecurityQuestions}"
                           SelectedItem="{Binding SelectedSecurityQuestion}"
-                          Height="36" Margin="0,0,0,14"/>
+                          Margin="0,0,0,14"/>
 
                 <TextBlock Text="Answer" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding SecurityAnswer, UpdateSourceTrigger=PropertyChanged}"
@@ -103,7 +46,7 @@
 
             <!-- 이메일 복구 -->
             <StackPanel Grid.Row="2" Margin="0,0,0,24">
-                <TextBlock Text="RECOVERY EMAIL" Style="{StaticResource SectionLabel}"/>
+                <TextBlock Text="RECOVERY EMAIL" Style="{StaticResource EyebrowLabel}"/>
 
                 <TextBlock Text="Email Address" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding RecoveryEmail, UpdateSourceTrigger=PropertyChanged}"
@@ -112,7 +55,7 @@
                 <TextBlock Text="Email Provider" Style="{StaticResource FieldLabel}"/>
                 <ComboBox ItemsSource="{Binding AvailableEmailProviders}"
                           SelectedItem="{Binding SelectedEmailProvider}"
-                          Height="36" Margin="0,0,0,14"/>
+                          Margin="0,0,0,14"/>
 
                 <TextBlock Text="App Password" Style="{StaticResource FieldLabel}"/>
                 <PasswordBox x:Name="AppPasswordInput"
@@ -137,19 +80,18 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="← Back"
-                        Style="{StaticResource SecBtn}"
+                        Style="{StaticResource SecondaryBtn}"
                         Padding="16,0" Margin="0,0,6,0"
                         Command="{Binding BackCommand}"/>
                 <Button Grid.Column="1" Content="Save"
-                        Style="{StaticResource PriBtn}"
+                        Style="{StaticResource PrimaryBtn}"
                         Padding="16,0" Margin="6,0,0,0"
                         Click="OnSaveClick"/>
             </Grid>
 
             <TextBlock Grid.Row="4"
                        Text="{Binding Message}"
-                       Foreground="#E53E3E"
-                       TextWrapping="Wrap" FontSize="13"/>
+                       Style="{StaticResource ErrorText}" MinHeight="18"/>
         </Grid>
     </ScrollViewer>
 </UserControl>

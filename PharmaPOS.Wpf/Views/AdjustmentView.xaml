@@ -8,57 +8,6 @@
              d:DesignWidth="500" d:DesignHeight="650">
 
     <UserControl.Resources>
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="13"/>
-            <Setter Property="Foreground" Value="#6C757D"/>
-            <Setter Property="Margin"     Value="0,0,0,6"/>
-        </Style>
-        <Style x:Key="FieldInput" TargetType="TextBox">
-            <Setter Property="Background"             Value="#F3F3F3"/>
-            <Setter Property="BorderThickness"        Value="0"/>
-            <Setter Property="Height"                 Value="36"/>
-            <Setter Property="FontSize"               Value="13"/>
-            <Setter Property="Padding"                Value="10,8"/>
-            <Setter Property="Foreground"             Value="#212529"/>
-            <Setter Property="CaretBrush"             Value="#212529"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-        <Style x:Key="PrimaryBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="16,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="SecondaryBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#F0F0F0"/>
-            <Setter Property="Foreground"      Value="#212529"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="16,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
 
     <Grid Width="420" Margin="0,24,0,24" HorizontalAlignment="Center">
@@ -71,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Inventory Adjustment"
-                   FontSize="28" FontWeight="Light" Foreground="#212529"
+                   Style="{StaticResource PageTitle}"
                    Margin="0,0,0,24"/>
 
         <!-- 상품 검색 -->
@@ -87,7 +36,7 @@
                      SelectedItem="{Binding SelectedProduct}"
                      DisplayMemberPath="ProductName"
                      MaxHeight="100"
-                     BorderBrush="#E0E0E0"
+                     BorderBrush="{StaticResource BorderBrushSoft}"
                      BorderThickness="1"
                      Margin="0,0,0,12"/>
             <TextBlock Text="Batch Number" Style="{StaticResource FieldLabel}"/>
@@ -103,7 +52,7 @@
             <TextBox Text="{Binding SystemQuantity, Mode=OneWay}"
                      IsReadOnly="True"
                      Style="{StaticResource FieldInput}"
-                     Foreground="#6C757D"
+                     Foreground="{StaticResource MutedTextBrush}"
                      Margin="0,0,0,14"/>
 
             <TextBlock Text="Physical Count" Style="{StaticResource FieldLabel}"/>
@@ -115,7 +64,7 @@
             <TextBox Text="{Binding Delta, Mode=OneWay}"
                      IsReadOnly="True"
                      Style="{StaticResource FieldInput}"
-                     Foreground="#6C757D"
+                     Foreground="{StaticResource MutedTextBrush}"
                      Margin="0,0,0,14"/>
 
             <TextBlock Text="Reason" Style="{StaticResource FieldLabel}"/>
@@ -141,7 +90,7 @@
 
         <TextBlock Grid.Row="4"
                    Text="{Binding Message}"
-                   Foreground="#E53E3E"
+                   Foreground="{StaticResource DangerBrush}"
                    TextWrapping="Wrap" FontSize="13"
                    Margin="0,10,0,0"/>
     </Grid>

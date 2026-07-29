@@ -8,39 +8,6 @@
              d:DesignWidth="800" d:DesignHeight="550">
 
     <UserControl.Resources>
-        <Style x:Key="PriBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Background" Value="#BBBBBB"/>
-                                <Setter Property="Foreground" Value="#888888"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SecBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="Foreground" Value="#121212"/>
-        </Style>
-
-        <Style x:Key="DangerBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
-            <Setter Property="Background" Value="#E53E3E"/>
-        </Style>
     </UserControl.Resources>
 
     <Grid Margin="28,24,28,24">
@@ -54,8 +21,8 @@
 
         <TextBlock Grid.Row="0"
                    Text="Products"
-                   FontSize="28" FontWeight="Light"
-                   Foreground="#121212" Margin="0,0,0,20"/>
+                   Style="{StaticResource PageTitle}"
+                   Margin="0,0,0,20"/>
 
         <Grid Grid.Row="1" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
@@ -65,9 +32,7 @@
 
             <TextBox Grid.Column="0"
                      Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
-                     Background="#F3F3F3" BorderThickness="0"
-                     Padding="10,8" FontSize="13" Height="36"
-                     VerticalContentAlignment="Center"
+                     FontSize="13" Height="36"
                      Margin="0,0,8,0"/>
 
             <ComboBox Grid.Column="1"
@@ -83,24 +48,12 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   BorderThickness="1"
-                  BorderBrush="#E0E0E0"
+                  BorderBrush="{StaticResource BorderBrushSoft}"
                   RowBackground="White"
-                  AlternatingRowBackground="#F8F9FA"
+                  AlternatingRowBackground="{StaticResource SubtleSurfaceBrush}"
                   GridLinesVisibility="Horizontal"
-                  HorizontalGridLinesBrush="#E0E0E0"
+                  HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background"      Value="#F1F3F5"/>
-                    <Setter Property="Foreground"      Value="#6C757D"/>
-                    <Setter Property="FontSize"        Value="12"/>
-                    <Setter Property="FontWeight"      Value="SemiBold"/>
-                    <Setter Property="Padding"         Value="10,0"/>
-                    <Setter Property="Height"          Value="38"/>
-                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                    <Setter Property="BorderBrush"     Value="#E0E0E0"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Product Name"     Binding="{Binding ProductName}"     Width="*"/>
                 <DataGridTextColumn Header="Generic Name"     Binding="{Binding GenericName}"     Width="*"/>
@@ -122,15 +75,15 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="0" Content="← Back"
-                    Style="{StaticResource SecBtn}"
+                    Style="{StaticResource SecondaryBtn}"
                     Padding="16,0" Click="OnBackClick" Margin="0,0,8,0"/>
 
             <Button Grid.Column="2" Content="Add Product"
-                    Style="{StaticResource PriBtn}"
+                    Style="{StaticResource PrimaryBtn}"
                     Padding="16,0" Command="{Binding AddProductCommand}" Margin="0,0,8,0"/>
 
             <Button Grid.Column="3" Content="Edit"
-                    Style="{StaticResource SecBtn}"
+                    Style="{StaticResource SecondaryBtn}"
                     Padding="16,0" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
 
             <Button Grid.Column="4" Content="Deactivate"
@@ -138,13 +91,13 @@
                     Padding="16,0" Command="{Binding DeactivateCommand}" Margin="0,0,8,0"/>
 
             <Button Grid.Column="5" Content="Print Barcode"
-                    Style="{StaticResource SecBtn}"
+                    Style="{StaticResource SecondaryBtn}"
                     Padding="16,0" Command="{Binding PrintInternalBarcodeCommand}"/>
         </Grid>
 
         <TextBlock Grid.Row="4"
                    Text="{Binding Message}"
-                   Foreground="#E53E3E"
+                   Foreground="{StaticResource DangerBrush}"
                    TextWrapping="Wrap" FontSize="13"
                    Margin="0,8,0,0"/>
     </Grid>

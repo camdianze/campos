@@ -12,30 +12,6 @@
         <converters:UnixToDateConverter x:Key="UnixToDateConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <Style x:Key="SecBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#F0F0F0"/>
-            <Setter Property="Foreground"      Value="#121212"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="PriBtn" TargetType="Button" BasedOn="{StaticResource SecBtn}">
-            <Setter Property="Background" Value="#BF5B92E5"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-
         <Style TargetType="TreeViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Padding"                    Value="0"/>
@@ -55,8 +31,8 @@
         <!-- 제목 -->
         <TextBlock Grid.Row="0"
                    Text="Inventory Status"
-                   FontSize="28" FontWeight="Light"
-                   Foreground="#121212" Margin="0,0,0,20"/>
+                   Style="{StaticResource PageTitle}"
+                   Margin="0,0,0,20"/>
 
         <!-- 필터 바 -->
         <Grid Grid.Row="1" Margin="0,0,0,12">
@@ -69,9 +45,7 @@
 
             <TextBox Grid.Column="0"
                      Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
-                     Background="#F3F3F3" BorderThickness="0"
-                     Padding="10,8" FontSize="13" Height="36"
-                     VerticalContentAlignment="Center"
+                     FontSize="13" Height="36"
                      Margin="0,0,8,0"/>
 
             <ComboBox Grid.Column="1"
@@ -83,7 +57,7 @@
                       Content="Low Stock Only"
                       IsChecked="{Binding LowStockOnly}"
                       VerticalAlignment="Center"
-                      Foreground="#121212" FontSize="13"
+                      Foreground="{StaticResource TextBrush}" FontSize="13"
                       Margin="0,0,8,0"/>
 
             <ComboBox Grid.Column="3"
@@ -96,15 +70,24 @@
         <TreeView Grid.Row="2"
                   ItemsSource="{Binding GroupedItems}"
                   BorderThickness="1"
-                  BorderBrush="#E0E0E0"
+                  BorderBrush="{StaticResource BorderBrushSoft}"
                   Background="White">
+
+            <!-- TreeViewItem 헤더는 기본적으로 내용 크기에만 맞춰져서 폭을 채우지 않는다.
+                 그러면 아래 템플릿의 Grid에서 * 컬럼이 0으로 찌그러져 약품명과 'Total:'이
+                 서로 붙어 보인다. Stretch를 줘야 컬럼이 제 폭을 갖는다. -->
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
 
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Batches}">
 
                     <!-- 약품 헤더 행 -->
                     <Border Padding="12,10"
-                            BorderBrush="#F0F0F0"
+                            BorderBrush="{StaticResource BorderBrushSoft}"
                             BorderThickness="0,0,0,1">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -121,37 +104,43 @@
                                            Text="{Binding ProductName}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="#121212"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsLowStock}" Value="True">
-                                                    <Setter Property="Foreground" Value="#E53E3E"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <Border Background="#FFF3CD" CornerRadius="4"
-                                        Padding="6,2" Margin="8,0,0,0"
+                                <Border Background="#FEF3C7" CornerRadius="5"
+                                        Padding="8,2" Margin="8,0,0,0"
+                                        VerticalAlignment="Center"
                                         Visibility="{Binding HasExpiringSoon, Converter={StaticResource BoolToVis}}">
-                                    <TextBlock Text="⚠️ Expiring" FontSize="11" Foreground="#856404"/>
+                                    <TextBlock Text="⚠️ Expiring" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="#92400E"/>
                                 </Border>
                             </StackPanel>
 
                             <TextBlock Grid.Column="1"
                                        Text="{Binding TotalQuantity, StringFormat='Total: {0}'}"
-                                       FontSize="13" Foreground="#6C757D"
+                                       FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                        VerticalAlignment="Center"/>
 
                             <TextBlock Grid.Column="2"
                                        Text="{Binding SellingPrice, StringFormat='${0:F2}'}"
-                                       FontSize="13" Foreground="#6C757D"
+                                       FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                        VerticalAlignment="Center"/>
 
+                            <!-- HorizontalAlignment을 주지 않으면 뱃지가 70px 컬럼을 통째로 채워
+                                 글자만 왼쪽에 붙은 넓적한 상자가 된다. -->
                             <Border Grid.Column="3"
-                                    Background="#FFE0E0" CornerRadius="4"
-                                    Padding="6,2" VerticalAlignment="Center"
+                                    Background="#FEE2E2" CornerRadius="5"
+                                    Padding="8,2"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center"
                                     Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="Low" FontSize="11" Foreground="#E53E3E"/>
+                                <TextBlock Text="Low" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{StaticResource DangerBrush}"/>
                             </Border>
                         </Grid>
                     </Border>
@@ -159,9 +148,9 @@
                     <!-- 배치 자식 행 -->
                     <HierarchicalDataTemplate.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="#F8F9FA"
+                            <Border Background="{StaticResource SubtleSurfaceBrush}"
                                     Padding="32,8,12,8"
-                                    BorderBrush="#F0F0F0"
+                                    BorderBrush="{StaticResource BorderBrushSoft}"
                                     BorderThickness="0,0,0,1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -173,21 +162,21 @@
 
                                     <TextBlock Grid.Column="0"
                                                Text="{Binding BatchNumber}"
-                                               FontSize="13" Foreground="#495057"/>
+                                               FontSize="13" Foreground="{StaticResource TextBrush}"/>
 
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding CurrentQuantity}"
-                                               FontSize="13" Foreground="#495057"/>
+                                               FontSize="13" Foreground="{StaticResource TextBrush}"/>
 
                                     <TextBlock Grid.Column="2"
                                                Text="{Binding ExpiryDate, Converter={StaticResource UnixToDateConverter}}"
-                                               FontSize="13" Foreground="#495057"/>
+                                               FontSize="13" Foreground="{StaticResource TextBrush}"/>
 
                                     <Border Grid.Column="3"
                                             Background="#FFE0E0" CornerRadius="4"
                                             Padding="6,2" VerticalAlignment="Center"
                                             Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="Low" FontSize="11" Foreground="#E53E3E"/>
+                                        <TextBlock Text="Low" FontSize="11" Foreground="{StaticResource DangerBrush}"/>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -208,23 +197,23 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="0" Content="← Back"
-                    Style="{StaticResource SecBtn}"
+                    Style="{StaticResource SecondaryBtn}"
                     Padding="16,0" Click="OnBackClick" Margin="0,0,8,0"/>
 
             <Button Grid.Column="2" Content="Stock-in"
-                    Style="{StaticResource PriBtn}"
+                    Style="{StaticResource PrimaryBtn}"
                     Padding="16,0"
                     Command="{Binding StockInCommand}" Margin="0,0,8,0"/>
 
             <Button Grid.Column="3" Content="Adjustment"
-                    Style="{StaticResource PriBtn}"
+                    Style="{StaticResource PrimaryBtn}"
                     Padding="16,0"
                     Command="{Binding AdjustmentCommand}"/>
         </Grid>
 
         <TextBlock Grid.Row="4"
                    Text="{Binding Message}"
-                   Foreground="#E53E3E"
+                   Foreground="{StaticResource DangerBrush}"
                    TextWrapping="Wrap" FontSize="13"
                    Margin="0,8,0,0"/>
     </Grid>

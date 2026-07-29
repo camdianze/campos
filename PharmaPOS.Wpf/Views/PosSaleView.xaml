@@ -11,72 +11,6 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <local:InverseBooleanConverter x:Key="InverseBoolConverter"/>
-
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Foreground" Value="#6C757D"/>
-            <Setter Property="Margin"     Value="0,0,0,4"/>
-        </Style>
-
-        <Style x:Key="FieldInput" TargetType="TextBox">
-            <Setter Property="Background"               Value="#F3F3F3"/>
-            <Setter Property="BorderThickness"          Value="0"/>
-            <Setter Property="Height"                   Value="36"/>
-            <Setter Property="FontSize"                 Value="13"/>
-            <Setter Property="Padding"                  Value="10,8"/>
-            <Setter Property="Foreground"               Value="#212529"/>
-            <Setter Property="CaretBrush"               Value="#212529"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-
-        <Style x:Key="PriBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Background" Value="#BBBBBB"/>
-                                <Setter Property="Foreground" Value="#888888"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SecBtn" TargetType="Button" BasedOn="{StaticResource PriBtn}">
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="Foreground" Value="#121212"/>
-        </Style>
-
-        <Style x:Key="RemoveBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#FFE8E8"/>
-            <Setter Property="Foreground"      Value="#E53E3E"/>
-            <Setter Property="FontSize"        Value="11"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Padding"         Value="6,2"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
 
     <DockPanel Margin="24,20,24,20">
@@ -84,10 +18,9 @@
         <!-- 제목 + 뒤로 -->
         <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
             <TextBlock Text="POS Sale"
-                       FontSize="28" FontWeight="Light"
-                       Foreground="#121212"/>
+                       Style="{StaticResource PageTitle}"/>
             <Button Content="← Back"
-                    Style="{StaticResource SecBtn}"
+                    Style="{StaticResource SecondaryBtn}"
                     HorizontalAlignment="Right"
                     Padding="16,0"
                     Click="OnBackClick"/>
@@ -98,12 +31,9 @@
                  x:Name="SearchBox"
                  Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
                  KeyDown="OnSearchBoxKeyDown"
-                 Background="#F3F3F3"
-                 BorderThickness="0"
                  Height="48"
                  FontSize="16"
                  Padding="16,0"
-                 VerticalContentAlignment="Center"
                  Margin="0,0,0,6"/>
 
         <!-- 검색 결과 -->
@@ -112,7 +42,7 @@
                  SelectedItem="{Binding SelectedProduct}"
                  DisplayMemberPath="ProductName"
                  MaxHeight="90"
-                 BorderBrush="#E0E0E0"
+                 BorderBrush="{StaticResource BorderBrushSoft}"
                  BorderThickness="1"
                  FontSize="13"
                  Margin="0,0,0,10"/>
@@ -120,7 +50,7 @@
         <!-- 메시지 -->
         <TextBlock DockPanel.Dock="Bottom"
                    Text="{Binding Message}"
-                   Foreground="#E53E3E"
+                   Foreground="{StaticResource DangerBrush}"
                    TextWrapping="Wrap" FontSize="13"
                    Margin="0,6,0,0"/>
 
@@ -141,7 +71,7 @@
                 <TextBlock Grid.Row="0"
                            Text="Cart"
                            FontSize="15" FontWeight="SemiBold"
-                           Foreground="#121212" Margin="0,0,0,8"/>
+                           Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
 
                 <DataGrid Grid.Row="1"
                           ItemsSource="{Binding Cart}"
@@ -149,24 +79,12 @@
                           IsReadOnly="True"
                           SelectionMode="Single"
                           BorderThickness="1"
-                          BorderBrush="#E0E0E0"
+                          BorderBrush="{StaticResource BorderBrushSoft}"
                           RowBackground="White"
-                          AlternatingRowBackground="#F8F9FA"
+                          AlternatingRowBackground="{StaticResource SubtleSurfaceBrush}"
                           GridLinesVisibility="Horizontal"
-                          HorizontalGridLinesBrush="#E0E0E0"
+                          HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                           RowHeight="38">
-                    <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background"      Value="#F1F3F5"/>
-                            <Setter Property="Foreground"      Value="#6C757D"/>
-                            <Setter Property="FontSize"        Value="12"/>
-                            <Setter Property="FontWeight"      Value="SemiBold"/>
-                            <Setter Property="Padding"         Value="10,0"/>
-                            <Setter Property="Height"          Value="36"/>
-                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                            <Setter Property="BorderBrush"     Value="#E0E0E0"/>
-                        </Style>
-                    </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Product"  Binding="{Binding ProductName}" Width="*"/>
                         <DataGridTextColumn Header="Batch"    Binding="{Binding BatchNumber}" Width="90"/>
@@ -177,7 +95,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Content="Remove"
-                                            Style="{StaticResource RemoveBtn}"
+                                            Style="{StaticResource SoftDangerBtn}"
                                             Command="{Binding DataContext.RemoveFromCartCommand,
                                                       RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}"/>
@@ -190,7 +108,7 @@
 
             <!-- 우측: 주문 패널 -->
             <Border Grid.Column="1"
-                    Background="#F8F9FA"
+                    Background="{StaticResource SubtleSurfaceBrush}"
                     CornerRadius="12"
                     Padding="14">
                 <StackPanel>
@@ -198,10 +116,10 @@
                     <!-- 선택 상품 -->
                     <TextBlock Text="Selected Product"
                                FontSize="11" FontWeight="SemiBold"
-                               Foreground="#6C757D" Margin="0,0,0,4"/>
+                               Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
                     <TextBlock Text="{Binding SelectedProduct.ProductName}"
                                FontSize="13" FontWeight="SemiBold"
-                               Foreground="#121212" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"
                                MinHeight="18" Margin="0,0,0,10"/>
 
                     <!-- Batch -->
@@ -224,12 +142,12 @@
 
                     <!-- Add to Cart -->
                     <Button Content="＋  Add to Cart"
-                            Style="{StaticResource PriBtn}"
+                            Style="{StaticResource PrimaryBtn}"
                             Height="38"
                             Command="{Binding AddToCartCommand}"
                             Margin="0,0,0,12"/>
 
-                    <Border Height="1" Background="#E0E0E0" Margin="0,0,0,12"/>
+                    <Border Height="1" Background="{StaticResource BorderBrushSoft}" Margin="0,0,0,12"/>
 
                     <!-- 결제 -->
                     <TextBlock Text="Payment Method" Style="{StaticResource FieldLabel}"/>
@@ -247,22 +165,22 @@
                     <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource FieldInput}" Margin="0,0,0,12"/>
 
-                    <Border Height="1" Background="#E0E0E0" Margin="0,0,0,10"/>
+                    <Border Height="1" Background="{StaticResource BorderBrushSoft}" Margin="0,0,0,10"/>
 
                     <!-- 합계 -->
                     <Grid Margin="0,0,0,4">
-                        <TextBlock Text="Total" FontSize="13" Foreground="#6C757D"
+                        <TextBlock Text="Total" FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding TotalAmount}"
                                    FontSize="20" FontWeight="Bold"
-                                   Foreground="#121212"
+                                   Foreground="{StaticResource TextBrush}"
                                    HorizontalAlignment="Right"/>
                     </Grid>
 
                     <StackPanel Visibility="{Binding IsCashPayment, Converter={StaticResource BoolToVis}}"
                                 Margin="0,0,0,12">
                         <Grid>
-                            <TextBlock Text="Change" FontSize="12" Foreground="#6C757D"
+                            <TextBlock Text="Change" FontSize="12" Foreground="{StaticResource MutedTextBrush}"
                                        VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding ChangeDue}"
                                        FontSize="16" FontWeight="SemiBold"
@@ -273,13 +191,13 @@
 
                     <!-- 버튼 -->
                     <Button Content="✓  Confirm Sale"
-                            Style="{StaticResource PriBtn}"
+                            Style="{StaticResource PrimaryBtn}"
                             Height="42" FontSize="14"
                             Command="{Binding ConfirmSaleCommand}"
                             Margin="0,0,0,6"/>
 
                     <Button Content="✕  Cancel Sale"
-                            Style="{StaticResource SecBtn}"
+                            Style="{StaticResource SecondaryBtn}"
                             Height="34"
                             Command="{Binding CancelSaleCommand}"/>
                 </StackPanel>

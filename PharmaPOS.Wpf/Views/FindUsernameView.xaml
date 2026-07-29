@@ -6,59 +6,7 @@
              mc:Ignorable="d"
              d:DesignWidth="1440" d:DesignHeight="1024">
 
-    <UserControl.Resources>
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="24"/>
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="Margin"     Value="0,0,0,8"/>
-        </Style>
-        <Style x:Key="FieldInput" TargetType="TextBox">
-            <Setter Property="Background"      Value="#F3F3F3"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height"          Value="45"/>
-            <Setter Property="FontSize"        Value="16"/>
-            <Setter Property="Padding"         Value="12,10"/>
-            <Setter Property="Foreground"      Value="Black"/>
-            <Setter Property="CaretBrush"      Value="Black"/>
-        </Style>
-        <Style x:Key="PrimaryBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BF5B92E5"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="FontSize"        Value="20"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width"           Value="110"/>
-            <Setter Property="Height"          Value="45"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="SecondaryBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#F0F0F0"/>
-            <Setter Property="Foreground"      Value="#121212"/>
-            <Setter Property="FontSize"        Value="20"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width"           Value="110"/>
-            <Setter Property="Height"          Value="45"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
-
+    <!-- 스타일은 App.xaml 공통 테마에서 온다. -->
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="49*"/>
@@ -66,26 +14,24 @@
         </Grid.ColumnDefinitions>
 
         <!-- 좌측: 파란 배경 -->
-        <Border Grid.Column="0" Background="#BF5B92E5"/>
+        <Border Grid.Column="0" Background="{StaticResource PrimaryBrush}"/>
 
         <!-- 우측: 폼 -->
         <Grid Grid.Column="1" Background="White">
             <StackPanel Width="342" HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <TextBlock Text="Find ID"
-                           FontSize="40" Foreground="Black"
-                           Margin="0,0,0,40"/>
+                           Style="{StaticResource PageTitle}" FontSize="28"
+                           Margin="0,0,0,28"/>
 
                 <TextBlock Text="E-mail" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding RecoveryEmail, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource FieldInput}"
-                         Margin="0,0,0,40"/>
+                         Margin="0,0,0,24"/>
 
                 <TextBlock Text="{Binding Message}"
-                           Foreground="#5B92E5"
-                           TextWrapping="Wrap"
-                           FontSize="13"
-                           Margin="0,0,0,24"/>
+                           Style="{StaticResource Caption}"
+                           Foreground="{StaticResource PrimaryBrush}"
+                           Margin="0,0,0,20"/>
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -94,11 +40,11 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Button Grid.Column="1" Content="Cancel"
-                            Style="{StaticResource SecondaryBtn}"
+                            Style="{StaticResource SecondaryBtnLarge}"
                             Command="{Binding CancelCommand}"
                             Margin="0,0,10,0"/>
                     <Button Grid.Column="2" Content="Confirm"
-                            Style="{StaticResource PrimaryBtn}"
+                            Style="{StaticResource PrimaryBtnLarge}"
                             Command="{Binding FindUsernameCommand}"/>
                 </Grid>
 

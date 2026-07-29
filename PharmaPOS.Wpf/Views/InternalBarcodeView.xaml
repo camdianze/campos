@@ -16,20 +16,21 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Internal Barcode" FontSize="22" FontWeight="Bold" Margin="0,0,0,15"/>
+        <TextBlock Grid.Row="0" Text="Internal Barcode" Style="{StaticResource PageTitle}" Margin="0,0,0,18"/>
 
-        <TextBlock Grid.Row="1" Text="{Binding ProductName}" FontWeight="Bold" Margin="0,0,0,10"/>
+        <TextBlock Grid.Row="1" Text="{Binding ProductName}"
+                   Style="{StaticResource SectionLabel}" Margin="0,0,0,14"/>
 
         <StackPanel Grid.Row="2" Margin="0,0,0,10">
-            <TextBlock Text="Internal Barcode"/>
+            <TextBlock Text="Internal Barcode" Style="{StaticResource FieldLabel}"/>
             <TextBox Text="{Binding InternalBarcode, Mode=OneWay}" IsReadOnly="True"/>
         </StackPanel>
 
         <StackPanel Grid.Row="3" Margin="0,0,0,10">
-            <TextBlock Text="Label Quantity"/>
+            <TextBlock Text="Label Quantity" Style="{StaticResource FieldLabel}"/>
             <TextBox Text="{Binding LabelQuantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Printer"/>
+            <TextBlock Text="Printer" Style="{StaticResource FieldLabel}"/>
             <ComboBox ItemsSource="{Binding AvailablePrinters}" SelectedItem="{Binding SelectedPrinter}"/>
         </StackPanel>
 
@@ -40,11 +41,11 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="Back" Margin="0,0,5,0" Padding="0,8" Command="{Binding BackCommand}"/>
-            <Button Grid.Column="1" Content="Generate" Margin="5,0,5,0" Padding="0,8" Command="{Binding GenerateBarcodeCommand}"/>
-            <Button Grid.Column="2" Content="Print Label" Margin="5,0,0,0" Padding="0,8" Command="{Binding PrintLabelCommand}"/>
+            <Button Grid.Column="0" Content="Back" Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Command="{Binding BackCommand}"/>
+            <Button Grid.Column="1" Content="Generate" Style="{StaticResource SecondaryBtn}" Margin="5,0,5,0" Command="{Binding GenerateBarcodeCommand}"/>
+            <Button Grid.Column="2" Content="Print Label" Style="{StaticResource PrimaryBtn}" Margin="5,0,0,0" Command="{Binding PrintLabelCommand}"/>
         </Grid>
 
-        <TextBlock Grid.Row="5" Text="{Binding Message}" Foreground="Red" Margin="0,10,0,0" TextWrapping="Wrap"/>
+        <TextBlock Grid.Row="5" Text="{Binding Message}" Style="{StaticResource ErrorText}" MinHeight="18" Margin="0,10,0,0"/>
     </Grid>
 </UserControl>

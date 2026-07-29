@@ -18,8 +18,7 @@
 
         <TextBlock Grid.Row="0"
                    Text="Inventory Alerts"
-                   FontSize="28" FontWeight="Light"
-                   Foreground="{StaticResource TextBrush}"
+                   Style="{StaticResource PageTitle}"
                    Margin="0,0,0,20"/>
 
         <Grid Grid.Row="1" Margin="0,0,0,12">
@@ -47,12 +46,11 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   BorderThickness="1"
-                  BorderBrush="{StaticResource BorderBrush}"
+                  BorderBrush="{StaticResource BorderBrushSoft}"
                   RowBackground="White"
-                  AlternatingRowBackground="#F8F9FA"
+                  AlternatingRowBackground="{StaticResource SubtleSurfaceBrush}"
                   GridLinesVisibility="Horizontal"
-                  HorizontalGridLinesBrush="{StaticResource BorderBrush}"
-                  ColumnHeaderStyle="{StaticResource AppColumnHeaderStyle}"
+                  HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Type"         Binding="{Binding AlertType}"   Width="100"/>
@@ -71,15 +69,14 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="← Back"          Style="{StaticResource AppSecondaryButton}" Click="OnBackClick"                      Margin="0,0,8,0"/>
-            <Button Grid.Column="2" Content="View Inventory"   Style="{StaticResource AppSecondaryButton}" Command="{Binding ViewInventoryCommand}"  Margin="0,0,8,0"/>
-            <Button Grid.Column="3" Content="Export"           Style="{StaticResource AppPrimaryButton}"   Command="{Binding ExportCommand}"/>
+            <Button Grid.Column="0" Content="← Back"         Style="{StaticResource SecondaryBtn}" Click="OnBackClick"                     Margin="0,0,8,0"/>
+            <Button Grid.Column="2" Content="View Inventory"  Style="{StaticResource SecondaryBtn}" Command="{Binding ViewInventoryCommand}" Margin="0,0,8,0"/>
+            <Button Grid.Column="3" Content="Export"          Style="{StaticResource PrimaryBtn}"   Command="{Binding ExportCommand}"/>
         </Grid>
 
         <TextBlock Grid.Row="4"
                    Text="{Binding Message}"
-                   Foreground="{StaticResource DangerBrush}"
-                   TextWrapping="Wrap" FontSize="13"
-                   Margin="0,10,0,0"/>
+                   Style="{StaticResource ErrorText}"
+                   MinHeight="18" Margin="0,10,0,0"/>
     </Grid>
 </UserControl>

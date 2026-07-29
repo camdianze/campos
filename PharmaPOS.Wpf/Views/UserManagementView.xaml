@@ -15,7 +15,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="User Management" FontSize="22" FontWeight="Bold" Margin="0,0,0,15"/>
+        <TextBlock Grid.Row="0" Text="User Management"
+                   Style="{StaticResource PageTitle}" Margin="0,0,0,18"/>
 
         <Grid Grid.Row="1" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
@@ -25,7 +26,7 @@
 
             <TextBox Grid.Column="0"
                      Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
-                     Margin="0,0,10,0" Padding="6"/>
+                     Margin="0,0,10,0"/>
 
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding AvailableStatusFilters}"
@@ -54,13 +55,14 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="Back" Margin="0,0,5,0" Padding="0,8" Command="{Binding BackCommand}"/>
-            <Button Grid.Column="1" Content="Add User" Margin="5,0,5,0" Padding="0,8" Command="{Binding AddUserCommand}"/>
-            <Button Grid.Column="2" Content="Edit Role" Margin="5,0,5,0" Padding="0,8" Command="{Binding EditRoleCommand}"/>
-            <Button Grid.Column="3" Content="Deactivate" Margin="5,0,5,0" Padding="0,8" Command="{Binding DeactivateCommand}"/>
-            <Button Grid.Column="4" Content="Reset Password" Margin="5,0,0,0" Padding="0,8" Command="{Binding ResetPasswordCommand}"/>
+            <Button Grid.Column="0" Content="Back"           Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Command="{Binding BackCommand}"/>
+            <Button Grid.Column="1" Content="Add User"       Style="{StaticResource PrimaryBtn}"   Margin="5,0,5,0" Command="{Binding AddUserCommand}"/>
+            <Button Grid.Column="2" Content="Edit Role"      Style="{StaticResource SecondaryBtn}" Margin="5,0,5,0" Command="{Binding EditRoleCommand}"/>
+            <Button Grid.Column="3" Content="Deactivate"     Style="{StaticResource DangerBtn}"    Margin="5,0,5,0" Command="{Binding DeactivateCommand}"/>
+            <Button Grid.Column="4" Content="Reset Password" Style="{StaticResource SecondaryBtn}" Margin="5,0,0,0" Command="{Binding ResetPasswordCommand}"/>
         </Grid>
 
-        <TextBlock Grid.Row="4" Text="{Binding Message}" Foreground="Red" Margin="0,10,0,0" TextWrapping="Wrap"/>
+        <TextBlock Grid.Row="4" Text="{Binding Message}"
+                   Style="{StaticResource ErrorText}" MinHeight="18" Margin="0,10,0,0"/>
     </Grid>
 </UserControl>

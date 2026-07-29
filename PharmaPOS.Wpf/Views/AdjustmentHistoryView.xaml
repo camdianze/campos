@@ -18,8 +18,8 @@
 
         <TextBlock Grid.Row="0"
                    Text="Adjustment History"
-                   FontSize="28" FontWeight="Light"
-                   Foreground="#121212" Margin="0,0,0,20"/>
+                   Style="{StaticResource PageTitle}"
+                   Margin="0,0,0,20"/>
 
         <!-- 필터 바 -->
         <Grid Grid.Row="1" Margin="0,0,0,12">
@@ -41,41 +41,17 @@
 
             <TextBox Grid.Column="2"
                      Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
-                     Background="#F3F3F3" BorderThickness="0"
-                     Padding="10,8" FontSize="13" Height="36"
-                     VerticalContentAlignment="Center"
+                     Height="36" FontSize="13"
                      Margin="0,0,8,0"/>
 
             <Button Grid.Column="3" Content="Search"
-                    Height="36" Padding="16,0"
-                    Background="#BF5B92E5" Foreground="White"
-                    BorderThickness="0" Cursor="Hand"
+                    Style="{StaticResource PrimaryBtn}" Height="36"
                     Command="{Binding SearchCommand}"
-                    Margin="0,0,8,0">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+                    Margin="0,0,8,0"/>
 
             <Button Grid.Column="4" Content="Reset"
-                    Height="36" Padding="16,0"
-                    Background="#F0F0F0" Foreground="#121212"
-                    BorderThickness="0" Cursor="Hand"
-                    Command="{Binding ResetCommand}">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+                    Style="{StaticResource SecondaryBtn}" Height="36"
+                    Command="{Binding ResetCommand}"/>
         </Grid>
 
         <!-- 데이터 그리드 -->
@@ -85,24 +61,12 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   BorderThickness="1"
-                  BorderBrush="#E0E0E0"
+                  BorderBrush="{StaticResource BorderBrushSoft}"
                   RowBackground="White"
-                  AlternatingRowBackground="#F8F9FA"
+                  AlternatingRowBackground="{StaticResource SubtleSurfaceBrush}"
                   GridLinesVisibility="Horizontal"
-                  HorizontalGridLinesBrush="#E0E0E0"
+                  HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background"   Value="#F1F3F5"/>
-                    <Setter Property="Foreground"   Value="#6C757D"/>
-                    <Setter Property="FontSize"     Value="12"/>
-                    <Setter Property="FontWeight"   Value="SemiBold"/>
-                    <Setter Property="Padding"      Value="10,0"/>
-                    <Setter Property="Height"       Value="38"/>
-                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                    <Setter Property="BorderBrush"  Value="#E0E0E0"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date"        Binding="{Binding AdjustedAt}"  Width="150"/>
                 <DataGridTextColumn Header="Product"     Binding="{Binding ProductName}" Width="*"/>
@@ -116,26 +80,14 @@
         <!-- 하단 버튼 -->
         <Button Grid.Row="3"
                 Content="← Back"
+                Style="{StaticResource SecondaryBtn}"
                 HorizontalAlignment="Left"
-                Height="36" Padding="16,0"
-                Background="#F0F0F0" Foreground="#121212"
-                BorderThickness="0" Cursor="Hand"
                 Margin="0,14,0,0"
-                Command="{Binding BackCommand}">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Margin="{TemplateBinding Padding}"/>
-                    </Border>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
+                Command="{Binding BackCommand}"/>
 
         <TextBlock Grid.Row="4"
                    Text="{Binding Message}"
-                   Foreground="#E53E3E"
-                   TextWrapping="Wrap" FontSize="13"
-                   Margin="0,8,0,0"/>
+                   Style="{StaticResource ErrorText}"
+                   MinHeight="18" Margin="0,8,0,0"/>
     </Grid>
 </UserControl>

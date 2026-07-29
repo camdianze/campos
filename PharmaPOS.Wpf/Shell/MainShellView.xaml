@@ -10,44 +10,64 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- 셸 전용 버튼 두 종류. 크기와 배치가 이 화면에만 있는 형태라 여기 남기고,
+             색은 App.xaml 팔레트를 참조한다. -->
         <Style x:Key="TopBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#BFDFDFDF"/>
-            <Setter Property="Foreground"      Value="#121212"/>
+            <Setter Property="Background"      Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground"      Value="{StaticResource TextBrush}"/>
             <Setter Property="FontSize"        Value="12"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Height"          Value="25"/>
+            <Setter Property="Height"          Value="28"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
+                                CornerRadius="6" SnapsToDevicePixels="True">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                               Margin="10,0"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background"  Value="{StaticResource FieldHoverBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource BorderBrushStrong}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource BorderBrushSoft}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
         <Style x:Key="BottomCardBtn" TargetType="Button">
-            <Setter Property="Background"      Value="#FBFCFF"/>
-            <Setter Property="Foreground"      Value="#121212"/>
-            <Setter Property="FontSize"        Value="15"/>
+            <Setter Property="Background"      Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground"      Value="{StaticResource TextBrush}"/>
+            <Setter Property="FontSize"        Value="14"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor"          Value="Hand"/>
             <Setter Property="Height"          Value="60"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="15">
-                            <Border.Effect>
-                                <DropShadowEffect Color="#000000" Opacity="0.12" BlurRadius="6" ShadowDepth="1"/>
-                            </Border.Effect>
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
+                                CornerRadius="12" SnapsToDevicePixels="True">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#EDF0FF"/>
+                                <Setter TargetName="Bd" Property="Background"  Value="{StaticResource PrimarySoftBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#DBEAFE"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -76,7 +96,7 @@
 
             <TextBlock Grid.Column="0"
                        Text="{Binding WelcomeMessage}"
-                       FontSize="24" Foreground="#121212"
+                       Style="{StaticResource PageTitle}"
                        VerticalAlignment="Center"
                        Margin="0,0,40,0"/>
 
@@ -88,7 +108,7 @@
             <Button Grid.Column="2" Content="Logout"
                     Style="{StaticResource TopBtn}"
                     Command="{Binding LogoutCommand}"
-                    Foreground="#E53E3E"
+                    Foreground="{StaticResource DangerBrush}"
                     Width="60"/>
 
             <!-- Alerts 버튼 + 팝업 -->
@@ -98,7 +118,7 @@
                 <Button x:Name="AlertsButton"
                     Width="60" Height="25"
                     BorderThickness="0"
-                    Background="#BFDFDFDF"
+                    Background="{StaticResource FieldBrush}"
                     Cursor="Hand"
                     Click="OnAlertsButtonClick">
                     <Button.Template>
@@ -110,7 +130,7 @@
                                            VerticalAlignment="Center"/>
                                     <!-- 알림 숫자 배지 -->
                                     <Border x:Name="Badge"
-        Background="#E53E3E"
+        Background="{StaticResource DangerBrush}"
         CornerRadius="8"
         MinWidth="16" Height="16"
         HorizontalAlignment="Right"
@@ -145,7 +165,7 @@
                    StaysOpen="False"
                    AllowsTransparency="True">
                     <Border Background="White"
-                        BorderBrush="#E0E0E0"
+                        BorderBrush="{StaticResource BorderBrushSoft}"
                         BorderThickness="1"
                         CornerRadius="12"
                         Width="320"
@@ -157,12 +177,12 @@
                         <StackPanel>
 
                             <!-- 팝업 헤더 -->
-                            <Border Background="#FBFCFF" CornerRadius="12,12,0,0" Padding="16,12">
+                            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12,12,0,0" Padding="16,12">
                                 <Grid>
                                     <TextBlock Text="🔔  Alerts"
                                            FontSize="15" FontWeight="SemiBold"
-                                           Foreground="#121212"/>
-                                    <Border Background="#E53E3E" CornerRadius="8"
+                                           Foreground="{StaticResource TextBrush}"/>
+                                    <Border Background="{StaticResource DangerBrush}" CornerRadius="8"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Center"
                                         Padding="8,2">
@@ -176,7 +196,7 @@
                             <ItemsControl ItemsSource="{Binding RecentAlerts}" Margin="0,4,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Padding="16,10" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1">
+                                        <Border Padding="16,10" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="0,0,0,1">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
@@ -192,7 +212,7 @@
                                                             <Setter Property="Background" Value="#F59E0B"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Priority}" Value="Critical">
-                                                                    <Setter Property="Background" Value="#E53E3E"/>
+                                                                    <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Priority}" Value="Low">
                                                                     <Setter Property="Background" Value="#38A169"/>
@@ -205,13 +225,13 @@
                                                 <StackPanel Grid.Column="1">
                                                     <TextBlock Text="{Binding ProductName}"
                                                            FontSize="13" FontWeight="SemiBold"
-                                                           Foreground="#121212"/>
+                                                           Foreground="{StaticResource TextBrush}"/>
                                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                                         <TextBlock Text="{Binding AlertType}"
-                                                               FontSize="11" Foreground="#6C757D"/>
-                                                        <TextBlock Text=" · " FontSize="11" Foreground="#6C757D"/>
+                                                               FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
+                                                        <TextBlock Text=" · " FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
                                                         <TextBlock Text="{Binding Priority}"
-                                                               FontSize="11" Foreground="#6C757D"/>
+                                                               FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
                                                     </StackPanel>
                                                 </StackPanel>
                                             </Grid>
@@ -222,7 +242,7 @@
 
                             <!-- 빈 상태 -->
                             <TextBlock Text="No alerts 🎉"
-                                   FontSize="13" Foreground="#6C757D"
+                                   FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,16,0,8">
                                 <TextBlock.Style>
@@ -239,21 +259,9 @@
 
                             <!-- View All 버튼 -->
                             <Button Content="View All Alerts →"
+                                Style="{StaticResource PrimaryBtn}"
                                 Margin="16,4,16,0"
-                                Height="36"
-                                Background="#BF5B92E5"
-                                Foreground="White"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Click="OnAlertsClick">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+                                Click="OnAlertsClick"/>
                         </StackPanel>
                     </Border>
                 </Popup>
@@ -261,7 +269,7 @@
         </Grid>
 
         <!-- 구분선 -->
-        <Border Grid.Row="1" Height="1" Background="#E0E0E0"
+        <Border Grid.Row="1" Height="1" Background="{StaticResource BorderBrushSoft}"
                 HorizontalAlignment="Left" Width="500" Margin="40,0,0,0"/>
 
         <!-- 메인 3카드 -->
@@ -273,7 +281,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Stock-IN -->
-            <Border Grid.Column="0" Background="#FBFCFF" CornerRadius="20" Margin="0,0,10,0">
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="20" Margin="0,0,10,0">
                 <Border.Effect>
                     <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="8" ShadowDepth="1"/>
                 </Border.Effect>
@@ -282,7 +290,7 @@
                         <ControlTemplate TargetType="Button">
                             <Grid>
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
-                                    <TextBlock Text="Stock-IN" FontSize="40" Foreground="#121212"/>
+                                    <TextBlock Text="Stock-IN" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
                                 <TextBlock Text="📥" FontSize="120"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -294,7 +302,7 @@
             </Border>
 
             <!-- Inventory -->
-            <Border Grid.Column="1" Background="#FBFCFF" CornerRadius="20" Margin="5,0,5,0">
+            <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="20" Margin="5,0,5,0">
                 <Border.Effect>
                     <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="8" ShadowDepth="1"/>
                 </Border.Effect>
@@ -303,7 +311,7 @@
                         <ControlTemplate TargetType="Button">
                             <Grid>
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
-                                    <TextBlock Text="Inventory" FontSize="40" Foreground="#121212"/>
+                                    <TextBlock Text="Inventory" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
                                 <TextBlock Text="📦" FontSize="120"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -315,7 +323,9 @@
             </Border>
 
             <!-- POS Sale -->
-            <Border Grid.Column="2" Background="#99BFEF" BorderBrush="#E0E0E0" BorderThickness="1"
+            <!-- POS Sale은 주 동선이라 옅은 파랑으로 남겨 다른 두 카드와 구분한다. -->
+            <Border Grid.Column="2" Background="{StaticResource PrimarySoftBrush}"
+                    BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1"
                     CornerRadius="20" Margin="10,0,0,0">
                 <Border.Effect>
                     <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="8" ShadowDepth="1"/>
@@ -325,7 +335,7 @@
                         <ControlTemplate TargetType="Button">
                             <Grid>
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
-                                    <TextBlock Text="POS Sale" FontSize="40" Foreground="#121212"/>
+                                    <TextBlock Text="POS Sale" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
                                 <TextBlock Text="🛒" FontSize="120"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
