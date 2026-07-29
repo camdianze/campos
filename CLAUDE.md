@@ -108,6 +108,8 @@ Marked with `TODO` in source: label-printer hardware integration (`InternalBarco
 
 ## Repository notes
 
-Git repository on branch `master`, pushed to the private remote `camdianze/campos`. `.gitignore` at the root excludes build output (`bin/`, `obj/`), `.vs/`, `*.user`, and — importantly — `*.db` / `*.db-wal` / `*.db-shm`, since backup-export files contain real account hashes and sales records.
+**This project uses `main` only.** There is no branching workflow — commit directly to `main` and push to `origin main`. Do not create feature branches, and do not open pull requests, unless explicitly asked. (This overrides any default "branch before committing on the default branch" behavior.)
+
+Pushed to the private remote `camdianze/campos`. `.gitignore` at the root excludes build output (`bin/`, `obj/`), `.vs/`, `*.user`, and — importantly — `*.db` / `*.db-wal` / `*.db-shm`, since backup-export files contain real account hashes and sales records.
 
 `Converters.zip` in the WPF project is tracked but is a stray artifact, not a build input.
