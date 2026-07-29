@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Authentication;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Licensing;
 using PharmaPOS.Application.PasswordPolicy;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
@@ -19,7 +20,9 @@ namespace Lightweight_Digital_Inventory_Management___POS_System.Composition;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddPharmaPosServices(this IServiceCollection services, string dbFilePath)
+    /// <param name="licenseFilePath">활성화 기록 파일(license.dat)의 전체 경로.</param>
+    public static IServiceCollection AddPharmaPosServices(
+        this IServiceCollection services, string dbFilePath, string licenseFilePath)
     {
         // 인프라 (DB 연결)
         services.AddSingleton(_ => new SqliteConnectionFactory(dbFilePath));
@@ -31,6 +34,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IReceiptPrintingService, SimulatedReceiptPrintingService>();
         services.AddSingleton<IEmailSendingService, SmtpEmailSendingService>();
         services.AddSingleton<IRecoveryDataProtector, DpapiRecoveryDataProtector>();
+        services.AddSingleton<ILicenseActivationStore>(_ => new DpapiLicenseActivationStore(licenseFilePath));
+        services.AddSingleton<ILicenseService, LicenseService>();
 
         // Repository (요청마다 새로 만들어도 비용이 적음 → Transient)
         services.AddTransient<IUserRepository, UserRepository>();
@@ -65,6 +70,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
 
         // ViewModel (화면을 열 때마다 새 상태로 시작해야 하므로 Transient)
+        services.AddTransient<LicenseActivationViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<InitialSetupViewModel>();
         services.AddTransient<ProductListViewModel>();

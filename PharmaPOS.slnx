@@ -3,4 +3,5 @@
   <Project Path="PharmaPOS.Application/PharmaPOS.Application.csproj" Id="e9fa8f48-43a8-41d7-967a-36dba4c8a9df" />
   <Project Path="PharmaPOS.DataAccess/PharmaPOS.DataAccess.csproj" Id="2f881364-cc34-4051-89b1-93b22eede3f9" />
   <Project Path="PharmaPOS.Wpf/PharmaPOS.Wpf.csproj" />
+  <Project Path="tools/LicenseIssuer/LicenseIssuer.csproj" />
 </Solution>
