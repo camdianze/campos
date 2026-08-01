@@ -6,6 +6,7 @@ using Microsoft.Win32;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -154,7 +155,7 @@ public class SalesHistoryViewModel : ViewModelBase
         detail.AppendLine("--------------------");
         detail.AppendLine($"Total: {total}");
 
-        MessageBox.Show(detail.ToString(), "Sale Detail");
+        AppDialog.Show("Sale Detail", detail.ToString(), monospace: true);
     }
 
     private async Task ExecuteReprintReceiptAsync()

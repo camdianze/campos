@@ -47,7 +47,7 @@ public partial class HistoryView : UserControl
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error: {ex.Message}", "Error");
+            AppDialog.Show("Error", $"Error: {ex.Message}");
         }
     }
 
@@ -69,7 +69,7 @@ public partial class HistoryView : UserControl
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error: {ex.Message}", "Error");
+            AppDialog.Show("Error", $"Error: {ex.Message}");
         }
     }
 }

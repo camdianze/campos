@@ -3,6 +3,7 @@ using System.Windows;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -184,6 +185,6 @@ public class InventoryStatusViewModel : ViewModelBase
             Low Stock: {(SelectedItem.IsLowStock ? "Yes" : "No")}
             """;
 
-        MessageBox.Show(detail, "Inventory Detail");
+        AppDialog.Show("Inventory Detail", detail, monospace: true);
     }
 }

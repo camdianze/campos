@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Windows;
 using PharmaPOS.Application.Inventory;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
 
@@ -13,7 +14,7 @@ namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
 /// (예: ESC-POS-.NET) 기반 구현체로 교체한다. 인터페이스는 그대로 유지될 예정이다.
 ///
 /// 이 클래스가 Application이 아니라 Desktop(WPF) 프로젝트에 있는 이유:
-/// MessageBox는 WPF(PresentationFramework)에 속한 타입이라,
+/// 화면에 창을 띄우는 일은 WPF(PresentationFramework)에 속하는 동작이라,
 /// UI 프레임워크를 몰라야 하는 Application 계층에는 둘 수 없다.
 /// 인터페이스(IReceiptPrintingService)만 Application에 두고,
 /// 구현체는 실제로 UI를 다루는 이 프로젝트에 둔다.
@@ -28,7 +29,7 @@ public class SimulatedReceiptPrintingService : IReceiptPrintingService
     {
         var receipt = BuildReceiptText(cartItems, totalAmount, cashTendered, changeDue);
 
-        MessageBox.Show(receipt, "Receipt (Simulated Print)");
+        AppDialog.Show("Receipt (Simulated Print)", receipt, monospace: true);
 
         return Task.FromResult(ReceiptPrintResult.Success());
     }

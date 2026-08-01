@@ -5,6 +5,7 @@ using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -203,8 +204,8 @@ public class AdjustmentViewModel : ViewModelBase
         }
         else if (result.RequiresConfirmation)
         {
-            var confirm = MessageBox.Show(result.Message, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (confirm == MessageBoxResult.Yes)
+            var confirm = AppDialog.Confirm("Confirm", result.Message!);
+            if (confirm)
             {
                 await ExecuteSaveAsync(allowZeroDelta: true);
             }

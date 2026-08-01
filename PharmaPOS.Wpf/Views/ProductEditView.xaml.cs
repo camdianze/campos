@@ -21,9 +21,9 @@ public partial class ProductEditView : UserControl
 
     private void OnConfirmationRequested(string message)
     {
-        var result = MessageBox.Show(message, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        var result = AppDialog.Confirm("Confirm", message);
 
-        if (result == MessageBoxResult.Yes && DataContext is ProductEditViewModel viewModel)
+        if (result && DataContext is ProductEditViewModel viewModel)
         {
             viewModel.ConfirmLowerSellingPrice();
         }

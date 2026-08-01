@@ -1,8 +1,8 @@
 ﻿using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 using PharmaPOS.Domain.Enums;
-using System.Windows;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -127,8 +127,7 @@ public partial class PosSaleViewModel
         }
         else if (result.RequiresConfirmation)
         {
-            var confirm = MessageBox.Show(result.Message, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (confirm == MessageBoxResult.Yes)
+            if (AppDialog.Confirm("Confirm", result.Message!))
             {
                 await ExecuteConfirmSaleAsync(acknowledgeWarning: true);
             }
@@ -189,13 +188,13 @@ public partial class PosSaleViewModel
         {
             if (candidate.RequiresPrompt)
             {
-                var answer = MessageBox.Show(
-                    $"This product contains an antibiotic. Print the counselling sheet?\n\n{candidate.ProductName}",
+                var printIt = AppDialog.Confirm(
                     "Antibiotic Counselling",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+                    $"This product contains an antibiotic. Print the counselling sheet?\n\n{candidate.ProductName}",
+                    confirmText: "Print",
+                    cancelText: "Skip");
 
-                if (answer != MessageBoxResult.Yes)
+                if (!printIt)
                 {
                     await _counsellingService.LogSkipAsync(
                         candidate, CounsellingService.SkipReasonPharmacist);

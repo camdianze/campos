@@ -5,6 +5,7 @@ using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -136,11 +137,7 @@ public class UserManagementViewModel : ViewModelBase
             ? UserRole.FacilityStaff
             : UserRole.Administrator;
 
-        var confirm = MessageBox.Show(
-            $"Change role of '{SelectedUser.Username}' to {newRole}?",
-            "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-        if (confirm != MessageBoxResult.Yes)
+        if (!AppDialog.Confirm("Confirm", $"Change role of '{SelectedUser.Username}' to {newRole}?"))
         {
             return;
         }

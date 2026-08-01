@@ -8,6 +8,7 @@ using PharmaPOS.Application.Products;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -412,11 +413,7 @@ public class BackupExportViewModel : ViewModelBase
             return;
         }
 
-        var confirm = MessageBox.Show(
-            "Current data will be replaced. Continue?",
-            "Confirm Restore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-        if (confirm != MessageBoxResult.Yes)
+        if (!AppDialog.Confirm("Confirm Restore", "Current data will be replaced. Continue?"))
         {
             Message = "Please confirm database restore.";
             return;
@@ -430,9 +427,7 @@ public class BackupExportViewModel : ViewModelBase
 
         if (!result.IsSuccess) { Message = result.Message!; return; }
 
-        MessageBox.Show(
-            "Database restored successfully. The application will now restart.",
-            "Restart Required", MessageBoxButton.OK, MessageBoxImage.Information);
+        AppDialog.Show("Restart Required", "Database restored successfully. The application will now restart.");
 
         RestartApplication();
     }
