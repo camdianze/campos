@@ -86,6 +86,13 @@ coverage*.info
 private.key
 licenses.csv
 
+# 발급 도구의 클라우드 업로드 설정과 GCP 서비스 계정 키.
+# 정상 사용 시 %APPDATA%\PharmaPOS.Issuer\ 에만 존재한다.
+# 서비스 계정 키가 유출되면 발급 대장(고객 목록 + 라이선스 코드 전체)을 읽고 쓸 수 있다.
+cloud.json
+*service-account*.json
+pending-uploads.jsonl
+
 ## ─────────────────────────────────────────────
 ##  Claude Code
 ## ─────────────────────────────────────────────

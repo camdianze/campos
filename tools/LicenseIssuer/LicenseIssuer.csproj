@@ -16,4 +16,8 @@
     <ProjectReference Include="..\..\PharmaPOS.Application\PharmaPOS.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Google.Cloud.Firestore" Version="4.3.0" />
+  </ItemGroup>
+
 </Project>
