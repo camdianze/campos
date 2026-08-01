@@ -17,6 +17,9 @@ dotnet build PharmaPOS.slnx
 # Run the app
 dotnet run --project PharmaPOS.Wpf
 
+# Run the tests
+dotnet test PharmaPOS.Tests
+
 # Build a single class library (faster feedback on Application/DataAccess changes)
 dotnet build PharmaPOS.Application
 
@@ -26,7 +29,9 @@ dotnet publish PharmaPOS.Wpf -p:PublishProfile=FolderProfile
 
 The WPF project directory is `PharmaPOS.Wpf`, but `AssemblyName` is pinned to `PharmaPOS`, so build output and the published executable are `PharmaPOS.dll` / `PharmaPOS.exe`. `RootNamespace` is deliberately left as `Lightweight_Digital_Inventory_Management___POS_System` to match the existing C# and XAML namespaces — the folder rename did not touch namespaces.
 
-There is **no test project** and no linter configured. Verification is: `dotnet build` plus running the app. The build currently emits 4 `CS0105` duplicate-using warnings (`ServiceCollectionExtensions.cs:12`, `LoginView.xaml.cs:8`) — pre-existing, harmless.
+No linter is configured. Verification is: `dotnet build`, `dotnet test`, plus running the app. The build emits `CS0105` duplicate-using warnings (`ServiceCollectionExtensions.cs`, `LoginView.xaml.cs`) — pre-existing, harmless.
+
+`PharmaPOS.Tests` (xUnit) covers the antibiotic counselling feature only — matching, locale fallback, sheet rendering, the counselling orchestration, and SQLite schema/migration/seed-loading integration. **The rest of the codebase has no tests.** It exists because the counselling matching rules (salt-form stripping, spelling variants, the topical/systemic split) are the kind of logic that fails silently in production.
 
 ### Runtime state
 
@@ -47,7 +52,8 @@ WPF app ──> Application ──> Domain
 | `PharmaPOS.Domain` | Entities (`Product`, `User`, `Inventory`, `StockTransaction`, `Facility`) and enums. No dependencies, no logic. |
 | `PharmaPOS.Application` | Business rules. Service implementations + the `I*Repository` interfaces they depend on (`Repositories/`). Also owns password hashing/policy and SMTP abstractions (`Security/`, `PasswordPolicy/`). |
 | `PharmaPOS.DataAccess` | SQLite implementations of the repository interfaces, schema creation, backup/export. |
-| `PharmaPOS.Wpf` | WPF UI (Views/ViewModels), DI composition root, and the platform-specific service implementations that Application can't provide (DPAPI, receipt printing). |
+| `PharmaPOS.Wpf` | WPF UI (Views/ViewModels), DI composition root, and the platform-specific service implementations that Application can't provide (DPAPI, receipt printing, counselling-sheet printing). Also ships the field-replaceable data files (`seeds/`, `locales/`). |
+| `PharmaPOS.Tests` | xUnit. Covers the antibiotic counselling feature only; references Domain/Application/DataAccess. |
 
 Repository interfaces live in **Application**, implementations in **DataAccess** — this is what keeps the dependency arrow inverted. When adding a data operation, add the interface next to its consumers in `PharmaPOS.Application/Repositories/`, implement it in `PharmaPOS.DataAccess/Repositories/`, then register it.
 
@@ -105,6 +111,12 @@ Inventory is tracked per batch: `Inventory` is unique on `(facility_id, product_
 ## Known incomplete areas
 
 Marked with `TODO` in source: label-printer hardware integration (`InternalBarcodeService.PrintLabelAsync` validates input only), receipt printing (`SimulatedReceiptPrintingService`), and sale `notes` (no column exists on `Stock_Transaction`).
+
+Antibiotic counselling (AMR) additionally needs:
+
+- **WHO AWaRe reference data.** `PharmaPOS.Wpf/seeds/aware_2025.csv` ships as a header-only template — the classification values must be filled from the WHO publication. Without it every product logs as `unmatched` and no sheet prints. Never guess these values. See [seeds/README.md](PharmaPOS.Wpf/seeds/README.md) for the column contract.
+- **QR image.** The sheet prints `[QR]` plus the configured URL as text; encoding an actual QR needs a package (none is referenced) and a decision on what the URL points to.
+- Counselling sheets print through the Windows print pipeline ([WpfCounsellingSheetPrintingService](PharmaPOS.Wpf/Services/WpfCounsellingSheetPrintingService.cs)), not ESC/POS. It has not been verified against a physical thermal printer.
 
 ## Repository notes
 
