@@ -78,6 +78,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IRecoverySettingsService, RecoverySettingsService>();
         services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
         services.AddTransient<IAntibioticMatchingService, AntibioticMatchingService>();
+        services.AddTransient<ICounsellingLocaleProvider>(_ =>
+            new FileCounsellingLocaleProvider(localeDirectories));
         services.AddTransient<IAwareSeedLoader>(sp => new AwareSeedLoader(
             sp.GetRequiredService<IAwareClassificationRepository>(),
             sp.GetRequiredService<IAppSettingRepository>(),

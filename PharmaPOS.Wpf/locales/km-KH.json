@@ -1,0 +1,26 @@
+{
+  "locale": "km-KH",
+  "language_name": "ភាសាខ្មែរ",
+  "script": "Khmer",
+  "render_mode": "raster",
+  "review_status": "pending",
+  "reviewed_by": null,
+  "content_version": "1.0.0",
+  "strings": {
+    "sheet.subtitle": "ការណែនាំប្រើថ្នាំអង់ទីប៊ីយោទិច",
+    "label.dose": "កម្រិតថ្នាំ",
+    "label.frequency": "ចំនួនដងក្នុងមួយថ្ងៃ",
+    "label.duration": "រយៈពេល",
+    "label.take": "ពេលប្រើ",
+    "take.before": "មុនអាហារ",
+    "take.after": "ក្រោយអាហារ",
+    "take.either": "ពេលណាក៏បាន",
+    "section.important": "សំខាន់",
+    "important.1": "ត្រូវប្រើថ្នាំឲ្យគ្រប់វគ្គ",
+    "important.2": "កុំឈប់ប្រើមុនកំណត់ ទោះបីជាមានអារម្មណ៍ធូរស្រាល",
+    "important.3": "កុំចែកថ្នាំអង់ទីប៊ីយោទិចឲ្យអ្នកដទៃ",
+    "important.4": "កុំទុកថ្នាំសល់សម្រាប់ពេលក្រោយ",
+    "important.5": "បើមានផលរំខាន ត្រូវទៅជួបគ្រូពេទ្យ",
+    "qr.caption": "ព័ត៌មានបន្ថែម"
+  }
+}
