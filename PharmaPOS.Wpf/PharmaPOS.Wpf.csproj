@@ -20,8 +20,10 @@
     <!-- AWaRe 참조 데이터와 복약안내 로케일 파일.
          소스에 박아넣지 않고 파일로 두는 이유는 분류 개정이나 번역 교체를
          재빌드 없이 처리하기 위해서다. 단일 파일 게시에서도 exe 옆에 그대로 복사된다. -->
-    <Content Include="seeds\**\*" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="locales\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- README는 내부 문서라 고객에게 나가는 게시본에는 넣지 않는다.
+         파일 형식·알려진 한계 같은 개발 메모가 들어 있다. -->
+    <Content Include="seeds\**\*" Exclude="seeds\**\*.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="locales\**\*" Exclude="locales\**\*.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

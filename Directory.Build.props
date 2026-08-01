@@ -1,0 +1,17 @@
+<Project>
+
+  <!--
+    Release 빌드에서는 디버그 심볼(.pdb)을 만들지 않는다.
+
+    게시 프로필에만 걸어두면 WPF 프로젝트에만 적용되고, 참조하는 클래스
+    라이브러리들의 .pdb는 그대로 게시 폴더에 딸려 나간다. 고객에게 줄 이유가
+    없는 파일이라 저장소 전체에 한 번에 건다.
+
+    Debug 빌드는 영향받지 않으므로 F5 디버깅은 그대로 된다.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+</Project>
