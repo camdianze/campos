@@ -42,4 +42,17 @@ public class Product
     public required EntityStatus Status { get; set; }
 
     public required long CreatedAt { get; set; }
+
+    /// <summary>
+    /// WHO ATC 코드. 항생제 복약안내(AMR) 판별에 쓴다.
+    /// 값이 있으면 성분명 매칭보다 우선한다 — 표기 흔들림이 없기 때문이다.
+    /// 항생제가 아닌 상품은 비워 둔다.
+    /// </summary>
+    public string? AtcCode { get; set; }
+
+    /// <summary>
+    /// 복합제 여부. 성분은 여럿이어도 AWaRe 분류는 하나이므로,
+    /// 조합 자체의 ATC 코드를 우선 사용한다는 점을 표시해 둔다.
+    /// </summary>
+    public bool IsCombination { get; set; }
 }

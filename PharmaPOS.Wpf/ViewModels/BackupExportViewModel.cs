@@ -188,11 +188,19 @@ public class BackupExportViewModel : ViewModelBase
             var status = Get("status").ToLowerInvariant() == "inactive"
                          ? EntityStatus.Inactive : EntityStatus.Active;
 
+            // atccode / iscombination은 항생제 복약안내(AMR)용 컬럼이다.
+            // 상품을 수백 건 한 번에 등록하는 경로가 여기뿐이라, 여기서 못 넣으면
+            // 상품마다 손으로 채워야 해서 기능이 사실상 안 쓰이게 된다.
+            var atcCode = Get("atccode");
+            var isCombination = Get("iscombination").ToLowerInvariant() is "true" or "1" or "y" or "yes";
+
             products.Add(new Product
             {
                 ProductId = Guid.NewGuid().ToString(),
                 ProductName = Get("productname"),
                 GenericName = Get("genericname"),
+                AtcCode = string.IsNullOrWhiteSpace(atcCode) ? null : atcCode,
+                IsCombination = isCombination,
                 Barcode = string.IsNullOrWhiteSpace(Get("barcode")) ? null : Get("barcode"),
                 Strength = Get("strength"),
                 Unit = Get("unit"),
@@ -260,11 +268,19 @@ public class BackupExportViewModel : ViewModelBase
             var status = Get("status").ToLowerInvariant() == "inactive"
                          ? EntityStatus.Inactive : EntityStatus.Active;
 
+            // atccode / iscombination은 항생제 복약안내(AMR)용 컬럼이다.
+            // 상품을 수백 건 한 번에 등록하는 경로가 여기뿐이라, 여기서 못 넣으면
+            // 상품마다 손으로 채워야 해서 기능이 사실상 안 쓰이게 된다.
+            var atcCode = Get("atccode");
+            var isCombination = Get("iscombination").ToLowerInvariant() is "true" or "1" or "y" or "yes";
+
             products.Add(new Product
             {
                 ProductId = Guid.NewGuid().ToString(),
                 ProductName = Get("productname"),
                 GenericName = Get("genericname"),
+                AtcCode = string.IsNullOrWhiteSpace(atcCode) ? null : atcCode,
+                IsCombination = isCombination,
                 Barcode = string.IsNullOrWhiteSpace(Get("barcode")) ? null : Get("barcode"),
                 Strength = Get("strength"),
                 Unit = Get("unit"),

@@ -17,6 +17,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- AWaRe 참조 데이터와 복약안내 로케일 파일.
+         소스에 박아넣지 않고 파일로 두는 이유는 분류 개정이나 번역 교체를
+         재빌드 없이 처리하기 위해서다. 단일 파일 게시에서도 exe 옆에 그대로 복사된다. -->
+    <Content Include="seeds\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="locales\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PharmaPOS.Application\PharmaPOS.Application.csproj" />
     <ProjectReference Include="..\PharmaPOS.DataAccess\PharmaPOS.DataAccess.csproj" />
     <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />

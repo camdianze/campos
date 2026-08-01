@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Licensing;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.DataAccess.Database;
@@ -30,12 +31,34 @@ public partial class App : Application
         var dbFilePath = Path.Combine(appDataFolder, "pharmapos.db");
         var licenseFilePath = Path.Combine(appDataFolder, "license.dat");
 
+        // AWaRe 참조 데이터와 복약안내 로케일 파일은 두 곳에서 찾는다.
+        // %APPDATA% 쪽이 먼저다 — 분류 개정본이나 번역 교체본을 재빌드 없이
+        // 그 자리에 놓기만 하면 다음 실행부터 적용되게 하기 위해서다.
+        var installFolder = AppContext.BaseDirectory;
+
+        var awareSeedPaths = new[]
+        {
+            Path.Combine(appDataFolder, "seeds", "aware_2025.csv"),
+            Path.Combine(installFolder, "seeds", "aware_2025.csv")
+        };
+
+        var localeDirectories = new[]
+        {
+            Path.Combine(appDataFolder, "locales"),
+            Path.Combine(installFolder, "locales")
+        };
+
         var services = new ServiceCollection();
-        services.AddPharmaPosServices(dbFilePath, licenseFilePath);
+        services.AddPharmaPosServices(dbFilePath, licenseFilePath, awareSeedPaths, localeDirectories);
         Services = services.BuildServiceProvider();
 
         var databaseInitializer = Services.GetRequiredService<DatabaseInitializer>();
         databaseInitializer.Initialize();
+
+        // AWaRe 시드 적재. 실패해도 앱은 그대로 뜬다 —
+        // 참조 데이터가 없으면 복약안내가 안 나올 뿐, 판매를 막아서는 안 된다.
+        // 적재 상태는 설정 화면에서 확인한다.
+        await Services.GetRequiredService<IAwareSeedLoader>().LoadIfChangedAsync();
 
         var mainWindow = new MainWindow();
 

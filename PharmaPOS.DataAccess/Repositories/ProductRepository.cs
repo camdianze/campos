@@ -51,7 +51,8 @@ public class ProductRepository : IProductRepository
         command.CommandText = $"""
             SELECT product_id, barcode, internal_barcode, product_name, generic_name,
                    strength, unit, manufacturer, country_of_origin, cost_price,
-                   selling_price, safety_stock_level, status, created_at
+                   selling_price, safety_stock_level, status, created_at,
+                   atc_code, is_combination
             FROM Product_Master
             {whereSql}
             ORDER BY product_name;
@@ -76,7 +77,8 @@ public class ProductRepository : IProductRepository
         command.CommandText = """
             SELECT product_id, barcode, internal_barcode, product_name, generic_name,
                    strength, unit, manufacturer, country_of_origin, cost_price,
-                   selling_price, safety_stock_level, status, created_at
+                   selling_price, safety_stock_level, status, created_at,
+                   atc_code, is_combination
             FROM Product_Master
             WHERE product_id = $productId;
             """;
@@ -135,11 +137,13 @@ public class ProductRepository : IProductRepository
             INSERT INTO Product_Master
                 (product_id, barcode, internal_barcode, product_name, generic_name,
                  strength, unit, manufacturer, country_of_origin, cost_price,
-                 selling_price, safety_stock_level, status, created_at)
+                 selling_price, safety_stock_level, status, created_at,
+                 atc_code, is_combination)
             VALUES
                 ($productId, $barcode, $internalBarcode, $productName, $genericName,
                  $strength, $unit, $manufacturer, $countryOfOrigin, $costPrice,
-                 $sellingPrice, $safetyStockLevel, $status, $createdAt);
+                 $sellingPrice, $safetyStockLevel, $status, $createdAt,
+                 $atcCode, $isCombination);
             """;
         AddProductParameters(command, product);
         await command.ExecuteNonQueryAsync();
@@ -163,7 +167,9 @@ public class ProductRepository : IProductRepository
                 cost_price = $costPrice,
                 selling_price = $sellingPrice,
                 safety_stock_level = $safetyStockLevel,
-                status = $status
+                status = $status,
+                atc_code = $atcCode,
+                is_combination = $isCombination
             WHERE product_id = $productId;
             """;
         AddProductParameters(command, product);
@@ -201,6 +207,8 @@ public class ProductRepository : IProductRepository
         command.Parameters.AddWithValue("$safetyStockLevel", product.SafetyStockLevel);
         command.Parameters.AddWithValue("$status", product.Status.ToString());
         command.Parameters.AddWithValue("$createdAt", product.CreatedAt);
+        command.Parameters.AddWithValue("$atcCode", (object?)product.AtcCode ?? DBNull.Value);
+        command.Parameters.AddWithValue("$isCombination", product.IsCombination ? 1 : 0);
     }
 
     private static Product MapToProduct(SqliteDataReader reader)
@@ -220,7 +228,9 @@ public class ProductRepository : IProductRepository
             SellingPrice = (decimal)reader.GetDouble(10),
             SafetyStockLevel = reader.GetInt32(11),
             Status = Enum.Parse<EntityStatus>(reader.GetString(12)),
-            CreatedAt = reader.GetInt64(13)
+            CreatedAt = reader.GetInt64(13),
+            AtcCode = reader.IsDBNull(14) ? null : reader.GetString(14),
+            IsCombination = reader.GetInt32(15) != 0
         };
     }
 }

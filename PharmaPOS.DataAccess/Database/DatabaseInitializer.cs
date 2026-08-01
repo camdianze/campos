@@ -24,6 +24,9 @@ public class DatabaseInitializer
         CreateInternalBarcodeSequenceTable(connection);
         CreateInventoryTable(connection);
         CreateStockTransactionTable(connection);
+        CreateAppSettingTable(connection);
+        CreateAwareClassificationTable(connection);
+        CreateCounsellingLogTable(connection);
 
         ApplyMigrations(connection);
     }
@@ -63,6 +66,11 @@ public class DatabaseInitializer
         AddColumnIfMissing(connection, "Users", "email_app_password_encrypted", "TEXT");
         AddColumnIfMissing(connection, "Users", "smtp_host", "TEXT");
         AddColumnIfMissing(connection, "Users", "smtp_port", "INTEGER");
+
+        // AMR 복약안내 기능용. 상품이 어떤 항생제인지 판별하는 데 쓴다.
+        // generic_name은 처음부터 있던 컬럼이라 여기 없다.
+        AddColumnIfMissing(connection, "Product_Master", "atc_code", "TEXT");
+        AddColumnIfMissing(connection, "Product_Master", "is_combination", "INTEGER NOT NULL DEFAULT 0");
     }
 
     private static void AddColumnIfMissing(SqliteConnection connection, string tableName, string columnName, string columnType)
@@ -125,7 +133,9 @@ public class DatabaseInitializer
                 selling_price       REAL NOT NULL,
                 safety_stock_level  INTEGER NOT NULL,
                 status              TEXT NOT NULL,
-                created_at          INTEGER NOT NULL
+                created_at          INTEGER NOT NULL,
+                atc_code            TEXT,
+                is_combination      INTEGER NOT NULL DEFAULT 0
             );
             CREATE UNIQUE INDEX IF NOT EXISTS idx_product_barcode
                 ON Product_Master(barcode) WHERE barcode IS NOT NULL;
@@ -135,6 +145,83 @@ public class DatabaseInitializer
                 ON Product_Master(product_name);
             CREATE INDEX IF NOT EXISTS idx_product_generic_name
                 ON Product_Master(generic_name);
+            """;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// 앱 전역 설정 보관용 키-값 테이블.
+    /// 이 제품은 단일 시설 배포이므로 시설별로 나누지 않고 전역 키 하나로 관리한다.
+    /// </summary>
+    private static void CreateAppSettingTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS App_Setting (
+                setting_key   TEXT PRIMARY KEY,
+                setting_value TEXT NOT NULL,
+                updated_at    INTEGER NOT NULL
+            );
+            """;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// WHO AWaRe 분류 참조 테이블. 시드 파일에서 적재되며, 앱이 직접 수정하지 않는다.
+    ///
+    /// atc_code를 PK로 두지 않은 이유: 고유 ATC 코드가 없는 고정용량복합제(FDC)가
+    /// 존재하고 그것들이 바로 NOT_RECOMMENDED 그룹이라, PK로 삼으면 정작
+    /// 안내가 가장 필요한 행들을 적재할 수 없다. UNIQUE 제약도 걸지 않는다 —
+    /// 시드 파일에 중복이 있으면 적재를 실패시키는 대신 로더가 건수로 보고한다.
+    /// </summary>
+    private static void CreateAwareClassificationTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Aware_Classification (
+                aware_id        TEXT PRIMARY KEY,
+                atc_code        TEXT,
+                antibiotic_name TEXT NOT NULL,
+                normalized_name TEXT NOT NULL,
+                aware_group     TEXT NOT NULL,
+                is_systemic     INTEGER NOT NULL,
+                source_version  TEXT NOT NULL,
+                updated_at      INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_aware_atc_code
+                ON Aware_Classification(atc_code);
+            CREATE INDEX IF NOT EXISTS idx_aware_normalized_name
+                ON Aware_Classification(normalized_name);
+            """;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// 복약안내 출력 이력. 스튜어드십 지표(ACCESS 비중, 출력률, unmatched 건수) 집계용이다.
+    /// 환자 식별 정보는 어떤 형태로도 저장하지 않는다.
+    /// </summary>
+    private static void CreateCounsellingLogTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Counselling_Log (
+                log_id         TEXT PRIMARY KEY,
+                transaction_id TEXT NOT NULL,
+                product_id     TEXT NOT NULL,
+                atc_code       TEXT,
+                aware_group    TEXT NOT NULL,
+                printed        INTEGER NOT NULL,
+                skip_reason    TEXT,
+                locale         TEXT NOT NULL,
+                source_version TEXT,
+                created_at     INTEGER NOT NULL,
+                FOREIGN KEY (transaction_id) REFERENCES Stock_Transaction(transaction_id),
+                FOREIGN KEY (product_id) REFERENCES Product_Master(product_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_counselling_log_created_at
+                ON Counselling_Log(created_at);
+            CREATE INDEX IF NOT EXISTS idx_counselling_log_aware_group
+                ON Counselling_Log(aware_group);
             """;
         command.ExecuteNonQuery();
     }

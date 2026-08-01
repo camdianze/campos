@@ -29,6 +29,14 @@
                 <TextBlock Text="Generic Name" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding GenericName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
+                <TextBlock Text="ATC Code (antibiotics only)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding AtcCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                <TextBlock Text="Used to look up the WHO AWaRe group for counselling sheets. Leave empty for non-antibiotics."
+                           TextWrapping="Wrap" Opacity="0.7" FontSize="11" Margin="0,0,0,10"/>
+
+                <CheckBox Content="Fixed-dose combination product"
+                          IsChecked="{Binding IsCombination}" Margin="0,0,0,10"/>
+
                 <TextBlock Text="Strength" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding Strength, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 

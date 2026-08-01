@@ -26,6 +26,8 @@ public class ProductEditViewModel : ViewModelBase
     private string _sellingPrice = string.Empty;
     private string _safetyStockLevel = string.Empty;
     private EntityStatus _status = EntityStatus.Active;
+    private string _atcCode = string.Empty;
+    private bool _isCombination;
     private string _message = string.Empty;
 
     public bool IsNewProduct { get; }
@@ -102,6 +104,23 @@ public class ProductEditViewModel : ViewModelBase
         set => SetProperty(ref _status, value);
     }
 
+    /// <summary>
+    /// WHO ATC 코드. 채워 두면 항생제 복약안내가 성분명 표기 흔들림 없이 매칭된다.
+    /// 항생제가 아닌 상품은 비워 둔다.
+    /// </summary>
+    public string AtcCode
+    {
+        get => _atcCode;
+        set => SetProperty(ref _atcCode, value);
+    }
+
+    /// <summary>복합제 여부. 성분이 여럿이어도 AWaRe 분류는 조합 자체의 것 하나를 따른다.</summary>
+    public bool IsCombination
+    {
+        get => _isCombination;
+        set => SetProperty(ref _isCombination, value);
+    }
+
     public IReadOnlyList<EntityStatus> AvailableStatuses { get; } = Enum.GetValues<EntityStatus>();
 
     public string Message
@@ -143,6 +162,8 @@ public class ProductEditViewModel : ViewModelBase
             _sellingPrice = existingProduct.SellingPrice.ToString();
             _safetyStockLevel = existingProduct.SafetyStockLevel.ToString();
             _status = existingProduct.Status;
+            _atcCode = existingProduct.AtcCode ?? string.Empty;
+            _isCombination = existingProduct.IsCombination;
         }
 
         SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync(acknowledgeWarning: false));
@@ -196,6 +217,8 @@ public class ProductEditViewModel : ViewModelBase
             SellingPrice = sellingPrice,
             SafetyStockLevel = safetyStockLevel,
             Status = Status,
+            AtcCode = string.IsNullOrWhiteSpace(AtcCode) ? null : AtcCode.Trim().ToUpperInvariant(),
+            IsCombination = IsCombination,
             CreatedAt = 0 // 신규 등록 시 서비스가 채운다. 수정 시에는 DB의 기존 값이 UPDATE 대상에서 그대로 유지된다.
         };
 
