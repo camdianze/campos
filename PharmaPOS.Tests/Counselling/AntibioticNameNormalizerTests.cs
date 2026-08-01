@@ -54,6 +54,21 @@ public class AntibioticNameNormalizerTests
         Assert.Equal("chloramphenicol", AntibioticNameNormalizer.Normalize("Chloramphenicol"));
     }
 
+    /// <summary>
+    /// 성분명의 일부인 한 글자를 용량 단위로 오인하면 안 된다.
+    /// "Penicillin G"의 G를 그램으로 보고 버리면 다른 성분이 돼버린다.
+    /// 그래서 단위는 바로 앞이 숫자였을 때만 용량 표기로 친다.
+    /// </summary>
+    [Theory]
+    [InlineData("Penicillin G", "penicilling")]
+    [InlineData("Polymyxin B", "polymyxinb")]
+    [InlineData("Amoxicillin 1 g", "amoxicillin")]
+    [InlineData("Amoxicillin 1g", "amoxicillin")]
+    public void Normalize_TreatsUnitAsDoseOnlyAfterANumber(string input, string expected)
+    {
+        Assert.Equal(expected, AntibioticNameNormalizer.Normalize(input));
+    }
+
     /// <summary>서로 다른 성분이 같은 값으로 뭉개지면 안 된다.</summary>
     [Theory]
     [InlineData("Amoxicillin", "Ampicillin")]

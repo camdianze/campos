@@ -114,7 +114,8 @@ Marked with `TODO` in source: label-printer hardware integration (`InternalBarco
 
 Antibiotic counselling (AMR) additionally needs:
 
-- **WHO AWaRe reference data.** `PharmaPOS.Wpf/seeds/aware_2025.csv` ships as a header-only template — the classification values must be filled from the WHO publication. Without it every product logs as `unmatched` and no sheet prints. Never guess these values. See [seeds/README.md](PharmaPOS.Wpf/seeds/README.md) for the column contract.
+- **Product dosage form.** `Product_Master` has no route/form column, so oral and injectable presentations of the same ATC code cannot be told apart. Two WHO entries are classified by route (Minocycline `J01AA08`, Fosfomycin `J01XX01`: IV = RESERVE, oral = WATCH); lookups deliberately pick the stricter group. Adding a form column would remove the ambiguity — see [seeds/README.md](PharmaPOS.Wpf/seeds/README.md).
+- **Topical antibiotics rely on ATC codes.** Every row in the shipped WHO file is `is_systemic = true` (the AWaRe list only covers systemic agents), so the topical-exclusion path never fires with this data. A topical product left without an ATC code will match on generic name alone and get a counselling sheet.
 - **QR image.** The sheet prints `[QR]` plus the configured URL as text; encoding an actual QR needs a package (none is referenced) and a decision on what the URL points to.
 - Counselling sheets print through the Windows print pipeline ([WpfCounsellingSheetPrintingService](PharmaPOS.Wpf/Services/WpfCounsellingSheetPrintingService.cs)), not ESC/POS. It has not been verified against a physical thermal printer.
 

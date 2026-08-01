@@ -11,6 +11,30 @@ namespace PharmaPOS.DataAccess.Repositories;
 /// </summary>
 public class AwareClassificationRepository : IAwareClassificationRepository
 {
+    /// <summary>
+    /// 같은 ATC 코드나 같은 성분명이 여러 행에 걸쳐 있을 때 어느 행을 고를지 정하는 순서.
+    ///
+    /// WHO 목록에는 제형(경구/주사)에 따라 분류가 갈리는 항목이 있다.
+    /// 실제 2025년 자료 기준으로 Minocycline(J01AA08)과 Fosfomycin(J01XX01)이
+    /// 주사는 RESERVE, 경구는 WATCH다. 그런데 상품 마스터에는 제형 정보가 없어
+    /// 둘을 구분할 수단이 없다.
+    ///
+    /// 그래서 "더 강한 안내가 필요한 쪽"을 고른다. 경구 제품을 RESERVE로 표시하는 것은
+    /// 과한 경고일 뿐이지만, 주사 제품을 WATCH로 낮춰 표시하면 필요한 경고를 놓친다.
+    /// 어느 쪽으로 틀리는 편이 나은지가 분명한 경우다.
+    /// 제형을 구분하려면 상품 마스터에 제형 필드를 추가해야 한다.
+    /// </summary>
+    private const string GroupPrecedenceOrderBy = """
+        ORDER BY CASE aware_group
+                     WHEN 'NOT_RECOMMENDED' THEN 0
+                     WHEN 'RESERVE'         THEN 1
+                     WHEN 'WATCH'           THEN 2
+                     WHEN 'ACCESS'          THEN 3
+                     ELSE 4
+                 END,
+                 antibiotic_name
+        """;
+
     private readonly SqliteConnectionFactory _connectionFactory;
 
     public AwareClassificationRepository(SqliteConnectionFactory connectionFactory)
@@ -83,14 +107,13 @@ public class AwareClassificationRepository : IAwareClassificationRepository
             return null;
         }
 
-        // 시드 파일에 같은 ATC가 두 번 들어가 있어도 조회가 흔들리지 않도록 정렬을 고정한다.
         return await QuerySingleAsync(
-            """
+            $"""
             SELECT aware_id, atc_code, antibiotic_name, normalized_name,
                    aware_group, is_systemic, source_version, updated_at
             FROM Aware_Classification
             WHERE atc_code = $value
-            ORDER BY antibiotic_name
+            {GroupPrecedenceOrderBy}
             LIMIT 1;
             """,
             normalizedAtcCode);
@@ -104,12 +127,12 @@ public class AwareClassificationRepository : IAwareClassificationRepository
         }
 
         return await QuerySingleAsync(
-            """
+            $"""
             SELECT aware_id, atc_code, antibiotic_name, normalized_name,
                    aware_group, is_systemic, source_version, updated_at
             FROM Aware_Classification
             WHERE normalized_name = $value
-            ORDER BY antibiotic_name
+            {GroupPrecedenceOrderBy}
             LIMIT 1;
             """,
             normalizedName);

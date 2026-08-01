@@ -1,1 +1,385 @@
-atc_code,antibiotic_name,aware_group,is_systemic,source_version
+id,atc_code,antibiotic_name,match_key,route,aware_group,antibiotic_class,on_eml,is_systemic,source_version
+1,J01GB06,Amikacin,amikacin,ANY,ACCESS,Aminoglycosides,Yes,true,WHO AWaRe 2025
+2,J01CA04,Amoxicillin,amoxicillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+3,J01CR02,Amoxicillin/clavulanic-acid,amoxicillin/clavulanicacid,ANY,ACCESS,Beta-lactam/beta-lactamase-inhibitor,Yes,true,WHO AWaRe 2025
+4,J01CR02,Amoxicillin/sulbactam,amoxicillin/sulbactam,ANY,ACCESS,Beta-lactam/beta-lactamase-inhibitor,No,true,WHO AWaRe 2025
+5,J01CA01,Ampicillin,ampicillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+6,J01CR01,Ampicillin/sulbactam,ampicillin/sulbactam,ANY,ACCESS,Beta-lactam/beta-lactamase-inhibitor,No,true,WHO AWaRe 2025
+7,P01AB04,Azanidazole,azanidazole,ANY,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+8,J01CE04,Azidocillin,azidocillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+9,J01CA06,Bacampicillin,bacampicillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+10,J01CE08,Benzathine-benzylpenicillin,benzathinebenzylpenicillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+11,J01CE10,Benzathine-phenoxymethylpenicillin,benzathinephenoxymethylpenicillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+12,J01CE01,Benzylpenicillin,benzylpenicillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+13,J01EA02,Brodimoprim,brodimoprim,ANY,ACCESS,Trimethoprim-derivatives,No,true,WHO AWaRe 2025
+14,J01DB10,Cefacetrile,cefacetrile,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+15,J01DB05,Cefadroxil,cefadroxil,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+16,J01DB01,Cefalexin,cefalexin,ANY,ACCESS,First-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+17,J01DB02,Cefaloridine,cefaloridine,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+18,J01DB03,Cefalotin,cefalotin,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+19,J01DB08,Cefapirin,cefapirin,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+20,J01DB07,Cefatrizine,cefatrizine,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+21,J01DB06,Cefazedone,cefazedone,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+22,J01DB04,Cefazolin,cefazolin,ANY,ACCESS,First-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+23,J01DB09,Cefradine,cefradine,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+24,J01DB11,Cefroxadine,cefroxadine,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+25,J01DB12,Ceftezole,ceftezole,ANY,ACCESS,First-generation-cephalosporins,No,true,WHO AWaRe 2025
+26,J01BA01,Chloramphenicol,chloramphenicol,ANY,ACCESS,Amphenicols,Yes,true,WHO AWaRe 2025
+27,J01FF01,Clindamycin,clindamycin,ANY,ACCESS,Lincosamides,Yes,true,WHO AWaRe 2025
+28,J01CE07,Clometocillin,clometocillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+29,J01CF02,Cloxacillin,cloxacillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+30,J01CF01,Dicloxacillin,dicloxacillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+31,J01AA02,Doxycycline,doxycycline,ANY,ACCESS,Tetracyclines,Yes,true,WHO AWaRe 2025
+32,J01CA07,Epicillin,epicillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+33,J01CF05,Flucloxacillin,flucloxacillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+34,J01XE03,Furazidin,furazidin,ANY,ACCESS,Nitrofuran-derivatives,No,true,WHO AWaRe 2025
+35,J01GB03,Gentamicin,gentamicin,ANY,ACCESS,Aminoglycosides,Yes,true,WHO AWaRe 2025
+36,J01CA18,Hetacillin,hetacillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+37,J01CA11,Mecillinam,mecillinam,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+38,J01CA14,Metampicillin,metampicillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+39,J01CF03,Meticillin,meticillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+40,J01XD01,Metronidazole,metronidazole,IV,ACCESS,Imidazoles,Yes,true,WHO AWaRe 2025
+41,P01AB01,Metronidazole,metronidazole,ORAL,ACCESS,Imidazoles,Yes,true,WHO AWaRe 2025
+42,J01CF06,Nafcillin,nafcillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+43,J01XE02,Nifurtoinol,nifurtoinol,ANY,ACCESS,Nitrofuran-derivatives,No,true,WHO AWaRe 2025
+44,P01AB06,Nimorazole,nimorazole,ANY,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+45,J01XE01,Nitrofurantoin,nitrofurantoin,ANY,ACCESS,Nitrofuran-derivatives,Yes,true,WHO AWaRe 2025
+46,J01XD03,Ornidazole,ornidazole,IV,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+47,P01AB03,Ornidazole,ornidazole,ORAL,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+48,J01CF04,Oxacillin,oxacillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+49,J01CE06,Penamecillin,penamecillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+50,J01CE02,Phenoxymethylpenicillin,phenoxymethylpenicillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+51,J01CA02,Pivampicillin,pivampicillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+52,J01CA08,Pivmecillinam,pivmecillinam,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+53,J01CE09,Procaine-benzylpenicillin,procainebenzylpenicillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
+54,P01AB05,Propenidazole,propenidazole,ANY,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+55,J01CE03,Propicillin,propicillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+56,P01AB08,Satranidazole,satranidazole,ANY,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+57,P01AB07,Secnidazole,secnidazole,ANY,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+58,J01XX04,Spectinomycin,spectinomycin,ANY,ACCESS,Aminocyclitols,Yes,true,WHO AWaRe 2025
+59,J01CG01,Sulbactam,sulbactam,ANY,ACCESS,Beta-lactamase-inhibitors,No,true,WHO AWaRe 2025
+60,J01EC02,Sulfadiazine,sulfadiazine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+61,J01EE06,Sulfadiazine/tetroxoprim,sulfadiazine/tetroxoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,No,true,WHO AWaRe 2025
+62,J01EE02,Sulfadiazine/trimethoprim,sulfadiazine/trimethoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,No,true,WHO AWaRe 2025
+63,J01ED01,Sulfadimethoxine,sulfadimethoxine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+64,J01EB03,Sulfadimidine,sulfadimidine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+65,J01EE05,Sulfadimidine/trimethoprim,sulfadimidine/trimethoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,No,true,WHO AWaRe 2025
+66,J01EB05,Sulfafurazole,sulfafurazole,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+67,J01EB01,Sulfaisodimidine,sulfaisodimidine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+68,J01ED02,Sulfalene,sulfalene,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+69,J01ED09,Sulfamazone,sulfamazone,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+70,J01ED07,Sulfamerazine,sulfamerazine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+71,J01EE07,Sulfamerazine/trimethoprim,sulfamerazine/trimethoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,No,true,WHO AWaRe 2025
+72,J01EB02,Sulfamethizole,sulfamethizole,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+73,J01EC01,Sulfamethoxazole,sulfamethoxazole,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+74,J01EE01,Sulfamethoxazole/trimethoprim,sulfamethoxazole/trimethoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,Yes,true,WHO AWaRe 2025
+75,J01ED05,Sulfamethoxypyridazine,sulfamethoxypyridazine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+76,J01ED03,Sulfametomidine,sulfametomidine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+77,J01ED04,Sulfametoxydiazine,sulfametoxydiazine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+78,J01EE03,Sulfametrole/trimethoprim,sulfametrole/trimethoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,No,true,WHO AWaRe 2025
+79,J01EC03,Sulfamoxole,sulfamoxole,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+80,J01EE04,Sulfamoxole/trimethoprim,sulfamoxole/trimethoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,No,true,WHO AWaRe 2025
+81,J01EB06,Sulfanilamide,sulfanilamide,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+82,J01ED06,Sulfaperin,sulfaperin,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+83,J01ED08,Sulfaphenazole,sulfaphenazole,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+84,J01EB04,Sulfapyridine,sulfapyridine,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+85,J01EB07,Sulfathiazole,sulfathiazole,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+86,J01EB08,Sulfathiourea,sulfathiourea,ANY,ACCESS,Sulfonamides,No,true,WHO AWaRe 2025
+87,J01CR04,Sultamicillin,sultamicillin,ANY,ACCESS,Beta-lactam/beta-lactamase-inhibitor,No,true,WHO AWaRe 2025
+88,J01CA15,Talampicillin,talampicillin,ANY,ACCESS,Penicillins,No,true,WHO AWaRe 2025
+89,J01AA07,Tetracycline,tetracycline,ANY,ACCESS,Tetracyclines,No,true,WHO AWaRe 2025
+90,J01BA02,Thiamphenicol,thiamphenicol,ANY,ACCESS,Amphenicols,No,true,WHO AWaRe 2025
+91,J01XD02,Tinidazole,tinidazole,IV,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+92,P01AB02,Tinidazole,tinidazole,ORAL,ACCESS,Imidazoles,No,true,WHO AWaRe 2025
+93,J01EA01,Trimethoprim,trimethoprim,ANY,ACCESS,Trimethoprim-derivatives,Yes,true,WHO AWaRe 2025
+94,,acetylspiramycin/metronidazole,acetylspiramycin/metronidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+95,,amikacin/cefepime,amikacin/cefepime,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+96,,amoxicillin/bacillus coagulans/cloxacillin,amoxicillin/bacilluscoagulans/cloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+97,,amoxicillin/bacillus coagulans/dicloxacillin,amoxicillin/bacilluscoagulans/dicloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+98,,amoxicillin/clavulanic acid/lactic ferments,amoxicillin/clavulanicacid/lacticferments,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+99,,amoxicillin/clavulanic acid/lactobacillus acidophilus,amoxicillin/clavulanicacid/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+100,,amoxicillin/clavulanic acid/nimesulide,amoxicillin/clavulanicacid/nimesulide,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+101,,amoxicillin/cloxacillin,amoxicillin/cloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+102,,amoxicillin/cloxacillin/lactic acid,amoxicillin/cloxacillin/lacticacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+103,,amoxicillin/cloxacillin/lactobacillus acidophilus/serrapeptase,amoxicillin/cloxacillin/lactobacillusacidophilus/serrapeptase,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+104,,amoxicillin/cloxacillin/lactobacillus lactis,amoxicillin/cloxacillin/lactobacilluslactis,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+105,,amoxicillin/cloxacillin/serrapeptase,amoxicillin/cloxacillin/serrapeptase,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+106,,amoxicillin/dicloxacillin,amoxicillin/dicloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+107,,amoxicillin/dicloxacillin/saccharomyces boulardii,amoxicillin/dicloxacillin/saccharomycesboulardii,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+108,,amoxicillin/flucloxacillin,amoxicillin/flucloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+109,,amoxicillin/flucloxacillin/lactobacillus acidophilus,amoxicillin/flucloxacillin/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+110,,amoxicillin/metronidazole,amoxicillin/metronidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+111,,amoxicillin/pivsulbactam,amoxicillin/pivsulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+112,,ampicillin/bacillus coagulans/cloxacillin,ampicillin/bacilluscoagulans/cloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+113,,ampicillin/cloxacillin,ampicillin/cloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+114,,ampicillin/cloxacillin/lactobacillus acidophilus,ampicillin/cloxacillin/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+115,,ampicillin/cloxacillin/saccharomyces boulardii,ampicillin/cloxacillin/saccharomycesboulardii,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+116,,ampicillin/dicloxacillin,ampicillin/dicloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+117,,ampicillin/dicloxacillin/lactobacillus acidophilus,ampicillin/dicloxacillin/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+118,,ampicillin/flucloxacillin,ampicillin/flucloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+119,,ampicillin/lidocaine/sulbactam,ampicillin/lidocaine/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+120,,ampicillin/oxacillin,ampicillin/oxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+121,,ampicillin/sultamicillin,ampicillin/sultamicillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+122,,ascorbic acid/metamizole sodium/penicillin g /streptomycin,ascorbicacid/metamizole/penicilling/streptomycin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+123,,azithromycin/cefixime,azithromycin/cefixime,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+124,,azithromycin/cefixime/lactobacillus acidophilus,azithromycin/cefixime/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+125,,azithromycin/cefpodoxime proxetil,azithromycin/cefpodoximeproxetil,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+126,,azithromycin/fluconazole/secnidazole,azithromycin/fluconazole/secnidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+127,,azithromycin/levofloxacin,azithromycin/levofloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+128,,azithromycin/ofloxacin,azithromycin/ofloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+129,,benzyl penicillin/streptomycin,benzylpenicillin/streptomycin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+130,,benzylpenicillin/procaine-benzylpenicillin/benzathine-benzylpenicillin,benzylpenicillin/procainebenzylpenicillin/benzathinebenzylpenicillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+131,,bromelains/doxycycline/lactobacillus reuteri/lactobacillus rhamnosus/ornidazole,bromelains/doxycycline/lactobacillusreuteri/lactobacillusrhamnosus/ornidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+132,,bromhexine/sulfamethoxazole/trimethoprim,bromhexine/sulfamethoxazole/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+133,,cefaclor/clavulanic acid,cefaclor/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+134,,cefadroxil/clavulanic acid,cefadroxil/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+135,,cefadroxil/trimethoprim,cefadroxil/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+136,,cefalexin/trimethoprim,cefalexin/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+137,,cefdinir/clavulanic acid,cefdinir/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+138,,cefepime/sulbactam,cefepime/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+139,,cefepime/tazobactam,cefepime/tazobactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+140,,cefixime/cefpodoxime proxetil,cefixime/cefpodoximeproxetil,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+141,,cefixime/clavulanic acid,cefixime/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+142,,cefixime/clavulanic acid/lactobacillus acidophilus,cefixime/clavulanicacid/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+143,,cefixime/cloxacillin,cefixime/cloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+144,,cefixime/cloxacillin/lactobacillus acidophilus,cefixime/cloxacillin/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+145,,cefixime/dicloxacillin,cefixime/dicloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+146,,cefixime/lactobacillus acidophilus/ofloxacin,cefixime/lactobacillusacidophilus/ofloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+147,,cefixime/levofloxacin,cefixime/levofloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+148,,cefixime/linezolid,cefixime/linezolid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+149,,cefixime/moxifloxacin,cefixime/moxifloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+150,,cefixime/ofloxacin,cefixime/ofloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+151,,cefixime/ornidazole,cefixime/ornidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+152,,cefoperazone/sulbactam,cefoperazone/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+153,,cefoperazone/tazobactam,cefoperazone/tazobactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+154,,cefotaxime/sulbactam,cefotaxime/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+155,,cefpodoxime proxetil/clavulanic acid,cefpodoximeproxetil/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+156,,cefpodoxime proxetil/cloxacillin/lactobacillus acidophilus,cefpodoximeproxetil/cloxacillin/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+157,,cefpodoxime proxetil/dicloxacillin,cefpodoximeproxetil/dicloxacillin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+158,,cefpodoxime proxetil/dicloxacillin/lactobacillus acidophilus,cefpodoximeproxetil/dicloxacillin/lactobacillusacidophilus,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+159,,cefpodoxime proxetil/levofloxacin,cefpodoximeproxetil/levofloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+160,,cefpodoxime proxetil/ofloxacin,cefpodoximeproxetil/ofloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+161,,cefpodoxime proxetil/sulbactam,cefpodoximeproxetil/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+162,,ceftazidime/sulbactam,ceftazidime/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+163,,ceftazidime/tazobactam,ceftazidime/tazobactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+164,,ceftazidime/tobramicin,ceftazidime/tobramicin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+165,,ceftibuten/clavulanic acid,ceftibuten/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+166,,ceftriaxone/sulbactam,ceftriaxone/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+167,,ceftriaxone/tazobactam,ceftriaxone/tazobactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+168,,ceftriaxone/vancomycin,ceftriaxone/vancomycin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+169,,cefuroxime axetil/clavulanic acid,cefuroximeaxetil/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+170,,cefuroxime axetil/linezolid,cefuroximeaxetil/linezolid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+171,,cefuroxime axetil/sulbactam,cefuroximeaxetil/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+172,,cefuroxime/clavulanic acid,cefuroxime/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+173,,cefuroxime/metronidazole,cefuroxime/metronidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+174,,cefuroxime/sulbactam,cefuroxime/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+175,,chloramphenicol/tetracycline,chloramphenicol/tetracycline,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+176,,ciprofloxacin/metronidazole,ciprofloxacin/metronidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+177,,ciprofloxacin/ornidazole,ciprofloxacin/ornidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+178,,ciprofloxacin/tinidazole,ciprofloxacin/tinidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+179,,doxycycline/tinidazole,doxycycline/tinidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+180,,erythromycin/sulfamethoxazole/trimethoprim,erythromycin/sulfamethoxazole/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+181,,erythromycin/trimethoprim,erythromycin/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+182,,fosfomycin/trimethoprim,fosfomycin/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+183,,gatifloxacin/ornidazole,gatifloxacin/ornidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+184,,kanamycin/penicillin g,kanamycin/penicilling,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+185,,levofloxacin/metronidazole,levofloxacin/metronidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+186,,levofloxacin/ornidazole,levofloxacin/ornidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+187,,meropenem/sodium/sulbactam,meropenem//sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+188,,meropenem/sulbactam,meropenem/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+189,,metronidazole/diloxanide,metronidazole/diloxanide,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+190,,metronidazole/furazolidone,metronidazole/furazolidone,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+191,,metronidazole/norfloxacin,metronidazole/norfloxacin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+192,,metronidazole/spiramycin,metronidazole/spiramycin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+193,,metronidazole/tetracycline,metronidazole/tetracycline,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+194,,mezlocillin/sulbactam,mezlocillin/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+195,,norfloxacin/tinidazole,norfloxacin/tinidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+196,,ofloxacin/nitazoxanide,ofloxacin/nitazoxanide,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+197,,ofloxacin/ornidazole,ofloxacin/ornidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+198,,ofloxacin/tinidazole,ofloxacin/tinidazole,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+199,,oleandomycin/tetracycline,oleandomycin/tetracycline,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+200,,penicillins/combinations-with-other-antibacterials,penicillins/combinationswithotherantibacterials,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+201,,piperacillin/sulbactam,piperacillin/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+202,,pivampicillin/pivmecillinam,pivampicillin/pivmecillinam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+203,,rifampicin/trimethoprim,rifampicin/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+204,,sulfacarbamide/sulfadiazine/sulfadimidine,sulfacarbamide/sulfadiazine/sulfadimidine,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+205,,sulfadiazine/sulfamethoxazole/trimethoprim,sulfadiazine/sulfamethoxazole/trimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+206,,sulfonamides/combinations-with-other-antibacterials-(excl-trimethoprim),sulfonamides/combinationswithotherantibacterialsexcltrimethoprim,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+207,,tetracycline/chlortetracycline/demeclocycline,tetracycline/chlortetracycline/demeclocycline,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+208,,tetracycline/nystatin,tetracycline/nystatin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+209,,tinidazole/diloxanide,tinidazole/diloxanide,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+210,J01DF01,Aztreonam,aztreonam,ANY,RESERVE,Monobactams,No,true,WHO AWaRe 2025
+211,J01DF51,Aztreonam/avibactam,aztreonam/avibactam,ANY,RESERVE,Monobactam/beta-lactamase-inhibitor,No,true,WHO AWaRe 2025
+212,J01DF02,Carumonam,carumonam,ANY,RESERVE,Monobactams,No,true,WHO AWaRe 2025
+213,J01DI04,Cefiderocol,cefiderocol,ANY,RESERVE,Other-cephalosporins,Yes,true,WHO AWaRe 2025
+214,J01DI02,Ceftaroline-fosamil,ceftarolinefosamil,ANY,RESERVE,Fifth-generation-cephalosporins,No,true,WHO AWaRe 2025
+215,J01DD52,Ceftazidime/avibactam,ceftazidime/avibactam,ANY,RESERVE,Third-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+216,J01DI01,Ceftobiprole-medocaril,ceftobiprolemedocaril,ANY,RESERVE,Fifth-generation-cephalosporins,No,true,WHO AWaRe 2025
+217,J01DI54,Ceftolozane/tazobactam,ceftolozane/tazobactam,ANY,RESERVE,Fifth-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+218,J01XB01,Colistin,colistin,IV,RESERVE,Polymyxins,Yes,true,WHO AWaRe 2025
+219,A07AA10,Colistin,colistin,ORAL,RESERVE,Polymyxins,No,true,WHO AWaRe 2025
+220,J01XA04,Dalbavancin,dalbavancin,ANY,RESERVE,Glycopeptides,No,true,WHO AWaRe 2025
+221,J01FG02,Dalfopristin/quinupristin,dalfopristin/quinupristin,ANY,RESERVE,Streptogramins,No,true,WHO AWaRe 2025
+222,J01XX09,Daptomycin,daptomycin,ANY,RESERVE,Lipopeptides,No,true,WHO AWaRe 2025
+223,J01AA13,Eravacycline,eravacycline,ANY,RESERVE,Tetracyclines,No,true,WHO AWaRe 2025
+224,J01DI03,Faropenem,faropenem,ANY,RESERVE,Penems,No,true,WHO AWaRe 2025
+225,J01XX01,Fosfomycin,fosfomycin,IV,RESERVE,Phosphonics,Yes,true,WHO AWaRe 2025
+226,J01EA03,Iclaprim,iclaprim,ANY,RESERVE,Trimethoprim-derivatives,No,true,WHO AWaRe 2025
+227,J01DH56,Imipenem/cilastatin/relebactam,imipenem/cilastatin/relebactam,ANY,RESERVE,Carbapenems,No,true,WHO AWaRe 2025
+228,J01XX12,Lefamulin,lefamulin,ANY,RESERVE,Pleuromutilin,No,true,WHO AWaRe 2025
+229,J01XX08,Linezolid,linezolid,ANY,RESERVE,Oxazolidinones,Yes,true,WHO AWaRe 2025
+230,J01DH52,Meropenem/vaborbactam,meropenem/vaborbactam,ANY,RESERVE,Carbapenems,Yes,true,WHO AWaRe 2025
+231,J01AA08,Minocycline,minocycline,IV,RESERVE,Tetracyclines,No,true,WHO AWaRe 2025
+232,J01AA15,Omadacycline,omadacycline,ANY,RESERVE,Tetracyclines,No,true,WHO AWaRe 2025
+233,J01XA05,Oritavancin,oritavancin,ANY,RESERVE,Glycopeptides,No,true,WHO AWaRe 2025
+234,J01GB14,Plazomicin,plazomicin,ANY,RESERVE,Aminoglycosides,Yes,true,WHO AWaRe 2025
+235,J01XB02,Polymyxin-B,polymyxinb,IV,RESERVE,Polymyxins,Yes,true,WHO AWaRe 2025
+236,A07AA05,Polymyxin-B,polymyxinb,ORAL,RESERVE,Polymyxins,No,true,WHO AWaRe 2025
+237,J01XX11,Tedizolid,tedizolid,ANY,RESERVE,Oxazolidinones,Yes,true,WHO AWaRe 2025
+238,J01XA03,Telavancin,telavancin,ANY,RESERVE,Glycopeptides,No,true,WHO AWaRe 2025
+239,J01AA12,Tigecycline,tigecycline,ANY,RESERVE,Glycylcyclines,No,true,WHO AWaRe 2025
+240,J01GB12,Arbekacin,arbekacin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+241,J01CA19,Aspoxicillin,aspoxicillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+242,J01FA10,Azithromycin,azithromycin,ANY,WATCH,Macrolides,Yes,true,WHO AWaRe 2025
+243,J01CA09,Azlocillin,azlocillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+244,J01GB13,Bekanamycin,bekanamycin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+245,J01DH05,Biapenem,biapenem,ANY,WATCH,Carbapenems,No,true,WHO AWaRe 2025
+246,J01CA03,Carbenicillin,carbenicillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+247,J01CA05,Carindacillin,carindacillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+248,J01DC04,Cefaclor,cefaclor,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+249,J01DC03,Cefamandole,cefamandole,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+250,J01DC13,Cefbuperazone,cefbuperazone,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+251,J01DD17,Cefcapene-pivoxil,cefcapenepivoxil,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+252,J01DD15,Cefdinir,cefdinir,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+253,J01DD16,Cefditoren-pivoxil,cefditorenpivoxil,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+254,J01DE01,Cefepime,cefepime,ANY,WATCH,Fourth-generation-cephalosporins,No,true,WHO AWaRe 2025
+255,J01DD10,Cefetamet-pivoxil,cefetametpivoxil,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+256,J01DD08,Cefixime,cefixime,ANY,WATCH,Third-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+257,J01DD05,Cefmenoxime,cefmenoxime,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+258,J01DC09,Cefmetazole,cefmetazole,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+259,J01DC12,Cefminox,cefminox,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+260,J01DD09,Cefodizime,cefodizime,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+261,J01DC06,Cefonicid,cefonicid,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+262,J01DD12,Cefoperazone,cefoperazone,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+263,J01DC11,Ceforanide,ceforanide,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+264,,Cefoselis,cefoselis,ANY,WATCH,Fourth-generation-cephalosporins,No,true,WHO AWaRe 2025
+265,J01DD01,Cefotaxime,cefotaxime,ANY,WATCH,Third-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+266,J01DC05,Cefotetan,cefotetan,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+267,J01DC07,Cefotiam,cefotiam,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+268,J01DC01,Cefoxitin,cefoxitin,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+269,J01DE03,Cefozopran,cefozopran,ANY,WATCH,Fourth-generation-cephalosporins,No,true,WHO AWaRe 2025
+270,J01DD11,Cefpiramide,cefpiramide,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+271,J01DE02,Cefpirome,cefpirome,ANY,WATCH,Fourth-generation-cephalosporins,No,true,WHO AWaRe 2025
+272,J01DD13,Cefpodoxime-proxetil,cefpodoximeproxetil,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+273,J01DC10,Cefprozil,cefprozil,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+274,J01DD03,Cefsulodin,cefsulodin,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+275,J01DD02,Ceftazidime,ceftazidime,ANY,WATCH,Third-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+276,J01DD18,Cefteram-pivoxil,cefterampivoxil,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+277,J01DD14,Ceftibuten,ceftibuten,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+278,J01DD07,Ceftizoxime,ceftizoxime,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+279,J01DD04,Ceftriaxone,ceftriaxone,ANY,WATCH,Third-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+280,J01DC02,Cefuroxime,cefuroxime,ANY,WATCH,Second-generation-cephalosporins,Yes,true,WHO AWaRe 2025
+281,J01AA03,Chlortetracycline,chlortetracycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+282,J01MB06,Cinoxacin,cinoxacin,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+283,J01MA02,Ciprofloxacin,ciprofloxacin,ANY,WATCH,Fluoroquinolones,Yes,true,WHO AWaRe 2025
+284,J01FA09,Clarithromycin,clarithromycin,ANY,WATCH,Macrolides,Yes,true,WHO AWaRe 2025
+285,J01XX03,Clofoctol,clofoctol,ANY,WATCH,Phenol-derivatives,No,true,WHO AWaRe 2025
+286,J01AA11,Clomocycline,clomocycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+287,J01MA23,Delafloxacin,delafloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+288,J01AA01,Demeclocycline,demeclocycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+289,J01GB09,Dibekacin,dibekacin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+290,J01FA13,Dirithromycin,dirithromycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+291,J01DH04,Doripenem,doripenem,ANY,WATCH,Carbapenems,No,true,WHO AWaRe 2025
+292,J01MA04,Enoxacin,enoxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+293,J01DH03,Ertapenem,ertapenem,ANY,WATCH,Carbapenems,No,true,WHO AWaRe 2025
+294,J01FA01,Erythromycin,erythromycin,ANY,WATCH,Macrolides,Yes,true,WHO AWaRe 2025
+295,A07AA12,Fidaxomicin,fidaxomicin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+296,J01MA08,Fleroxacin,fleroxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+297,J01DC14,Flomoxef,flomoxef,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+298,J01MB07,Flumequine,flumequine,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+299,J01FA14,Flurithromycin,flurithromycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+300,J01XX01,Fosfomycin,fosfomycin,ORAL,WATCH,Phosphonics,No,true,WHO AWaRe 2025
+301,J01XC01,Fusidic-acid,fusidicacid,ANY,WATCH,Steroid-antibacterials,No,true,WHO AWaRe 2025
+302,J01MA19,Garenoxacin,garenoxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+303,J01MA16,Gatifloxacin,gatifloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+304,J01MA15,Gemifloxacin,gemifloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+305,J01XX13,Gepotidacin,gepotidacin,ANY,WATCH,Triazaacenaphthylenes,No,true,WHO AWaRe 2025
+306,J01MA11,Grepafloxacin,grepafloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+307,J01DH51,Imipenem/cilastatin,imipenem/cilastatin,ANY,WATCH,Carbapenems,Yes,true,WHO AWaRe 2025
+308,J01GB11,Isepamicin,isepamicin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+309,J01FA07,Josamycin,josamycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+310,J01GB04,Kanamycin,kanamycin,IV,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+311,A07AA08,Kanamycin,kanamycin,ORAL,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+312,J01MA25,Lascufloxacin,lascufloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+313,J01DD06,Latamoxef,latamoxef,ANY,WATCH,Third-generation-cephalosporins,No,true,WHO AWaRe 2025
+314,J01MA12,Levofloxacin,levofloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+315,J01MA24,Levonadifloxacin,levonadifloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+316,J01FF02,Lincomycin,lincomycin,ANY,WATCH,Lincosamides,No,true,WHO AWaRe 2025
+317,J01MA07,Lomefloxacin,lomefloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+318,J01DC08,Loracarbef,loracarbef,ANY,WATCH,Second-generation-cephalosporins,No,true,WHO AWaRe 2025
+319,J01AA04,Lymecycline,lymecycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+320,J01DH02,Meropenem,meropenem,ANY,WATCH,Carbapenems,Yes,true,WHO AWaRe 2025
+321,J01AA05,Metacycline,metacycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+322,J01CA10,Mezlocillin,mezlocillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+323,,Micronomicin,micronomicin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+324,J01FA03,Midecamycin,midecamycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+325,J01AA08,Minocycline,minocycline,ORAL,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+326,J01FA11,Miocamycin,miocamycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+327,J01MA14,Moxifloxacin,moxifloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+328,J01MB02,Nalidixic-acid,nalidixicacid,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+329,J01MB08,Nemonoxacin,nemonoxacin,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+330,J01GB05,Neomycin,neomycin,IV,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+331,A07AA01,Neomycin,neomycin,ORAL,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+332,J01GB07,Netilmicin,netilmicin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+333,J01MA06,Norfloxacin,norfloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+334,J01MA01,Ofloxacin,ofloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+335,J01FA05,Oleandomycin,oleandomycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+336,J01MB05,Oxolinic-acid,oxolinicacid,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+337,J01AA06,Oxytetracycline,oxytetracycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+338,J01DH55,Panipenem,panipenem,ANY,WATCH,Carbapenems,No,true,WHO AWaRe 2025
+339,A07AA06,Paromomycin,paromomycin,ORAL,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+340,J01MA18,Pazufloxacin,pazufloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+341,J01MA03,Pefloxacin,pefloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+342,J01AA10,Penimepicycline,penimepicycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+343,J01CE05,Pheneticillin,pheneticillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+344,J01MB04,Pipemidic-acid,pipemidicacid,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+345,J01CA12,Piperacillin,piperacillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+346,J01CR05,Piperacillin/tazobactam,piperacillin/tazobactam,ANY,WATCH,Beta-lactam/beta-lactamase-inhibitor_anti-pseudomonal,Yes,true,WHO AWaRe 2025
+347,J01MB03,Piromidic-acid,piromidicacid,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+348,J01FG01,Pristinamycin,pristinamycin,ANY,WATCH,Streptogramins,No,true,WHO AWaRe 2025
+349,J01MA17,Prulifloxacin,prulifloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+350,J01GB10,Ribostamycin,ribostamycin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+351,J04AB04,Rifabutin,rifabutin,ANY,WATCH,Rifamycins,No,true,WHO AWaRe 2025
+352,J04AB02,Rifampicin,rifampicin,ANY,WATCH,Rifamycins,No,true,WHO AWaRe 2025
+353,J04AB03,Rifamycin,rifamycin,IV,WATCH,Rifamycins,No,true,WHO AWaRe 2025
+354,A07AA13,Rifamycin,rifamycin,ORAL,WATCH,Rifamycins,No,true,WHO AWaRe 2025
+355,A07AA11,Rifaximin,rifaximin,ANY,WATCH,Rifamycins,No,true,WHO AWaRe 2025
+356,J01FA12,Rokitamycin,rokitamycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+357,J01AA09,Rolitetracycline,rolitetracycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+358,J01MB01,Rosoxacin,rosoxacin,ANY,WATCH,Quinolones,No,true,WHO AWaRe 2025
+359,J01FA06,Roxithromycin,roxithromycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+360,J01MA10,Rufloxacin,rufloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+361,J01AA14,Sarecycline,sarecycline,ANY,WATCH,Tetracyclines,No,true,WHO AWaRe 2025
+362,J01GB08,Sisomicin,sisomicin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+363,J01MA21,Sitafloxacin,sitafloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+364,J01FA16,Solithromycin,solithromycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+365,J01MA09,Sparfloxacin,sparfloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+366,J01FA02,Spiramycin,spiramycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+367,J01GA02,Streptoduocin,streptoduocin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+368,J01GA01,Streptomycin,streptomycin,IV,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+369,A07AA04,Streptomycin,streptomycin,ORAL,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+370,J01CA16,Sulbenicillin,sulbenicillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+371,J01CG02,Tazobactam,tazobactam,ANY,WATCH,Beta-lactamase-inhibitors,No,true,WHO AWaRe 2025
+372,J01DH06,Tebipenem,tebipenem,ANY,WATCH,Carbapenems,No,true,WHO AWaRe 2025
+373,J01XA02,Teicoplanin,teicoplanin,ANY,WATCH,Glycopeptides,No,true,WHO AWaRe 2025
+374,J01FA15,Telithromycin,telithromycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+375,J01MA05,Temafloxacin,temafloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+376,J01CA17,Temocillin,temocillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+377,J01CA13,Ticarcillin,ticarcillin,ANY,WATCH,Penicillins,No,true,WHO AWaRe 2025
+378,J01CR03,Ticarcillin/clavulanic-acid,ticarcillin/clavulanicacid,ANY,WATCH,Beta-lactam/beta-lactamase-inhibitor,No,true,WHO AWaRe 2025
+379,J01GB01,Tobramycin,tobramycin,ANY,WATCH,Aminoglycosides,No,true,WHO AWaRe 2025
+380,J01MA22,Tosufloxacin,tosufloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+381,J01FA08,Troleandomycin,troleandomycin,ANY,WATCH,Macrolides,No,true,WHO AWaRe 2025
+382,J01MA13,Trovafloxacin,trovafloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
+383,J01XA01,Vancomycin,vancomycin,IV,WATCH,Glycopeptides,Yes,true,WHO AWaRe 2025
+384,A07AA09,Vancomycin,vancomycin,ORAL,WATCH,Glycopeptides,Yes,true,WHO AWaRe 2025

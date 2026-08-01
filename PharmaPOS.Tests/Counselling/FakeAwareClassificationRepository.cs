@@ -48,7 +48,7 @@ public class FakeAwareClassificationRepository : IAwareClassificationRepository
             throw new InvalidOperationException("database unavailable");
         }
 
-        return Task.FromResult(_rows.FirstOrDefault(r => r.AtcCode == normalizedAtcCode));
+        return Task.FromResult(PickOne(_rows.Where(r => r.AtcCode == normalizedAtcCode)));
     }
 
     public Task<AwareClassification?> FindByNormalizedNameAsync(string normalizedName)
@@ -58,7 +58,26 @@ public class FakeAwareClassificationRepository : IAwareClassificationRepository
             throw new InvalidOperationException("database unavailable");
         }
 
-        return Task.FromResult(_rows.FirstOrDefault(r => r.NormalizedName == normalizedName));
+        return Task.FromResult(PickOne(_rows.Where(r => r.NormalizedName == normalizedName)));
+    }
+
+    /// <summary>
+    /// SQLite 구현체와 같은 우선순위를 쓴다 — 후보가 여럿이면 더 강한 안내가 필요한 쪽.
+    /// 이 규칙이 어긋나면 테스트가 실제 동작을 검증하지 못한다.
+    /// </summary>
+    private static AwareClassification? PickOne(IEnumerable<AwareClassification> candidates)
+    {
+        return candidates
+            .OrderBy(r => r.AwareGroup switch
+            {
+                AwareGroup.NotRecommended => 0,
+                AwareGroup.Reserve => 1,
+                AwareGroup.Watch => 2,
+                AwareGroup.Access => 3,
+                _ => 4
+            })
+            .ThenBy(r => r.AntibioticName, StringComparer.Ordinal)
+            .FirstOrDefault();
     }
 
     public Task<int> CountAsync() => Task.FromResult(_rows.Count);

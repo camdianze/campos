@@ -16,7 +16,7 @@ public static class AntibioticNameNormalizer
     /// 정규화 규칙 버전. 이 값이 바뀌면 저장된 normalized_name이 낡은 것이므로
     /// 시드를 강제로 다시 적재한다. 규칙을 손볼 때 반드시 같이 올릴 것.
     /// </summary>
-    public const string RuleVersion = "1";
+    public const string RuleVersion = "2";
 
     /// <summary>
     /// 염·수화물 형태를 나타내는 토큰. 성분 자체를 가리키지 않으므로 제거한다.
@@ -62,6 +62,7 @@ public static class AntibioticNameNormalizer
         // 1단계: 토큰 단위 정리 — 염 형태와 용량 표기를 버린다.
         //         구분자를 지우기 "전에" 해야 단어 경계를 알 수 있다.
         var kept = new List<string>();
+        var previousTokenWasNumber = false;
 
         foreach (var rawToken in lowered.Split(
                      new[] { ' ', '\t', '-', '/', '+', ',', '(', ')', '.', ';', ':' },
@@ -69,11 +70,35 @@ public static class AntibioticNameNormalizer
         {
             var token = TrimNonAlphanumeric(rawToken);
 
-            if (token.Length == 0 || SaltTokens.Contains(token) || IsDoseToken(token))
+            if (token.Length == 0 || SaltTokens.Contains(token))
             {
+                previousTokenWasNumber = false;
                 continue;
             }
 
+            // "500" 같은 숫자 토큰. 뒤에 단위가 떨어져 나올 수 있어 표시해 둔다.
+            if (token.All(char.IsDigit))
+            {
+                previousTokenWasNumber = true;
+                continue;
+            }
+
+            // "500mg"처럼 숫자와 단위가 붙어 있는 토큰.
+            if (IsNumberWithUnit(token))
+            {
+                previousTokenWasNumber = false;
+                continue;
+            }
+
+            // "500 mg"처럼 띄어 쓴 단위. 앞이 숫자였을 때만 버린다.
+            // 조건 없이 버리면 "Penicillin G"의 G까지 용량 단위로 오인한다.
+            if (previousTokenWasNumber && DoseUnits.Contains(token, StringComparer.Ordinal))
+            {
+                previousTokenWasNumber = false;
+                continue;
+            }
+
+            previousTokenWasNumber = false;
             kept.Add(token);
         }
 
@@ -134,29 +159,16 @@ public static class AntibioticNameNormalizer
         return value;
     }
 
-    /// <summary>"500mg", "500", "mg" 같은 용량 표기 토큰인지 판단한다.</summary>
-    private static bool IsDoseToken(string token)
+    /// <summary>"500mg"처럼 숫자와 단위가 한 토큰에 붙어 있는지 판단한다.</summary>
+    private static bool IsNumberWithUnit(string token)
     {
-        // 숫자와 단위가 띄어 쓰인 경우("500 mg")를 위해 단위만 있는 토큰도 버린다.
-        if (DoseUnits.Contains(token, StringComparer.Ordinal))
-        {
-            return true;
-        }
-
         if (!char.IsDigit(token[0]))
         {
             return false;
         }
 
-        // 숫자로만 이루어진 토큰 (예: "500")
-        if (token.All(char.IsDigit))
-        {
-            return true;
-        }
-
-        // 숫자 + 단위 (예: "500mg")
         var unitStart = 0;
-        while (unitStart < token.Length && (char.IsDigit(token[unitStart]) || token[unitStart] == '.'))
+        while (unitStart < token.Length && char.IsDigit(token[unitStart]))
         {
             unitStart++;
         }
