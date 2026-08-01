@@ -190,7 +190,7 @@ public partial class PosSaleViewModel
             if (candidate.RequiresPrompt)
             {
                 var answer = MessageBox.Show(
-                    $"Print antibiotic counselling sheet?\n\n{candidate.ProductName}",
+                    $"항생제가 포함된 제품입니다. 복약지도 하시겠습니까?\n\n{candidate.ProductName}",
                     "Antibiotic Counselling",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
