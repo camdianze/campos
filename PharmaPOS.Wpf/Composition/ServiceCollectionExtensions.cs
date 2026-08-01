@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddSingleton<IPasswordPolicyValidator, PasswordPolicyValidator>();
         services.AddSingleton<IReceiptPrintingService, SimulatedReceiptPrintingService>();
+        services.AddSingleton<ICounsellingSheetPrintingService, WpfCounsellingSheetPrintingService>();
         services.AddSingleton<IEmailSendingService, SmtpEmailSendingService>();
         services.AddSingleton<IRecoveryDataProtector, DpapiRecoveryDataProtector>();
         services.AddSingleton<ILicenseActivationStore>(_ => new DpapiLicenseActivationStore(licenseFilePath));
