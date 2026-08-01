@@ -9,6 +9,12 @@ public class CounsellingSettings
 
     public CounsellingSheetFormat SheetFormat { get; set; } = CounsellingSheetFormat.Full;
 
+    /// <summary>프린터로 보낼지, 파일로 저장할지.</summary>
+    public CounsellingOutput Output { get; set; } = CounsellingOutput.Printer;
+
+    /// <summary>Output이 File일 때 저장할 폴더. 비어 있으면 기본 폴더를 쓴다.</summary>
+    public string FileOutputFolder { get; set; } = string.Empty;
+
     /// <summary>현지어 로케일 코드. 비어 있으면 영어 단독 출력.</summary>
     public string LocaleCode { get; set; } = string.Empty;
 

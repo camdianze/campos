@@ -8,6 +8,7 @@
              d:DesignWidth="800" d:DesignHeight="550">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </UserControl.Resources>
 
     <Grid Margin="28,24,28,24">
@@ -43,7 +44,7 @@
 
         <DataGrid Grid.Row="2"
                   ItemsSource="{Binding Products}"
-                  SelectedItem="{Binding SelectedProduct}"
+                  SelectedItem="{Binding SelectedRow}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
@@ -55,12 +56,31 @@
                   HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Product Name"     Binding="{Binding ProductName}"     Width="*"/>
-                <DataGridTextColumn Header="Generic Name"     Binding="{Binding GenericName}"     Width="*"/>
-                <DataGridTextColumn Header="Barcode"          Binding="{Binding Barcode}"         Width="120"/>
-                <DataGridTextColumn Header="Internal Barcode" Binding="{Binding InternalBarcode}" Width="120"/>
-                <DataGridTextColumn Header="Selling Price"    Binding="{Binding SellingPrice}"    Width="100"/>
-                <DataGridTextColumn Header="Status"           Binding="{Binding Status}"          Width="80"/>
+                <!-- 상품명 뒤의 점은 WHO AWaRe 분류다.
+                     초록 ACCESS · 노랑 WATCH · 빨강 RESERVE · 검정 NOT RECOMMENDED.
+                     항생제가 아니거나 참조 목록에 없으면 점이 없다. -->
+                <DataGridTemplateColumn Header="Product Name" Width="*" SortMemberPath="Product.ProductName">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Product.ProductName}" VerticalAlignment="Center"/>
+                                <Ellipse Width="9" Height="9" Margin="7,0,0,0"
+                                         VerticalAlignment="Center"
+                                         Fill="{Binding DotBrush}"
+                                         ToolTip="{Binding AwareTooltip}"
+                                         Visibility="{Binding HasAwareGroup, Converter={StaticResource BoolToVis}}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Generic Name"     Binding="{Binding Product.GenericName}"     Width="*"/>
+                <DataGridTextColumn Header="Unit"             Binding="{Binding Product.Unit}"            Width="90"/>
+                <DataGridTextColumn Header="Barcode"          Binding="{Binding Product.Barcode}"         Width="120"/>
+                <DataGridTextColumn Header="Internal Barcode" Binding="{Binding Product.InternalBarcode}" Width="120"/>
+                <DataGridTextColumn Header="Cost Price"       Binding="{Binding Product.CostPrice}"       Width="90"/>
+                <DataGridTextColumn Header="Selling Price"    Binding="{Binding Product.SellingPrice}"    Width="90"/>
+                <DataGridTextColumn Header="Safety Stock"     Binding="{Binding Product.SafetyStockLevel}" Width="90"/>
+                <DataGridTextColumn Header="Status"           Binding="{Binding Product.Status}"          Width="80"/>
             </DataGrid.Columns>
         </DataGrid>
 

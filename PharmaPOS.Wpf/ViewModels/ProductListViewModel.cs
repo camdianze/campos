@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
@@ -25,13 +26,21 @@ public class ProductListViewModel : ViewModelBase
 {
     private readonly IProductRepository _productRepository;
     private readonly IProductService _productService;
+    private readonly IAntibioticMatchingService _matchingService;
+
+    /// <summary>
+    /// 성분/ATC 조합별 판별 결과 캐시.
+    /// 검색어를 한 글자 칠 때마다 목록을 다시 불러오는데, 그때마다 상품 수만큼
+    /// 참조 테이블을 조회하면 타이핑이 느려진다.
+    /// </summary>
+    private readonly Dictionary<string, AwareGroup?> _awareGroupCache = new(StringComparer.OrdinalIgnoreCase);
 
     private string _searchTerm = string.Empty;
     private ProductStatusFilterOption _selectedStatusFilter = ProductStatusFilterOption.All;
-    private Product? _selectedProduct;
+    private ProductRow? _selectedRow;
     private string _message = string.Empty;
 
-    public ObservableCollection<Product> Products { get; } = new();
+    public ObservableCollection<ProductRow> Products { get; } = new();
 
     public string SearchTerm
     {
@@ -60,11 +69,20 @@ public class ProductListViewModel : ViewModelBase
     public IReadOnlyList<ProductStatusFilterOption> AvailableStatusFilters { get; } =
         Enum.GetValues<ProductStatusFilterOption>();
 
-    public Product? SelectedProduct
+    /// <summary>DataGrid가 선택하는 것은 줄(ProductRow)이다.</summary>
+    public ProductRow? SelectedRow
     {
-        get => _selectedProduct;
-        set => SetProperty(ref _selectedProduct, value);
+        get => _selectedRow;
+        set
+        {
+            if (SetProperty(ref _selectedRow, value))
+            {
+                OnPropertyChanged(nameof(SelectedProduct));
+            }
+        }
     }
+
+    public Product? SelectedProduct => _selectedRow?.Product;
 
     public string Message
     {
@@ -82,10 +100,14 @@ public class ProductListViewModel : ViewModelBase
     public event Action<Product>? NavigateToEditProduct;
     public event Action<Product>? NavigateToPrintBarcode;
 
-    public ProductListViewModel(IProductRepository productRepository, IProductService productService)
+    public ProductListViewModel(
+        IProductRepository productRepository,
+        IProductService productService,
+        IAntibioticMatchingService matchingService)
     {
         _productRepository = productRepository;
         _productService = productService;
+        _matchingService = matchingService;
 
         AddProductCommand = new RelayCommand(_ => NavigateToAddProduct?.Invoke());
 
@@ -143,10 +165,38 @@ public class ProductListViewModel : ViewModelBase
         Products.Clear();
         foreach (var product in results)
         {
-            Products.Add(product);
+            Products.Add(new ProductRow
+            {
+                Product = product,
+                AwareGroup = await ResolveAwareGroupAsync(product)
+            });
         }
 
         Message = results.Count == 0 ? "No products found." : string.Empty;
+    }
+
+    /// <summary>
+    /// 상품이 어느 AWaRe 그룹으로 판별되는지 알아낸다.
+    /// 판매 시점과 똑같은 매칭 서비스를 쓴다 — 목록에 보이는 색과 실제로 인쇄될 분류가
+    /// 어긋나면 확인용으로 쓸 수가 없다.
+    /// </summary>
+    private async Task<AwareGroup?> ResolveAwareGroupAsync(Product product)
+    {
+        var key = $"{product.AtcCode}|{product.GenericName}";
+
+        if (_awareGroupCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        var match = await _matchingService.MatchAsync(product.AtcCode, product.GenericName);
+
+        // 국소 제제로 제외된 것도 분류 자체는 있으므로 색을 보여준다.
+        // "안내지가 나가지 않는다"와 "항생제가 아니다"는 다른 이야기다.
+        var group = match.Classification?.AwareGroup;
+
+        _awareGroupCache[key] = group;
+        return group;
     }
 
     private async Task ExecuteDeactivateAsync()

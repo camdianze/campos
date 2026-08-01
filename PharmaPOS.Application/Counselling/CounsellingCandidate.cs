@@ -25,6 +25,12 @@ public class CounsellingCandidate
 
     public required CounsellingSheetDocument Document { get; init; }
 
+    /// <summary>프린터로 보낼지 파일로 저장할지. 준비 시점의 설정을 그대로 들고 간다.</summary>
+    public CounsellingOutput Output { get; init; } = CounsellingOutput.Printer;
+
+    /// <summary>Output이 File일 때 저장 폴더.</summary>
+    public string? FileOutputFolder { get; init; }
+
     /// <summary>true면 인쇄 전에 약사에게 물어야 한다 (설정이 ask인 경우).</summary>
     public required bool RequiresPrompt { get; init; }
 }

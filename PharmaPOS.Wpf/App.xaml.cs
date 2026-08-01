@@ -48,8 +48,12 @@ public partial class App : Application
             Path.Combine(installFolder, "locales")
         };
 
+        // 프린터 없이 용지 내용을 확인할 때 저장되는 기본 위치.
+        var sheetOutputFolder = Path.Combine(appDataFolder, "counselling-sheets");
+
         var services = new ServiceCollection();
-        services.AddPharmaPosServices(dbFilePath, licenseFilePath, awareSeedPaths, localeDirectories);
+        services.AddPharmaPosServices(
+            dbFilePath, licenseFilePath, awareSeedPaths, localeDirectories, sheetOutputFolder);
         Services = services.BuildServiceProvider();
 
         var databaseInitializer = Services.GetRequiredService<DatabaseInitializer>();

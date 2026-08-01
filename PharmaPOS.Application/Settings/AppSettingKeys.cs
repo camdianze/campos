@@ -12,6 +12,12 @@ public static class AppSettingKeys
     /// <summary>복약안내 용지 분량. full | compact.</summary>
     public const string CounsellingSheetFormat = "counselling.sheet_format";
 
+    /// <summary>용지 출력 방식. printer | file.</summary>
+    public const string CounsellingOutput = "counselling.output";
+
+    /// <summary>파일 저장 방식일 때의 폴더 경로.</summary>
+    public const string CounsellingFileFolder = "counselling.file_folder";
+
     /// <summary>현지어 로케일 코드(BCP 47). 비어 있으면 영어 단독 출력.</summary>
     public const string CounsellingLocale = "counselling.locale";
 

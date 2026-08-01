@@ -26,6 +26,7 @@ public class CounsellingService : ICounsellingService
     private readonly ICounsellingSettingsService _settingsService;
     private readonly ICounsellingLocaleProvider _localeProvider;
     private readonly ICounsellingSheetPrintingService _printingService;
+    private readonly ICounsellingSheetFileWriter _fileWriter;
     private readonly ICounsellingLogRepository _logRepository;
 
     public CounsellingService(
@@ -33,12 +34,14 @@ public class CounsellingService : ICounsellingService
         ICounsellingSettingsService settingsService,
         ICounsellingLocaleProvider localeProvider,
         ICounsellingSheetPrintingService printingService,
+        ICounsellingSheetFileWriter fileWriter,
         ICounsellingLogRepository logRepository)
     {
         _matchingService = matchingService;
         _settingsService = settingsService;
         _localeProvider = localeProvider;
         _printingService = printingService;
+        _fileWriter = fileWriter;
         _logRepository = logRepository;
     }
 
@@ -113,6 +116,8 @@ public class CounsellingService : ICounsellingService
                     SourceVersion = classification.SourceVersion,
                     LocaleCode = loggedLocale,
                     Document = document,
+                    Output = settings.Output,
+                    FileOutputFolder = settings.FileOutputFolder,
                     RequiresPrompt = settings.PrintMode == CounsellingPrintMode.Ask
                 });
             }
@@ -132,7 +137,13 @@ public class CounsellingService : ICounsellingService
 
         try
         {
-            result = await _printingService.PrintAsync(candidate.Document);
+            // 파일 저장은 프린터 없이 용지 내용을 확인하기 위한 경로다.
+            // 로그에는 둘 다 "출력됨"으로 남는다 — 약사에게 안내가 전달됐는지가 지표의 기준이고,
+            // 어느 장치로 나갔는지는 지표의 관심사가 아니다.
+            result = candidate.Output == CounsellingOutput.File
+                ? await _fileWriter.WriteAsync(
+                    candidate.Document, candidate.FileOutputFolder, candidate.TransactionId)
+                : await _printingService.PrintAsync(candidate.Document);
         }
         catch (Exception)
         {

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Microsoft.Win32;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Repositories;
@@ -28,6 +29,8 @@ public class CounsellingSettingsViewModel : ViewModelBase
 
     private CounsellingPrintMode _printMode = CounsellingPrintMode.Always;
     private CounsellingSheetFormat _sheetFormat = CounsellingSheetFormat.Full;
+    private CounsellingOutput _output = CounsellingOutput.Printer;
+    private string _fileOutputFolder = string.Empty;
     private LocaleOption? _selectedLocale;
     private string _qrUrl = string.Empty;
     private string _referenceDataStatus = "Checking…";
@@ -52,6 +55,33 @@ public class CounsellingSettingsViewModel : ViewModelBase
     {
         get => _sheetFormat;
         set => SetProperty(ref _sheetFormat, value);
+    }
+
+    public IReadOnlyList<CounsellingOutput> AvailableOutputs { get; } =
+        Enum.GetValues<CounsellingOutput>();
+
+    /// <summary>
+    /// 프린터 없이 용지 내용을 확인해야 할 때 File을 고른다.
+    /// 프린터 드라이버가 변수로 끼는 상황에서 렌더링 결과 자체를 보려는 용도다.
+    /// </summary>
+    public CounsellingOutput Output
+    {
+        get => _output;
+        set
+        {
+            if (SetProperty(ref _output, value))
+            {
+                OnPropertyChanged(nameof(IsFileOutput));
+            }
+        }
+    }
+
+    public bool IsFileOutput => Output == CounsellingOutput.File;
+
+    public string FileOutputFolder
+    {
+        get => _fileOutputFolder;
+        set => SetProperty(ref _fileOutputFolder, value);
     }
 
     public LocaleOption? SelectedLocale
@@ -86,6 +116,7 @@ public class CounsellingSettingsViewModel : ViewModelBase
 
     public RelayCommand SaveCommand { get; }
     public RelayCommand BackCommand { get; }
+    public RelayCommand BrowseFolderCommand { get; }
 
     public event Action? NavigateBack;
 
@@ -100,6 +131,7 @@ public class CounsellingSettingsViewModel : ViewModelBase
 
         SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync());
         BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());
+        BrowseFolderCommand = new RelayCommand(_ => ExecuteBrowseFolder());
     }
 
     public async Task LoadAsync()
@@ -108,6 +140,8 @@ public class CounsellingSettingsViewModel : ViewModelBase
 
         PrintMode = settings.PrintMode;
         SheetFormat = settings.SheetFormat;
+        Output = settings.Output;
+        FileOutputFolder = settings.FileOutputFolder;
         QrUrl = settings.QrUrl;
 
         await LoadLocaleOptionsAsync(settings.LocaleCode);
@@ -189,6 +223,20 @@ public class CounsellingSettingsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 폴더 선택 대화상자를 연다. ViewModel에서 대화상자를 여는 것은
+    /// BackupExportViewModel과 같은 방식이라 이 저장소의 기존 방식을 따른 것이다.
+    /// </summary>
+    private void ExecuteBrowseFolder()
+    {
+        var dialog = new OpenFolderDialog { Title = "Select Counselling Sheet Folder" };
+
+        if (dialog.ShowDialog() == true)
+        {
+            FileOutputFolder = dialog.FolderName;
+        }
+    }
+
     private async Task ExecuteSaveAsync()
     {
         Message = string.Empty;
@@ -199,6 +247,8 @@ public class CounsellingSettingsViewModel : ViewModelBase
             {
                 PrintMode = PrintMode,
                 SheetFormat = SheetFormat,
+                Output = Output,
+                FileOutputFolder = FileOutputFolder?.Trim() ?? string.Empty,
                 LocaleCode = SelectedLocale?.Code ?? string.Empty,
                 QrUrl = QrUrl?.Trim() ?? string.Empty
             });

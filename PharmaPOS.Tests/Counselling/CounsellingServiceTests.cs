@@ -59,6 +59,24 @@ public class CounsellingServiceTests
         }
     }
 
+    private class FakeFileWriter : ICounsellingSheetFileWriter
+    {
+        public List<(CounsellingSheetDocument Document, string? Folder)> Written { get; } = new();
+        public bool ShouldFail { get; set; }
+
+        public Task<CounsellingPrintResult> WriteAsync(
+            CounsellingSheetDocument document, string? folder, string fileNameHint)
+        {
+            if (ShouldFail)
+            {
+                return Task.FromResult(CounsellingPrintResult.Failure("folder not writable"));
+            }
+
+            Written.Add((document, folder));
+            return Task.FromResult(CounsellingPrintResult.Success());
+        }
+    }
+
     private class FakeLogRepository : ICounsellingLogRepository
     {
         public List<CounsellingLogEntry> Entries { get; } = new();
@@ -89,10 +107,11 @@ public class CounsellingServiceTests
         public FakeSettingsService Settings { get; } = new();
         public FakeLocaleProvider Locales { get; } = new();
         public FakePrintingService Printer { get; } = new();
+        public FakeFileWriter FileWriter { get; } = new();
         public FakeLogRepository Log { get; } = new();
 
         public CounsellingService Build() => new(
-            new AntibioticMatchingService(Aware), Settings, Locales, Printer, Log);
+            new AntibioticMatchingService(Aware), Settings, Locales, Printer, FileWriter, Log);
     }
 
     private static ConfirmedSaleLine Line(
@@ -219,7 +238,7 @@ public class CounsellingServiceTests
         var harness = new Harness();
         var service = new CounsellingService(
             new AntibioticMatchingService(new FakeAwareClassificationRepository()),
-            harness.Settings, harness.Locales, harness.Printer, harness.Log);
+            harness.Settings, harness.Locales, harness.Printer, harness.FileWriter, harness.Log);
 
         var candidates = await service.PrepareAsync(
             new[] { Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin") });
@@ -365,6 +384,57 @@ public class CounsellingServiceTests
 
         Assert.Equal("km-KH", candidate.LocaleCode);
         Assert.Contains("កម្រិតថ្នាំ", candidate.Document.ToPlainText());
+    }
+
+    // ── 파일 저장 경로 ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 프린터 대신 파일로 내보내는 설정. 프린터로는 아무것도 가지 않아야 한다.
+    /// </summary>
+    [Fact]
+    public async Task PrintAsync_WritesFileInsteadOfPrintingWhenConfigured()
+    {
+        var harness = new Harness();
+        harness.Settings.Settings.Output = CounsellingOutput.File;
+        harness.Settings.Settings.FileOutputFolder = @"C:\sheets";
+
+        var service = harness.Build();
+
+        var candidate = Assert.Single(await service.PrepareAsync(
+            new[] { Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin") }));
+
+        var result = await service.PrintAsync(candidate);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(harness.Printer.Printed);
+
+        var written = Assert.Single(harness.FileWriter.Written);
+        Assert.Equal(@"C:\sheets", written.Folder);
+        Assert.Contains("[ACCESS]", written.Document.ToPlainText());
+
+        // 어느 장치로 나갔든 "출력됨"으로 남는다. 지표의 기준은 안내가 전달됐는지다.
+        Assert.True(Assert.Single(harness.Log.Entries).Printed);
+    }
+
+    [Fact]
+    public async Task PrintAsync_ReportsFileWriteFailure()
+    {
+        var harness = new Harness();
+        harness.Settings.Settings.Output = CounsellingOutput.File;
+        harness.FileWriter.ShouldFail = true;
+
+        var service = harness.Build();
+
+        var candidate = Assert.Single(await service.PrepareAsync(
+            new[] { Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin") }));
+
+        var result = await service.PrintAsync(candidate);
+
+        Assert.False(result.IsSuccess);
+
+        var entry = Assert.Single(harness.Log.Entries);
+        Assert.False(entry.Printed);
+        Assert.Equal(CounsellingService.SkipReasonPrintFailed, entry.SkipReason);
     }
 
     [Fact]

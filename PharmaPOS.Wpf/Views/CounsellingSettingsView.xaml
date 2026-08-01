@@ -7,6 +7,10 @@
              Background="White"
              d:DesignWidth="560" d:DesignHeight="720">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Width="460" Margin="0,24,0,24" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
@@ -41,6 +45,30 @@
                           SelectedItem="{Binding PrintMode}" Margin="0,0,0,4"/>
                 <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
                            Text="Always prints without asking. Ask prompts each time. Never stops printing but still records stewardship figures."/>
+
+                <TextBlock Text="Send the sheet to" Style="{StaticResource FieldLabel}"/>
+                <ComboBox ItemsSource="{Binding AvailableOutputs}"
+                          SelectedItem="{Binding Output}" Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8"
+                           Text="Printer sends the sheet to the default printer. File saves it as a text file instead - useful for checking the sheet when no printer is attached."/>
+
+                <StackPanel Visibility="{Binding IsFileOutput, Converter={StaticResource BoolToVis}}"
+                            Margin="0,0,0,14">
+                    <TextBlock Text="Folder (leave empty for the default location)" Style="{StaticResource FieldLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding FileOutputFolder, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource FieldInput}"/>
+                        <Button Grid.Column="1" Content="Browse"
+                                Style="{StaticResource SecondaryBtn}"
+                                Padding="12,0" Margin="6,0,0,0"
+                                Command="{Binding BrowseFolderCommand}"/>
+                    </Grid>
+                </StackPanel>
 
                 <TextBlock Text="Sheet length" Style="{StaticResource FieldLabel}"/>
                 <ComboBox ItemsSource="{Binding AvailableSheetFormats}"

@@ -43,6 +43,16 @@ public class CounsellingSettingsService : ICounsellingSettingsService
                 settings.SheetFormat = parsedFormat;
             }
 
+            var output = await _settingRepository.GetAsync(AppSettingKeys.CounsellingOutput);
+
+            if (Enum.TryParse<CounsellingOutput>(output, ignoreCase: true, out var parsedOutput))
+            {
+                settings.Output = parsedOutput;
+            }
+
+            settings.FileOutputFolder =
+                await _settingRepository.GetAsync(AppSettingKeys.CounsellingFileFolder) ?? string.Empty;
+
             settings.LocaleCode =
                 await _settingRepository.GetAsync(AppSettingKeys.CounsellingLocale) ?? string.Empty;
 
@@ -63,6 +73,10 @@ public class CounsellingSettingsService : ICounsellingSettingsService
             AppSettingKeys.CounsellingPrintMode, settings.PrintMode.ToString());
         await _settingRepository.SetAsync(
             AppSettingKeys.CounsellingSheetFormat, settings.SheetFormat.ToString());
+        await _settingRepository.SetAsync(
+            AppSettingKeys.CounsellingOutput, settings.Output.ToString());
+        await _settingRepository.SetAsync(
+            AppSettingKeys.CounsellingFileFolder, settings.FileOutputFolder ?? string.Empty);
         await _settingRepository.SetAsync(
             AppSettingKeys.CounsellingLocale, settings.LocaleCode ?? string.Empty);
         await _settingRepository.SetAsync(
