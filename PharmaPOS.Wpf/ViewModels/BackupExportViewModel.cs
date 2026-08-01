@@ -123,30 +123,50 @@ public class BackupExportViewModel : ViewModelBase
         {
             var ext = Path.GetExtension(ImportFilePath).ToLowerInvariant();
 
-            List<Product> products = ext switch
+            var parsed = ext switch
             {
                 ".csv" => ParseCsv(ImportFilePath),
                 ".xlsx" => ParseExcel(ImportFilePath),
                 _ => throw new NotSupportedException("Only .csv and .xlsx are supported.")
             };
 
+            // 헤더가 어긋나 파일 전체를 못 읽은 경우. 어느 컬럼이 없는지 그대로 알려준다.
+            if (parsed.Error is not null)
+            {
+                Message = parsed.Error;
+                return;
+            }
+
+            var products = parsed.Products;
+
             if (products.Count == 0)
             {
-                Message = "No valid products found in file.";
+                Message = "No rows with a product name were found in the file.";
                 return;
             }
 
             int success = 0, failed = 0;
+            string? firstFailure = null;
 
             foreach (var product in products)
             {
                 var result = await _productService.SaveProductAsync(product, isNewProduct: true);
 
-                if (result.IsSuccess) success++;
-                else failed++;
+                if (result.IsSuccess)
+                {
+                    success++;
+                }
+                else
+                {
+                    failed++;
+                    // 실패 사유를 버리면 몇 건 실패했다는 숫자만 남아 원인을 알 수 없다.
+                    firstFailure ??= result.Message;
+                }
             }
 
-            Message = $"✅ Import complete — Success: {success}, Failed: {failed} (Total: {products.Count})";
+            Message = failed == 0
+                ? $"✅ Import complete — {success} products added."
+                : $"Import complete — Success: {success}, Failed: {failed} (Total: {products.Count}). First error: {firstFailure}";
         }
         catch (Exception ex)
         {
@@ -154,15 +174,56 @@ public class BackupExportViewModel : ViewModelBase
         }
     }
 
-    private static List<Product> ParseCsv(string filePath)
+    /// <summary>
+    /// 가져오기에 반드시 있어야 하는 컬럼. 없으면 어차피 상품 저장 단계에서 전부 실패한다.
+    /// (ProductService의 필수값 검증과 같은 목록이다.)
+    /// </summary>
+    private static readonly string[] RequiredColumns =
     {
-        var products = new List<Product>();
+        "productname", "unit", "costprice", "sellingprice"
+    };
+
+    /// <summary>
+    /// 헤더 이름에서 대소문자와 구분자를 없앤다.
+    /// "ProductName" / "product_name" / "Product Name"은 같은 컬럼을 가리키는데,
+    /// 예전에는 문자열이 정확히 일치할 때만 찾아서 snake_case 파일이 통째로
+    /// 무시됐다 (한 행도 안 읽히고 "No valid products found"만 떴다).
+    /// 앞에 붙는 BOM도 여기서 같이 털어낸다.
+    /// </summary>
+    private static string NormalizeHeader(string header)
+        => new(header.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
+    /// <summary>
+    /// 필수 컬럼이 빠졌을 때, 파일에서 실제로 읽힌 헤더까지 함께 알려준다.
+    /// 이름이 어긋난 경우 이 목록을 보면 바로 원인을 알 수 있다.
+    /// </summary>
+    private static string? DescribeMissingColumns(IReadOnlyList<string> normalizedHeaders)
+    {
+        var missing = RequiredColumns.Where(c => !normalizedHeaders.Contains(c)).ToList();
+
+        if (missing.Count == 0)
+        {
+            return null;
+        }
+
+        return $"The file is missing required columns: {string.Join(", ", missing)}. "
+             + $"Columns found: {string.Join(", ", normalizedHeaders.Where(h => h.Length > 0))}.";
+    }
+
+    private static ProductImportResult ParseCsv(string filePath)
+    {
+        var result = new ProductImportResult();
+        var products = result.Products;
+
         var lines = File.ReadAllLines(filePath);
-        if (lines.Length < 2) return products;
+        if (lines.Length < 2) return result;
 
         var headers = lines[0].Split(',')
-                               .Select(h => h.Trim().ToLowerInvariant())
+                               .Select(NormalizeHeader)
                                .ToArray();
+
+        result.Error = DescribeMissingColumns(headers);
+        if (result.Error is not null) return result;
 
         int Idx(string name) => Array.IndexOf(headers, name);
 
@@ -215,7 +276,15 @@ public class BackupExportViewModel : ViewModelBase
             });
         }
 
-        return products;
+        return result;
+    }
+
+    /// <summary>파일에서 읽어낸 상품과, 파일 자체가 잘못됐을 때의 사유.</summary>
+    private sealed class ProductImportResult
+    {
+        public List<Product> Products { get; } = new();
+
+        public string? Error { get; set; }
     }
 
     private static string[] SplitCsvLine(string line)
@@ -234,18 +303,22 @@ public class BackupExportViewModel : ViewModelBase
         return result.ToArray();
     }
 
-    private static List<Product> ParseExcel(string filePath)
+    private static ProductImportResult ParseExcel(string filePath)
     {
-        var products = new List<Product>();
+        var result = new ProductImportResult();
+        var products = result.Products;
 
         using var workbook = new XLWorkbook(filePath);
         var ws = workbook.Worksheet(1);
         var rows = ws.RangeUsed()?.RowsUsed().ToList();
-        if (rows == null || rows.Count < 2) return products;
+        if (rows == null || rows.Count < 2) return result;
 
         var headers = rows[0].Cells()
-                             .Select(c => c.GetString().Trim().ToLowerInvariant())
+                             .Select(c => NormalizeHeader(c.GetString()))
                              .ToArray();
+
+        result.Error = DescribeMissingColumns(headers);
+        if (result.Error is not null) return result;
 
         int Idx(string name) => Array.IndexOf(headers, name);
 
@@ -294,7 +367,7 @@ public class BackupExportViewModel : ViewModelBase
             });
         }
 
-        return products;
+        return result;
     }
 
     // ── 기존 기능 ────────────────────────────────────────────────────────────
