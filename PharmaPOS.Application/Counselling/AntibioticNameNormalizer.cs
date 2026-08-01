@@ -134,9 +134,15 @@ public static class AntibioticNameNormalizer
         return value;
     }
 
-    /// <summary>"500mg", "5", "1.5g" 같은 용량 토큰인지 판단한다.</summary>
+    /// <summary>"500mg", "500", "mg" 같은 용량 표기 토큰인지 판단한다.</summary>
     private static bool IsDoseToken(string token)
     {
+        // 숫자와 단위가 띄어 쓰인 경우("500 mg")를 위해 단위만 있는 토큰도 버린다.
+        if (DoseUnits.Contains(token, StringComparer.Ordinal))
+        {
+            return true;
+        }
+
         if (!char.IsDigit(token[0]))
         {
             return false;

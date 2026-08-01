@@ -77,6 +77,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IBackupService, BackupService>();
         services.AddTransient<IRecoverySettingsService, RecoverySettingsService>();
         services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
+        services.AddTransient<IAntibioticMatchingService, AntibioticMatchingService>();
         services.AddTransient<IAwareSeedLoader>(sp => new AwareSeedLoader(
             sp.GetRequiredService<IAwareClassificationRepository>(),
             sp.GetRequiredService<IAppSettingRepository>(),
