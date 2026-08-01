@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAdminDashboardRepository, AdminDashboardRepository>();
         services.AddTransient<IAppSettingRepository, AppSettingRepository>();
         services.AddTransient<IAwareClassificationRepository, AwareClassificationRepository>();
+        services.AddTransient<ICounsellingLogRepository, CounsellingLogRepository>();
         services.AddTransient<ISalesHistoryRepository, SalesHistoryRepository>();
         services.AddTransient<IBackupRepository>(sp => new BackupRepository(
      sp.GetRequiredService<SqliteConnectionFactory>(), dbFilePath));
@@ -79,6 +80,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IRecoverySettingsService, RecoverySettingsService>();
         services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
         services.AddTransient<IAntibioticMatchingService, AntibioticMatchingService>();
+        services.AddTransient<ICounsellingSettingsService, CounsellingSettingsService>();
+        services.AddTransient<ICounsellingService, CounsellingService>();
         services.AddTransient<ICounsellingLocaleProvider>(_ =>
             new FileCounsellingLocaleProvider(localeDirectories));
         services.AddTransient<IAwareSeedLoader>(sp => new AwareSeedLoader(

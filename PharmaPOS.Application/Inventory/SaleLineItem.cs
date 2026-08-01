@@ -7,6 +7,12 @@ public class SaleLineItem
 {
     public required string ProductId { get; set; }
     public required string ProductName { get; set; }
+
+    /// <summary>항생제 복약안내 매칭에 쓴다. 항생제가 아닌 상품은 비어 있다.</summary>
+    public string? GenericName { get; set; }
+
+    /// <summary>항생제 복약안내 매칭에 쓴다. 성분명보다 우선한다.</summary>
+    public string? AtcCode { get; set; }
     public required string InventoryId { get; set; }
     public required string BatchNumber { get; set; }
     public required long ExpiryDate { get; set; }

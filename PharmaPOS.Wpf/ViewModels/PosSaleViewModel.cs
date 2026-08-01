@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
+using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
@@ -17,6 +18,7 @@ public partial class PosSaleViewModel : ViewModelBase
     private readonly IInventoryRepository _inventoryRepository;
     private readonly ISaleService _saleService;
     private readonly IReceiptPrintingService _receiptPrintingService;
+    private readonly ICounsellingService _counsellingService;
     private readonly string _facilityId;
     private readonly string _userId;
     private readonly bool _isAdministrator;
@@ -96,6 +98,7 @@ public partial class PosSaleViewModel : ViewModelBase
         IInventoryRepository inventoryRepository,
         ISaleService saleService,
         IReceiptPrintingService receiptPrintingService,
+        ICounsellingService counsellingService,
         string facilityId,
         string userId,
         UserRole currentUserRole)
@@ -104,6 +107,7 @@ public partial class PosSaleViewModel : ViewModelBase
         _inventoryRepository = inventoryRepository;
         _saleService = saleService;
         _receiptPrintingService = receiptPrintingService;
+        _counsellingService = counsellingService;
         _facilityId = facilityId;
         _userId = userId;
         _isAdministrator = currentUserRole == UserRole.Administrator;
@@ -255,6 +259,10 @@ public partial class PosSaleViewModel : ViewModelBase
             {
                 ProductId = SelectedProduct.ProductId,
                 ProductName = SelectedProduct.ProductName,
+                // 항생제 복약안내 매칭에 쓴다. 판매 확정 뒤 상품을 다시 조회하지 않도록
+                // 장바구니에 담을 때 함께 실어 둔다.
+                GenericName = SelectedProduct.GenericName,
+                AtcCode = SelectedProduct.AtcCode,
                 InventoryId = SelectedBatch.InventoryId,
                 BatchNumber = SelectedBatch.BatchNumber,
                 ExpiryDate = SelectedBatch.ExpiryDate,

@@ -1,0 +1,91 @@
+<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.CounsellingSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Background="White"
+             d:DesignWidth="560" d:DesignHeight="720">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Width="460" Margin="0,24,0,24" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock Text="Antibiotic Counselling"
+                           Style="{StaticResource PageTitle}" Margin="0,0,0,8"/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap"
+                           Text="Counselling sheets support pharmacist advice on antibiotic use. They do not provide dosing or diagnosis."/>
+            </StackPanel>
+
+            <!-- 참조 데이터 상태. 시드가 없으면 기능이 조용히 아무것도 하지 않으므로
+                 그 사실을 가장 먼저 보여준다. -->
+            <StackPanel Grid.Row="1" Margin="0,0,0,24">
+                <TextBlock Text="WHO AWaRe REFERENCE DATA" Style="{StaticResource EyebrowLabel}"/>
+                <TextBlock Text="{Binding ReferenceDataStatus}"
+                           TextWrapping="Wrap" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Margin="0,0,0,24">
+                <TextBlock Text="PRINTING" Style="{StaticResource EyebrowLabel}"/>
+
+                <TextBlock Text="When an antibiotic is sold" Style="{StaticResource FieldLabel}"/>
+                <ComboBox ItemsSource="{Binding AvailablePrintModes}"
+                          SelectedItem="{Binding PrintMode}" Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
+                           Text="Always prints without asking. Ask prompts each time. Never stops printing but still records stewardship figures."/>
+
+                <TextBlock Text="Sheet length" Style="{StaticResource FieldLabel}"/>
+                <ComboBox ItemsSource="{Binding AvailableSheetFormats}"
+                          SelectedItem="{Binding SheetFormat}" Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
+                           Text="Full is about 20 cm on 58 mm paper. Compact is about 10 cm and drops the signature and QR block."/>
+
+                <TextBlock Text="Local language" Style="{StaticResource FieldLabel}"/>
+                <ComboBox ItemsSource="{Binding AvailableLocales}"
+                          SelectedItem="{Binding SelectedLocale}" Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
+                           Text="English is always printed. A local language is added only after its translation has been reviewed and approved."/>
+
+                <TextBlock Text="More information address (optional)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding QrUrl, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource FieldInput}" Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap"
+                           Text="Leave empty to omit the information block from the sheet."/>
+            </StackPanel>
+
+            <!-- 스튜어드십 지표 -->
+            <StackPanel Grid.Row="3" Margin="0,0,0,24">
+                <TextBlock Text="STEWARDSHIP FIGURES" Style="{StaticResource EyebrowLabel}"/>
+                <TextBlock Text="{Binding MetricsSummary}"
+                           TextWrapping="Wrap" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <Grid Grid.Row="4" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="← Back"
+                        Style="{StaticResource SecondaryBtn}"
+                        Padding="16,0" Margin="0,0,6,0"
+                        Command="{Binding BackCommand}"/>
+                <Button Grid.Column="1" Content="Save"
+                        Style="{StaticResource PrimaryBtn}"
+                        Padding="16,0" Margin="6,0,0,0"
+                        Command="{Binding SaveCommand}"/>
+            </Grid>
+
+            <TextBlock Grid.Row="5"
+                       Text="{Binding Message}"
+                       Style="{StaticResource ErrorText}" MinHeight="18"/>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

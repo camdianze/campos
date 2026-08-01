@@ -413,7 +413,8 @@
             <Button Content="⚙️  Admin Dashboard" Style="{StaticResource BottomCardBtnPrimary}" Click="OnAdminDashboardClick" Margin="0,0,6,0"/>
             <Button Content="💊  Products"        Style="{StaticResource BottomCardBtn}" Click="OnProductsClick"       Margin="3,0"/>
             <Button Content="✏️  Adjustment"      Style="{StaticResource BottomCardBtn}" Click="OnAdjustmentClick"     Margin="3,0"/>
-            <Button Content="📊  History"         Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"        Margin="6,0,0,0"/>
+            <Button Content="📊  History"         Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"        Margin="3,0"/>
+            <Button Content="🧫  Counselling"     Style="{StaticResource BottomCardBtn}" Click="OnCounsellingSettingsClick" Margin="6,0,0,0"/>
         </UniformGrid>
 
         <!-- 하단 버튼 (직원: 3개) -->

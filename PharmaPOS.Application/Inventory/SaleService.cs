@@ -107,6 +107,16 @@ public class SaleService : ISaleService
             return SaleResult.Failure("Some products do not have enough stock.");
         }
 
-        return SaleResult.Success();
+        // 저장된 줄과 거래 ID를 함께 돌려준다. 판매 헤더 테이블이 없어서,
+        // 복약안내 로그를 거래에 붙이려면 호출자가 이 ID를 알아야 한다.
+        var confirmedLines = lines
+            .Select((line, index) => new ConfirmedSaleLine
+            {
+                TransactionId = line.Transaction.TransactionId,
+                Line = cartItems[index]
+            })
+            .ToList();
+
+        return SaleResult.Success(confirmedLines);
     }
 }

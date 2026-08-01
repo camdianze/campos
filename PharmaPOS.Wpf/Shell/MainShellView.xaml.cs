@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using PharmaPOS.Application.Authentication;
+using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.PasswordPolicy;
 using PharmaPOS.Application.Repositories;
@@ -127,6 +128,24 @@ public partial class MainShellView : UserControl
             parentWindow.Content = adjustmentView;
     }
 
+    /// <summary>
+    /// 항생제 복약안내 설정. 시설 전체에 적용되는 설정이라 관리자 전용 줄에 둔다.
+    /// </summary>
+    private void OnCounsellingSettingsClick(object sender, RoutedEventArgs e)
+    {
+        var viewModel = new CounsellingSettingsViewModel(
+            App.Services.GetRequiredService<ICounsellingSettingsService>(),
+            App.Services.GetRequiredService<ICounsellingLocaleProvider>(),
+            App.Services.GetRequiredService<ICounsellingLogRepository>());
+
+        var view = new CounsellingSettingsView();
+        view.AttachViewModel(viewModel);
+
+        var parentWindow = Window.GetWindow(this) as MainWindow;
+        if (parentWindow is not null)
+            parentWindow.Content = view;
+    }
+
     private void OnPosSaleClick(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainShellViewModel shellViewModel) return;
@@ -135,9 +154,11 @@ public partial class MainShellView : UserControl
         var inventoryRepository = App.Services.GetRequiredService<IInventoryRepository>();
         var saleService = App.Services.GetRequiredService<ISaleService>();
         var receiptPrintingService = App.Services.GetRequiredService<IReceiptPrintingService>();
+        var counsellingService = App.Services.GetRequiredService<ICounsellingService>();
 
         var posSaleViewModel = new PosSaleViewModel(
             productRepository, inventoryRepository, saleService, receiptPrintingService,
+            counsellingService,
             shellViewModel.CurrentUser.FacilityId, shellViewModel.CurrentUser.UserId,
             shellViewModel.CurrentUser.Role);
 

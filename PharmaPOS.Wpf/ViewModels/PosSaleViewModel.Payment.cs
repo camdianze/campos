@@ -1,4 +1,6 @@
 ﻿using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using PharmaPOS.Application.Counselling;
+using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Enums;
 using System.Windows;
 
@@ -121,7 +123,7 @@ public partial class PosSaleViewModel
 
         if (result.IsSuccess)
         {
-            await PrintReceiptAndCompleteAsync();
+            await PrintReceiptAndCompleteAsync(result.ConfirmedLines);
         }
         else if (result.RequiresConfirmation)
         {
@@ -137,7 +139,7 @@ public partial class PosSaleViewModel
         }
     }
 
-    private async Task PrintReceiptAndCompleteAsync()
+    private async Task PrintReceiptAndCompleteAsync(IReadOnlyList<ConfirmedSaleLine> confirmedLines)
     {
         // 화면 초기화(ResetSaleForm) 전에, 영수증에 필요한 값들을 먼저 스냅샷으로 저장한다.
         var cartSnapshot = Cart.ToList();
@@ -162,7 +164,57 @@ public partial class PosSaleViewModel
             Message = "Sale completed, but receipt could not be printed.";
         }
 
+        await HandleAntibioticCounsellingAsync(confirmedLines);
+
         SaleCompleted?.Invoke();
+    }
+
+    /// <summary>
+    /// 항생제 복약안내(AMR) 처리. 영수증과 마찬가지로 판매 확정과 완전히 분리된 단계이며,
+    /// 여기서 무엇이 실패해도 이미 커밋된 판매를 되돌리지 않는다.
+    /// 한 거래에 항생제가 여러 개면 상품별로 각각 출력한다.
+    /// </summary>
+    private async Task HandleAntibioticCounsellingAsync(IReadOnlyList<ConfirmedSaleLine> confirmedLines)
+    {
+        var candidates = await _counsellingService.PrepareAsync(confirmedLines);
+
+        if (candidates.Count == 0)
+        {
+            return;
+        }
+
+        var failedCount = 0;
+
+        foreach (var candidate in candidates)
+        {
+            if (candidate.RequiresPrompt)
+            {
+                var answer = MessageBox.Show(
+                    $"Print antibiotic counselling sheet?\n\n{candidate.ProductName}",
+                    "Antibiotic Counselling",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (answer != MessageBoxResult.Yes)
+                {
+                    await _counsellingService.LogSkipAsync(
+                        candidate, CounsellingService.SkipReasonPharmacist);
+                    continue;
+                }
+            }
+
+            var result = await _counsellingService.PrintAsync(candidate);
+
+            if (!result.IsSuccess)
+            {
+                failedCount++;
+            }
+        }
+
+        if (failedCount > 0)
+        {
+            Message = "Sale completed, but the antibiotic counselling sheet could not be printed.";
+        }
     }
     private void ExecuteCancelSale()
     {
