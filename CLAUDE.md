@@ -114,8 +114,8 @@ Marked with `TODO` in source: label-printer hardware integration (`InternalBarco
 
 Antibiotic counselling (AMR) additionally needs:
 
-- **Product dosage form.** `Product_Master` has no route/form column, so oral and injectable presentations of the same ATC code cannot be told apart. Two WHO entries are classified by route (Minocycline `J01AA08`, Fosfomycin `J01XX01`: IV = RESERVE, oral = WATCH); lookups deliberately pick the stricter group. Adding a form column would remove the ambiguity — see [seeds/README.md](PharmaPOS.Wpf/seeds/README.md).
-- **Topical antibiotics rely on ATC codes.** Every row in the shipped WHO file is `is_systemic = true` (the AWaRe list only covers systemic agents), so the topical-exclusion path never fires with this data. A topical product left without an ATC code will match on generic name alone and get a counselling sheet.
+- **Topical antibiotics are not excluded in practice.** Every row in the shipped WHO file is `is_systemic = true` (the AWaRe list only covers systemic agents), so the topical-exclusion path never fires and an ointment can get a counselling sheet. This is tolerable — the sheet's advice is not wrong for topical agents. If it needs fixing, add the few topical rows to the CSV with `is_systemic = false`; do **not** solve it by requiring an ATC code on every product. Matching works on `generic_name` alone; ATC is optional throughout.
+- Two WHO entries are classified by route (Minocycline `J01AA08`, Fosfomycin `J01XX01`: IV = RESERVE, oral = WATCH). `Product_Master` has no dosage form, so lookups deliberately pick the stricter group. Two rows out of 384 — not worth a schema column.
 - **QR image.** The sheet prints `[QR]` plus the configured URL as text; encoding an actual QR needs a package (none is referenced) and a decision on what the URL points to.
 - Counselling sheets print through the Windows print pipeline ([WpfCounsellingSheetPrintingService](PharmaPOS.Wpf/Services/WpfCounsellingSheetPrintingService.cs)), not ESC/POS. It has not been verified against a physical thermal printer.
 
