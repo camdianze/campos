@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using PharmaPOS.Application.Counselling;
+using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
@@ -27,6 +28,9 @@ public class ProductListViewModel : ViewModelBase
     private readonly IProductRepository _productRepository;
     private readonly IProductService _productService;
     private readonly IAntibioticMatchingService _matchingService;
+    private readonly IStockInService _stockInService;
+    private readonly string _facilityId;
+    private readonly string _userId;
 
     /// <summary>
     /// 성분/ATC 조합별 판별 결과 캐시.
@@ -39,6 +43,13 @@ public class ProductListViewModel : ViewModelBase
     private ProductStatusFilterOption _selectedStatusFilter = ProductStatusFilterOption.All;
     private ProductRow? _selectedRow;
     private string _message = string.Empty;
+
+    private bool _isStockInPanelVisible;
+    private string _batchNumber = string.Empty;
+    private DateTime _expiryDate = DateTime.Today.AddYears(1);
+    private DateTime _stockInDate = DateTime.Today;
+    private string _stockInQuantity = string.Empty;
+    private string _stockInMessage = string.Empty;
 
     public ObservableCollection<ProductRow> Products { get; } = new();
 
@@ -75,14 +86,68 @@ public class ProductListViewModel : ViewModelBase
         get => _selectedRow;
         set
         {
-            if (SetProperty(ref _selectedRow, value))
+            if (!SetProperty(ref _selectedRow, value))
             {
-                OnPropertyChanged(nameof(SelectedProduct));
+                return;
+            }
+
+            OnPropertyChanged(nameof(SelectedProduct));
+
+            if (value is not null)
+            {
+                // 상품을 고르면 아래 입고 패널이 열린다.
+                // 다른 상품으로 옮길 때 입력값은 비운다 — A 상품에 적어둔 배치번호가
+                // 그대로 남아 B 상품에 저장되면 재고가 엉뚱한 배치로 들어간다.
+                ResetStockInForm();
+                IsStockInPanelVisible = true;
             }
         }
     }
 
     public Product? SelectedProduct => _selectedRow?.Product;
+
+    // ── 입고(Stock-IN) 패널 ──────────────────────────────────────────────────
+
+    /// <summary>상품을 선택하기 전에는 접혀 있다.</summary>
+    public bool IsStockInPanelVisible
+    {
+        get => _isStockInPanelVisible;
+        set => SetProperty(ref _isStockInPanelVisible, value);
+    }
+
+    public string BatchNumber
+    {
+        get => _batchNumber;
+        set => SetProperty(ref _batchNumber, value);
+    }
+
+    public DateTime ExpiryDate
+    {
+        get => _expiryDate;
+        set => SetProperty(ref _expiryDate, value);
+    }
+
+    /// <summary>입고 날짜. 기본값은 오늘 (Screen §3절 "Date — 자동값").</summary>
+    public DateTime StockInDate
+    {
+        get => _stockInDate;
+        set => SetProperty(ref _stockInDate, value);
+    }
+
+    public string StockInQuantity
+    {
+        get => _stockInQuantity;
+        set => SetProperty(ref _stockInQuantity, value);
+    }
+
+    public string StockInMessage
+    {
+        get => _stockInMessage;
+        set => SetProperty(ref _stockInMessage, value);
+    }
+
+    public RelayCommand SaveStockInCommand { get; }
+    public RelayCommand CancelStockInCommand { get; }
 
     public string Message
     {
@@ -103,11 +168,20 @@ public class ProductListViewModel : ViewModelBase
     public ProductListViewModel(
         IProductRepository productRepository,
         IProductService productService,
-        IAntibioticMatchingService matchingService)
+        IAntibioticMatchingService matchingService,
+        IStockInService stockInService,
+        string facilityId,
+        string userId)
     {
         _productRepository = productRepository;
         _productService = productService;
         _matchingService = matchingService;
+        _stockInService = stockInService;
+        _facilityId = facilityId;
+        _userId = userId;
+
+        SaveStockInCommand = new RelayCommand(async _ => await ExecuteSaveStockInAsync());
+        CancelStockInCommand = new RelayCommand(_ => ExecuteCancelStockIn());
 
         AddProductCommand = new RelayCommand(_ => NavigateToAddProduct?.Invoke());
 
@@ -197,6 +271,57 @@ public class ProductListViewModel : ViewModelBase
 
         _awareGroupCache[key] = group;
         return group;
+    }
+
+    /// <summary>
+    /// 입고 저장. 검증과 저장은 StockInService가 하고, 여기서는 숫자 변환만 먼저 거른다
+    /// (기존 입고 화면과 같은 흐름).
+    /// </summary>
+    private async Task ExecuteSaveStockInAsync()
+    {
+        StockInMessage = string.Empty;
+
+        if (SelectedProduct is null)
+        {
+            StockInMessage = "Please select a product.";
+            return;
+        }
+
+        if (!int.TryParse(StockInQuantity, out var quantity))
+        {
+            StockInMessage = "Quantity must be a whole number.";
+            return;
+        }
+
+        var result = await _stockInService.SaveStockInAsync(
+            _facilityId, SelectedProduct.ProductId, _userId,
+            BatchNumber, ExpiryDate, StockInDate, quantity);
+
+        if (!result.IsSuccess)
+        {
+            StockInMessage = result.Message!;
+            return;
+        }
+
+        // 저장에 성공하면 패널을 접는다. 열어둔 채로 두면 같은 값이 남아 있어
+        // 실수로 한 번 더 저장하기 쉽다.
+        Message = $"Stock-in saved for {SelectedProduct.ProductName}.";
+        ExecuteCancelStockIn();
+    }
+
+    private void ExecuteCancelStockIn()
+    {
+        ResetStockInForm();
+        IsStockInPanelVisible = false;
+    }
+
+    private void ResetStockInForm()
+    {
+        BatchNumber = string.Empty;
+        ExpiryDate = DateTime.Today.AddYears(1);
+        StockInDate = DateTime.Today;
+        StockInQuantity = string.Empty;
+        StockInMessage = string.Empty;
     }
 
     private async Task ExecuteDeactivateAsync()

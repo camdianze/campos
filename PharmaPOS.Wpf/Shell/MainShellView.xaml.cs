@@ -5,6 +5,7 @@ using PharmaPOS.Application.Authentication;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.PasswordPolicy;
+using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Application.Security;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -75,30 +76,28 @@ public partial class MainShellView : UserControl
 
     // ── 네비게이션 ────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// 상품 화면. 입고(Stock-IN)가 이 화면 안으로 들어와서, 예전 Stock-IN 진입점도
+    /// 여기로 모인다. 입고 저장에 시설/사용자 ID가 필요해 ViewModel을 여기서 만든다.
+    /// </summary>
     private void OnProductsClick(object sender, RoutedEventArgs e)
-    {
-        var parentWindow = Window.GetWindow(this) as MainWindow;
-        if (parentWindow is not null)
-            parentWindow.Content = new ProductListView();
-    }
-
-    private void OnStockInClick(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainShellViewModel shellViewModel) return;
 
-        var productRepository = App.Services.GetRequiredService<IProductRepository>();
-        var stockInService = App.Services.GetRequiredService<IStockInService>();
+        var viewModel = new ProductListViewModel(
+            App.Services.GetRequiredService<IProductRepository>(),
+            App.Services.GetRequiredService<IProductService>(),
+            App.Services.GetRequiredService<IAntibioticMatchingService>(),
+            App.Services.GetRequiredService<IStockInService>(),
+            shellViewModel.CurrentUser.FacilityId,
+            shellViewModel.CurrentUser.UserId);
 
-        var stockInViewModel = new StockInViewModel(
-            productRepository, stockInService,
-            shellViewModel.CurrentUser.FacilityId, shellViewModel.CurrentUser.UserId);
-
-        var stockInView = new StockInView();
-        stockInView.AttachViewModel(stockInViewModel);
+        var productListView = new ProductListView();
+        productListView.AttachViewModel(viewModel);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
-            parentWindow.Content = stockInView;
+            parentWindow.Content = productListView;
     }
 
     private void OnInventoryClick(object sender, RoutedEventArgs e)

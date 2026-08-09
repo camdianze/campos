@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
+using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -39,21 +41,23 @@ public partial class InventoryStatusView : UserControl
             return;
         }
 
-        var productRepository = App.Services.GetRequiredService<IProductRepository>();
-        var stockInService = App.Services.GetRequiredService<IStockInService>();
-
-        var stockInViewModel = new StockInViewModel(
-            productRepository, stockInService,
+        // 입고 전용 화면은 없어지고 Products 화면 하단 패널로 들어갔다.
+        // 재고 화면의 "Stock-IN" 이동도 그쪽으로 보낸다.
+        var viewModel = new ProductListViewModel(
+            App.Services.GetRequiredService<IProductRepository>(),
+            App.Services.GetRequiredService<IProductService>(),
+            App.Services.GetRequiredService<IAntibioticMatchingService>(),
+            App.Services.GetRequiredService<IStockInService>(),
             App.CurrentShellViewModel.CurrentUser.FacilityId,
             App.CurrentShellViewModel.CurrentUser.UserId);
 
-        var stockInView = new StockInView();
-        stockInView.AttachViewModel(stockInViewModel);
+        var productListView = new ProductListView();
+        productListView.AttachViewModel(viewModel);
 
         var parentWindow = System.Windows.Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
         {
-            parentWindow.Content = stockInView;
+            parentWindow.Content = productListView;
         }
     }
 

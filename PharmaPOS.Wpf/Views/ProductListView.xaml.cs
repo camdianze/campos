@@ -13,8 +13,14 @@ public partial class ProductListView : UserControl
     public ProductListView()
     {
         InitializeComponent();
+    }
 
-        var viewModel = App.Services.GetRequiredService<ProductListViewModel>();
+    /// <summary>
+    /// 입고 저장에 시설/사용자 ID가 필요해져서 DI로 직접 해결할 수 없게 됐다.
+    /// 다른 화면들과 같은 방식으로 호출부가 만들어 넘긴다.
+    /// </summary>
+    public void AttachViewModel(ProductListViewModel viewModel)
+    {
         viewModel.NavigateToAddProduct += OnNavigateToAddProduct;
         viewModel.NavigateToEditProduct += OnNavigateToEditProduct;
         viewModel.NavigateToPrintBarcode += OnNavigateToPrintBarcode;

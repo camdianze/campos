@@ -97,7 +97,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<LicenseActivationViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<InitialSetupViewModel>();
-        services.AddTransient<ProductListViewModel>();
+        // ProductListViewModel은 시설/사용자 ID를 생성자로 받으므로 DI가 만들 수 없다.
+        // MainShellView가 직접 만들어 AttachViewModel로 넘긴다.
         services.AddTransient<InventoryStatusViewModel>();
 
         return services;
