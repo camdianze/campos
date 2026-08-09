@@ -556,6 +556,30 @@
              내부적으로 Button이라, 암시적 스타일을 걸면 높이 38px이 강제돼 깨진다.
              버튼은 호출부에서 위 키 중 하나를 골라 쓴다. -->
 
+        <!-- ===== DatePicker 입력칸 =====
+             DatePicker에 Height를 줘도 안쪽 입력칸은 제 여백과 흰 배경을 그대로 써서
+             옆 TextBox보다 얕고 글자가 위로 붙어 보인다. 그 안쪽 칸을 맞춘다.
+
+             화면 단위 리소스가 아니라 여기(App 수준)에 두는 이유: 이 요소는
+             DatePicker의 컨트롤 템플릿 안에서 만들어져서, UserControl.Resources에
+             둔 암시적 스타일로는 잡히지 않는다. -->
+        <Style TargetType="DatePickerTextBox">
+            <Setter Property="Background"                 Value="Transparent"/>
+            <Setter Property="BorderThickness"            Value="0"/>
+            <Setter Property="VerticalContentAlignment"   Value="Center"/>
+            <Setter Property="Padding"                    Value="10,0"/>
+            <Setter Property="Foreground"                 Value="{StaticResource TextBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DatePickerTextBox">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalAlignment="Center"
+                                      Margin="{TemplateBinding Padding}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- ===== DataGrid ===== -->
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background"                 Value="{StaticResource SubtleSurfaceBrush}"/>

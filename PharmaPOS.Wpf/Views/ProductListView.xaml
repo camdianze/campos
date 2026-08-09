@@ -10,37 +10,14 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <!-- DatePicker에 Height만 주면 안쪽 입력칸은 기본 여백을 그대로 써서
-             옆 TextBox보다 글자가 위로 붙고 상자도 얕아 보인다.
-             안쪽 DatePickerTextBox까지 같이 맞춰야 높이가 나란해진다. -->
+        <!-- 안쪽 입력칸(DatePickerTextBox) 모양은 App.xaml의 암시적 스타일이 맞춘다.
+             컨트롤 템플릿 안에서 만들어지는 요소라, 화면 단위 리소스로는 잡히지 않는다. -->
         <Style x:Key="StockInDatePicker" TargetType="DatePicker">
             <Setter Property="Background" Value="#F3F3F3"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="Resources">
-                <Setter.Value>
-                    <ResourceDictionary>
-                        <Style TargetType="DatePickerTextBox">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="VerticalAlignment" Value="Stretch"/>
-                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="10,0"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="DatePickerTextBox">
-                                        <ScrollViewer x:Name="PART_ContentHost"
-                                                      VerticalAlignment="Center"
-                                                      Margin="{TemplateBinding Padding}"/>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ResourceDictionary>
-                </Setter.Value>
-            </Setter>
         </Style>
     </UserControl.Resources>
 
