@@ -9,6 +9,39 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- DatePicker에 Height만 주면 안쪽 입력칸은 기본 여백을 그대로 써서
+             옆 TextBox보다 글자가 위로 붙고 상자도 얕아 보인다.
+             안쪽 DatePickerTextBox까지 같이 맞춰야 높이가 나란해진다. -->
+        <Style x:Key="StockInDatePicker" TargetType="DatePicker">
+            <Setter Property="Background" Value="#F3F3F3"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Resources">
+                <Setter.Value>
+                    <ResourceDictionary>
+                        <Style TargetType="DatePickerTextBox">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="VerticalAlignment" Value="Stretch"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="10,0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DatePickerTextBox">
+                                        <ScrollViewer x:Name="PART_ContentHost"
+                                                      VerticalAlignment="Center"
+                                                      Margin="{TemplateBinding Padding}"/>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ResourceDictionary>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="28,24,28,24">
@@ -127,13 +160,13 @@
                     <StackPanel Grid.Column="1" Margin="4,0,4,0">
                         <TextBlock Text="Expiry Date" Style="{StaticResource FieldLabel}"/>
                         <DatePicker SelectedDate="{Binding ExpiryDate}"
-                                    Background="#F3F3F3" BorderThickness="0" Height="36"/>
+                                    Style="{StaticResource StockInDatePicker}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Margin="4,0,4,0">
                         <TextBlock Text="Stock-IN Date" Style="{StaticResource FieldLabel}"/>
                         <DatePicker SelectedDate="{Binding StockInDate}"
-                                    Background="#F3F3F3" BorderThickness="0" Height="36"/>
+                                    Style="{StaticResource StockInDatePicker}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="3" Margin="8,0,0,0">

@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
+using PharmaPOS.Application.Counselling;
+using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -16,9 +19,30 @@ public partial class ProductListView : UserControl
     }
 
     /// <summary>
-    /// 입고 저장에 시설/사용자 ID가 필요해져서 DI로 직접 해결할 수 없게 됐다.
-    /// 다른 화면들과 같은 방식으로 호출부가 만들어 넘긴다.
+    /// ViewModel까지 붙여서 만든다.
+    ///
+    /// 입고 저장에 시설/사용자 ID가 필요해지면서 DI가 이 ViewModel을 만들 수 없게 됐는데,
+    /// 그 뒤로 화면을 여는 곳이 다섯 군데라 한 곳이라도 AttachViewModel을 빠뜨리면
+    /// 빈 화면이 뜬다. 만드는 방법을 여기 한 곳으로 모아 그 실수를 없앤다.
     /// </summary>
+    public static ProductListView Create()
+    {
+        var view = new ProductListView();
+
+        var shellViewModel = App.CurrentShellViewModel;
+
+        view.AttachViewModel(new ProductListViewModel(
+            App.Services.GetRequiredService<IProductRepository>(),
+            App.Services.GetRequiredService<IProductService>(),
+            App.Services.GetRequiredService<IAntibioticMatchingService>(),
+            App.Services.GetRequiredService<IStockInService>(),
+            shellViewModel?.CurrentUser.FacilityId ?? string.Empty,
+            shellViewModel?.CurrentUser.UserId ?? string.Empty));
+
+        return view;
+    }
+
+    /// <summary>ViewModel을 직접 만들어 넘기는 경우에 쓴다.</summary>
     public void AttachViewModel(ProductListViewModel viewModel)
     {
         viewModel.NavigateToAddProduct += OnNavigateToAddProduct;

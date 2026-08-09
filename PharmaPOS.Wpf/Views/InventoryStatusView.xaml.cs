@@ -43,16 +43,7 @@ public partial class InventoryStatusView : UserControl
 
         // 입고 전용 화면은 없어지고 Products 화면 하단 패널로 들어갔다.
         // 재고 화면의 "Stock-IN" 이동도 그쪽으로 보낸다.
-        var viewModel = new ProductListViewModel(
-            App.Services.GetRequiredService<IProductRepository>(),
-            App.Services.GetRequiredService<IProductService>(),
-            App.Services.GetRequiredService<IAntibioticMatchingService>(),
-            App.Services.GetRequiredService<IStockInService>(),
-            App.CurrentShellViewModel.CurrentUser.FacilityId,
-            App.CurrentShellViewModel.CurrentUser.UserId);
-
-        var productListView = new ProductListView();
-        productListView.AttachViewModel(viewModel);
+        var productListView = ProductListView.Create();
 
         var parentWindow = System.Windows.Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)

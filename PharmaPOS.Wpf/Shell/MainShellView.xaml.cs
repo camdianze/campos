@@ -82,18 +82,7 @@ public partial class MainShellView : UserControl
     /// </summary>
     private void OnProductsClick(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainShellViewModel shellViewModel) return;
-
-        var viewModel = new ProductListViewModel(
-            App.Services.GetRequiredService<IProductRepository>(),
-            App.Services.GetRequiredService<IProductService>(),
-            App.Services.GetRequiredService<IAntibioticMatchingService>(),
-            App.Services.GetRequiredService<IStockInService>(),
-            shellViewModel.CurrentUser.FacilityId,
-            shellViewModel.CurrentUser.UserId);
-
-        var productListView = new ProductListView();
-        productListView.AttachViewModel(viewModel);
+        var productListView = ProductListView.Create();
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)

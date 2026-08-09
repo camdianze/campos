@@ -34,7 +34,7 @@ public partial class ProductEditView : UserControl
         var parentWindow = System.Windows.Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
         {
-            parentWindow.Content = new ProductListView();
+            parentWindow.Content = ProductListView.Create();
         }
     }
 }
