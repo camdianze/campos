@@ -17,7 +17,7 @@ public class StockInRepository : IStockInRepository
         _connectionFactory = connectionFactory;
     }
 
-    public async Task SaveStockInAsync(StockTransaction transaction)
+    public async Task SaveStockInAsync(StockTransaction transaction, int boxQuantity, int unitQuantity)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         using var dbTransaction = connection.BeginTransaction();
@@ -82,12 +82,16 @@ public class StockInRepository : IStockInRepository
                 updateCommand.CommandText = """
                     UPDATE Inventory
                     SET current_quantity = current_quantity + $quantity,
+                        box_quantity = box_quantity + $boxQuantity,
+                        unit_quantity = unit_quantity + $unitQuantity,
                         updated_at = $updatedAt
                     WHERE facility_id = $facilityId
                       AND product_id = $productId
                       AND batch_number = $batchNumber;
                     """;
                 updateCommand.Parameters.AddWithValue("$quantity", transaction.Quantity);
+                updateCommand.Parameters.AddWithValue("$boxQuantity", boxQuantity);
+                updateCommand.Parameters.AddWithValue("$unitQuantity", unitQuantity);
                 updateCommand.Parameters.AddWithValue("$updatedAt", transaction.TransactionTime);
                 updateCommand.Parameters.AddWithValue("$facilityId", transaction.FacilityId);
                 updateCommand.Parameters.AddWithValue("$productId", transaction.ProductId);
@@ -102,10 +106,10 @@ public class StockInRepository : IStockInRepository
                 insertInventoryCommand.CommandText = """
                     INSERT INTO Inventory
                         (inventory_id, facility_id, product_id, batch_number, expiry_date,
-                         current_quantity, updated_at)
+                         current_quantity, box_quantity, unit_quantity, updated_at)
                     VALUES
                         ($inventoryId, $facilityId, $productId, $batchNumber, $expiryDate,
-                         $quantity, $updatedAt);
+                         $quantity, $boxQuantity, $unitQuantity, $updatedAt);
                     """;
                 insertInventoryCommand.Parameters.AddWithValue("$inventoryId", Guid.NewGuid().ToString());
                 insertInventoryCommand.Parameters.AddWithValue("$facilityId", transaction.FacilityId);
@@ -113,6 +117,8 @@ public class StockInRepository : IStockInRepository
                 insertInventoryCommand.Parameters.AddWithValue("$batchNumber", transaction.BatchNumber);
                 insertInventoryCommand.Parameters.AddWithValue("$expiryDate", transaction.ExpiryDate);
                 insertInventoryCommand.Parameters.AddWithValue("$quantity", transaction.Quantity);
+                insertInventoryCommand.Parameters.AddWithValue("$boxQuantity", boxQuantity);
+                insertInventoryCommand.Parameters.AddWithValue("$unitQuantity", unitQuantity);
                 insertInventoryCommand.Parameters.AddWithValue("$updatedAt", transaction.TransactionTime);
                 await insertInventoryCommand.ExecuteNonQueryAsync();
             }

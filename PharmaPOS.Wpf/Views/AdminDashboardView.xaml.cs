@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using PharmaPOS.Application.Authentication;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Reports;
 using PharmaPOS.Application.Repositories;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -22,6 +23,7 @@ public partial class AdminDashboardView : UserControl
         viewModel.NavigateToUserManagement += OnNavigateToUserManagement;
         viewModel.NavigateToInventoryOverview += OnNavigateToInventoryOverview;
         viewModel.NavigateToSalesHistory += OnNavigateToSalesHistory;
+        viewModel.NavigateToReports += OnNavigateToReports;
         viewModel.NavigateToBackupExport += OnNavigateToBackupExport;
         viewModel.NavigateBack += OnNavigateBackFromViewModel;
         DataContext = viewModel;
@@ -53,12 +55,29 @@ public partial class AdminDashboardView : UserControl
 
         var salesHistoryViewModel = new SalesHistoryViewModel(
             salesHistoryService, receiptPrintingService,
-            App.CurrentShellViewModel!.CurrentUser.FacilityId);
+            App.CurrentShellViewModel!.CurrentUser.FacilityId,
+            App.CurrentShellViewModel.CurrentUser.UserId);
 
         var salesHistoryView = new SalesHistoryView();
         salesHistoryView.AttachViewModel(salesHistoryViewModel);
 
         parentWindow.Content = salesHistoryView;
+    }
+
+    private void OnNavigateToReports()
+    {
+        var parentWindow = System.Windows.Window.GetWindow(this) as MainWindow;
+        if (parentWindow is null) return;
+
+        var reportService = App.Services.GetRequiredService<IReportService>();
+
+        var reportsViewModel = new ReportsViewModel(
+            reportService, App.CurrentShellViewModel!.CurrentUser.FacilityId);
+
+        var reportsView = new ReportsView();
+        reportsView.AttachViewModel(reportsViewModel);
+
+        parentWindow.Content = reportsView;
     }
 
     private void OnNavigateToProductManagement()

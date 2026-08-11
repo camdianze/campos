@@ -66,6 +66,13 @@ public class StockInService : IStockInService
             return StockInResult.Failure("Quantity must be greater than zero.");
         }
 
+        // 입고는 언제나 박스째 들어온다. 박스/낱개 상품이면 입력한 수량이 박스 개수이고,
+        // 재고에는 박스 수와 낱개 환산량을 함께 올린다. 헐어 놓은 낱개는 늘지 않는다.
+        var isBoxedProduct = product.IsBoxedProduct;
+        var boxQuantity = isBoxedProduct ? quantity : 0;
+        var unitQuantity = isBoxedProduct ? 0 : quantity;
+        var totalUnits = BoxUnitMath.ToTotalUnits(boxQuantity, unitQuantity, product.UnitsPerBox);
+
         var transaction = new StockTransaction
         {
             TransactionId = Guid.NewGuid().ToString(),
@@ -75,13 +82,14 @@ public class StockInService : IStockInService
             TransactionType = TransactionType.StockIn,
             BatchNumber = batchNumber,
             ExpiryDate = new DateTimeOffset(expiryDate).ToUnixTimeMilliseconds(),
-            Quantity = quantity,
+            // 원장은 낱개 기준. 10박스 × 30개 입고는 300으로 남는다.
+            Quantity = totalUnits,
             TransactionTime = new DateTimeOffset(stockInDate).ToUnixTimeMilliseconds()
         };
 
         try
         {
-            await _stockInRepository.SaveStockInAsync(transaction);
+            await _stockInRepository.SaveStockInAsync(transaction, boxQuantity, unitQuantity);
         }
         catch (Exception)
         {

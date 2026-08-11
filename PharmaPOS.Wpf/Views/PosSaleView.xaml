@@ -15,16 +15,11 @@
 
     <DockPanel Margin="24,20,24,20">
 
-        <!-- 제목 + 뒤로 -->
-        <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
-            <TextBlock Text="POS Sale"
-                       Style="{StaticResource PageTitle}"/>
-            <Button Content="← Back"
-                    Style="{StaticResource SecondaryBtn}"
-                    HorizontalAlignment="Right"
-                    Padding="16,0"
-                    Click="OnBackClick"/>
-        </Grid>
+        <!-- 제목 -->
+        <TextBlock DockPanel.Dock="Top"
+                   Text="POS Sale"
+                   Style="{StaticResource PageTitle}"
+                   Margin="0,0,0,12"/>
 
         <!-- 바코드 검색 -->
         <TextBox DockPanel.Dock="Top"
@@ -47,12 +42,25 @@
                  FontSize="13"
                  Margin="0,0,0,10"/>
 
-        <!-- 메시지 -->
-        <TextBlock DockPanel.Dock="Bottom"
-                   Text="{Binding Message}"
-                   Foreground="{StaticResource DangerBrush}"
-                   TextWrapping="Wrap" FontSize="13"
-                   Margin="0,6,0,0"/>
+        <!-- 뒤로 + 메시지. 다른 화면과 같이 뒤로 버튼은 왼쪽 아래에 둔다. -->
+        <Grid DockPanel.Dock="Bottom" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="← Back"
+                    Style="{StaticResource SecondaryBtn}"
+                    Padding="16,0"
+                    Click="OnBackClick"/>
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding Message}"
+                       Foreground="{StaticResource DangerBrush}"
+                       TextWrapping="Wrap" FontSize="13"
+                       VerticalAlignment="Center"
+                       Margin="12,0,0,0"/>
+        </Grid>
 
         <!-- 메인 2단 -->
         <Grid>
@@ -89,6 +97,8 @@
                         <DataGridTextColumn Header="Product"  Binding="{Binding ProductName}" Width="*"/>
                         <DataGridTextColumn Header="Batch"    Binding="{Binding BatchNumber}" Width="90"/>
                         <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}"    Width="50"/>
+                        <!-- Qty가 박스 개수인지 낱개 개수인지는 이 컬럼으로만 구분된다. -->
+                        <DataGridTextColumn Header="Unit"     Binding="{Binding SaleUnitLabel}" Width="55"/>
                         <DataGridTextColumn Header="Price"    Binding="{Binding UnitPrice}"   Width="80"/>
                         <DataGridTextColumn Header="Total"    Binding="{Binding LineTotal}"   Width="80"/>
                         <DataGridTemplateColumn Header="" Width="70">
@@ -129,8 +139,17 @@
                               DisplayMemberPath="BatchNumber"
                               Height="34" Margin="0,0,0,8"/>
 
+                    <!-- 박스/낱개. 바코드를 찍으면 자동으로 정해지고, 이름으로 찾았을 때만
+                         손으로 고르면 된다. 구분이 없는 상품에는 아예 나타나지 않는다. -->
+                    <StackPanel Visibility="{Binding IsBoxedProductSelected, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Sell As" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding AvailableSaleUnits}"
+                                  SelectedItem="{Binding SelectedSaleUnit}"
+                                  Height="34" Margin="0,0,0,8"/>
+                    </StackPanel>
+
                     <!-- 수량 -->
-                    <TextBlock Text="Quantity" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding QuantityLabel}" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource FieldInput}" Margin="0,0,0,8"/>
 

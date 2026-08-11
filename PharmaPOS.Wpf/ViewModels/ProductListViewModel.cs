@@ -92,6 +92,9 @@ public class ProductListViewModel : ViewModelBase
             }
 
             OnPropertyChanged(nameof(SelectedProduct));
+            OnPropertyChanged(nameof(IsBoxedProductSelected));
+            OnPropertyChanged(nameof(StockInQuantityLabel));
+            OnPropertyChanged(nameof(StockInTotalPreview));
 
             if (value is not null)
             {
@@ -134,10 +137,45 @@ public class ProductListViewModel : ViewModelBase
         set => SetProperty(ref _stockInDate, value);
     }
 
+    /// <summary>
+    /// 입고 수량. 박스/낱개 상품이면 이 값은 "박스 개수"다 — 입고는 늘 박스째 들어오므로
+    /// 낱개 총량을 암산해서 적게 하지 않는다.
+    /// </summary>
     public string StockInQuantity
     {
         get => _stockInQuantity;
-        set => SetProperty(ref _stockInQuantity, value);
+        set
+        {
+            if (SetProperty(ref _stockInQuantity, value))
+            {
+                OnPropertyChanged(nameof(StockInTotalPreview));
+            }
+        }
+    }
+
+    /// <summary>선택한 상품이 박스/낱개를 나눠 파는 상품인지.</summary>
+    public bool IsBoxedProductSelected => SelectedProduct?.IsBoxedProduct == true;
+
+    /// <summary>박스 상품이면 수량 입력칸이 무엇을 뜻하는지 라벨로 분명히 해 둔다.</summary>
+    public string StockInQuantityLabel => IsBoxedProductSelected ? "Boxes" : "Quantity";
+
+    /// <summary>"10 boxes × 30 = 300 units" — 저장 전에 실제로 얼마가 들어가는지 보여준다.</summary>
+    public string StockInTotalPreview
+    {
+        get
+        {
+            if (SelectedProduct is not { } product || !product.IsBoxedProduct)
+            {
+                return string.Empty;
+            }
+
+            if (!int.TryParse(StockInQuantity, out var boxes) || boxes <= 0)
+            {
+                return $"{product.UnitsPerBox} units per box.";
+            }
+
+            return $"{boxes} box(es) × {product.UnitsPerBox} = {boxes * product.UnitsPerBox} units.";
+        }
     }
 
     public string StockInMessage
@@ -289,12 +327,17 @@ public class ProductListViewModel : ViewModelBase
 
         if (!int.TryParse(StockInQuantity, out var quantity))
         {
-            StockInMessage = "Quantity must be a whole number.";
+            StockInMessage = IsBoxedProductSelected
+                ? "Box quantity must be a whole number."
+                : "Quantity must be a whole number.";
             return;
         }
 
+        // 박스 상품이면 여기서 넘기는 quantity는 박스 개수다 (StockInService가 환산한다).
+        var product = SelectedProduct;
+
         var result = await _stockInService.SaveStockInAsync(
-            _facilityId, SelectedProduct.ProductId, _userId,
+            _facilityId, product.ProductId, _userId,
             BatchNumber, ExpiryDate, StockInDate, quantity);
 
         if (!result.IsSuccess)
@@ -305,7 +348,10 @@ public class ProductListViewModel : ViewModelBase
 
         // 저장에 성공하면 패널을 접는다. 열어둔 채로 두면 같은 값이 남아 있어
         // 실수로 한 번 더 저장하기 쉽다.
-        Message = $"Stock-in saved for {SelectedProduct.ProductName}.";
+        Message = product.IsBoxedProduct
+            ? $"Stock-in saved for {product.ProductName}: {quantity} box(es), {quantity * product.UnitsPerBox} units."
+            : $"Stock-in saved for {product.ProductName}.";
+
         ExecuteCancelStockIn();
     }
 

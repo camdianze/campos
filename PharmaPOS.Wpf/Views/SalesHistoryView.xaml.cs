@@ -16,7 +16,33 @@ public partial class SalesHistoryView : UserControl
     public void AttachViewModel(SalesHistoryViewModel viewModel)
     {
         viewModel.NavigateBack += OnBackClickFromViewModel;
+        viewModel.RequestRefundDialog += OnRequestRefundDialog;
         DataContext = viewModel;
+    }
+
+    private async void OnRequestRefundDialog(SalesHistoryLineItem selectedLine)
+    {
+        if (DataContext is not SalesHistoryViewModel viewModel)
+        {
+            return;
+        }
+
+        var refundService = App.Services.GetRequiredService<IRefundService>();
+
+        var dialog = new RefundWindow(
+            refundService, viewModel.FacilityId, viewModel.UserId, selectedLine)
+        {
+            Owner = System.Windows.Window.GetWindow(this)
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        // 목록을 다시 읽어야 방금 생긴 환불 행과 바뀐 상태가 보인다.
+        await viewModel.ExecuteSearchAsync();
+        viewModel.Message = $"Refunded {dialog.RefundedAmount}.";
     }
 
     private void OnBackClickFromViewModel()

@@ -28,7 +28,9 @@ public class AdjustmentService : IAdjustmentService
         string batchNumber,
         long expiryDate,
         int systemQuantity,
-        int physicalCount,
+        int physicalBoxCount,
+        int physicalUnitCount,
+        int unitsPerBox,
         string reason,
         bool allowZeroDelta = false)
     {
@@ -42,10 +44,15 @@ public class AdjustmentService : IAdjustmentService
             return AdjustmentResult.Failure("Please select a batch number.");
         }
 
-        if (physicalCount < 0)
+        if (physicalBoxCount < 0 || physicalUnitCount < 0)
         {
             return AdjustmentResult.Failure("Physical count cannot be negative.");
         }
+
+        // 실사 결과를 그대로 저장한다. 낱개가 박스당 개수를 넘어도(예: 30개들이인데
+        // 낱개 35개) 되돌리지 않는다 — 센 대로 적는 게 실사이고, 판매 쪽 계산은
+        // 낱개가 남아도는 상태를 이미 감당한다.
+        var physicalCount = BoxUnitMath.ToTotalUnits(physicalBoxCount, physicalUnitCount, unitsPerBox);
 
         var delta = physicalCount - systemQuantity;
 
@@ -80,7 +87,8 @@ public class AdjustmentService : IAdjustmentService
         try
         {
             saved = await _adjustmentRepository.SaveAdjustmentAsync(
-                transaction, inventoryId, systemQuantity, physicalCount);
+                transaction, inventoryId, systemQuantity, physicalCount,
+                physicalBoxCount, physicalUnitCount);
         }
         catch (Exception)
         {

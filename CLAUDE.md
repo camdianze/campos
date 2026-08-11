@@ -73,7 +73,7 @@ Hand-rolled and imperative. A single `MainWindow` has its `Content` swapped:
 
 **ViewModels never navigate.** They raise C# events (`NavigateBack`, `LoginSucceeded`, `RequestAddUserDialog`, …) and the code-behind handles them. Two wiring styles coexist:
 
-- ViewModels registered in DI (`LoginViewModel`, `InitialSetupViewModel`, `ProductListViewModel`, `InventoryStatusViewModel`) are resolved in the View's constructor.
+- ViewModels registered in DI (`LoginViewModel`, `InitialSetupViewModel`) are resolved in the View's constructor. `ProductListViewModel` and `InventoryStatusViewModel` are built by their own Views (`ProductListView.Create()`, the `InventoryStatusView` constructor) because their inline Stock-IN/Adjustment panels need `facilityId`/`userId`, which DI cannot supply.
 - Everything else uses an `AttachViewModel(vm)` method on the View that subscribes to the events and sets `DataContext`. This exists because those ViewModels take runtime constructor args (`facilityId`, `userId`, `role`) that DI can't supply.
 
 The logged-in user is threaded manually as `FacilityId` / `UserId` / `Role` constructor parameters — there is no ambient session or current-user service. Preserve this when adding screens.
@@ -101,6 +101,18 @@ Raw ADO.NET over `Microsoft.Data.Sqlite` — **no ORM, no Dapper**. Repositories
 
 Inventory is tracked per batch: `Inventory` is unique on `(facility_id, product_id, batch_number)` with its own `expiry_date`. Batch lists are ordered `expiry_date ASC` to support first-expired-first-out picking.
 
+### Sales and refunds
+
+There is no sale header table. A "sale" is the set of `Stock_Transaction` rows sharing `(transaction_time, user_id)` — that pairing is how the sales history, refunds, and the report's transaction count all group lines into one sale.
+
+Refunds are appended, never edited: a refund writes a `TransactionType.Refund` row whose `quantity` and `total_amount` are **negative** and whose `related_transaction_id` points at the original `StockOut` line. Consequences to preserve when touching sales queries:
+
+- **Any new revenue/quantity aggregate must filter `transaction_type IN ('StockOut', 'Refund')`**, not `= 'StockOut'`. The negative rows then net out on their own. Filtering to `StockOut` alone silently reports gross sales.
+- Counts of *sales* (rows or distinct transactions) must still be limited to `StockOut` — a refund is not another sale.
+- How much of a line has been refunded is never stored; it is counted from the refund rows pointing at it ([RefundRepository](PharmaPOS.DataAccess/Repositories/RefundRepository.cs)), and re-checked inside the write transaction so two open windows cannot over-refund.
+- Returned stock goes back as loose units, never as sealed boxes (`BoxUnitMath.AddUnits`), and the "return to stock" checkbox may be off entirely — in that case the money is refunded, stock is untouched, and the only trace is the `(not returned to stock)` marker appended to `reason`.
+- The antibiotic counselling report deliberately stays gross (`StockOut` only): it counts counselling events, which a refund does not undo.
+
 ### Security
 
 - Passwords and security-question answers: bcrypt via `BCryptPasswordHasher`. Answers are normalized (`Trim().ToLowerInvariant()`) before hashing.
@@ -111,6 +123,8 @@ Inventory is tracked per batch: `Inventory` is unique on `(facility_id, product_
 ## Known incomplete areas
 
 Marked with `TODO` in source: label-printer hardware integration (`InternalBarcodeService.PrintLabelAsync` validates input only), receipt printing (`SimulatedReceiptPrintingService`), and sale `notes` (no column exists on `Stock_Transaction`).
+
+One counselling rule is easy to break by accident: **a sheet is per product per sale, not per sale line.** Quantity is never consulted, and a product split across two cart lines (two batches, or box + loose) still prints one sheet — `CounsellingService.PrepareAsync` merges those lines into a single candidate. The merged lines are still logged individually (`CounsellingCandidate.TransactionIds`), because the report counts antibiotic sales and counselling coverage per sale line.
 
 Antibiotic counselling (AMR) additionally needs:
 

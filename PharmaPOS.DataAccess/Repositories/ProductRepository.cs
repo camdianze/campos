@@ -52,7 +52,7 @@ public class ProductRepository : IProductRepository
             SELECT product_id, barcode, internal_barcode, product_name, generic_name,
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
-                   atc_code, is_combination
+                   atc_code, is_combination, units_per_box, unit_selling_price, category
             FROM Product_Master
             {whereSql}
             ORDER BY product_name;
@@ -78,7 +78,7 @@ public class ProductRepository : IProductRepository
             SELECT product_id, barcode, internal_barcode, product_name, generic_name,
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
-                   atc_code, is_combination
+                   atc_code, is_combination, units_per_box, unit_selling_price, category
             FROM Product_Master
             WHERE product_id = $productId;
             """;
@@ -138,12 +138,12 @@ public class ProductRepository : IProductRepository
                 (product_id, barcode, internal_barcode, product_name, generic_name,
                  strength, unit, manufacturer, country_of_origin, cost_price,
                  selling_price, safety_stock_level, status, created_at,
-                 atc_code, is_combination)
+                 atc_code, is_combination, units_per_box, unit_selling_price, category)
             VALUES
                 ($productId, $barcode, $internalBarcode, $productName, $genericName,
                  $strength, $unit, $manufacturer, $countryOfOrigin, $costPrice,
                  $sellingPrice, $safetyStockLevel, $status, $createdAt,
-                 $atcCode, $isCombination);
+                 $atcCode, $isCombination, $unitsPerBox, $unitSellingPrice, $category);
             """;
         AddProductParameters(command, product);
         await command.ExecuteNonQueryAsync();
@@ -169,7 +169,10 @@ public class ProductRepository : IProductRepository
                 safety_stock_level = $safetyStockLevel,
                 status = $status,
                 atc_code = $atcCode,
-                is_combination = $isCombination
+                is_combination = $isCombination,
+                units_per_box = $unitsPerBox,
+                unit_selling_price = $unitSellingPrice,
+                category = $category
             WHERE product_id = $productId;
             """;
         AddProductParameters(command, product);
@@ -209,6 +212,9 @@ public class ProductRepository : IProductRepository
         command.Parameters.AddWithValue("$createdAt", product.CreatedAt);
         command.Parameters.AddWithValue("$atcCode", (object?)product.AtcCode ?? DBNull.Value);
         command.Parameters.AddWithValue("$isCombination", product.IsCombination ? 1 : 0);
+        command.Parameters.AddWithValue("$unitsPerBox", product.UnitsPerBox);
+        command.Parameters.AddWithValue("$unitSellingPrice", (object?)product.UnitSellingPrice ?? DBNull.Value);
+        command.Parameters.AddWithValue("$category", (object?)product.Category?.ToString() ?? DBNull.Value);
     }
 
     private static Product MapToProduct(SqliteDataReader reader)
@@ -230,7 +236,14 @@ public class ProductRepository : IProductRepository
             Status = Enum.Parse<EntityStatus>(reader.GetString(12)),
             CreatedAt = reader.GetInt64(13),
             AtcCode = reader.IsDBNull(14) ? null : reader.GetString(14),
-            IsCombination = reader.GetInt32(15) != 0
+            IsCombination = reader.GetInt32(15) != 0,
+            UnitsPerBox = reader.GetInt32(16),
+            UnitSellingPrice = reader.IsDBNull(17) ? null : (decimal)reader.GetDouble(17),
+            // 알 수 없는 값(자유 입력이던 시절의 잔재 등)은 "정하지 않음"으로 읽는다.
+            // 여기서 예외를 던지면 상품 목록 전체가 열리지 않는다.
+            Category = reader.IsDBNull(18) || !Enum.TryParse<ProductCategory>(reader.GetString(18), out var category)
+                ? null
+                : category
         };
     }
 }

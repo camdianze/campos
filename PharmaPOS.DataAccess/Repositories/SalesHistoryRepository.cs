@@ -28,10 +28,12 @@ public class SalesHistoryRepository : ISalesHistoryRepository
 
         using var command = connection.CreateCommand();
 
+        // 환불 행도 함께 보여 준다. 판매만 늘어놓으면 이미 취소된 판매가 그대로 남아
+        // 목록 합계가 실제로 들어온 돈과 어긋나 보인다.
         var whereClauses = new List<string>
         {
             "st.facility_id = $facilityId",
-            "st.transaction_type = 'StockOut'"
+            "st.transaction_type IN ('StockOut', 'Refund')"
         };
         command.Parameters.AddWithValue("$facilityId", facilityId);
 
@@ -70,7 +72,11 @@ public class SalesHistoryRepository : ISalesHistoryRepository
                    st.batch_number, st.quantity, st.selling_price_at_transaction,
                    st.total_amount, st.payment_method, st.user_id,
                    COALESCE(u.username, st.user_id) AS username,
-                   st.transaction_time
+                   st.transaction_time, st.transaction_type,
+                   COALESCE((SELECT -SUM(r.quantity)
+                             FROM Stock_Transaction r
+                             WHERE r.related_transaction_id = st.transaction_id
+                               AND r.transaction_type = 'Refund'), 0) AS refunded_quantity
             FROM Stock_Transaction st
             LEFT JOIN Product_Master p ON p.product_id = st.product_id
             LEFT JOIN Users u ON u.user_id = st.user_id
@@ -101,7 +107,11 @@ public class SalesHistoryRepository : ISalesHistoryRepository
                    st.batch_number, st.quantity, st.selling_price_at_transaction,
                    st.total_amount, st.payment_method, st.user_id,
                    COALESCE(u.username, st.user_id) AS username,
-                   st.transaction_time
+                   st.transaction_time, st.transaction_type,
+                   COALESCE((SELECT -SUM(r.quantity)
+                             FROM Stock_Transaction r
+                             WHERE r.related_transaction_id = st.transaction_id
+                               AND r.transaction_type = 'Refund'), 0) AS refunded_quantity
             FROM Stock_Transaction st
             LEFT JOIN Product_Master p ON p.product_id = st.product_id
             LEFT JOIN Users u ON u.user_id = st.user_id
@@ -140,7 +150,9 @@ public class SalesHistoryRepository : ISalesHistoryRepository
             PaymentMethod = reader.GetString(7),
             UserId = reader.GetString(8),
             Username = reader.GetString(9),
-            TransactionTime = reader.GetInt64(10)
+            TransactionTime = reader.GetInt64(10),
+            TransactionType = reader.GetString(11),
+            RefundedQuantity = reader.GetInt32(12)
         };
     }
 }

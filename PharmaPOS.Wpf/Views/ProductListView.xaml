@@ -146,11 +146,18 @@
                                     Style="{StaticResource StockInDatePicker}"/>
                     </StackPanel>
 
+                    <!-- 박스 상품이면 라벨이 "Boxes"로 바뀌고, 아래에 낱개 환산량이 붙는다.
+                         입고는 늘 박스째 들어오므로 낱개 총량을 암산해서 적게 하지 않는다.
+                         낱개 단위 상품이면 미리보기가 빈 문자열이라 줄이 생기지 않는다. -->
                     <StackPanel Grid.Column="3" Margin="8,0,0,0">
-                        <TextBlock Text="Quantity" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding StockInQuantityLabel}" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding StockInQuantity, UpdateSourceTrigger=PropertyChanged}"
                                  Background="#F3F3F3" BorderThickness="0"
                                  Height="36" Padding="10,0" VerticalContentAlignment="Center"/>
+                        <TextBlock Text="{Binding StockInTotalPreview}"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   FontSize="11" TextWrapping="Wrap"
+                                   Margin="2,4,0,0"/>
                     </StackPanel>
                 </Grid>
 

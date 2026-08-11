@@ -56,6 +56,8 @@
                 <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal}" Width="90"/>
                 <DataGridTextColumn Header="Payment" Binding="{Binding PaymentMethod}" Width="110"/>
                 <DataGridTextColumn Header="Sold By" Binding="{Binding Username}" Width="100"/>
+                <!-- 환불 행과, 이미 일부/전부 환불된 판매 줄을 여기서 구분한다. -->
+                <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="120"/>
             </DataGrid.Columns>
         </DataGrid>
 
@@ -65,12 +67,14 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="Back" Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Click="OnBackClick"/>
+            <Button Grid.Column="0" Content="← Back" Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Click="OnBackClick"/>
             <Button Grid.Column="1" Content="View Detail" Style="{StaticResource PrimaryBtn}" Margin="5,0,5,0" Command="{Binding ViewDetailCommand}"/>
             <Button Grid.Column="2" Content="Reprint Receipt" Style="{StaticResource SecondaryBtn}" Margin="5,0,5,0" Command="{Binding ReprintReceiptCommand}"/>
-            <Button Grid.Column="3" Content="Export" Style="{StaticResource SecondaryBtn}" Margin="5,0,0,0" Command="{Binding ExportCommand}"/>
+            <Button Grid.Column="3" Content="Refund" Style="{StaticResource SoftDangerBtn}" Margin="5,0,5,0" Command="{Binding RefundCommand}"/>
+            <Button Grid.Column="4" Content="Export" Style="{StaticResource SecondaryBtn}" Margin="5,0,0,0" Command="{Binding ExportCommand}"/>
         </Grid>
 
         <TextBlock Grid.Row="4" Text="{Binding Message}" Style="{StaticResource ErrorText}" MinHeight="18" Margin="0,10,0,0"/>

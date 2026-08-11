@@ -6,6 +6,10 @@
              mc:Ignorable="d"
              d:DesignWidth="450" d:DesignHeight="700">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Width="380" Margin="20" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
@@ -28,6 +32,12 @@
 
                 <TextBlock Text="Generic Name" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding GenericName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                <!-- 선택 입력. 맨 위 빈 항목이 "아직 정하지 않음"이다. -->
+                <TextBlock Text="Category (optional)" Style="{StaticResource FieldLabel}"/>
+                <ComboBox ItemsSource="{Binding AvailableCategories}"
+                          SelectedItem="{Binding Category}"
+                          Margin="0,0,0,10"/>
 
                 <TextBlock Text="ATC Code (antibiotics only)" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding AtcCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
@@ -53,7 +63,33 @@
                 <TextBox Text="{Binding CostPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
                 <TextBlock Text="Selling Price *" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding SellingPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                <TextBox Text="{Binding SellingPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding BoxPriceHint}"
+                           TextWrapping="Wrap" Opacity="0.7" FontSize="11" Margin="0,0,0,10"/>
+
+                <!-- 소분 판매. 이 체크를 켜야 아래 세 가지(박스당 개수·낱개가·낱개 바코드)가
+                     의미를 갖는다. 꺼 두면 박스당 1개짜리 상품으로 저장돼 종전과 똑같이 동작한다. -->
+                <CheckBox Content="Sell loose units (소분 판매)"
+                          IsChecked="{Binding SellsLooseUnits}" Margin="0,4,0,0"/>
+
+                <Border Visibility="{Binding SellsLooseUnits, Converter={StaticResource BoolToVis}}"
+                        Background="#F8F9FA" CornerRadius="8"
+                        Padding="14,12" Margin="0,8,0,10">
+                    <StackPanel>
+                        <TextBlock Text="{Binding UnitsPerBoxLabel}" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Loose Unit Price" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding UnitSellingPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding UnitPriceHint}"
+                                   TextWrapping="Wrap" Opacity="0.7" FontSize="11" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Unit Barcode" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding UnitBarcodePreview, Mode=OneWay}" IsReadOnly="True" Margin="0,0,0,4"/>
+                        <TextBlock Text="Scan this to sell one loose unit. The manufacturer barcode still sells a whole box."
+                                   TextWrapping="Wrap" Opacity="0.7" FontSize="11"/>
+                    </StackPanel>
+                </Border>
 
                 <TextBlock Text="Safety Stock Level *" Style="{StaticResource FieldLabel}"/>
                 <TextBox Text="{Binding SafetyStockLevel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>

@@ -74,6 +74,9 @@ public class SaleService : ISaleService
         var lines = cartItems.Select(item => new SaleLineForSave
         {
             InventoryId = item.InventoryId,
+            IsBoxSale = item.IsBoxSale,
+            BoxCount = item.IsBoxSale ? item.Quantity : 0,
+            UnitsPerBox = item.UnitsPerBox,
             Transaction = new StockTransaction
             {
                 TransactionId = Guid.NewGuid().ToString(),
@@ -83,8 +86,12 @@ public class SaleService : ISaleService
                 TransactionType = TransactionType.StockOut,
                 BatchNumber = item.BatchNumber,
                 ExpiryDate = item.ExpiryDate,
-                Quantity = item.Quantity,
-                SellingPriceAtTransaction = item.UnitPrice,
+                // 원장은 낱개 기준으로만 쌓는다. 박스 10통을 팔았어도 300개로 기록해야
+                // 재고·대시보드·알림이 전부 같은 단위로 읽힌다.
+                Quantity = item.PieceQuantity,
+                // 그래서 단가도 낱개 단가로 환산해 둔다. 그러지 않으면 판매 이력에서
+                // 수량 × 단가가 합계와 맞지 않는다. 금액의 진실은 언제나 TotalAmount 쪽이다.
+                SellingPriceAtTransaction = ToPieceUnitPrice(item),
                 PaymentMethod = paymentMethod.Value.ToString(),
                 TotalAmount = item.LineTotal,
                 TransactionTime = now
@@ -118,5 +125,15 @@ public class SaleService : ISaleService
             .ToList();
 
         return SaleResult.Success(confirmedLines);
+    }
+
+    /// <summary>
+    /// 줄 금액을 낱개 수로 나눈 값. 박스로 팔았을 때 원장에 남길 단가다.
+    /// 박스가를 따로 정하지 않은 보통의 경우에는 상품의 낱개가와 정확히 같은 값이 나온다.
+    /// </summary>
+    private static decimal ToPieceUnitPrice(SaleLineItem item)
+    {
+        var pieces = item.PieceQuantity;
+        return pieces <= 0 ? item.UnitPrice : item.LineTotal / pieces;
     }
 }

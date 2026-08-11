@@ -115,14 +115,15 @@ public class CounsellingServiceTests
     }
 
     private static ConfirmedSaleLine Line(
-        string transactionId, string productName, string? atcCode, string? genericName)
+        string transactionId, string productName, string? atcCode, string? genericName,
+        string? productId = null)
     {
         return new ConfirmedSaleLine
         {
             TransactionId = transactionId,
             Line = new SaleLineItem
             {
-                ProductId = "product-" + transactionId,
+                ProductId = productId ?? "product-" + transactionId,
                 ProductName = productName,
                 GenericName = genericName,
                 AtcCode = atcCode,
@@ -166,6 +167,75 @@ public class CounsellingServiceTests
 
         Assert.Equal(2, candidates.Count);
         Assert.Equal(new[] { "t1", "t2" }, candidates.Select(c => c.TransactionId));
+    }
+
+    /// <summary>
+    /// 같은 항생제가 여러 줄로 갈라져 팔려도 안내문은 한 장이다.
+    /// 장바구니는 (상품 + 배치 + 박스/낱개)로 줄을 나누므로, 한 배치로 수량이 모자라거나
+    /// 박스와 낱개를 같이 팔면 같은 약이 두 줄이 된다 — 그때 나오던 두 장은 내용이 같았다.
+    /// </summary>
+    [Fact]
+    public async Task PrepareAsync_MergesTheSameProductIntoOneSheet()
+    {
+        var harness = new Harness();
+
+        var candidates = await harness.Build().PrepareAsync(new[]
+        {
+            Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin", productId: "p-amox"),
+            Line("t2", "Amoxicillin 500mg", "J01CA04", "Amoxicillin", productId: "p-amox"),
+            Line("t3", "Azithromycin 250mg", "J01FA10", "Azithromycin", productId: "p-azi")
+        });
+
+        Assert.Equal(2, candidates.Count);
+        Assert.Equal(new[] { "t1", "t2" }, candidates[0].TransactionIds);
+        Assert.Equal(new[] { "t3" }, candidates[1].TransactionIds);
+    }
+
+    /// <summary>
+    /// 합쳐진 줄에도 로그는 남아야 한다. 리포트의 항생제 판매 건수와 인쇄율은
+    /// 판매 줄 단위로 세므로, 줄을 빼면 안내를 하고도 안 한 것처럼 잡힌다.
+    /// </summary>
+    [Fact]
+    public async Task PrintAsync_PrintsOnceButLogsEverySaleLineOfTheProduct()
+    {
+        var harness = new Harness();
+        var service = harness.Build();
+
+        var candidate = Assert.Single(await service.PrepareAsync(new[]
+        {
+            Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin", productId: "p-amox"),
+            Line("t2", "Amoxicillin 500mg", "J01CA04", "Amoxicillin", productId: "p-amox")
+        }));
+
+        var result = await service.PrintAsync(candidate);
+
+        Assert.True(result.IsSuccess);
+        Assert.Single(harness.Printer.Printed);
+
+        Assert.Equal(2, harness.Log.Entries.Count);
+        Assert.All(harness.Log.Entries, entry => Assert.True(entry.Printed));
+        Assert.Equal(new[] { "t1", "t2" }, harness.Log.Entries.Select(e => e.TransactionId));
+    }
+
+    /// <summary>건너뛰기도 마찬가지로 합쳐진 줄 전부에 남는다.</summary>
+    [Fact]
+    public async Task LogSkipAsync_RecordsEverySaleLineOfTheProduct()
+    {
+        var harness = new Harness();
+        harness.Settings.Settings.PrintMode = CounsellingPrintMode.Ask;
+        var service = harness.Build();
+
+        var candidate = Assert.Single(await service.PrepareAsync(new[]
+        {
+            Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin", productId: "p-amox"),
+            Line("t2", "Amoxicillin 500mg", "J01CA04", "Amoxicillin", productId: "p-amox")
+        }));
+
+        await service.LogSkipAsync(candidate, CounsellingService.SkipReasonPharmacist);
+
+        Assert.Equal(2, harness.Log.Entries.Count);
+        Assert.All(harness.Log.Entries, entry =>
+            Assert.Equal(CounsellingService.SkipReasonPharmacist, entry.SkipReason));
     }
 
     /// <summary>수용 기준: 미등록 항생제는 unmatched로 기록되고 판매는 통과한다.</summary>

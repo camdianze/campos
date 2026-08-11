@@ -12,6 +12,9 @@ public interface IStockInRepository
     /// 동일한 facility_id + product_id + batch_number 조합이 이미 있으면 수량을 증가시키고,
     /// 없으면 새 Inventory 행을 생성한다. 하나라도 실패하면 전체 롤백된다.
     /// (Screen SCR-STOCKIN-009, 5절 "저장 원칙")
+    ///
+    /// transaction.Quantity는 낱개 기준 총량이고, boxQuantity/unitQuantity는 그 총량을
+    /// 어느 쪽으로 올릴지를 나타낸다 (박스 입고면 박스 쪽, 낱개 상품이면 낱개 쪽).
     /// </summary>
-    Task SaveStockInAsync(StockTransaction transaction);
+    Task SaveStockInAsync(StockTransaction transaction, int boxQuantity, int unitQuantity);
 }

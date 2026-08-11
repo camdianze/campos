@@ -39,7 +39,7 @@ public partial class HistoryView : UserControl
             var receiptPrintingService = App.Services.GetRequiredService<IReceiptPrintingService>();
 
             var vm = new SalesHistoryViewModel(
-                salesHistoryService, receiptPrintingService, _facilityId);
+                salesHistoryService, receiptPrintingService, _facilityId, _userId);
 
             var view = new SalesHistoryView();
             view.AttachViewModel(vm);

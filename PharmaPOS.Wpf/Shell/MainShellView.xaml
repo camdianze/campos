@@ -154,11 +154,17 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0"
-                       Text="{Binding WelcomeMessage}"
-                       Style="{StaticResource PageTitle}"
-                       VerticalAlignment="Center"
-                       Margin="0,0,40,0"/>
+            <StackPanel Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Margin="0,0,40,0">
+                <TextBlock Text="{Binding WelcomeMessage}"
+                           Style="{StaticResource PageTitle}"/>
+
+                <TextBlock Text="{StaticResource AppVersionText}"
+                           Style="{StaticResource Caption}"
+                           FontSize="11"
+                           Margin="0,2,0,0"/>
+            </StackPanel>
 
             <Button Grid.Column="1" Content="My Page"
                     Style="{StaticResource TopBtnPrimary}"

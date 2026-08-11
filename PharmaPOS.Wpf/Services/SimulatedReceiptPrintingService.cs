@@ -45,7 +45,10 @@ public class SimulatedReceiptPrintingService : IReceiptPrintingService
 
         foreach (var item in cartItems)
         {
-            builder.AppendLine($"{item.ProductName} x{item.Quantity} @ {item.UnitPrice} = {item.LineTotal}");
+            // 박스로 판 줄은 수량이 박스 개수라, 단위를 같이 찍지 않으면 영수증만 보고는
+            // 낱개 몇 개를 산 건지 알 수 없다.
+            var unitSuffix = item.IsBoxSale ? $" {item.SaleUnitLabel} ({item.PieceQuantity} units)" : "";
+            builder.AppendLine($"{item.ProductName} x{item.Quantity}{unitSuffix} @ {item.UnitPrice} = {item.LineTotal}");
         }
 
         builder.AppendLine("--------------------");

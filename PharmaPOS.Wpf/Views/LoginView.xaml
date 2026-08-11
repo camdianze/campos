@@ -8,72 +8,85 @@
              Background="White">
 
     <!-- 스타일은 전부 App.xaml 공통 테마에서 온다. 입력 칸은 암시적 스타일이라
-         Style 지정 없이도 적용된다. -->
-    <Grid Width="342" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+         Style 지정 없이도 적용된다.
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="Login" FontSize="28" FontWeight="SemiBold" Foreground="#111827"/>
-            <TextBlock Text="Sign in to continue" Style="{StaticResource Caption}" Margin="0,4,0,0"/>
-        </StackPanel>
+         바깥 Grid는 버전 표시를 창 좌측 하단에 붙이기 위한 것이다. 로그인 폼은
+         화면 정중앙에 고정돼 있어서, 같은 컨테이너에 넣으면 폼을 따라 움직인다. -->
+    <Grid>
 
-        <StackPanel Grid.Row="1" Margin="0,0,0,16">
-            <TextBlock Text="ID" Style="{StaticResource FieldLabel}"/>
-            <TextBox x:Name="UsernameInput"
-                     Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
-        </StackPanel>
+        <Grid Width="342" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="2" Margin="0,0,0,12">
-            <TextBlock Text="Password" Style="{StaticResource FieldLabel}"/>
-            <PasswordBox x:Name="PasswordInput"/>
-        </StackPanel>
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock Text="Login" FontSize="28" FontWeight="SemiBold" Foreground="#111827"/>
+                <TextBlock Text="Sign in to continue" Style="{StaticResource Caption}" Margin="0,4,0,0"/>
+            </StackPanel>
 
-        <Grid Grid.Row="3" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Row="1" Margin="0,0,0,16">
+                <TextBlock Text="ID" Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="UsernameInput"
+                         Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
 
-            <CheckBox Grid.Column="0"
-                      Content="Remember me"
-                      FontSize="12"
-                      VerticalAlignment="Center"
-                      IsChecked="{Binding RememberMe}"/>
+            <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                <TextBlock Text="Password" Style="{StaticResource FieldLabel}"/>
+                <PasswordBox x:Name="PasswordInput"/>
+            </StackPanel>
 
-            <Button Grid.Column="1"
-                    Content="Forgot Username?"
-                    Style="{StaticResource LinkBtn}"
-                    Margin="0,0,10,0"
-                    Command="{Binding ForgotUsernameCommand}"/>
+            <Grid Grid.Row="3" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="2"
-                    Content="Forgot Password?"
-                    Style="{StaticResource LinkBtn}"
-                    Command="{Binding ForgotPasswordCommand}"/>
+                <CheckBox Grid.Column="0"
+                          Content="Remember me"
+                          FontSize="12"
+                          VerticalAlignment="Center"
+                          IsChecked="{Binding RememberMe}"/>
+
+                <Button Grid.Column="1"
+                        Content="Forgot Username?"
+                        Style="{StaticResource LinkBtn}"
+                        Margin="0,0,10,0"
+                        Command="{Binding ForgotUsernameCommand}"/>
+
+                <Button Grid.Column="2"
+                        Content="Forgot Password?"
+                        Style="{StaticResource LinkBtn}"
+                        Command="{Binding ForgotPasswordCommand}"/>
+            </Grid>
+
+            <!-- IsDefault="True"라 아이디/비밀번호 칸에서 Enter를 눌러도 로그인된다. -->
+            <Button Grid.Row="4"
+                    Content="Login"
+                    Style="{StaticResource PrimaryBtn}"
+                    Height="42" FontSize="14"
+                    IsDefault="True"
+                    Margin="0,0,0,10"
+                    Command="{Binding LoginCommand}"
+                    CommandParameter="{Binding ElementName=PasswordInput}"/>
+
+            <!-- MinHeight로 자리를 미리 잡아둔다. 없으면 에러가 뜰 때 폼 전체가 밀린다. -->
+            <TextBlock Grid.Row="5"
+                       Text="{Binding ErrorMessage}"
+                       Style="{StaticResource ErrorText}"
+                       MinHeight="18"/>
         </Grid>
 
-        <!-- IsDefault="True"라 아이디/비밀번호 칸에서 Enter를 눌러도 로그인된다. -->
-        <Button Grid.Row="4"
-                Content="Login"
-                Style="{StaticResource PrimaryBtn}"
-                Height="42" FontSize="14"
-                IsDefault="True"
-                Margin="0,0,0,10"
-                Command="{Binding LoginCommand}"
-                CommandParameter="{Binding ElementName=PasswordInput}"/>
-
-        <!-- MinHeight로 자리를 미리 잡아둔다. 없으면 에러가 뜰 때 폼 전체가 밀린다. -->
-        <TextBlock Grid.Row="5"
-                   Text="{Binding ErrorMessage}"
-                   Style="{StaticResource ErrorText}"
-                   MinHeight="18"/>
+        <TextBlock Text="{StaticResource AppVersionText}"
+                   Style="{StaticResource Caption}"
+                   FontSize="11"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Bottom"
+                   Margin="16,0,0,12"/>
     </Grid>
 </UserControl>

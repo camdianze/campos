@@ -5,6 +5,7 @@ using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Licensing;
 using PharmaPOS.Application.PasswordPolicy;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Reports;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Application.Security;
 using PharmaPOS.DataAccess.Database;
@@ -65,6 +66,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAwareClassificationRepository, AwareClassificationRepository>();
         services.AddTransient<ICounsellingLogRepository, CounsellingLogRepository>();
         services.AddTransient<ISalesHistoryRepository, SalesHistoryRepository>();
+        services.AddTransient<IRefundRepository, RefundRepository>();
+        services.AddTransient<IReportRepository, ReportRepository>();
         services.AddTransient<IBackupRepository>(sp => new BackupRepository(
      sp.GetRequiredService<SqliteConnectionFactory>(), dbFilePath));
         // Application 서비스
@@ -80,6 +83,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAdminDashboardService, AdminDashboardService>();
         services.AddTransient<IUserManagementService, UserManagementService>();
         services.AddTransient<ISalesHistoryService, SalesHistoryService>();
+        services.AddTransient<IRefundService, RefundService>();
+        services.AddTransient<IReportService, ReportService>();
         services.AddTransient<IBackupService, BackupService>();
         services.AddTransient<IRecoverySettingsService, RecoverySettingsService>();
         services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
@@ -97,9 +102,9 @@ public static class ServiceCollectionExtensions
         services.AddTransient<LicenseActivationViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<InitialSetupViewModel>();
-        // ProductListViewModel은 시설/사용자 ID를 생성자로 받으므로 DI가 만들 수 없다.
-        // MainShellView가 직접 만들어 AttachViewModel로 넘긴다.
-        services.AddTransient<InventoryStatusViewModel>();
+        // ProductListViewModel과 InventoryStatusViewModel은 시설/사용자 ID를 생성자로 받으므로
+        // DI가 만들 수 없다. 각 View가 직접 만든다(ProductListView.Create,
+        // InventoryStatusView 생성자).
 
         return services;
     }

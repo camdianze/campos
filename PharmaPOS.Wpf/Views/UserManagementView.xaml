@@ -55,7 +55,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="Back"           Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Command="{Binding BackCommand}"/>
+            <Button Grid.Column="0" Content="← Back"         Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Command="{Binding BackCommand}"/>
             <Button Grid.Column="1" Content="Add User"       Style="{StaticResource PrimaryBtn}"   Margin="5,0,5,0" Command="{Binding AddUserCommand}"/>
             <Button Grid.Column="2" Content="Edit Role"      Style="{StaticResource SecondaryBtn}" Margin="5,0,5,0" Command="{Binding EditRoleCommand}"/>
             <Button Grid.Column="3" Content="Deactivate"     Style="{StaticResource DangerBtn}"    Margin="5,0,5,0" Command="{Binding DeactivateCommand}"/>

@@ -8,6 +8,7 @@
              d:DesignWidth="500" d:DesignHeight="650">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </UserControl.Resources>
 
     <Grid Width="420" Margin="0,24,0,24" HorizontalAlignment="Center">
@@ -25,6 +26,24 @@
 
         <!-- 상품 검색 -->
         <StackPanel Grid.Row="1" Margin="0,0,0,16">
+
+            <!-- 고른 상품을 맨 위에 띄운다. 재고 화면에서 상품을 누르고 넘어오면
+                 검색칸을 다시 볼 일 없이 무엇을 조정하는 중인지 바로 보인다. -->
+            <Border Background="{StaticResource PrimarySoftBrush}"
+                    CornerRadius="8" Padding="12,8" Margin="0,0,0,12"
+                    Visibility="{Binding HasSelectedProduct, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="{Binding SelectedProductName}"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SelectedProductDetail}"
+                               FontSize="11"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="Product Search (barcode or name, press Enter)"
                        Style="{StaticResource FieldLabel}"/>
             <TextBox x:Name="SearchBox"
@@ -53,10 +72,29 @@
                      IsReadOnly="True"
                      Style="{StaticResource FieldInput}"
                      Foreground="{StaticResource MutedTextBrush}"
-                     Margin="0,0,0,14"/>
+                     Margin="0,0,0,4"/>
+            <TextBlock Text="{Binding SystemQuantityBreakdown}"
+                       Foreground="{StaticResource MutedTextBrush}"
+                       FontSize="11" TextWrapping="Wrap"
+                       Margin="2,0,0,14"/>
 
-            <TextBlock Text="Physical Count" Style="{StaticResource FieldLabel}"/>
-            <TextBox Text="{Binding PhysicalCount, UpdateSourceTrigger=PropertyChanged}"
+            <!-- 박스 실사 칸은 박스/낱개를 나눠 파는 상품에만 나온다.
+                 실사는 선반에서 "안 뜯은 통 몇 개, 헐어 놓은 알 몇 개"로 세지,
+                 총 알 수를 암산해서 세지 않는다. -->
+            <StackPanel Visibility="{Binding IsBoxedProductSelected, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Physical Count — Unopened Boxes" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding PhysicalBoxCount, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource FieldInput}"
+                         Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding UnitsPerBox, StringFormat='{}{0} units per box.'}"
+                           Foreground="{StaticResource MutedTextBrush}"
+                           FontSize="11" TextWrapping="Wrap"
+                           Margin="2,0,0,14"/>
+            </StackPanel>
+
+            <!-- 낱개 단위 상품은 이 칸 하나만 보이고, 라벨도 종전과 같은 "Physical Count"다. -->
+            <TextBlock Text="{Binding PhysicalUnitCountLabel}" Style="{StaticResource FieldLabel}"/>
+            <TextBox Text="{Binding PhysicalUnitCount, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource FieldInput}"
                      Margin="0,0,0,14"/>
 

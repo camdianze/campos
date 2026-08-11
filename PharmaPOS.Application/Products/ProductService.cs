@@ -51,6 +51,23 @@ public class ProductService : IProductService
             return ProductSaveResult.Failure("Safety stock level cannot be negative.");
         }
 
+        if (product.UnitsPerBox < 1)
+        {
+            return ProductSaveResult.Failure("Units per box must be at least 1.");
+        }
+
+        if (product.UnitSellingPrice is <= 0)
+        {
+            return ProductSaveResult.Failure("Loose unit price must be greater than zero.");
+        }
+
+        // 낱개가는 헐어서 파는 상품에만 의미가 있다. 낱개 판매를 끈 상품에 값만 남아 있으면
+        // 화면에는 안 보이는데 나중에 다시 켜는 순간 옛 가격이 되살아난다.
+        if (!product.IsBoxedProduct)
+        {
+            product.UnitSellingPrice = null;
+        }
+
         // 경고 후 확인이 필요한 케이스: 아직 확인 안 받았으면 여기서 멈추고 확인을 요청한다.
         if (product.SellingPrice < product.CostPrice && !acknowledgeLowerSellingPriceWarning)
         {
@@ -70,8 +87,13 @@ public class ProductService : IProductService
             }
         }
 
-        // 내부 바코드 자동 생성: 제조사 바코드가 없고, 아직 내부 바코드도 없는 경우에만.
-        if (string.IsNullOrWhiteSpace(product.Barcode) && string.IsNullOrWhiteSpace(product.InternalBarcode))
+        // 내부 바코드 자동 생성: 제조사 바코드가 없고, 아직 내부 바코드도 없는 경우.
+        // 박스/낱개 상품은 제조사 바코드가 있어도 만든다 — 그 바코드는 박스에 붙은 것이라
+        // 헐어서 파는 낱개를 가리킬 수단이 따로 있어야 하고, 그게 InternalBarcode + "-EA"다.
+        var needsInternalBarcode =
+            string.IsNullOrWhiteSpace(product.Barcode) || product.IsBoxedProduct;
+
+        if (needsInternalBarcode && string.IsNullOrWhiteSpace(product.InternalBarcode))
         {
             try
             {

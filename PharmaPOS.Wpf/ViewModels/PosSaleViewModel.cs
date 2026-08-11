@@ -6,8 +6,19 @@ using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+
+/// <summary>
+/// 한 줄을 박스로 파는지 낱개로 파는지. 화면 전용 선택값이라 Domain에는 두지 않는다.
+/// 박스/낱개 구분이 없는 상품(units_per_box = 1)은 언제나 Each로 취급한다.
+/// </summary>
+public enum SaleUnitOption
+{
+    Box,
+    Each
+}
 
 /// <summary>
 /// POS 판매 화면(SCR-POS-005)의 ViewModel.
@@ -29,6 +40,13 @@ public partial class PosSaleViewModel : ViewModelBase
     private string _quantity = "1";
     private string _unitPrice = string.Empty;
     private string _message = string.Empty;
+    private SaleUnitOption _selectedSaleUnit = SaleUnitOption.Box;
+
+    /// <summary>
+    /// 방금 스캔한 바코드가 가리킨 판매 단위. 검색과 상품 선택은 별개의 동작이라
+    /// (결과 목록에서 골라야 상품이 정해진다) 그 사이를 이 값으로 잇는다.
+    /// </summary>
+    private SaleUnitOption _scannedSaleUnit = SaleUnitOption.Box;
 
     public ObservableCollection<Product> SearchResults { get; } = new();
     public ObservableCollection<InventoryBatchOption> Batches { get; } = new();
@@ -45,10 +63,22 @@ public partial class PosSaleViewModel : ViewModelBase
         get => _selectedProduct;
         set
         {
-            if (SetProperty(ref _selectedProduct, value))
+            if (!SetProperty(ref _selectedProduct, value))
             {
-                _ = LoadBatchesAsync();
+                return;
             }
+
+            // 낱개용 바코드(-EA)를 찍었으면 그 판매 단위를 그대로 이어받는다.
+            // 이름으로 찾았거나 박스/낱개 구분이 없는 상품이면 각각 박스·낱개가 기본이다.
+            _selectedSaleUnit = value?.IsBoxedProduct == true
+                ? _scannedSaleUnit
+                : SaleUnitOption.Each;
+
+            OnPropertyChanged(nameof(SelectedSaleUnit));
+            OnPropertyChanged(nameof(IsBoxedProductSelected));
+            OnPropertyChanged(nameof(QuantityLabel));
+
+            _ = LoadBatchesAsync();
         }
     }
 
@@ -60,9 +90,58 @@ public partial class PosSaleViewModel : ViewModelBase
             if (SetProperty(ref _selectedBatch, value))
             {
                 // 배치가 바뀌면(또는 처음 선택되면) 판매가를 Product Master 값으로 재설정한다.
-                UnitPrice = SelectedProduct?.SellingPrice.ToString() ?? string.Empty;
+                ResetUnitPriceFromProduct();
             }
         }
+    }
+
+    /// <summary>
+    /// 박스로 팔지 낱개로 팔지. 바코드를 찍으면 자동으로 정해지지만,
+    /// 이름으로 찾은 경우엔 손으로 바꿀 수 있어야 한다.
+    /// </summary>
+    public SaleUnitOption SelectedSaleUnit
+    {
+        get => _selectedSaleUnit;
+        set
+        {
+            if (SetProperty(ref _selectedSaleUnit, value))
+            {
+                OnPropertyChanged(nameof(QuantityLabel));
+                // 단위가 바뀌면 가격도 그 단위 가격으로 다시 잡아 준다.
+                ResetUnitPriceFromProduct();
+            }
+        }
+    }
+
+    public IReadOnlyList<SaleUnitOption> AvailableSaleUnits { get; } = Enum.GetValues<SaleUnitOption>();
+
+    /// <summary>박스/낱개 선택칸을 보여줄지. 구분이 없는 상품에는 고를 것이 없다.</summary>
+    public bool IsBoxedProductSelected => SelectedProduct?.IsBoxedProduct == true;
+
+    /// <summary>박스로 팔 때는 수량이 박스 개수라는 걸 라벨에 드러낸다.</summary>
+    public string QuantityLabel =>
+        IsBoxedProductSelected && SelectedSaleUnit == SaleUnitOption.Box
+            ? "Quantity (boxes)"
+            : "Quantity";
+
+    /// <summary>지금 고른 판매 단위 기준의 상품 판매가.</summary>
+    private decimal? CurrentSaleUnitPrice()
+    {
+        if (SelectedProduct is not { } product)
+        {
+            return null;
+        }
+
+        // 박스가가 기본값이고, 헐어 파는 낱개만 따로 정한 가격을 쓴다.
+        return IsBoxSaleSelected(product) ? product.SellingPrice : product.EffectiveUnitSellingPrice;
+    }
+
+    private bool IsBoxSaleSelected(Product product) =>
+        product.IsBoxedProduct && SelectedSaleUnit == SaleUnitOption.Box;
+
+    private void ResetUnitPriceFromProduct()
+    {
+        UnitPrice = CurrentSaleUnitPrice()?.ToString() ?? string.Empty;
     }
 
     public string Quantity
@@ -133,7 +212,19 @@ public partial class PosSaleViewModel : ViewModelBase
             return;
         }
 
-        var results = await _productRepository.SearchAsync(SearchTerm, EntityStatus.Active);
+        // 낱개용 바코드는 내부 바코드 뒤에 -EA가 붙은 형태다. DB에는 접미사 없이
+        // 저장돼 있으므로 떼어내고 찾되, 어느 단위로 찍었는지는 기억해 둔다.
+        var scannedTerm = SearchTerm.Trim();
+
+        var isUnitBarcode = scannedTerm.EndsWith(Product.UnitBarcodeSuffix, StringComparison.OrdinalIgnoreCase);
+
+        _scannedSaleUnit = isUnitBarcode ? SaleUnitOption.Each : SaleUnitOption.Box;
+
+        var lookupTerm = isUnitBarcode
+            ? scannedTerm[..^Product.UnitBarcodeSuffix.Length]
+            : scannedTerm;
+
+        var results = await _productRepository.SearchAsync(lookupTerm, EntityStatus.Active);
 
         SearchResults.Clear();
         foreach (var product in results)
@@ -231,22 +322,71 @@ public partial class PosSaleViewModel : ViewModelBase
             return;
         }
 
+        var product = SelectedProduct;
+        var isBoxSale = IsBoxSaleSelected(product);
+
+        // 이미 장바구니에 담긴 같은 배치의 줄들을 먼저 빼고 남는 재고를 기준으로 판단한다.
+        // 배치의 현재 수량만 보면, 이미 담아 둔 만큼을 두 번 팔 수 있게 된다.
+        var remaining = RemainingStockForSelectedBatch();
+
+        if (isBoxSale)
+        {
+            if (!BoxUnitMath.TryTakeBoxes(remaining, quantity, product.UnitsPerBox, out _))
+            {
+                // 총량이 충분해도 이미 헐어 놓은 낱개뿐이면 박스로는 팔 수 없다.
+                Message = remaining.TotalUnits >= quantity * product.UnitsPerBox
+                    ? $"Only {remaining.BoxQuantity} unopened box(es) left in this batch."
+                    : "Stock-out quantity cannot exceed current inventory quantity.";
+                return;
+            }
+        }
+        else
+        {
+            if (remaining.TotalUnits < quantity)
+            {
+                Message = "Stock-out quantity cannot exceed current inventory quantity.";
+                return;
+            }
+
+            // 헐어 놓은 낱개가 모자라면 박스를 헐어야 한다. 실제로 여는 건 판매 확정
+            // 시점이지만, 약사에게 묻는 건 지금이어야 한다 — 결제까지 가서 물으면
+            // 이미 되돌리기 어렵다.
+            var boxesToOpen = BoxUnitMath.BoxesToOpen(remaining, quantity, product.UnitsPerBox);
+
+            if (boxesToOpen > 0)
+            {
+                var openIt = AppDialog.Confirm(
+                    "Open a Box",
+                    $"Only {remaining.UnitQuantity} loose unit(s) left in this batch.\n" +
+                    $"Open {boxesToOpen} box(es) of {product.UnitsPerBox} to sell {quantity}?",
+                    confirmText: "Open",
+                    cancelText: "Cancel");
+
+                if (!openIt)
+                {
+                    Message = "Sale cancelled — no box was opened.";
+                    return;
+                }
+            }
+
+            if (!BoxUnitMath.TryTakeUnits(remaining, quantity, product.UnitsPerBox, out _))
+            {
+                Message = "Stock-out quantity cannot exceed current inventory quantity.";
+                return;
+            }
+        }
+
         // 이미 장바구니에 같은 상품+배치가 있으면, 새 항목을 추가하는 대신 수량을 합산한다.
         // (Screen §5절 "상품 중복 추가" 예외 처리)
+        // 판매 단위가 다르면 가격도 다르므로 박스 줄과 낱개 줄은 합치지 않는다.
         var existingLine = Cart.FirstOrDefault(
-            c => c.ProductId == SelectedProduct.ProductId && c.BatchNumber == SelectedBatch.BatchNumber);
-
-        var totalRequestedQuantity = quantity + (existingLine?.Quantity ?? 0);
-
-        if (totalRequestedQuantity > SelectedBatch.CurrentQuantity)
-        {
-            Message = "Stock-out quantity cannot exceed current inventory quantity.";
-            return;
-        }
+            c => c.ProductId == product.ProductId
+                 && c.BatchNumber == SelectedBatch.BatchNumber
+                 && c.IsBoxSale == isBoxSale);
 
         if (existingLine is not null)
         {
-            existingLine.Quantity = totalRequestedQuantity;
+            existingLine.Quantity += quantity;
             // ObservableCollection은 항목 내부 속성 변경까지는 자동 통지하지 않으므로,
             // DataGrid 등의 화면 갱신을 위해 컬렉션에서 제거 후 다시 추가한다.
             var index = Cart.IndexOf(existingLine);
@@ -257,18 +397,21 @@ public partial class PosSaleViewModel : ViewModelBase
         {
             Cart.Add(new SaleLineItem
             {
-                ProductId = SelectedProduct.ProductId,
-                ProductName = SelectedProduct.ProductName,
+                ProductId = product.ProductId,
+                ProductName = product.ProductName,
                 // 항생제 복약안내 매칭에 쓴다. 판매 확정 뒤 상품을 다시 조회하지 않도록
                 // 장바구니에 담을 때 함께 실어 둔다.
-                GenericName = SelectedProduct.GenericName,
-                AtcCode = SelectedProduct.AtcCode,
+                GenericName = product.GenericName,
+                AtcCode = product.AtcCode,
                 InventoryId = SelectedBatch.InventoryId,
                 BatchNumber = SelectedBatch.BatchNumber,
                 ExpiryDate = SelectedBatch.ExpiryDate,
                 Quantity = quantity,
                 UnitPrice = unitPrice,
-                CostPrice = SelectedProduct.CostPrice
+                // 원가도 판매 단위에 맞춰야 "원가보다 싸게 판다" 경고가 제대로 걸린다.
+                CostPrice = isBoxSale ? product.CostPrice : product.UnitCostPrice,
+                IsBoxSale = isBoxSale,
+                UnitsPerBox = product.UnitsPerBox
             });
         }
 
@@ -282,6 +425,31 @@ public partial class PosSaleViewModel : ViewModelBase
         SelectedBatch = null;
         Quantity = "1";
         UnitPrice = string.Empty;
+    }
+
+    /// <summary>
+    /// 선택한 배치의 재고에서 이미 장바구니에 담긴 같은 배치의 줄들을 뺀 나머지.
+    /// 박스를 헐어야 하는지도 이 나머지를 기준으로 판단해야, 담아 둔 낱개까지
+    /// 다시 쓸 수 있는 것처럼 계산되지 않는다.
+    /// </summary>
+    private BoxUnitStock RemainingStockForSelectedBatch()
+    {
+        var stock = SelectedBatch!.Stock;
+        var unitsPerBox = SelectedProduct!.UnitsPerBox;
+
+        foreach (var line in Cart.Where(c => c.InventoryId == SelectedBatch.InventoryId))
+        {
+            var taken = line.IsBoxSale
+                ? BoxUnitMath.TryTakeBoxes(stock, line.Quantity, unitsPerBox, out var next)
+                : BoxUnitMath.TryTakeUnits(stock, line.Quantity, unitsPerBox, out next);
+
+            if (taken)
+            {
+                stock = next;
+            }
+        }
+
+        return stock;
     }
 
     private void ExecuteRemoveFromCart(SaleLineItem? item)

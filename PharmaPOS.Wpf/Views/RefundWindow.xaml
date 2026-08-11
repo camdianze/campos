@@ -1,0 +1,123 @@
+<Window x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.RefundWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Refund"
+        Background="White"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Width="720" Height="560">
+
+    <!-- 스타일은 App.xaml 공통 테마에서 온다. -->
+    <Window.Resources>
+        <!-- 표 안에 들어가는 입력칸. 공통 TextBox는 최소 높이가 40이라
+             행 높이(38)보다 커서 테두리가 잘린다. 표 안에서만 낮춰 쓴다. -->
+        <Style x:Key="GridCellInput" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="MinHeight"        Value="0"/>
+            <Setter Property="Height"           Value="28"/>
+            <Setter Property="Padding"          Value="6,0"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <!-- 좌우 여백은 DataGridCell의 Padding(12,0)이 이미 만들어 준다. -->
+            <Setter Property="Margin"           Value="0"/>
+            <Setter Property="TextAlignment"    Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Refund" Style="{StaticResource PageTitle}" Margin="0,0,0,6"/>
+
+        <TextBlock x:Name="SaleSummaryText" Grid.Row="1"
+                   Style="{StaticResource Caption}" Margin="0,0,0,12"/>
+
+        <DataGrid x:Name="LinesGrid" Grid.Row="2"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  HeadersVisibility="Column"
+                  BorderThickness="1"
+                  BorderBrush="{StaticResource BorderBrushSoft}"
+                  RowBackground="White"
+                  AlternatingRowBackground="{StaticResource SubtleSurfaceBrush}"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
+                  RowHeight="38">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Product"    Binding="{Binding ProductName}"       Width="*"  IsReadOnly="True"/>
+                <DataGridTextColumn Header="Batch"      Binding="{Binding BatchNumber}"       Width="90" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Sold"       Binding="{Binding SoldQuantity}"      Width="55" IsReadOnly="True"/>
+                <!-- 이미 환불된 몫을 뺀 "지금 되돌릴 수 있는 최대" — 입력 한도가 그대로 보여야
+                     계산대에서 숫자가 잘려 나갈 때 왜 그런지 알 수 있다. -->
+                <DataGridTextColumn Header="Refundable" Binding="{Binding RemainingQuantity}" Width="80" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Price"      Binding="{Binding UnitPrice}"         Width="70" IsReadOnly="True"/>
+
+                <!-- 한 번 눌러 바로 고칠 수 있게 템플릿 컬럼으로 둔다.
+                     기본 DataGridTextColumn은 셀을 두 번 눌러야 편집으로 들어간다. -->
+                <DataGridTemplateColumn Header="Refund Qty" Width="95">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding RefundQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource GridCellInput}"
+                                     VerticalAlignment="Center"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" Width="90" IsReadOnly="True"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="3" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Refund whole sale"
+                    Style="{StaticResource SecondaryBtn}"
+                    Click="OnRefundWholeSaleClick"/>
+
+            <CheckBox x:Name="ReturnToStockCheckBox" Grid.Column="1"
+                      Content="Return refunded items to stock"
+                      IsChecked="True"
+                      VerticalAlignment="Center"
+                      Margin="16,0,0,0"/>
+
+            <TextBlock x:Name="TotalText" Grid.Column="2"
+                       FontSize="15" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextBrush}"
+                       VerticalAlignment="Center"/>
+        </Grid>
+
+        <StackPanel Grid.Row="4" Margin="0,14,0,0">
+            <TextBlock Text="Memo (optional)" Style="{StaticResource FieldLabel}"/>
+            <TextBox x:Name="ReasonInput" Style="{StaticResource FieldInput}"/>
+        </StackPanel>
+
+        <Grid Grid.Row="5" Margin="0,18,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Cancel"
+                    Style="{StaticResource SecondaryBtn}"
+                    Click="OnCancelClick" Margin="0,0,6,0"/>
+            <Button x:Name="RefundButton" Grid.Column="1" Content="Refund"
+                    Style="{StaticResource DangerBtn}"
+                    Click="OnRefundClick" Margin="6,0,0,0"/>
+        </Grid>
+
+        <TextBlock x:Name="MessageText" Grid.Row="6"
+                   Style="{StaticResource ErrorText}" MinHeight="18" Margin="0,10,0,0"/>
+    </Grid>
+</Window>

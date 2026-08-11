@@ -1,7 +1,14 @@
 <Application x:Class="Lightweight_Digital_Inventory_Management___POS_System.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <Application.Resources>
+
+        <!-- ===== 제품 이름과 버전 =====
+             로그인 화면과 상단 바 두 곳에 같은 문자열이 보인다. 한 곳에서만 고치도록
+             여기에 둔다. csproj에 버전 속성이 없어 문자열로 관리한다.
+             버전을 올릴 때 고칠 곳은 이 줄 하나다. -->
+        <sys:String x:Key="AppVersionText">CAMPOS ver 1.8</sys:String>
 
         <!--
             앱 공통 테마. 로그인 화면에서 정리한 색·타이포·상태 표시를 전체로 넓힌 것이다.
@@ -25,6 +32,9 @@
         <SolidColorBrush x:Key="PrimaryPressedBrush"  Color="#1E40AF"/>
         <SolidColorBrush x:Key="PrimaryDisabledBrush" Color="#A8C0F2"/>
         <SolidColorBrush x:Key="PrimarySoftBrush"     Color="#EFF6FF"/>
+        <!-- 선택된 행. 마우스를 올렸을 때(PrimarySoftBrush)보다 한 단계 진해야
+             "가리키는 중"과 "골라 둔 것"이 구분된다. -->
+        <SolidColorBrush x:Key="PrimarySelectedBrush" Color="#DBEAFE"/>
 
         <SolidColorBrush x:Key="DangerBrush"        Color="#DC2626"/>
         <SolidColorBrush x:Key="DangerHoverBrush"   Color="#B91C1C"/>

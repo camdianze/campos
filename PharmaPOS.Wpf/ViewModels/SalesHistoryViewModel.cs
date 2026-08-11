@@ -19,6 +19,12 @@ public class SalesHistoryViewModel : ViewModelBase
     private readonly IReceiptPrintingService _receiptPrintingService;
     private readonly string _facilityId;
 
+    /// <summary>환불 창을 만들 때 필요하다 — 시설과 "환불을 누른 사람"을 함께 넘겨야 한다.</summary>
+    public string FacilityId => _facilityId;
+
+    /// <summary>지금 로그인한 사용자. 원 판매자와 다를 수 있다.</summary>
+    public string UserId { get; }
+
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
     private string _searchTerm = string.Empty;
@@ -71,19 +77,25 @@ public class SalesHistoryViewModel : ViewModelBase
     public RelayCommand ResetCommand { get; }
     public RelayCommand ViewDetailCommand { get; }
     public RelayCommand ReprintReceiptCommand { get; }
+    public RelayCommand RefundCommand { get; }
     public RelayCommand ExportCommand { get; }
     public RelayCommand BackCommand { get; }
 
     public event Action? NavigateBack;
 
+    /// <summary>환불 창을 띄워 달라는 요청. 창을 여는 일은 코드 비하인드가 한다.</summary>
+    public event Action<SalesHistoryLineItem>? RequestRefundDialog;
+
     public SalesHistoryViewModel(
         ISalesHistoryService salesHistoryService,
         IReceiptPrintingService receiptPrintingService,
-        string facilityId)
+        string facilityId,
+        string userId)
     {
         _salesHistoryService = salesHistoryService;
         _receiptPrintingService = receiptPrintingService;
         _facilityId = facilityId;
+        UserId = userId;
 
         var methods = new List<PaymentMethod?> { null };
         methods.AddRange(Enum.GetValues<PaymentMethod>().Cast<PaymentMethod?>());
@@ -93,6 +105,7 @@ public class SalesHistoryViewModel : ViewModelBase
         ResetCommand = new RelayCommand(_ => ExecuteReset());
         ViewDetailCommand = new RelayCommand(_ => ExecuteViewDetail());
         ReprintReceiptCommand = new RelayCommand(async _ => await ExecuteReprintReceiptAsync());
+        RefundCommand = new RelayCommand(_ => ExecuteRefund());
         ExportCommand = new RelayCommand(_ => ExecuteExport());
         BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());
 
@@ -130,11 +143,38 @@ public class SalesHistoryViewModel : ViewModelBase
         _ = ExecuteSearchAsync();
     }
 
+    private void ExecuteRefund()
+    {
+        Message = string.Empty;
+
+        if (SelectedLine is null)
+        {
+            Message = "Please select a sales record.";
+            return;
+        }
+
+        // 환불 행은 그 자체가 되돌린 기록이라 다시 되돌릴 게 없다.
+        // 되돌리려면 원 판매 줄을 골라야 한다.
+        if (SelectedLine.IsRefund)
+        {
+            Message = "Please select a sale, not a refund.";
+            return;
+        }
+
+        RequestRefundDialog?.Invoke(SelectedLine);
+    }
+
     private async void ExecuteViewDetail()
     {
         if (SelectedLine is null)
         {
             Message = "Please select a sales record.";
+            return;
+        }
+
+        if (SelectedLine.IsRefund)
+        {
+            Message = "Please select a sale, not a refund.";
             return;
         }
 
@@ -146,14 +186,30 @@ public class SalesHistoryViewModel : ViewModelBase
         detail.AppendLine("--------------------");
 
         decimal total = 0;
+        decimal refunded = 0;
+
         foreach (var line in group)
         {
             detail.AppendLine($"{line.ProductName} x{line.Quantity} @ {line.UnitPrice} = {line.LineTotal}");
             total += line.LineTotal;
+
+            if (line.RefundedQuantity > 0)
+            {
+                detail.AppendLine($"  refunded x{line.RefundedQuantity}");
+                refunded += line.UnitPrice * line.RefundedQuantity;
+            }
         }
 
         detail.AppendLine("--------------------");
         detail.AppendLine($"Total: {total}");
+
+        // 환불이 있었다면 실제로 남은 금액까지 보여 준다 — 판매 금액만 보고
+        // 서랍을 맞추면 돌려준 돈만큼 어긋난다.
+        if (refunded > 0)
+        {
+            detail.AppendLine($"Refunded: -{refunded}");
+            detail.AppendLine($"Net: {total - refunded}");
+        }
 
         AppDialog.Show("Sale Detail", detail.ToString(), monospace: true);
     }
@@ -163,6 +219,12 @@ public class SalesHistoryViewModel : ViewModelBase
         if (SelectedLine is null)
         {
             Message = "Please select a sales record.";
+            return;
+        }
+
+        if (SelectedLine.IsRefund)
+        {
+            Message = "Please select a sale, not a refund.";
             return;
         }
 
@@ -211,13 +273,15 @@ public class SalesHistoryViewModel : ViewModelBase
         try
         {
             var builder = new StringBuilder();
-            builder.AppendLine("ProductName,BatchNumber,Quantity,UnitPrice,LineTotal,PaymentMethod,Username,TransactionTime");
+            // 환불 행이 섞여 있으므로 Type 컬럼이 없으면 음수 수량의 정체를 알 수 없다.
+            builder.AppendLine("Type,ProductName,BatchNumber,Quantity,UnitPrice,LineTotal,PaymentMethod,Username,TransactionTime");
 
             foreach (var item in Results)
             {
                 var time = DateTimeOffset.FromUnixTimeMilliseconds(item.TransactionTime).ToLocalTime();
+                var type = item.IsRefund ? "Refund" : "Sale";
                 builder.AppendLine(
-                    $"{item.ProductName},{item.BatchNumber},{item.Quantity},{item.UnitPrice}," +
+                    $"{type},{item.ProductName},{item.BatchNumber},{item.Quantity},{item.UnitPrice}," +
                     $"{item.LineTotal},{item.PaymentMethod},{item.Username},{time:yyyy-MM-dd HH:mm}");
             }
 

@@ -20,7 +20,9 @@ public class AdjustmentRepository : IAdjustmentRepository
         StockTransaction transaction,
         string inventoryId,
         int expectedCurrentQuantity,
-        int physicalCount)
+        int physicalCount,
+        int physicalBoxCount,
+        int physicalUnitCount)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         using var dbTransaction = connection.BeginTransaction();
@@ -35,11 +37,15 @@ public class AdjustmentRepository : IAdjustmentRepository
                 updateCommand.CommandText = """
                     UPDATE Inventory
                     SET current_quantity = $physicalCount,
+                        box_quantity = $physicalBoxCount,
+                        unit_quantity = $physicalUnitCount,
                         updated_at = $updatedAt
                     WHERE inventory_id = $inventoryId
                       AND current_quantity = $expectedCurrentQuantity;
                     """;
                 updateCommand.Parameters.AddWithValue("$physicalCount", physicalCount);
+                updateCommand.Parameters.AddWithValue("$physicalBoxCount", physicalBoxCount);
+                updateCommand.Parameters.AddWithValue("$physicalUnitCount", physicalUnitCount);
                 updateCommand.Parameters.AddWithValue("$updatedAt", transaction.TransactionTime);
                 updateCommand.Parameters.AddWithValue("$inventoryId", inventoryId);
                 updateCommand.Parameters.AddWithValue("$expectedCurrentQuantity", expectedCurrentQuantity);

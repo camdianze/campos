@@ -18,5 +18,7 @@ public interface IAdjustmentRepository
         StockTransaction transaction,
         string inventoryId,
         int expectedCurrentQuantity,
-        int physicalCount);
+        int physicalCount,
+        int physicalBoxCount,
+        int physicalUnitCount);
 }

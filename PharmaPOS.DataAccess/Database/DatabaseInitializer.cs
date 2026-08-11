@@ -71,9 +71,107 @@ public class DatabaseInitializer
         // generic_name은 처음부터 있던 컬럼이라 여기 없다.
         AddColumnIfMissing(connection, "Product_Master", "atc_code", "TEXT");
         AddColumnIfMissing(connection, "Product_Master", "is_combination", "INTEGER NOT NULL DEFAULT 0");
+
+        // 박스/낱개 혼합 재고용.
+        // 기본값 1은 "박스/낱개 구분이 없는 상품"이라, 기존 상품은 손대지 않아도 종전대로 동작한다.
+        AddColumnIfMissing(connection, "Product_Master", "units_per_box", "INTEGER NOT NULL DEFAULT 1");
+
+        // 가격 기준은 박스가 기본이고, 헐어 파는 낱개가만 따로 받는다.
+        AddColumnIfMissing(connection, "Product_Master", "unit_selling_price", "REAL");
+
+        // 약국이 직접 정하는 상품 분류. 선택 입력이라 NULL을 그대로 둔다 —
+        // 기본값을 넣어 두면 "아직 분류 안 함"과 "그 분류로 정함"을 구분할 수 없다.
+        AddColumnIfMissing(connection, "Product_Master", "category", "TEXT");
+
+        // 개발 중 잠깐 있었던 반대 방향 컬럼(박스가를 따로 받던 것)을 치운다.
+        // 배포된 DB에는 없던 컬럼이라 지워도 잃을 데이터가 없다.
+        DropColumnIfPresent(connection, "Product_Master", "box_selling_price");
+
+        AddColumnIfMissing(connection, "Inventory", "box_quantity", "INTEGER NOT NULL DEFAULT 0");
+
+        // unit_quantity만 추가 여부를 따로 받는 이유: 이 컬럼이 방금 생긴 DB는
+        // 기존 재고가 전부 (0박스, 0낱개)로 들어가 있어 총량과 어긋난다.
+        // 기존 상품은 units_per_box가 1이므로 전량을 낱개 쪽에 채워 주면 맞는다.
+        var unitQuantityWasAdded =
+            AddColumnIfMissing(connection, "Inventory", "unit_quantity", "INTEGER NOT NULL DEFAULT 0");
+
+        if (unitQuantityWasAdded)
+        {
+            BackfillInventoryUnitQuantity(connection);
+        }
+
+        // 환불용. 환불 행이 어느 판매 줄을 되돌린 것인지 가리킨다.
+        // 인덱스를 여기서 만드는 이유: CreateStockTransactionTable은 컬럼이 아직 없는
+        // 기존 DB에서도 돌기 때문에, 컬럼을 추가한 뒤여야 인덱스를 걸 수 있다.
+        AddColumnIfMissing(connection, "Stock_Transaction", "related_transaction_id", "TEXT");
+
+        using var indexCommand = connection.CreateCommand();
+        indexCommand.CommandText = """
+            CREATE INDEX IF NOT EXISTS idx_stock_transaction_related
+                ON Stock_Transaction(related_transaction_id);
+            """;
+        indexCommand.ExecuteNonQuery();
     }
 
-    private static void AddColumnIfMissing(SqliteConnection connection, string tableName, string columnName, string columnType)
+    /// <summary>
+    /// 박스/낱개 컬럼이 막 추가된 기존 DB의 재고를 낱개 쪽으로 몰아 준다.
+    /// 이 시점의 상품은 전부 units_per_box = 1이라 박스 수는 0이 맞다.
+    /// </summary>
+    private static void BackfillInventoryUnitQuantity(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            UPDATE Inventory
+            SET unit_quantity = current_quantity
+            WHERE box_quantity = 0 AND unit_quantity = 0;
+            """;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// 컬럼이 남아 있으면 지운다. 개발 중에만 존재했던 컬럼을 치우는 용도다.
+    /// DROP COLUMN은 SQLite 3.35부터라 실패할 수 있는데, 실패해도 쓰지 않는 컬럼이
+    /// 남을 뿐 동작에는 영향이 없으므로 조용히 넘어간다.
+    /// </summary>
+    private static void DropColumnIfPresent(SqliteConnection connection, string tableName, string columnName)
+    {
+        if (!ColumnExists(connection, tableName, columnName))
+        {
+            return;
+        }
+
+        try
+        {
+            using var dropCommand = connection.CreateCommand();
+            dropCommand.CommandText = $"ALTER TABLE {tableName} DROP COLUMN {columnName};";
+            dropCommand.ExecuteNonQuery();
+        }
+        catch (SqliteException)
+        {
+            // 지우지 못해도 그대로 둔다.
+        }
+    }
+
+    private static bool ColumnExists(SqliteConnection connection, string tableName, string columnName)
+    {
+        using var checkCommand = connection.CreateCommand();
+        checkCommand.CommandText = $"PRAGMA table_info({tableName});";
+        using var reader = checkCommand.ExecuteReader();
+
+        while (reader.Read())
+        {
+            var existingColumnName = reader.GetString(reader.GetOrdinal("name"));
+            if (string.Equals(existingColumnName, columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <returns>컬럼을 실제로 추가했으면 true, 이미 있었으면 false.</returns>
+    private static bool AddColumnIfMissing(SqliteConnection connection, string tableName, string columnName, string columnType)
     {
         // PRAGMA table_info로 그 테이블에 이미 이 컬럼이 있는지 먼저 확인한다.
         // (SQLite 버전에 따라 "ADD COLUMN IF NOT EXISTS" 문법 지원이 다를 수 있어,
@@ -89,7 +187,7 @@ public class DatabaseInitializer
                 if (string.Equals(existingColumnName, columnName, StringComparison.OrdinalIgnoreCase))
                 {
                     // 이미 컬럼이 있음 — 마이그레이션을 다시 실행할 필요 없음.
-                    return;
+                    return false;
                 }
             }
         }
@@ -97,6 +195,7 @@ public class DatabaseInitializer
         using var alterCommand = connection.CreateCommand();
         alterCommand.CommandText = $"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnType};";
         alterCommand.ExecuteNonQuery();
+        return true;
     }
 
     private static void CreateFacilityTable(SqliteConnection connection)
@@ -135,7 +234,10 @@ public class DatabaseInitializer
                 status              TEXT NOT NULL,
                 created_at          INTEGER NOT NULL,
                 atc_code            TEXT,
-                is_combination      INTEGER NOT NULL DEFAULT 0
+                is_combination      INTEGER NOT NULL DEFAULT 0,
+                units_per_box       INTEGER NOT NULL DEFAULT 1,
+                unit_selling_price  REAL,
+                category            TEXT
             );
             CREATE UNIQUE INDEX IF NOT EXISTS idx_product_barcode
                 ON Product_Master(barcode) WHERE barcode IS NOT NULL;
@@ -251,6 +353,8 @@ public class DatabaseInitializer
                 batch_number     TEXT NOT NULL,
                 expiry_date      INTEGER NOT NULL,
                 current_quantity INTEGER NOT NULL,
+                box_quantity     INTEGER NOT NULL DEFAULT 0,
+                unit_quantity    INTEGER NOT NULL DEFAULT 0,
                 updated_at       INTEGER NOT NULL,
                 FOREIGN KEY (facility_id) REFERENCES Facility(facility_id),
                 FOREIGN KEY (product_id) REFERENCES Product_Master(product_id),
@@ -277,6 +381,7 @@ public class DatabaseInitializer
                 payment_method                TEXT,
                 total_amount                  REAL,
                 reason                        TEXT,
+                related_transaction_id        TEXT,
                 transaction_time              INTEGER NOT NULL,
                 FOREIGN KEY (facility_id) REFERENCES Facility(facility_id),
                 FOREIGN KEY (product_id) REFERENCES Product_Master(product_id),

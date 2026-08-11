@@ -38,6 +38,7 @@ public class AdminDashboardViewModel : ViewModelBase
     public event Action? NavigateToUserManagement;
     public event Action? NavigateToInventoryOverview;
     public event Action? NavigateToSalesHistory;
+    public event Action? NavigateToReports;
     public event Action? NavigateToBackupExport;
     public event Action? NavigateBack;
 
@@ -51,8 +52,7 @@ public class AdminDashboardViewModel : ViewModelBase
         InventoryOverviewCommand = new RelayCommand(_ => NavigateToInventoryOverview?.Invoke());
         SalesHistoryCommand = new RelayCommand(_ => NavigateToSalesHistory?.Invoke());
 
-        // 아직 화면이 없는 기능들: 자리만 만들고 클릭 시 안내 메시지만 표시한다.
-        ReportsCommand = new RelayCommand(_ => Message = "Reports screen is not yet available.");
+        ReportsCommand = new RelayCommand(_ => NavigateToReports?.Invoke());
         BackupExportCommand = new RelayCommand(_ => NavigateToBackupExport?.Invoke());
 
         BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());

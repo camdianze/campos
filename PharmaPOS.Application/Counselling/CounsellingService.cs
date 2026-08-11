@@ -50,6 +50,14 @@ public class CounsellingService : ICounsellingService
     {
         var candidates = new List<CounsellingCandidate>();
 
+        // 같은 상품이 여러 줄로 갈라져 들어와도 안내문은 한 장이다. 장바구니는
+        // (상품 + 배치 + 박스/낱개)로 줄을 나누므로, 재고가 두 배치에 걸쳐 있거나
+        // 박스와 낱개를 함께 팔면 같은 항생제가 두 줄이 된다. 그때 나오는 두 장은
+        // 내용이 완전히 같다 — 안내문에는 배치도 수량도 들어가지 않기 때문이다.
+        // 상품별로 처음 만든 후보에 나머지 줄의 거래 ID만 붙여 둔다.
+        var candidateIndexByProduct = new Dictionary<string, int>();
+        var linkedTransactionIds = new List<List<string>>();
+
         try
         {
             var settings = await _settingsService.GetAsync();
@@ -85,6 +93,16 @@ public class CounsellingService : ICounsellingService
 
                 var classification = match.Classification!;
 
+                // 이미 이 상품으로 만든 후보가 있으면 줄만 매달고 끝낸다.
+                // 이 줄의 로그는 인쇄(또는 건너뜀) 결과가 나온 뒤 후보가 대신 남긴다.
+                // never로 꺼 둔 경우에는 후보 자체가 안 만들어져 이 분기에 걸리지 않고,
+                // 아래에서 종전처럼 줄마다 로그가 남는다.
+                if (candidateIndexByProduct.TryGetValue(line.ProductId, out var existingIndex))
+                {
+                    linkedTransactionIds[existingIndex].Add(confirmed.TransactionId);
+                    continue;
+                }
+
                 if (settings.PrintMode == CounsellingPrintMode.Never)
                 {
                     await LogAsync(
@@ -106,9 +124,16 @@ public class CounsellingService : ICounsellingService
                     QrUrl = settings.QrUrl
                 });
 
+                // 후보와 같은 자리의 목록을 만들어 둔다. 여기 담기는 List는 후보가
+                // 들고 있는 것과 같은 객체라, 뒤에 같은 상품이 또 나오면 그대로 붙는다.
+                var transactionIds = new List<string> { confirmed.TransactionId };
+                candidateIndexByProduct[line.ProductId] = candidates.Count;
+                linkedTransactionIds.Add(transactionIds);
+
                 candidates.Add(new CounsellingCandidate
                 {
                     TransactionId = confirmed.TransactionId,
+                    TransactionIds = transactionIds,
                     ProductId = line.ProductId,
                     ProductName = line.ProductName,
                     AtcCode = classification.AtcCode ?? line.AtcCode,
@@ -150,30 +175,38 @@ public class CounsellingService : ICounsellingService
             result = CounsellingPrintResult.Failure("The counselling sheet could not be printed.");
         }
 
-        await LogAsync(
-            candidate.TransactionId,
-            candidate.ProductId,
-            candidate.AtcCode,
-            AwareGroupCodes.ToCode(candidate.AwareGroup),
-            result.IsSuccess,
-            result.IsSuccess ? null : SkipReasonPrintFailed,
-            candidate.LocaleCode,
-            candidate.SourceVersion);
+        // 합쳐진 줄에도 같은 결과를 남긴다. 종이는 한 장이지만 그 상품을 산 손님은
+        // 안내를 받았고, 지표가 세는 것은 장수가 아니라 "안내가 전달된 판매"다.
+        foreach (var transactionId in candidate.TransactionIds)
+        {
+            await LogAsync(
+                transactionId,
+                candidate.ProductId,
+                candidate.AtcCode,
+                AwareGroupCodes.ToCode(candidate.AwareGroup),
+                result.IsSuccess,
+                result.IsSuccess ? null : SkipReasonPrintFailed,
+                candidate.LocaleCode,
+                candidate.SourceVersion);
+        }
 
         return result;
     }
 
     public async Task LogSkipAsync(CounsellingCandidate candidate, string skipReason)
     {
-        await LogAsync(
-            candidate.TransactionId,
-            candidate.ProductId,
-            candidate.AtcCode,
-            AwareGroupCodes.ToCode(candidate.AwareGroup),
-            printed: false,
-            skipReason,
-            candidate.LocaleCode,
-            candidate.SourceVersion);
+        foreach (var transactionId in candidate.TransactionIds)
+        {
+            await LogAsync(
+                transactionId,
+                candidate.ProductId,
+                candidate.AtcCode,
+                AwareGroupCodes.ToCode(candidate.AwareGroup),
+                printed: false,
+                skipReason,
+                candidate.LocaleCode,
+                candidate.SourceVersion);
+        }
     }
 
     private async Task LogAsync(

@@ -5,10 +5,21 @@ namespace PharmaPOS.Application.Counselling;
 /// <summary>
 /// 복약안내 용지를 뽑을 준비가 끝난 한 건.
 /// 용지는 이미 그려져 있고, 인쇄 여부만 남았다.
+///
+/// 한 건은 "한 거래에서 팔린 하나의 상품"이지 판매 줄 하나가 아니다.
+/// 같은 항생제가 배치나 박스/낱개 때문에 여러 줄로 갈라져도 안내문은 한 장이다.
 /// </summary>
 public class CounsellingCandidate
 {
+    /// <summary>대표 판매 줄. 파일로 저장할 때 파일 이름에 쓴다.</summary>
     public required string TransactionId { get; init; }
+
+    /// <summary>
+    /// 이 안내문 한 장이 대신하는 판매 줄 전부(대표 줄 포함).
+    /// 종이는 한 장만 나가지만 로그는 줄마다 남겨야 한다 — 리포트의 항생제 판매 건수와
+    /// 인쇄율은 판매 줄 단위로 세므로, 합쳐진 줄을 빼면 지표가 실제보다 낮게 잡힌다.
+    /// </summary>
+    public required IReadOnlyList<string> TransactionIds { get; init; }
 
     public required string ProductId { get; init; }
 
