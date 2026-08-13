@@ -96,7 +96,7 @@
                 <Button Content="📊  Inventory Overview"  Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding InventoryOverviewCommand}"/>
                 <Button Content="🛒  Sales History"       Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding SalesHistoryCommand}"/>
                 <Button Content="📈  Reports"             Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding ReportsCommand}"/>
-                <Button Content="💾  Backup / Export"     Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding BackupExportCommand}"/>
+                <Button Content="📁  Import / Export"     Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding BackupExportCommand}"/>
             </UniformGrid>
 
             <StackPanel Grid.Row="3">

@@ -55,11 +55,14 @@ public class AlertRepository : IAlertRepository
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         using var command = connection.CreateCommand();
+        // expiry_date = 0은 "유효기간 모름"이다(수기 관리하던 약국의 초기 재고).
+        // 걸러 내지 않으면 0 <= 어떤 날짜든 참이라 그 배치가 전부 만료 알림으로 쏟아진다.
         command.CommandText = """
             SELECT p.product_id, p.product_name, i.batch_number, i.expiry_date, i.current_quantity
             FROM Inventory i
             JOIN Product_Master p ON p.product_id = i.product_id
             WHERE p.status = 'Active' AND i.facility_id = $facilityId
+              AND i.expiry_date > 0
               AND i.expiry_date <= $ninetyDaysFromNow;
             """;
         command.Parameters.AddWithValue("$facilityId", facilityId);

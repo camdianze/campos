@@ -97,7 +97,26 @@ public static class Program
 
     private static async Task<int> RunIssueAsync(string[] args)
     {
-        if (args.Length < 2)
+        // --serial을 먼저 걷어내고 남은 것을 위치 인자로 본다.
+        var positional = new List<string>();
+        uint? forcedSerialNumber = null;
+
+        for (var i = 1; i < args.Length; i++)
+        {
+            if (!string.Equals(args[i], "--serial", StringComparison.OrdinalIgnoreCase))
+            {
+                positional.Add(args[i]);
+                continue;
+            }
+
+            if (i + 1 >= args.Length || !uint.TryParse(args[i + 1], out var parsedSerial) || parsedSerial == 0)
+                return PrintUsageWithError("--serial 뒤에는 1 이상의 발급 번호가 와야 합니다.");
+
+            forcedSerialNumber = parsedSerial;
+            i++;
+        }
+
+        if (positional.Count == 0)
             return PrintUsageWithError("고객명을 입력하세요.");
 
         if (!File.Exists(PrivateKeyPath))
@@ -106,17 +125,17 @@ public static class Program
             return 1;
         }
 
-        var customerName = args[1];
+        var customerName = positional[0];
 
         // 만료일은 선택. 없으면 무기한.
         uint expiresAtUnixSeconds = 0;
 
-        if (args.Length >= 3)
+        if (positional.Count >= 2)
         {
-            if (!DateTime.TryParseExact(args[2], "yyyy-MM-dd",
+            if (!DateTime.TryParseExact(positional[1], "yyyy-MM-dd",
                     CultureInfo.InvariantCulture, DateTimeStyles.None, out var expiryDate))
             {
-                return PrintUsageWithError($"만료일 형식이 잘못됐습니다: {args[2]} (yyyy-MM-dd)");
+                return PrintUsageWithError($"만료일 형식이 잘못됐습니다: {positional[1]} (yyyy-MM-dd)");
             }
 
             // 그 날 하루는 쓸 수 있도록 자정이 아니라 하루 끝으로 잡는다.
@@ -128,7 +147,7 @@ public static class Program
             expiresAtUnixSeconds = (uint)new DateTimeOffset(endOfDayLocal).ToUnixTimeSeconds();
         }
 
-        var serialNumber = GetNextSerialNumber();
+        var serialNumber = forcedSerialNumber ?? GetNextSerialNumber();
 
         var payload = new LicensePayload
         {
@@ -158,8 +177,15 @@ public static class Program
             IssuedBy = Environment.MachineName
         };
 
-        AppendToLedger(serialNumber, customerName, payload, code);
+        var replaced = WriteLedgerEntry(serialNumber, customerName, payload, code);
         var codeFilePath = WriteCodeFile(serialNumber, customerName, code);
+
+        if (replaced is not null)
+        {
+            Console.WriteLine($"경고: {serialNumber}번을 다시 발급했습니다. 대장에 있던 {replaced} 기록을 대체합니다.");
+            Console.WriteLine("      먼저 나간 코드도 서명이 살아 있어 계속 동작합니다(오프라인 코드는 취소할 수 없습니다).");
+            Console.WriteLine();
+        }
 
         Console.WriteLine($"발급 번호 : {serialNumber}");
         Console.WriteLine($"고객      : {customerName}");
@@ -337,12 +363,17 @@ public static class Program
         return (uint)Math.Max(dataLineCount, 0) + 1;
     }
 
-    private static void AppendToLedger(uint serialNumber, string customerName, LicensePayload payload, string code)
+    /// <summary>
+    /// 대장에 한 줄을 남긴다. 같은 번호가 이미 있으면 덧붙이지 않고 그 줄을 갈아 끼운다 —
+    /// 덧붙이면 대장에 같은 번호가 둘 남고, 다음 번호를 줄 수로 세는 규칙 때문에
+    /// 이후 발급 번호가 통째로 한 칸씩 밀린다.
+    /// </summary>
+    /// <returns>갈아 끼운 경우 원래 있던 고객명, 새로 넣었으면 null.</returns>
+    private static string? WriteLedgerEntry(uint serialNumber, string customerName, LicensePayload payload, string code)
     {
         Directory.CreateDirectory(IssuerFolder);
 
-        if (!File.Exists(LedgerPath))
-            File.WriteAllText(LedgerPath, "serial,customer,issued_at,expires_at,code\n", Encoding.UTF8);
+        const string Header = "serial,customer,issued_at,expires_at,code";
 
         var issuedAt = DateTimeOffset.FromUnixTimeSeconds(payload.IssuedAt).ToLocalTime().ToString("yyyy-MM-dd HH:mm");
         var expiresAt = payload.IsPerpetual
@@ -352,8 +383,46 @@ public static class Program
         // 고객명에 쉼표가 들어가도 깨지지 않게 큰따옴표로 감싼다.
         var escapedName = customerName.Replace("\"", "\"\"");
 
-        File.AppendAllText(LedgerPath,
-            $"{serialNumber},\"{escapedName}\",{issuedAt},{expiresAt},{code}\n", Encoding.UTF8);
+        var line = $"{serialNumber},\"{escapedName}\",{issuedAt},{expiresAt},{code}";
+
+        if (!File.Exists(LedgerPath))
+        {
+            File.WriteAllLines(LedgerPath, [Header, line], Encoding.UTF8);
+            return null;
+        }
+
+        var lines = File.ReadAllLines(LedgerPath).ToList();
+
+        var existingIndex = lines.FindIndex(1, l => ReadSerialColumn(l) == serialNumber);
+
+        if (existingIndex < 0)
+        {
+            lines.Add(line);
+            File.WriteAllLines(LedgerPath, lines, Encoding.UTF8);
+            return null;
+        }
+
+        var previousCustomer = ReadCustomerColumn(lines[existingIndex]);
+        lines[existingIndex] = line;
+        File.WriteAllLines(LedgerPath, lines, Encoding.UTF8);
+
+        return previousCustomer;
+    }
+
+    /// <summary>대장 한 줄의 첫 칸(발급 번호). 헤더나 빈 줄이면 null.</summary>
+    private static uint? ReadSerialColumn(string ledgerLine)
+    {
+        var comma = ledgerLine.IndexOf(',');
+        var head = comma < 0 ? ledgerLine : ledgerLine[..comma];
+
+        return uint.TryParse(head, out var serial) ? serial : null;
+    }
+
+    /// <summary>대장 한 줄의 두 번째 칸(고객명). 큰따옴표는 벗겨서 돌려준다.</summary>
+    private static string ReadCustomerColumn(string ledgerLine)
+    {
+        var columns = ledgerLine.Split(',');
+        return columns.Length < 2 ? "(알 수 없음)" : columns[1].Trim('"');
     }
 
     // ── 고객에게 줄 코드 파일 ─────────────────────────────────────────────
@@ -403,7 +472,10 @@ public static class Program
         Console.WriteLine("PharmaPOS 라이선스 발급 도구");
         Console.WriteLine();
         Console.WriteLine("  keygen                          키 쌍을 만든다 (최초 1회)");
-        Console.WriteLine("  issue <고객명> [만료일]          코드를 발급하고 클라우드에 올린다");
+        Console.WriteLine("  issue <고객명> [만료일] [--serial N]");
+        Console.WriteLine("                                  코드를 발급하고 클라우드에 올린다");
+        Console.WriteLine("                                  --serial: 번호를 직접 지정한다. 같은 번호가");
+        Console.WriteLine("                                  이미 있으면 대장의 그 줄을 갈아 끼운다.");
         Console.WriteLine("  list                            발급 대장을 본다");
         Console.WriteLine("  sync                            못 올린 발급 건을 클라우드에 올린다");
         Console.WriteLine("  cloud                           클라우드 설정 상태를 본다");
@@ -412,6 +484,7 @@ public static class Program
         Console.WriteLine("  dotnet run --project tools/LicenseIssuer -- keygen");
         Console.WriteLine("  dotnet run --project tools/LicenseIssuer -- issue \"A약국\"");
         Console.WriteLine("  dotnet run --project tools/LicenseIssuer -- issue \"Hyo Pharmacy\" 2027-12-31");
+        Console.WriteLine("  dotnet run --project tools/LicenseIssuer -- issue \"NEATH\" --serial 5");
         Console.WriteLine("  dotnet run --project tools/LicenseIssuer -- list");
         Console.WriteLine("  dotnet run --project tools/LicenseIssuer -- sync");
     }

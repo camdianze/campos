@@ -69,7 +69,7 @@
 
                 <!-- 소분 판매. 이 체크를 켜야 아래 세 가지(박스당 개수·낱개가·낱개 바코드)가
                      의미를 갖는다. 꺼 두면 박스당 1개짜리 상품으로 저장돼 종전과 똑같이 동작한다. -->
-                <CheckBox Content="Sell loose units (소분 판매)"
+                <CheckBox Content="Sell loose units"
                           IsChecked="{Binding SellsLooseUnits}" Margin="0,4,0,0"/>
 
                 <Border Visibility="{Binding SellsLooseUnits, Converter={StaticResource BoolToVis}}"

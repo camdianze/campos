@@ -46,7 +46,9 @@ public class InventoryRepository : IInventoryRepository
         switch (expiryFilter)
         {
             case ExpiryFilterOption.Expired:
-                whereClauses.Add("i.expiry_date < $now");
+                // expiry_date = 0은 "유효기간 모름"이다. 빼지 않으면 그 배치가 전부 만료로 잡힌다.
+                // 나머지 필터는 BETWEEN $now …라 0이 저절로 빠진다.
+                whereClauses.Add("i.expiry_date > 0 AND i.expiry_date < $now");
                 break;
             case ExpiryFilterOption.Within7Days:
                 whereClauses.Add("i.expiry_date BETWEEN $now AND $now + 7 * 86400000");
@@ -140,7 +142,9 @@ public class InventoryRepository : IInventoryRepository
                    box_quantity, unit_quantity
             FROM Inventory
             WHERE product_id = $productId AND facility_id = $facilityId
-            ORDER BY expiry_date ASC;
+            -- 선입선출이므로 유효기한이 이른 배치가 먼저다. 유효기간을 모르는 배치(0)는
+            -- 맨 뒤로 보낸다 — 0을 그냥 정렬하면 "가장 급한 배치"로 올라와 먼저 팔린다.
+            ORDER BY CASE WHEN expiry_date = 0 THEN 1 ELSE 0 END, expiry_date ASC;
             """;
         command.Parameters.AddWithValue("$productId", productId);
         command.Parameters.AddWithValue("$facilityId", facilityId);

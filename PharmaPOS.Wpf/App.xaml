@@ -50,6 +50,42 @@
         <SolidColorBrush x:Key="MutedTextBrush"     Color="#6B7280"/>
         <SolidColorBrush x:Key="DisabledTextBrush"  Color="#9CA3AF"/>
 
+        <!-- ===== 브랜드 패널 =====
+             로그인 전 화면(라이선스 활성화 · 초기 설정 · 아이디 찾기 · 비밀번호 찾기)의
+             왼쪽 절반. 네 화면이 같은 모양이어야 해서 여기 한 곳에 둔다.
+
+             Viewbox로 감싼 이유: 창을 줄이면 글자가 패널 밖으로 넘치는데, 고정 크기로 두면
+             해상도가 낮은 계산대 PC에서 글자가 잘린다. 폭에 맞춰 같이 줄어든다.
+
+             ContentControl + Template으로 만든 이유: Border에는 템플릿이 없어
+             재사용 가능한 스타일 하나로 묶을 방법이 없다. -->
+        <Style x:Key="BrandPanel" TargetType="ContentControl">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContentControl">
+                        <Border Background="{StaticResource PrimaryBrush}">
+                            <Viewbox Stretch="Uniform" MaxHeight="120" Margin="56,0">
+                                <TextBlock Text="CAMDIANS"
+                                           FontFamily="Georgia, Times New Roman, Batang"
+                                           FontSize="72"
+                                           TextOptions.TextFormattingMode="Ideal">
+                                    <TextBlock.Foreground>
+                                        <!-- 아래로 갈수록 아주 살짝 어두워지는 흰색.
+                                             순백 한 톤이면 파란 바탕에서 판판해 보인다. -->
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0.35,1">
+                                            <GradientStop Color="#FFFFFF" Offset="0"/>
+                                            <GradientStop Color="#FFFFFF" Offset="0.55"/>
+                                            <GradientStop Color="#E3EBFB" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </Viewbox>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- ===== 텍스트 역할 =====
              제목 > 본문 > 라벨 순으로 크기가 줄도록 고정한다.
              이전에는 필드 라벨이 22~24px이라 화면 제목만큼 튀었다. -->

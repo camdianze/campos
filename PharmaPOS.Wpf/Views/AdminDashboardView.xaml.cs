@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 using PharmaPOS.Application.Authentication;
+using PharmaPOS.Application.Import;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Reports;
@@ -35,9 +36,13 @@ public partial class AdminDashboardView : UserControl
         if (parentWindow is null) return;
 
         var backupService = App.Services.GetRequiredService<IBackupService>();
-        var productService = App.Services.GetRequiredService<IProductService>();
+        var initialImportService = App.Services.GetRequiredService<IInitialImportService>();
 
-        var backupExportViewModel = new BackupExportViewModel(backupService, productService);
+        // 재고 가져오기가 입고 원장을 남기므로 시설/사용자 ID가 필요하다.
+        var currentUser = App.CurrentShellViewModel!.CurrentUser;
+
+        var backupExportViewModel = new BackupExportViewModel(
+            backupService, initialImportService, currentUser.FacilityId, currentUser.UserId);
 
         var backupExportView = new BackupExportView();
         backupExportView.AttachViewModel(backupExportViewModel);

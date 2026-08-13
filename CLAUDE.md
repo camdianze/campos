@@ -113,6 +113,25 @@ Refunds are appended, never edited: a refund writes a `TransactionType.Refund` r
 - Returned stock goes back as loose units, never as sealed boxes (`BoxUnitMath.AddUnits`), and the "return to stock" checkbox may be off entirely — in that case the money is refunded, stock is untouched, and the only trace is the `(not returned to stock)` marker appended to `reason`.
 - The antibiotic counselling report deliberately stays gross (`StockOut` only): it counts counselling events, which a refund does not undo.
 
+### Import / Export screen
+
+The screen (reached from the admin dashboard) is split by direction of data flow: **left = import** (file → app), **right = export/backup** (app → file), and **restore** sits alone in a danger zone below because it is the only one that throws the current data away. There is exactly one importer, one exporter, and one restore — an earlier version had two overlapping product importers and three muddled file features.
+
+**Import** ([InitialImportService](PharmaPOS.Application/Import/InitialImportService.cs)) takes one CSV/XLSX file and is run twice: step 1 products, step 2 their batches.
+
+- Existing products are **updated, not skipped**: only the columns the file fills are written, so a row carrying just a product name (the second batch row of the same product) changes nothing. That also means the import can never blank a value — clearing a field is done in the product screen.
+- Column names accept both spellings (`safety_stock`/`safety_stock_level`, `loose_unit_price`/`unit_selling_price`), so an exported products file can be edited and imported straight back.
+
+**Export** writes one file per checked dataset — products, inventory, sales history — via per-dataset queries in [BackupRepository](PharmaPOS.DataAccess/Repositories/BackupRepository.cs), not raw table dumps: raw tables carry product IDs no one can read, and `Users` holds password hashes that have no business leaving the machine. The products query's column aliases are deliberately the import's header names. Export files cannot be restored; only the full `.db` backup can.
+
+- The file is parsed to `ImportSourceRow` in the WPF layer ([ImportFileReader](PharmaPOS.Wpf/Services/ImportFileReader.cs)); every rule lives in Application, so CSV and Excel behave identically and the rules are unit-tested.
+- Nothing is written until the user confirms a preview. `Plan…` computes what would happen, `Apply…` performs exactly that plan — never recompute between the two.
+- **`quantity` in the file is loose units, not boxes** (unlike the Stock-IN screen, where quantity means boxes). Counting a shelf can produce a box and a half; the import splits units into boxes + loose via `BoxUnitMath.Split`.
+- Products are saved through `ProductService` and batches through `IStockInRepository` with `TransactionType.StockIn` — the import has no private write path, and initial stock is ordinary stock-in in the ledger.
+- Re-importing the same file is blocked by a SHA-256 of the file contents recorded in `Import_History`, keyed `(import_type, file_hash)` so the same file can be used for step 1 and then step 2.
+
+**`expiry_date` 0 means "unknown", not 1970-01-01.** Paper-managed stock often has no expiry date left, so `N` in the file stores `Inventory.NoExpiryDate` (0), and the inventory export writes `N` back out. Any query or check that compares expiry to a date must exclude 0 explicitly — otherwise every such batch reads as long expired: the alert query, the inventory `Expired` filter, and the POS expiry block all filter it out, and batch pickers sort it last so FEFO still picks dated stock first.
+
 ### Security
 
 - Passwords and security-question answers: bcrypt via `BCryptPasswordHasher`. Answers are normalized (`Trim().ToLowerInvariant()`) before hashing.

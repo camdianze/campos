@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.BackupExportView"
+<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.BackupExportView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,141 +6,230 @@
              xmlns:converters="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
              mc:Ignorable="d"
              Background="White"
-             d:DesignWidth="500" d:DesignHeight="700">
+             d:DesignWidth="960" d:DesignHeight="700">
 
+    <!--
+        화면을 좌우로 나눈 기준은 데이터가 흐르는 방향이다.
+        왼쪽은 파일 → 앱(가져오기), 오른쪽은 앱 → 파일(내보내기·백업).
+        복원만 아래 위험 구역에 따로 두었다 — 나머지와 달리 지금 데이터를 통째로 버린다.
+    -->
     <UserControl.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+
+        <Style x:Key="PanelCard" TargetType="Border">
+            <Setter Property="Background"      Value="{StaticResource SubtleSurfaceBrush}"/>
+            <Setter Property="BorderBrush"     Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius"    Value="10"/>
+            <Setter Property="Padding"         Value="18,16"/>
+        </Style>
+
+        <Style x:Key="PanelTitle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Margin"     Value="0,0,0,2"/>
+        </Style>
+
+        <Style x:Key="PanelHint" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="11"/>
+            <Setter Property="Foreground"   Value="{StaticResource MutedTextBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Width="420" Margin="0,24,0,24" HorizontalAlignment="Center">
+        <Grid Width="900" Margin="0,24,0,24" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- 제목 -->
             <TextBlock Grid.Row="0"
-                       Text="Backup / Export"
+                       Text="Import / Export"
                        Style="{StaticResource PageTitle}"
-                       Margin="0,0,0,28"/>
+                       Margin="0,0,0,20"/>
 
-            <!-- Import Products -->
-            <StackPanel Grid.Row="1" Margin="0,0,0,24">
-                <TextBlock Text="IMPORT PRODUCTS" Style="{StaticResource EyebrowLabel}"/>
-                <TextBlock Text="CSV 또는 Excel 파일에서 제품을 가져옵니다."
-                           FontSize="12" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,10"/>
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="90"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             Text="{Binding ImportFilePath}"
-                             IsReadOnly="True"
-                             Style="{StaticResource FieldInput}"
-                             Margin="0,0,8,0"/>
-                    <Button Grid.Column="1" Content="Browse"
-                            Style="{StaticResource SecondaryBtn}"
-                            Padding="12,0"
-                            Command="{Binding SelectImportFileCommand}"/>
-                </Grid>
-                <Button Content="📥  Import Products"
-                        Style="{StaticResource PrimaryBtn}"
-                        Padding="16,0"
-                        HorizontalAlignment="Left"
-                        Command="{Binding ImportProductsCommand}"/>
-            </StackPanel>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- DB Backup -->
-            <StackPanel Grid.Row="2" Margin="0,0,0,24">
-                <TextBlock Text="DATABASE BACKUP" Style="{StaticResource EyebrowLabel}"/>
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="90"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             Text="{Binding BackupLocation}"
-                             IsReadOnly="True"
-                             Style="{StaticResource FieldInput}"
-                             Margin="0,0,8,0"/>
-                    <Button Grid.Column="1" Content="Browse"
-                            Style="{StaticResource SecondaryBtn}"
-                            Padding="12,0"
-                            Command="{Binding SelectBackupLocationCommand}"/>
-                </Grid>
-                <Button Content="💾  Create DB Backup"
-                        Style="{StaticResource SecondaryBtn}"
-                        Padding="16,0"
-                        HorizontalAlignment="Left"
-                        Command="{Binding CreateDbBackupCommand}"/>
-            </StackPanel>
+                <!-- ═══ 좌: 가져오기 (파일 → 앱) ═══ -->
+                <Border Grid.Column="0" Style="{StaticResource PanelCard}" Margin="0,0,10,0">
+                    <StackPanel>
+                        <TextBlock Text="IMPORT" Style="{StaticResource EyebrowLabel}"/>
+                        <TextBlock Text="File to app" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
+                                   Text="One CSV or Excel file registers products and stock, in two steps. Use the same file for ① and then ②."/>
 
-            <!-- Export Data -->
-            <StackPanel Grid.Row="3" Margin="0,0,0,24">
-                <TextBlock Text="EXPORT DATA" Style="{StaticResource EyebrowLabel}"/>
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0"
-                              ItemsSource="{Binding AvailableExportTypes}"
-                              SelectedItem="{Binding SelectedExportType}"
-                              Height="36" Margin="0,0,8,0"/>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <RadioButton Content="CSV"   IsChecked="{Binding IsCsvFormat}"
-                                     Foreground="{StaticResource TextBrush}" FontSize="13" Margin="0,0,16,0"/>
-                        <RadioButton Content="Excel"
-                                     IsChecked="{Binding IsCsvFormat, Converter={StaticResource InverseBoolConverter}}"
-                                     Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                        <TextBlock Text="File" Style="{StaticResource FieldLabel}"/>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding ImportFilePath}"
+                                     IsReadOnly="True"
+                                     Style="{StaticResource FieldInput}"
+                                     Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Browse"
+                                    Style="{StaticResource SecondaryBtn}"
+                                    Padding="12,0"
+                                    Command="{Binding SelectImportFileCommand}"/>
+                        </Grid>
+
+                        <Button Content="①  Import Products"
+                                Style="{StaticResource PrimaryBtn}"
+                                Padding="16,0" HorizontalAlignment="Stretch"
+                                Margin="0,0,0,4"
+                                Command="{Binding ImportProductsCommand}"/>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
+                                   Text="Adds new products. For products that already exist, only the columns filled in the file are updated — empty columns are left as they are."/>
+
+                        <Button Content="②  Import Inventory"
+                                Style="{StaticResource PrimaryBtn}"
+                                Padding="16,0" HorizontalAlignment="Stretch"
+                                Margin="0,0,0,4"
+                                Command="{Binding ImportInventoryCommand}"/>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
+                                   Text="Adds stock batch by batch, recorded as stock-in. Quantity is counted in single units. Put N in expiry_date when the expiry date is unknown."/>
+
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
+                                CornerRadius="8" Padding="12,10">
+                            <StackPanel>
+                                <TextBlock Text="File columns" Style="{StaticResource FieldLabel}"/>
+                                <TextBlock Style="{StaticResource PanelHint}"
+                                           Text="product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity"/>
+                                <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
+                                           Text="Optional: generic_name, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back."/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Grid>
-                <Button Content="📤  Export Data"
-                        Style="{StaticResource SecondaryBtn}"
-                        Padding="16,0"
-                        HorizontalAlignment="Left"
-                        Command="{Binding ExportDataCommand}"/>
-            </StackPanel>
+                </Border>
 
-            <!-- Restore DB -->
-            <StackPanel Grid.Row="4" Margin="0,0,0,24">
-                <TextBlock Text="RESTORE DATABASE" Style="{StaticResource EyebrowLabel}"/>
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="90"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             Text="{Binding BackupFilePath}"
-                             IsReadOnly="True"
-                             Style="{StaticResource FieldInput}"
-                             Margin="0,0,8,0"/>
-                    <Button Grid.Column="1" Content="Browse"
-                            Style="{StaticResource SecondaryBtn}"
-                            Padding="12,0"
-                            Command="{Binding SelectBackupFileCommand}"/>
-                </Grid>
-                <Button Content="🔄  Restore DB"
-                        Style="{StaticResource DangerBtn}"
-                        Padding="16,0"
-                        HorizontalAlignment="Left"
-                        Command="{Binding RestoreDbCommand}"/>
-            </StackPanel>
+                <!-- ═══ 우: 내보내기 (앱 → 파일) ═══ -->
+                <Border Grid.Column="1" Style="{StaticResource PanelCard}" Margin="10,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="EXPORT / BACKUP" Style="{StaticResource EyebrowLabel}"/>
+                        <TextBlock Text="App to file" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
+                                   Text="Writes the data currently stored in the app to files. Nothing in the app changes."/>
+
+                        <TextBlock Text="Folder" Style="{StaticResource FieldLabel}"/>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding ExportFolder}"
+                                     IsReadOnly="True"
+                                     Style="{StaticResource FieldInput}"
+                                     Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Browse"
+                                    Style="{StaticResource SecondaryBtn}"
+                                    Padding="12,0"
+                                    Command="{Binding SelectExportFolderCommand}"/>
+                        </Grid>
+
+                        <TextBlock Text="What to export" Style="{StaticResource FieldLabel}"/>
+                        <StackPanel Margin="0,0,0,10">
+                            <CheckBox Content="Products — product list"
+                                      IsChecked="{Binding ExportProducts}"
+                                      Foreground="{StaticResource TextBrush}" FontSize="13"
+                                      Margin="0,0,0,6"/>
+                            <CheckBox Content="Inventory — stock by batch"
+                                      IsChecked="{Binding ExportInventory}"
+                                      Foreground="{StaticResource TextBrush}" FontSize="13"
+                                      Margin="0,0,0,6"/>
+                            <CheckBox Content="Sales history — sales and refunds"
+                                      IsChecked="{Binding ExportSalesHistory}"
+                                      Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Format" Style="{StaticResource FieldLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <RadioButton Content="CSV" IsChecked="{Binding IsCsvFormat}"
+                                         Foreground="{StaticResource TextBrush}" FontSize="13" Margin="0,0,16,0"/>
+                            <RadioButton Content="Excel"
+                                         IsChecked="{Binding IsCsvFormat, Converter={StaticResource InverseBoolConverter}}"
+                                         Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                        </StackPanel>
+
+                        <Button Content="📤  Export Selected Data"
+                                Style="{StaticResource PrimaryBtn}"
+                                Padding="16,0" HorizontalAlignment="Stretch"
+                                Margin="0,0,0,4"
+                                Command="{Binding ExportDataCommand}"/>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,16"
+                                   Text="One file per selected item. These files are for reading and record keeping — they cannot be restored."/>
+
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
+                                CornerRadius="8" Padding="12,12">
+                            <StackPanel>
+                                <TextBlock Text="Full backup (.db)" Style="{StaticResource FieldLabel}"/>
+                                <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,10"
+                                           Text="Copies the whole database into a single file. This is the only file the restore below can read."/>
+                                <Button Content="💾  Create Backup File"
+                                        Style="{StaticResource SecondaryBtn}"
+                                        Padding="16,0" HorizontalAlignment="Stretch"
+                                        Command="{Binding CreateDbBackupCommand}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ═══ 아래: 복원 (위험) ═══ -->
+            <Border Grid.Row="2" Margin="0,18,0,0"
+                    Background="#FEF2F2"
+                    BorderBrush="{StaticResource DangerBrush}" BorderThickness="1"
+                    CornerRadius="10" Padding="18,16">
+                <StackPanel>
+                    <TextBlock Text="RESTORE" Style="{StaticResource EyebrowLabel}"
+                               Foreground="{StaticResource DangerBrush}"/>
+                    <TextBlock Text="Roll back to a backup file" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
+                               Text="Replaces all current data with the contents of a backup (.db) file. Nothing is merged — the data in the app now is gone. The current state is backed up automatically first, and the app restarts when the restore finishes."/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding BackupFilePath}"
+                                 IsReadOnly="True"
+                                 Style="{StaticResource FieldInput}"
+                                 Margin="0,0,8,0"/>
+                        <Button Grid.Column="1" Content="Browse"
+                                Style="{StaticResource SecondaryBtn}"
+                                Padding="12,0" Margin="0,0,8,0"
+                                Command="{Binding SelectBackupFileCommand}"/>
+                        <Button Grid.Column="2" Content="🔄  Restore"
+                                Style="{StaticResource DangerBtn}"
+                                Padding="16,0"
+                                Command="{Binding RestoreDbCommand}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
             <!-- 뒤로 + 메시지 -->
-            <StackPanel Grid.Row="5">
+            <StackPanel Grid.Row="3" Margin="0,18,0,0">
                 <Button Content="← Back"
                         Style="{StaticResource SecondaryBtn}"
                         Padding="16,0"
                         HorizontalAlignment="Left"
                         Click="OnBackClick"
-                        Margin="0,0,0,12"/>
+                        Margin="0,0,0,10"/>
                 <TextBlock Text="{Binding Message}"
                            Foreground="{StaticResource DangerBrush}"
                            TextWrapping="Wrap" FontSize="13"/>

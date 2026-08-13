@@ -27,6 +27,7 @@ public class DatabaseInitializer
         CreateAppSettingTable(connection);
         CreateAwareClassificationTable(connection);
         CreateCounsellingLogTable(connection);
+        CreateImportHistoryTable(connection);
 
         ApplyMigrations(connection);
     }
@@ -360,6 +361,33 @@ public class DatabaseInitializer
                 FOREIGN KEY (product_id) REFERENCES Product_Master(product_id),
                 UNIQUE (facility_id, product_id, batch_number)
             );
+            """;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// 초기 재고 임포트 이력. 같은 파일을 두 번 넣어 재고가 두 배가 되는 사고를 막는다.
+    /// (import_type, file_hash)에 UNIQUE를 거는 이유: 한 파일로 상품을 넣은 뒤
+    /// 같은 파일로 재고를 넣는 것이 정상 순서라, 해시만으로 막으면 2단계가 통째로 막힌다.
+    /// </summary>
+    private static void CreateImportHistoryTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Import_History (
+                import_id     TEXT PRIMARY KEY,
+                facility_id   TEXT NOT NULL,
+                import_type   TEXT NOT NULL,
+                file_hash     TEXT NOT NULL,
+                file_name     TEXT,
+                row_count     INTEGER NOT NULL,
+                success_count INTEGER NOT NULL,
+                failure_count INTEGER NOT NULL,
+                imported_at   INTEGER NOT NULL,
+                UNIQUE (import_type, file_hash)
+            );
+            CREATE INDEX IF NOT EXISTS idx_import_history_hash
+                ON Import_History(file_hash);
             """;
         command.ExecuteNonQuery();
     }

@@ -67,20 +67,36 @@
                   HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
             <DataGrid.Columns>
-                <!-- 상품명 뒤의 점은 WHO AWaRe 분류다.
+                <!-- 상품명 앞의 점은 WHO AWaRe 분류다.
                      초록 ACCESS · 노랑 WATCH · 빨강 RESERVE · 검정 NOT RECOMMENDED.
-                     항생제가 아니거나 참조 목록에 없으면 점이 없다. -->
+                     항생제가 아니거나 참조 목록에 없으면 점이 없다.
+
+                     점을 이름 뒤가 아니라 앞에 두는 이유: 뒤에 붙이면 이름 길이만큼
+                     점의 위치가 제각각이라 세로로 훑을 수가 없다. 앞에 고정폭 칸을 두면
+                     점도 이름도 모든 행에서 같은 자리에서 시작한다. -->
                 <DataGridTemplateColumn Header="Product Name" Width="*" SortMemberPath="Product.ProductName">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Product.ProductName}" VerticalAlignment="Center"/>
-                                <Ellipse Width="9" Height="9" Margin="7,0,0,0"
-                                         VerticalAlignment="Center"
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 점이 없는 상품도 칸은 그대로 비워 둔다(Collapsed가 아니라 Hidden이
+                                     아니어도 되는 이유: 칸 너비가 고정이라 이름 시작점이 안 밀린다). -->
+                                <Ellipse Grid.Column="0"
+                                         Width="9" Height="9"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center"
                                          Fill="{Binding DotBrush}"
                                          ToolTip="{Binding AwareTooltip}"
                                          Visibility="{Binding HasAwareGroup, Converter={StaticResource BoolToVis}}"/>
-                            </StackPanel>
+
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Product.ProductName}"
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

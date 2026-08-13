@@ -15,8 +15,6 @@ public class BackupService : IBackupService
         _backupRepository = backupRepository;
     }
 
-    public IReadOnlyList<string> GetExportableTableNames() => _backupRepository.GetExportableTableNames();
-
     public async Task<BackupResult> CreateDatabaseBackupAsync(string? backupLocation)
     {
         if (string.IsNullOrWhiteSpace(backupLocation))
@@ -48,45 +46,35 @@ public class BackupService : IBackupService
         return BackupResult.Success($"Backup created: {fileName}");
     }
 
-    public async Task<BackupResult> ExportDataAsync(string? backupLocation, string? exportType, bool isCsvFormat)
+    public async Task<BackupResult> ExportDatasetsAsync(
+        string? backupLocation, IReadOnlyList<ExportDataset> datasets, bool isCsvFormat)
     {
         if (string.IsNullOrWhiteSpace(backupLocation))
         {
-            return BackupResult.Failure("Please select a backup location.");
+            return BackupResult.Failure("Please select a folder to export to.");
         }
 
-        if (string.IsNullOrWhiteSpace(exportType))
+        if (datasets.Count == 0)
         {
-            return BackupResult.Failure("Please select data to export.");
+            return BackupResult.Failure("Please select what to export.");
         }
 
         if (!Directory.Exists(backupLocation))
         {
-            return BackupResult.Failure("Backup location is not available.");
+            return BackupResult.Failure("Export folder is not available.");
         }
-
-        var tablesToExport = exportType == "All"
-            ? GetExportableTableNames()
-            : new[] { exportType };
 
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         var extension = isCsvFormat ? "csv" : "xlsx";
 
         try
         {
-            foreach (var table in tablesToExport)
+            foreach (var dataset in datasets)
             {
-                var fileName = $"{table}_{timestamp}.{extension}";
+                var fileName = $"{_backupRepository.GetDatasetFileName(dataset)}_{timestamp}.{extension}";
                 var destinationPath = Path.Combine(backupLocation, fileName);
 
-                if (isCsvFormat)
-                {
-                    await _backupRepository.ExportTableToCsvAsync(table, destinationPath);
-                }
-                else
-                {
-                    await _backupRepository.ExportTableToExcelAsync(table, destinationPath);
-                }
+                await _backupRepository.ExportDatasetAsync(dataset, destinationPath, isCsvFormat);
             }
         }
         catch (Exception)
@@ -94,7 +82,7 @@ public class BackupService : IBackupService
             return BackupResult.Failure(isCsvFormat ? "CSV export failed." : "Excel export failed.");
         }
 
-        return BackupResult.Success($"{tablesToExport.Count} table(s) exported successfully.");
+        return BackupResult.Success($"{datasets.Count} file(s) exported successfully.");
     }
 
     public async Task<BackupResult> RestoreDatabaseAsync(string? backupFilePath, string autoBackupFolder)

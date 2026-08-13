@@ -1,41 +1,83 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows;
-using ClosedXML.Excel;
 using Microsoft.Win32;
+using PharmaPOS.Application.Import;
 using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
+using Lightweight_Digital_Inventory_Management___POS_System.Services;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
+/// <summary>
+/// Import / Export 화면의 ViewModel.
+///
+/// 화면은 왼쪽이 "파일 → 앱"(가져오기), 오른쪽이 "앱 → 파일"(내보내기·백업)이고,
+/// 현재 데이터를 통째로 갈아엎는 복원만 아래 위험 구역에 따로 둔다.
+/// 이 셋은 결과의 무게가 서로 달라 한 덩어리로 섞으면 잘못 누르기 쉽다.
+/// </summary>
 public class BackupExportViewModel : ViewModelBase
 {
-    private readonly IBackupService _backupService;
-    private readonly IProductService _productService;
+    /// <summary>오류 목록을 대화상자에 몇 줄까지 펼칠지. 그 뒤는 개수만 알린다.</summary>
+    private const int MaxIssueLinesInDialog = 15;
 
-    private string _backupLocation = string.Empty;
-    private string? _selectedExportType;
-    private bool _isCsvFormat = true;
-    private string _backupFilePath = string.Empty;
+    private readonly IBackupService _backupService;
+    private readonly IInitialImportService _initialImportService;
+    private readonly string _facilityId;
+    private readonly string _userId;
+
     private string _importFilePath = string.Empty;
+
+    private string _exportFolder = string.Empty;
+    private bool _exportProducts = true;
+    private bool _exportInventory = true;
+    private bool _exportSalesHistory = true;
+    private bool _isCsvFormat = true;
+
+    private string _backupFilePath = string.Empty;
     private string _message = string.Empty;
 
-    public string BackupLocation
+    // ── 가져오기 ────────────────────────────────────────────────────────────
+
+    /// <summary>가져올 파일. 1단계(상품)와 2단계(재고)가 같은 파일을 쓴다.</summary>
+    public string ImportFilePath
     {
-        get => _backupLocation;
-        set => SetProperty(ref _backupLocation, value);
+        get => _importFilePath;
+        set => SetProperty(ref _importFilePath, value);
     }
 
-    public IReadOnlyList<string> AvailableExportTypes { get; }
+    public RelayCommand SelectImportFileCommand { get; }
+    public RelayCommand ImportProductsCommand { get; }
+    public RelayCommand ImportInventoryCommand { get; }
 
-    public string? SelectedExportType
+    // ── 내보내기 ────────────────────────────────────────────────────────────
+
+    /// <summary>내보내기와 백업 파일이 저장될 폴더.</summary>
+    public string ExportFolder
     {
-        get => _selectedExportType;
-        set => SetProperty(ref _selectedExportType, value);
+        get => _exportFolder;
+        set => SetProperty(ref _exportFolder, value);
+    }
+
+    public bool ExportProducts
+    {
+        get => _exportProducts;
+        set => SetProperty(ref _exportProducts, value);
+    }
+
+    public bool ExportInventory
+    {
+        get => _exportInventory;
+        set => SetProperty(ref _exportInventory, value);
+    }
+
+    public bool ExportSalesHistory
+    {
+        get => _exportSalesHistory;
+        set => SetProperty(ref _exportSalesHistory, value);
     }
 
     public bool IsCsvFormat
@@ -44,17 +86,20 @@ public class BackupExportViewModel : ViewModelBase
         set => SetProperty(ref _isCsvFormat, value);
     }
 
+    public RelayCommand SelectExportFolderCommand { get; }
+    public RelayCommand ExportDataCommand { get; }
+    public RelayCommand CreateDbBackupCommand { get; }
+
+    // ── 복원 ────────────────────────────────────────────────────────────────
+
     public string BackupFilePath
     {
         get => _backupFilePath;
         set => SetProperty(ref _backupFilePath, value);
     }
 
-    public string ImportFilePath
-    {
-        get => _importFilePath;
-        set => SetProperty(ref _importFilePath, value);
-    }
+    public RelayCommand SelectBackupFileCommand { get; }
+    public RelayCommand RestoreDbCommand { get; }
 
     public string Message
     {
@@ -62,336 +107,291 @@ public class BackupExportViewModel : ViewModelBase
         set => SetProperty(ref _message, value);
     }
 
-    public RelayCommand SelectBackupLocationCommand { get; }
-    public RelayCommand CreateDbBackupCommand { get; }
-    public RelayCommand ExportDataCommand { get; }
-    public RelayCommand SelectBackupFileCommand { get; }
-    public RelayCommand RestoreDbCommand { get; }
-    public RelayCommand SelectImportFileCommand { get; }
-    public RelayCommand ImportProductsCommand { get; }
-
-  
-
-    public BackupExportViewModel(IBackupService backupService, IProductService productService)
+    public BackupExportViewModel(
+        IBackupService backupService,
+        IInitialImportService initialImportService,
+        string facilityId,
+        string userId)
     {
         _backupService = backupService;
-        _productService = productService;
+        _initialImportService = initialImportService;
+        _facilityId = facilityId;
+        _userId = userId;
 
-        var exportTypes = new List<string> { "All" };
-        exportTypes.AddRange(_backupService.GetExportableTableNames());
-        AvailableExportTypes = exportTypes;
-
-        SelectBackupLocationCommand = new RelayCommand(_ => ExecuteSelectBackupLocation());
-        CreateDbBackupCommand = new RelayCommand(async _ => await ExecuteCreateDbBackupAsync());
-        ExportDataCommand = new RelayCommand(async _ => await ExecuteExportDataAsync());
-        SelectBackupFileCommand = new RelayCommand(_ => ExecuteSelectBackupFile());
-        RestoreDbCommand = new RelayCommand(async _ => await ExecuteRestoreDbAsync());
         SelectImportFileCommand = new RelayCommand(_ => ExecuteSelectImportFile());
         ImportProductsCommand = new RelayCommand(async _ => await ExecuteImportProductsAsync());
+        ImportInventoryCommand = new RelayCommand(async _ => await ExecuteImportInventoryAsync());
+
+        SelectExportFolderCommand = new RelayCommand(_ => ExecuteSelectExportFolder());
+        ExportDataCommand = new RelayCommand(async _ => await ExecuteExportDataAsync());
+        CreateDbBackupCommand = new RelayCommand(async _ => await ExecuteCreateDbBackupAsync());
+
+        SelectBackupFileCommand = new RelayCommand(_ => ExecuteSelectBackupFile());
+        RestoreDbCommand = new RelayCommand(async _ => await ExecuteRestoreDbAsync());
     }
 
-    // ── Import ──────────────────────────────────────────────────────────────
+    // ── 가져오기: 파일 → 앱 ─────────────────────────────────────────────────
+    //
+    // 실사 파일 하나로 상품(1단계)과 재고(2단계)를 차례로 넣는다. 두 단계를 나눈 이유는
+    // 재고가 상품을 전제로 하기 때문이고, 그래서 같은 파일을 두 번 고르는 것이 정상 흐름이다.
+    // 어느 단계든 순서는 같다: 같은 파일인지 확인 → 무엇이 들어가는지 보여주고 확인받기 → 반영.
 
     private void ExecuteSelectImportFile()
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Select Product Import File",
+            Title = "Select Import File",
             Filter = "CSV/Excel (*.csv;*.xlsx)|*.csv;*.xlsx|CSV (*.csv)|*.csv|Excel (*.xlsx)|*.xlsx"
         };
 
         if (dialog.ShowDialog() == true)
+        {
             ImportFilePath = dialog.FileName;
+        }
     }
 
     private async Task ExecuteImportProductsAsync()
     {
         Message = string.Empty;
 
+        var file = await TryReadImportFileAsync(ImportType.Products);
+
+        if (file is null)
+        {
+            return;
+        }
+
+        var plan = await _initialImportService.PlanProductsAsync(file.Rows);
+
+        if (plan.HasFileError)
+        {
+            AppDialog.Show("Import Products", plan.FileError!);
+            return;
+        }
+
+        var preview = new StringBuilder();
+        preview.AppendLine("STEP 1 — PRODUCTS");
+        preview.AppendLine("--------------------------------");
+        preview.AppendLine($"Rows in file          : {plan.TotalRows}");
+        preview.AppendLine($"New products          : {plan.CreateCount}");
+        preview.AppendLine($"Products to update    : {plan.UpdateCount}");
+        preview.AppendLine($"Unchanged             : {plan.UnchangedCount}");
+        preview.AppendLine($"Duplicate rows skipped: {plan.DuplicateRowCount}");
+        preview.AppendLine($"Rows with errors      : {plan.ErrorRowCount}");
+        AppendIssues(preview, "Errors", plan.Issues);
+
+        if (!plan.HasWork)
+        {
+            preview.AppendLine();
+            preview.AppendLine("There is nothing to import.");
+            AppDialog.Show("Import Products", preview.ToString(), monospace: true);
+            return;
+        }
+
+        preview.AppendLine();
+        preview.AppendLine("Existing products keep any value the file leaves empty.");
+        preview.AppendLine("Rows listed above are skipped. Continue?");
+
+        if (!AppDialog.Confirm("Import Products", preview.ToString(), "Import", "Cancel"))
+        {
+            Message = "Import cancelled.";
+            return;
+        }
+
+        var result = await _initialImportService.ApplyProductsAsync(
+            plan, file.Hash, Path.GetFileName(ImportFilePath), _facilityId);
+
+        ShowApplyResult("Import Products", result, "products");
+    }
+
+    private async Task ExecuteImportInventoryAsync()
+    {
+        Message = string.Empty;
+
+        var file = await TryReadImportFileAsync(ImportType.Inventory);
+
+        if (file is null)
+        {
+            return;
+        }
+
+        var plan = await _initialImportService.PlanInventoryAsync(file.Rows);
+
+        if (plan.HasFileError)
+        {
+            AppDialog.Show("Import Inventory", plan.FileError!);
+            return;
+        }
+
+        var preview = new StringBuilder();
+        preview.AppendLine("STEP 2 — INVENTORY");
+        preview.AppendLine("--------------------------------");
+        preview.AppendLine($"Rows in file          : {plan.TotalRows}");
+        preview.AppendLine($"Batches to add        : {plan.BatchCount}");
+        preview.AppendLine($"Product not found     : {plan.UnmatchedRowCount}");
+        preview.AppendLine($"Without expiry date   : {plan.NoExpiryCount}");
+        preview.AppendLine($"Rows with errors      : {plan.ErrorRowCount}");
+        AppendIssues(preview, "Product not found", plan.UnmatchedRows);
+        AppendIssues(preview, "Errors", plan.Issues);
+
+        if (!plan.HasWork)
+        {
+            preview.AppendLine();
+            preview.AppendLine("There is nothing to import.");
+            AppDialog.Show("Import Inventory", preview.ToString(), monospace: true);
+            return;
+        }
+
+        preview.AppendLine();
+        preview.AppendLine("Quantity is counted in single units, not boxes.");
+        preview.AppendLine("Rows listed above are skipped. Continue?");
+
+        if (!AppDialog.Confirm("Import Inventory", preview.ToString(), "Import", "Cancel"))
+        {
+            Message = "Import cancelled.";
+            return;
+        }
+
+        var result = await _initialImportService.ApplyInventoryAsync(
+            plan, file.Hash, Path.GetFileName(ImportFilePath), _facilityId, _userId);
+
+        ShowApplyResult("Import Inventory", result, "batches");
+    }
+
+    /// <summary>읽어 들인 파일과 그 내용의 해시.</summary>
+    private sealed record ImportFile(IReadOnlyList<ImportSourceRow> Rows, string Hash);
+
+    /// <summary>
+    /// 파일을 읽고 같은 파일을 다시 넣는 것인지까지 확인한다.
+    /// 진행할 수 없으면 그 자리에서 알리고 null을 돌려준다.
+    /// </summary>
+    private async Task<ImportFile?> TryReadImportFileAsync(ImportType importType)
+    {
         if (string.IsNullOrWhiteSpace(ImportFilePath))
         {
             Message = "Please select a file to import.";
-            return;
+            return null;
         }
 
         if (!File.Exists(ImportFilePath))
         {
             Message = "File not found.";
-            return;
+            return null;
         }
+
+        string fileHash;
+        IReadOnlyList<ImportSourceRow> rows;
 
         try
         {
-            var ext = Path.GetExtension(ImportFilePath).ToLowerInvariant();
-
-            var parsed = ext switch
-            {
-                ".csv" => ParseCsv(ImportFilePath),
-                ".xlsx" => ParseExcel(ImportFilePath),
-                _ => throw new NotSupportedException("Only .csv and .xlsx are supported.")
-            };
-
-            // 헤더가 어긋나 파일 전체를 못 읽은 경우. 어느 컬럼이 없는지 그대로 알려준다.
-            if (parsed.Error is not null)
-            {
-                Message = parsed.Error;
-                return;
-            }
-
-            var products = parsed.Products;
-
-            if (products.Count == 0)
-            {
-                Message = "No rows with a product name were found in the file.";
-                return;
-            }
-
-            int success = 0, failed = 0;
-            string? firstFailure = null;
-
-            foreach (var product in products)
-            {
-                var result = await _productService.SaveProductAsync(product, isNewProduct: true);
-
-                if (result.IsSuccess)
-                {
-                    success++;
-                }
-                else
-                {
-                    failed++;
-                    // 실패 사유를 버리면 몇 건 실패했다는 숫자만 남아 원인을 알 수 없다.
-                    firstFailure ??= result.Message;
-                }
-            }
-
-            Message = failed == 0
-                ? $"✅ Import complete — {success} products added."
-                : $"Import complete — Success: {success}, Failed: {failed} (Total: {products.Count}). First error: {firstFailure}";
+            fileHash = ImportFileReader.ComputeHash(ImportFilePath);
         }
         catch (Exception ex)
         {
             Message = $"Import error: {ex.Message}";
-        }
-    }
-
-    /// <summary>
-    /// 가져오기에 반드시 있어야 하는 컬럼. 없으면 어차피 상품 저장 단계에서 전부 실패한다.
-    /// (ProductService의 필수값 검증과 같은 목록이다.)
-    /// </summary>
-    private static readonly string[] RequiredColumns =
-    {
-        "productname", "unit", "costprice", "sellingprice"
-    };
-
-    /// <summary>
-    /// 헤더 이름에서 대소문자와 구분자를 없앤다.
-    /// "ProductName" / "product_name" / "Product Name"은 같은 컬럼을 가리키는데,
-    /// 예전에는 문자열이 정확히 일치할 때만 찾아서 snake_case 파일이 통째로
-    /// 무시됐다 (한 행도 안 읽히고 "No valid products found"만 떴다).
-    /// 앞에 붙는 BOM도 여기서 같이 털어낸다.
-    /// </summary>
-    private static string NormalizeHeader(string header)
-        => new(header.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
-
-    /// <summary>
-    /// 필수 컬럼이 빠졌을 때, 파일에서 실제로 읽힌 헤더까지 함께 알려준다.
-    /// 이름이 어긋난 경우 이 목록을 보면 바로 원인을 알 수 있다.
-    /// </summary>
-    private static string? DescribeMissingColumns(IReadOnlyList<string> normalizedHeaders)
-    {
-        var missing = RequiredColumns.Where(c => !normalizedHeaders.Contains(c)).ToList();
-
-        if (missing.Count == 0)
-        {
             return null;
         }
 
-        return $"The file is missing required columns: {string.Join(", ", missing)}. "
-             + $"Columns found: {string.Join(", ", normalizedHeaders.Where(h => h.Length > 0))}.";
-    }
-
-    private static ProductImportResult ParseCsv(string filePath)
-    {
-        var result = new ProductImportResult();
-        var products = result.Products;
-
-        var lines = File.ReadAllLines(filePath);
-        if (lines.Length < 2) return result;
-
-        var headers = lines[0].Split(',')
-                               .Select(NormalizeHeader)
-                               .ToArray();
-
-        result.Error = DescribeMissingColumns(headers);
-        if (result.Error is not null) return result;
-
-        int Idx(string name) => Array.IndexOf(headers, name);
-
-        for (int i = 1; i < lines.Length; i++)
+        // 같은 파일을 두 번 넣으면 재고가 두 배가 된다. 되돌리기가 매우 번거로운 사고라
+        // 진행 선택지를 주지 않고 여기서 끊는다.
+        if (await _initialImportService.WasAlreadyImportedAsync(importType, fileHash))
         {
-            var line = lines[i].Trim();
-            if (string.IsNullOrWhiteSpace(line)) continue;
-
-            var cols = SplitCsvLine(line);
-
-            string Get(string field)
-            {
-                int idx = Idx(field);
-                return idx >= 0 && idx < cols.Length ? cols[idx].Trim() : string.Empty;
-            }
-
-            if (string.IsNullOrWhiteSpace(Get("productname"))) continue;
-
-            decimal.TryParse(Get("costprice"), out var cost);
-            decimal.TryParse(Get("sellingprice"), out var sell);
-            int.TryParse(Get("safetystocklevel"), out var safety);
-
-            var status = Get("status").ToLowerInvariant() == "inactive"
-                         ? EntityStatus.Inactive : EntityStatus.Active;
-
-            // atccode / iscombination은 항생제 복약안내(AMR)용 컬럼이다.
-            // 상품을 수백 건 한 번에 등록하는 경로가 여기뿐이라, 여기서 못 넣으면
-            // 상품마다 손으로 채워야 해서 기능이 사실상 안 쓰이게 된다.
-            var atcCode = Get("atccode");
-            var isCombination = Get("iscombination").ToLowerInvariant() is "true" or "1" or "y" or "yes";
-
-            products.Add(new Product
-            {
-                ProductId = Guid.NewGuid().ToString(),
-                ProductName = Get("productname"),
-                GenericName = Get("genericname"),
-                AtcCode = string.IsNullOrWhiteSpace(atcCode) ? null : atcCode,
-                IsCombination = isCombination,
-                Barcode = string.IsNullOrWhiteSpace(Get("barcode")) ? null : Get("barcode"),
-                Strength = Get("strength"),
-                Unit = Get("unit"),
-                Manufacturer = Get("manufacturer"),
-                CountryOfOrigin = Get("countryoforigin"),
-                CostPrice = cost,
-                SellingPrice = sell,
-                SafetyStockLevel = safety,
-                Status = status,
-                CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-
-            });
+            AppDialog.Show("Import Blocked", "This file has already been imported.");
+            Message = "This file has already been imported.";
+            return null;
         }
 
-        return result;
-    }
-
-    /// <summary>파일에서 읽어낸 상품과, 파일 자체가 잘못됐을 때의 사유.</summary>
-    private sealed class ProductImportResult
-    {
-        public List<Product> Products { get; } = new();
-
-        public string? Error { get; set; }
-    }
-
-    private static string[] SplitCsvLine(string line)
-    {
-        var result = new List<string>();
-        bool inQuotes = false;
-        var current = new System.Text.StringBuilder();
-
-        foreach (char c in line)
+        try
         {
-            if (c == '"') { inQuotes = !inQuotes; }
-            else if (c == ',' && !inQuotes) { result.Add(current.ToString()); current.Clear(); }
-            else { current.Append(c); }
+            rows = ImportFileReader.Read(ImportFilePath);
         }
-        result.Add(current.ToString());
-        return result.ToArray();
-    }
-
-    private static ProductImportResult ParseExcel(string filePath)
-    {
-        var result = new ProductImportResult();
-        var products = result.Products;
-
-        using var workbook = new XLWorkbook(filePath);
-        var ws = workbook.Worksheet(1);
-        var rows = ws.RangeUsed()?.RowsUsed().ToList();
-        if (rows == null || rows.Count < 2) return result;
-
-        var headers = rows[0].Cells()
-                             .Select(c => NormalizeHeader(c.GetString()))
-                             .ToArray();
-
-        result.Error = DescribeMissingColumns(headers);
-        if (result.Error is not null) return result;
-
-        int Idx(string name) => Array.IndexOf(headers, name);
-
-        for (int i = 1; i < rows.Count; i++)
+        catch (Exception ex)
         {
-            var row = rows[i];
-
-            string Get(string field)
-            {
-                int idx = Idx(field);
-                return idx >= 0 ? row.Cell(idx + 1).GetString().Trim() : string.Empty;
-            }
-
-            if (string.IsNullOrWhiteSpace(Get("productname"))) continue;
-
-            decimal.TryParse(Get("costprice"), out var cost);
-            decimal.TryParse(Get("sellingprice"), out var sell);
-            int.TryParse(Get("safetystocklevel"), out var safety);
-
-            var status = Get("status").ToLowerInvariant() == "inactive"
-                         ? EntityStatus.Inactive : EntityStatus.Active;
-
-            // atccode / iscombination은 항생제 복약안내(AMR)용 컬럼이다.
-            // 상품을 수백 건 한 번에 등록하는 경로가 여기뿐이라, 여기서 못 넣으면
-            // 상품마다 손으로 채워야 해서 기능이 사실상 안 쓰이게 된다.
-            var atcCode = Get("atccode");
-            var isCombination = Get("iscombination").ToLowerInvariant() is "true" or "1" or "y" or "yes";
-
-            products.Add(new Product
-            {
-                ProductId = Guid.NewGuid().ToString(),
-                ProductName = Get("productname"),
-                GenericName = Get("genericname"),
-                AtcCode = string.IsNullOrWhiteSpace(atcCode) ? null : atcCode,
-                IsCombination = isCombination,
-                Barcode = string.IsNullOrWhiteSpace(Get("barcode")) ? null : Get("barcode"),
-                Strength = Get("strength"),
-                Unit = Get("unit"),
-                Manufacturer = Get("manufacturer"),
-                CountryOfOrigin = Get("countryoforigin"),
-                CostPrice = cost,
-                SellingPrice = sell,
-                SafetyStockLevel = safety,
-                Status = status,
-                CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-            });
+            Message = $"Import error: {ex.Message}";
+            return null;
         }
 
-        return result;
+        return new ImportFile(rows, fileHash);
     }
 
-    // ── 기존 기능 ────────────────────────────────────────────────────────────
-
-    private void ExecuteSelectBackupLocation()
+    private static void AppendIssues(StringBuilder builder, string title, IReadOnlyList<ImportIssue> issues)
     {
-        var dialog = new OpenFolderDialog { Title = "Select Backup Location" };
-        if (dialog.ShowDialog() == true) BackupLocation = dialog.FolderName;
+        if (issues.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine();
+        builder.AppendLine($"{title}:");
+
+        foreach (var issue in issues.Take(MaxIssueLinesInDialog))
+        {
+            builder.AppendLine($"  {issue}");
+        }
+
+        if (issues.Count > MaxIssueLinesInDialog)
+        {
+            builder.AppendLine($"  … and {issues.Count - MaxIssueLinesInDialog} more");
+        }
     }
 
-    private async Task ExecuteCreateDbBackupAsync()
+    private void ShowApplyResult(string title, ImportApplyResult result, string unitLabel)
     {
-        Message = string.Empty;
-        var result = await _backupService.CreateDatabaseBackupAsync(BackupLocation);
-        Message = result.IsSuccess ? result.Message ?? "Backup created successfully." : result.Message!;
+        var summary = new StringBuilder();
+        summary.AppendLine($"Imported : {result.SuccessCount} {unitLabel}");
+        summary.AppendLine($"Failed   : {result.FailureCount}");
+        AppendIssues(summary, "Failures", result.Failures);
+
+        if (result.HistoryWarning is not null)
+        {
+            summary.AppendLine();
+            summary.AppendLine(result.HistoryWarning);
+        }
+
+        AppDialog.Show(title, summary.ToString(), monospace: true);
+
+        Message = result.FailureCount == 0
+            ? $"Import complete — {result.SuccessCount} {unitLabel} added."
+            : $"Import complete — Success: {result.SuccessCount}, Failed: {result.FailureCount}.";
+    }
+
+    // ── 내보내기: 앱 → 파일 ─────────────────────────────────────────────────
+
+    private void ExecuteSelectExportFolder()
+    {
+        var dialog = new OpenFolderDialog { Title = "Select Export Folder" };
+
+        if (dialog.ShowDialog() == true)
+        {
+            ExportFolder = dialog.FolderName;
+        }
     }
 
     private async Task ExecuteExportDataAsync()
     {
         Message = string.Empty;
-        var result = await _backupService.ExportDataAsync(BackupLocation, SelectedExportType, IsCsvFormat);
+
+        var datasets = new List<ExportDataset>();
+
+        if (ExportProducts) datasets.Add(ExportDataset.Products);
+        if (ExportInventory) datasets.Add(ExportDataset.Inventory);
+        if (ExportSalesHistory) datasets.Add(ExportDataset.SalesHistory);
+
+        var result = await _backupService.ExportDatasetsAsync(ExportFolder, datasets, IsCsvFormat);
+
         Message = result.IsSuccess ? result.Message ?? "Export completed successfully." : result.Message!;
     }
+
+    private async Task ExecuteCreateDbBackupAsync()
+    {
+        Message = string.Empty;
+
+        var result = await _backupService.CreateDatabaseBackupAsync(ExportFolder);
+
+        Message = result.IsSuccess ? result.Message ?? "Backup created successfully." : result.Message!;
+    }
+
+    // ── 복원: 현재 데이터를 통째로 교체 ─────────────────────────────────────
 
     private void ExecuteSelectBackupFile()
     {
@@ -400,7 +400,11 @@ public class BackupExportViewModel : ViewModelBase
             Title = "Select Backup File",
             Filter = "SQLite Database (*.db)|*.db|All files (*.*)|*.*"
         };
-        if (dialog.ShowDialog() == true) BackupFilePath = dialog.FileName;
+
+        if (dialog.ShowDialog() == true)
+        {
+            BackupFilePath = dialog.FileName;
+        }
     }
 
     private async Task ExecuteRestoreDbAsync()
@@ -419,13 +423,18 @@ public class BackupExportViewModel : ViewModelBase
             return;
         }
 
-        var autoBackupFolder = string.IsNullOrWhiteSpace(BackupLocation)
+        // 복원 전 자동 백업이 들어갈 폴더. 내보내기 폴더를 고르지 않았으면 앱 데이터 폴더에 남긴다.
+        var autoBackupFolder = string.IsNullOrWhiteSpace(ExportFolder)
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PharmaPOS")
-            : BackupLocation;
+            : ExportFolder;
 
         var result = await _backupService.RestoreDatabaseAsync(BackupFilePath, autoBackupFolder);
 
-        if (!result.IsSuccess) { Message = result.Message!; return; }
+        if (!result.IsSuccess)
+        {
+            Message = result.Message!;
+            return;
+        }
 
         AppDialog.Show("Restart Required", "Database restored successfully. The application will now restart.");
 
@@ -435,7 +444,12 @@ public class BackupExportViewModel : ViewModelBase
     private static void RestartApplication()
     {
         var exePath = Environment.ProcessPath;
-        if (!string.IsNullOrEmpty(exePath)) Process.Start(exePath);
+
+        if (!string.IsNullOrEmpty(exePath))
+        {
+            Process.Start(exePath);
+        }
+
         Application.Current.Shutdown();
     }
 }

@@ -7,6 +7,16 @@
 /// </summary>
 public class Inventory
 {
+    /// <summary>
+    /// 유효기간을 모르는 배치의 expiry_date 값.
+    ///
+    /// 컬럼이 NOT NULL이라 "없음"을 NULL로 표현할 수 없어 0을 쓴다. 수기로 관리하던 약국의
+    /// 초기 재고에는 유효기간이 남아 있지 않은 경우가 흔하고, 그 배치를 아예 못 넣게 하면
+    /// 초기 임포트 자체가 막힌다. 0인 배치는 만료 알림과 만료 판매 차단에서 제외된다 —
+    /// 모르는 날짜를 1970-01-01로 읽어 전량이 만료 처리되는 쪽이 훨씬 나쁘다.
+    /// </summary>
+    public const long NoExpiryDate = 0L;
+
     public required string InventoryId { get; set; }
 
     public required string FacilityId { get; set; }

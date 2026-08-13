@@ -8,6 +8,9 @@ using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
+// 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
+using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
+
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
 /// <summary>
@@ -265,15 +268,26 @@ public partial class PosSaleViewModel : ViewModelBase
         // 1. current_quantity > 0
         // 2. expiry_date가 오늘 이후
         // 3. expiry_date가 가장 빠른 배치 우선
+        //
+        // expiry_date = 0은 "유효기간 모름"이다(초기 재고 임포트). 만료로 보면 팔 수가 없고,
+        // 가장 이른 날짜로 보면 유효기한이 멀쩡한 배치를 제치고 먼저 나가므로 맨 뒤에 둔다.
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         var defaultBatch = Batches
-            .Where(b => b.CurrentQuantity > 0 && b.ExpiryDate > now)
-            .OrderBy(b => b.ExpiryDate)
+            .Where(b => b.CurrentQuantity > 0 && !IsExpired(b.ExpiryDate, now))
+            .OrderBy(b => b.ExpiryDate == InventoryEntity.NoExpiryDate ? 1 : 0)
+            .ThenBy(b => b.ExpiryDate)
             .FirstOrDefault();
 
         SelectedBatch = defaultBatch;
     }
+
+    /// <summary>
+    /// 만료 판정. 유효기간을 모르는 배치(0)는 만료가 아니다 — 모르는 날짜를 1970-01-01로 읽어
+    /// 초기 재고 전량을 못 팔게 만드는 쪽이 훨씬 나쁘다.
+    /// </summary>
+    private static bool IsExpired(long expiryDate, long now) =>
+        expiryDate != InventoryEntity.NoExpiryDate && expiryDate <= now;
 
     private void ExecuteAddToCart()
     {
@@ -292,7 +306,7 @@ public partial class PosSaleViewModel : ViewModelBase
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        if (SelectedBatch.ExpiryDate <= now)
+        if (IsExpired(SelectedBatch.ExpiryDate, now))
         {
             Message = "This batch is expired and cannot be sold.";
             return;

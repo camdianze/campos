@@ -18,7 +18,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- 좌측: 파란 배경 -->
-        <Border Grid.Column="0" Background="{StaticResource PrimaryBrush}"/>
+        <ContentControl Grid.Column="0" Style="{StaticResource BrandPanel}"/>
 
         <!-- 우측: 폼 영역 -->
         <Grid Grid.Column="1" Background="White">
