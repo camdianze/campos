@@ -6,6 +6,7 @@ using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.PasswordPolicy;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Reports;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Application.Security;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -96,24 +97,26 @@ public partial class MainShellView : UserControl
             parentWindow.Content = new InventoryStatusView();
     }
 
-    private void OnAdjustmentClick(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// 매출 리포트. 예전에는 이 자리가 재고 조정이었는데, 조정은 재고 화면에서
+    /// 고른 배치 아래 패널로 들어가면서 여기서 따로 열 이유가 없어졌다.
+    /// (관리자 대시보드에도 같은 화면으로 가는 입구가 있다.)
+    /// </summary>
+    private void OnReportsClick(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainShellViewModel shellViewModel) return;
 
-        var productRepository = App.Services.GetRequiredService<IProductRepository>();
-        var inventoryRepository = App.Services.GetRequiredService<IInventoryRepository>();
-        var adjustmentService = App.Services.GetRequiredService<IAdjustmentService>();
+        var reportService = App.Services.GetRequiredService<IReportService>();
 
-        var adjustmentViewModel = new AdjustmentViewModel(
-            productRepository, inventoryRepository, adjustmentService,
-            shellViewModel.CurrentUser.FacilityId, shellViewModel.CurrentUser.UserId);
+        var reportsViewModel = new ReportsViewModel(
+            reportService, shellViewModel.CurrentUser.FacilityId);
 
-        var adjustmentView = new AdjustmentView();
-        adjustmentView.AttachViewModel(adjustmentViewModel);
+        var reportsView = new ReportsView();
+        reportsView.AttachViewModel(reportsViewModel);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
-            parentWindow.Content = adjustmentView;
+            parentWindow.Content = reportsView;
     }
 
     /// <summary>

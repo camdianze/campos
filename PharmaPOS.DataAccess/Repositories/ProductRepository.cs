@@ -18,6 +18,13 @@ public class ProductRepository : IProductRepository
         _connectionFactory = connectionFactory;
     }
 
+    /// <summary>
+    /// LIKE에서 뜻을 가지는 글자(% _ \)를 글자 그대로 찾도록 앞에 \를 붙인다.
+    /// 상품명에 %가 든 경우(예: "Dextrose 50%")를 검색할 수 있어야 한다.
+    /// </summary>
+    private static string EscapeLikePattern(string value) =>
+        value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
     public async Task<IReadOnlyList<Product>> SearchAsync(string searchTerm, EntityStatus? statusFilter)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
@@ -26,16 +33,48 @@ public class ProductRepository : IProductRepository
 
         var whereClauses = new List<string>();
 
+        // 검색어가 없으면 정렬은 이름순 하나뿐이다(목록 화면의 기본 상태).
+        var orderBySql = "product_name";
+
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            // LOWER()로 양쪽을 소문자로 맞춰서 비교 — 대소문자 구분 없이 검색되도록 명시적으로 처리한다.
+            // 비교는 양쪽을 소문자로 맞춰서 한다. 파라미터는 여기서 미리 소문자로 만들어
+            // 넘기므로 SQL 쪽은 컬럼만 LOWER() 하면 된다.
+            //
+            // LIKE의 와일드카드(% _)를 글자 그대로 찾도록 이스케이프한다.
+            // "50%"를 치면 %가 "무엇이든"으로 읽혀 엉뚱한 상품이 전부 걸리던 문제를 막는다.
+            var term = EscapeLikePattern(searchTerm.Trim().ToLowerInvariant());
+
             whereClauses.Add("""
-                (LOWER(product_name) LIKE LOWER($search)
-                 OR LOWER(generic_name) LIKE LOWER($search)
-                 OR LOWER(barcode) LIKE LOWER($search)
-                 OR LOWER(internal_barcode) LIKE LOWER($search))
+                (LOWER(product_name) LIKE $contains ESCAPE '\'
+                 OR LOWER(generic_name) LIKE $contains ESCAPE '\'
+                 OR LOWER(barcode) LIKE $contains ESCAPE '\'
+                 OR LOWER(internal_barcode) LIKE $contains ESCAPE '\')
                 """);
-            command.Parameters.AddWithValue("$search", $"%{searchTerm}%");
+
+            command.Parameters.AddWithValue("$exact", term);
+            command.Parameters.AddWithValue("$prefix", $"{term}%");
+            command.Parameters.AddWithValue("$wordStart", $"% {term}%");
+            command.Parameters.AddWithValue("$contains", $"%{term}%");
+
+            // 글자가 얼마나 정확히 맞는지로 줄을 세운다. 이름순으로만 정렬하면
+            // "nano"를 쳤을 때 이름에 nano가 들어 있기만 한 A로 시작하는 상품이
+            // 정작 "Nano…"라는 상품보다 앞에 온다 — 계산대에서 매번 눈으로 찾아야 한다.
+            orderBySql = """
+                CASE
+                    WHEN LOWER(product_name) = $exact THEN 0
+                    WHEN LOWER(barcode) = $exact OR LOWER(internal_barcode) = $exact THEN 1
+                    WHEN LOWER(product_name) LIKE $prefix ESCAPE '\' THEN 2
+                    WHEN LOWER(product_name) LIKE $wordStart ESCAPE '\' THEN 3
+                    WHEN LOWER(generic_name) = $exact THEN 4
+                    WHEN LOWER(generic_name) LIKE $prefix ESCAPE '\' THEN 5
+                    WHEN LOWER(product_name) LIKE $contains ESCAPE '\' THEN 6
+                    WHEN LOWER(generic_name) LIKE $contains ESCAPE '\' THEN 7
+                    ELSE 8
+                END,
+                LENGTH(product_name),
+                product_name
+                """;
         }
 
         if (statusFilter is not null)
@@ -55,7 +94,7 @@ public class ProductRepository : IProductRepository
                    atc_code, is_combination, units_per_box, unit_selling_price, category
             FROM Product_Master
             {whereSql}
-            ORDER BY product_name;
+            ORDER BY {orderBySql};
             """;
 
         using var reader = await command.ExecuteReaderAsync();

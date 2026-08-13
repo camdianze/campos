@@ -54,6 +54,7 @@
         </Grid>
 
         <DataGrid Grid.Row="2"
+                  x:Name="ProductsGrid"
                   ItemsSource="{Binding Products}"
                   SelectedItem="{Binding SelectedRow}"
                   AutoGenerateColumns="False"

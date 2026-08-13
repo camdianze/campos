@@ -16,9 +16,33 @@ public class AdjustmentRepository : IAdjustmentRepository
         _connectionFactory = connectionFactory;
     }
 
+    public async Task<bool> BatchNumberExistsAsync(
+        string facilityId, string productId, string batchNumber, string excludeInventoryId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT COUNT(*) FROM Inventory
+            WHERE facility_id = $facilityId
+              AND product_id = $productId
+              AND batch_number = $batchNumber
+              AND inventory_id <> $excludeInventoryId;
+            """;
+        command.Parameters.AddWithValue("$facilityId", facilityId);
+        command.Parameters.AddWithValue("$productId", productId);
+        command.Parameters.AddWithValue("$batchNumber", batchNumber);
+        command.Parameters.AddWithValue("$excludeInventoryId", excludeInventoryId);
+
+        var count = await command.ExecuteScalarAsync();
+
+        return Convert.ToInt64(count) > 0;
+    }
+
     public async Task<bool> SaveAdjustmentAsync(
         StockTransaction transaction,
         string inventoryId,
+        string batchNumber,
         int expectedCurrentQuantity,
         int physicalCount,
         int physicalBoxCount,
@@ -34,15 +58,19 @@ public class AdjustmentRepository : IAdjustmentRepository
             using (var updateCommand = connection.CreateCommand())
             {
                 updateCommand.Transaction = dbTransaction;
+                // 배치번호도 함께 넣는다. 바꾸지 않았으면 같은 값이 다시 들어갈 뿐이다.
+                // 초기 임포트로 배치번호 없이 들어온 재고에 나중에 번호를 붙이는 경로다.
                 updateCommand.CommandText = """
                     UPDATE Inventory
                     SET current_quantity = $physicalCount,
                         box_quantity = $physicalBoxCount,
                         unit_quantity = $physicalUnitCount,
+                        batch_number = $batchNumber,
                         updated_at = $updatedAt
                     WHERE inventory_id = $inventoryId
                       AND current_quantity = $expectedCurrentQuantity;
                     """;
+                updateCommand.Parameters.AddWithValue("$batchNumber", batchNumber);
                 updateCommand.Parameters.AddWithValue("$physicalCount", physicalCount);
                 updateCommand.Parameters.AddWithValue("$physicalBoxCount", physicalBoxCount);
                 updateCommand.Parameters.AddWithValue("$physicalUnitCount", physicalUnitCount);

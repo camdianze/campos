@@ -238,6 +238,15 @@ public partial class PosSaleViewModel : ViewModelBase
         if (results.Count == 0)
         {
             Message = "Product not found.";
+            return;
+        }
+
+        // 딱 하나면 바로 고른다. 바코드를 찍은 경우가 대부분이고,
+        // 그때 목록에서 한 번 더 누르게 하면 스캐너를 쓰는 의미가 없다.
+        // 여러 개면 고르지 않는다 — 계산대에서 엉뚱한 약이 잡히는 쪽이 훨씬 나쁘다.
+        if (results.Count == 1)
+        {
+            SelectedProduct = results[0];
         }
     }
 

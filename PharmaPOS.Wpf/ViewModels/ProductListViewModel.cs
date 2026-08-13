@@ -21,6 +21,17 @@ public enum ProductStatusFilterOption
 }
 
 /// <summary>
+/// 상품 목록 화면을 어디서 열었는지. ← Back이 어디로 돌아갈지가 이 값으로 갈린다.
+/// 화면을 여는 쪽이 알려 주지 않으면 종전대로 메인 셸로 돌아간다.
+/// </summary>
+public enum ProductListOrigin
+{
+    MainShell,
+    InventoryStatus,
+    Alerts
+}
+
+/// <summary>
 /// 상품 목록 화면(SCR-PROD-011)의 ViewModel.
 /// </summary>
 public class ProductListViewModel : ViewModelBase
@@ -43,6 +54,10 @@ public class ProductListViewModel : ViewModelBase
     private ProductStatusFilterOption _selectedStatusFilter = ProductStatusFilterOption.All;
     private ProductRow? _selectedRow;
     private string _message = string.Empty;
+
+    /// <summary>열자마자 고를 상품. 한 번 쓰고 비운다 — 검색어를 바꿔 목록을 다시 읽을 때마다
+    /// 커서가 그 상품으로 되돌아가면 검색이 안 된다.</summary>
+    private string? _preselectProductId;
 
     private bool _isStockInPanelVisible;
     private string _batchNumber = string.Empty;
@@ -203,14 +218,38 @@ public class ProductListViewModel : ViewModelBase
     public event Action<Product>? NavigateToEditProduct;
     public event Action<Product>? NavigateToPrintBarcode;
 
+    /// <summary>
+    /// 미리 고른 줄이 화면 밖에 있을 때 그 줄로 스크롤해 달라는 요청.
+    /// 스크롤은 DataGrid만 할 수 있어 View가 받아서 처리한다.
+    /// </summary>
+    public event Action<ProductRow>? RequestScrollToRow;
+
+    /// <summary>
+    /// 스크롤 요청이 View가 구독하기 전에 끝났을 경우를 대비해 대상을 남겨 둔다.
+    /// 목록을 읽는 동안 이벤트가 먼저 발생하면 그냥 사라지기 때문이다.
+    /// </summary>
+    public ProductRow? RowToScrollTo { get; private set; }
+
+    /// <summary>이 화면을 어디서 열었는지. ← Back의 목적지가 여기서 갈린다.</summary>
+    public ProductListOrigin Origin { get; }
+
+    /// <param name="preselectProductId">
+    /// 열자마자 고를 상품. 재고 화면에서 "View Product Details"로 들어올 때 쓴다.
+    /// 목록에 없으면(비활성 상태 등) 조용히 넘어가고 평소대로 열린다.
+    /// </param>
     public ProductListViewModel(
         IProductRepository productRepository,
         IProductService productService,
         IAntibioticMatchingService matchingService,
         IStockInService stockInService,
         string facilityId,
-        string userId)
+        string userId,
+        string? preselectProductId = null,
+        ProductListOrigin origin = ProductListOrigin.MainShell)
     {
+        _preselectProductId = preselectProductId;
+        Origin = origin;
+
         _productRepository = productRepository;
         _productService = productService;
         _matchingService = matchingService;
@@ -247,7 +286,45 @@ public class ProductListViewModel : ViewModelBase
             NavigateToPrintBarcode?.Invoke(SelectedProduct);
         });
 
-        _ = ReloadAsync();
+        _ = InitializeAsync();
+    }
+
+    /// <summary>
+    /// 목록을 읽고, 미리 고를 상품이 있으면 고른다.
+    /// 목록이 다 들어온 뒤에 골라야 해서 ReloadAsync와 한 흐름으로 묶었다.
+    /// </summary>
+    private async Task InitializeAsync()
+    {
+        await ReloadAsync();
+
+        ApplyPreselection();
+    }
+
+    /// <summary>
+    /// 재고 화면에서 넘겨받은 상품을 고른다.
+    ///
+    /// SelectedRow에 넣는 것이 핵심이다 — 화면에서 직접 누른 것과 같은 경로를 타야
+    /// 아래 입고 패널이 그 상품 기준으로 열린다. 찾지 못하면(비활성이라 목록에 없는 등)
+    /// 아무 일도 하지 않는다. 사용자가 요청한 적 없는 오류창을 띄울 이유가 없다.
+    /// </summary>
+    private void ApplyPreselection()
+    {
+        if (_preselectProductId is null)
+        {
+            return;
+        }
+
+        var row = Products.FirstOrDefault(r => r.Product.ProductId == _preselectProductId);
+        _preselectProductId = null;
+
+        if (row is null)
+        {
+            return;
+        }
+
+        SelectedRow = row;
+        RowToScrollTo = row;
+        RequestScrollToRow?.Invoke(row);
     }
 
     /// <summary>

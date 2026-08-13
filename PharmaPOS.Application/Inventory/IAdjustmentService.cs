@@ -15,6 +15,10 @@ public interface IAdjustmentService
     /// 헐어 놓은 알 몇 개"로 세지, 총 알 수를 암산해서 세지 않기 때문이다.
     /// 박스/낱개 구분이 없는 상품(unitsPerBox = 1)은 physicalBoxCount를 0으로 두고
     /// physicalUnitCount에 전량을 넣으면 종전과 같이 동작한다.
+    ///
+    /// batchNumber는 저장할 값, originalBatchNumber는 지금 DB에 있는 값이다. 두 값이 다르면
+    /// 배치번호를 고치는 것으로 보고 중복을 검사한 뒤 Inventory의 번호까지 바꾼다.
+    /// 초기 재고를 배치번호 없이 넣은 뒤 나중에 번호를 붙이는 경로다.
     /// </summary>
     Task<AdjustmentResult> SaveAdjustmentAsync(
         string facilityId,
@@ -22,6 +26,7 @@ public interface IAdjustmentService
         string userId,
         string inventoryId,
         string batchNumber,
+        string originalBatchNumber,
         long expiryDate,
         int systemQuantity,
         int physicalBoxCount,

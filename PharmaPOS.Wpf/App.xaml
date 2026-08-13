@@ -64,21 +64,16 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ContentControl">
                         <Border Background="{StaticResource PrimaryBrush}">
-                            <Viewbox Stretch="Uniform" MaxHeight="120" Margin="56,0">
+                            <Viewbox Stretch="Uniform" MaxHeight="110" Margin="56,0">
+                                <!-- 글꼴은 어셈블리에 넣은 Abril Fatface다(Fonts 폴더).
+                                     pack URI 뒤의 #Abril Fatface가 글꼴 파일 안의 이름이며,
+                                     파일 이름이 아니라 이 이름으로 찾는다.
+                                     굵은 디스플레이 세리프라 자간을 벌리지 않는 편이 낫다. -->
                                 <TextBlock Text="CAMDIANS"
-                                           FontFamily="Georgia, Times New Roman, Batang"
-                                           FontSize="72"
-                                           TextOptions.TextFormattingMode="Ideal">
-                                    <TextBlock.Foreground>
-                                        <!-- 아래로 갈수록 아주 살짝 어두워지는 흰색.
-                                             순백 한 톤이면 파란 바탕에서 판판해 보인다. -->
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0.35,1">
-                                            <GradientStop Color="#FFFFFF" Offset="0"/>
-                                            <GradientStop Color="#FFFFFF" Offset="0.55"/>
-                                            <GradientStop Color="#E3EBFB" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </TextBlock.Foreground>
-                                </TextBlock>
+                                           FontFamily="pack://application:,,,/Fonts/#Abril Fatface"
+                                           FontSize="64"
+                                           Foreground="#FFFFFF"
+                                           TextOptions.TextFormattingMode="Ideal"/>
                             </Viewbox>
                         </Border>
                     </ControlTemplate>
@@ -687,6 +682,91 @@
             <Setter Property="CanUserResizeRows"       Value="False"/>
             <Setter Property="RowHeaderWidth"          Value="0"/>
             <Setter Property="FontSize"                Value="13"/>
+        </Style>
+
+        <!-- ===== 우클릭 메뉴 =====
+             기본 메뉴는 회색 테두리에 각진 모서리라 이 앱의 다른 창들과 따로 논다.
+             지금 앱에서 메뉴는 재고 화면의 우클릭 하나뿐이라 암시적 스타일로 둔다.
+
+             HasDropShadow를 켜는 이유는 그림자 자체보다도, 이 값이 켜져야 팝업이
+             투명 배경을 허용해서 둥근 모서리 바깥이 흰 사각형으로 남지 않기 때문이다. -->
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background"      Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush"     Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="6"/>
+            <Setter Property="HasDropShadow"   Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <!-- 그림자가 잘리지 않도록 바깥에 여백을 둔다. -->
+                        <Border Margin="6"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" Opacity="0.18"
+                                                  BlurRadius="12" ShadowDepth="2"/>
+                            </Border.Effect>
+                            <ItemsPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="FontSize"   Value="13"/>
+            <Setter Property="MinHeight"  Value="34"/>
+            <Setter Property="Padding"    Value="14,0"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Bd"
+                                Background="Transparent"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}"
+                                MinHeight="{TemplateBinding MinHeight}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter ContentSource="Header"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimarySoftBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                            </Trigger>
+                            <!-- 잠긴 항목은 눌리지 않는다는 걸 색으로 알린다.
+                                 IsHighlighted보다 뒤에 둬야 비활성인데 파랗게 뜨는 일이 없다. -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 메뉴 안의 구분선은 암시적 Separator 스타일이 아니라 이 키로 찾는다. -->
+        <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+            <Setter Property="Background" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="Height"     Value="1"/>
+            <Setter Property="Margin"     Value="8,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Background="{TemplateBinding Background}" Height="1"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
     </Application.Resources>

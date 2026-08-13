@@ -42,6 +42,8 @@
         <DataGrid Grid.Row="2"
                   ItemsSource="{Binding Alerts}"
                   SelectedItem="{Binding SelectedAlert}"
+                  PreviewMouseRightButtonDown="OnGridRightButtonDown"
+                  ContextMenuOpening="OnGridContextMenuOpening"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
@@ -52,6 +54,19 @@
                   GridLinesVisibility="Horizontal"
                   HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
+            <!-- 우클릭 메뉴. 알림을 보고 나서 할 일은 둘 중 하나다 —
+                 그 약의 재고를 보러 가거나, 상품 정보를 고치러 가거나. -->
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Go to Inventory"
+                              Command="{Binding ViewInventoryCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                    <MenuItem Header="Go to Product"
+                              Command="{Binding ViewProductCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Type"         Binding="{Binding AlertType}"   Width="100"/>
                 <DataGridTextColumn Header="Priority"     Binding="{Binding Priority}"    Width="100"/>

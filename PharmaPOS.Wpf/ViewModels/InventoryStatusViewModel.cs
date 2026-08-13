@@ -104,6 +104,8 @@ public class InventoryStatusViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(CanDeleteSelectedBatch));
                 OnPropertyChanged(nameof(DeleteBatchHint));
+                OnPropertyChanged(nameof(HasSelection));
+                OnPropertyChanged(nameof(IsBatchSelected));
                 OnPropertyChanged(nameof(AdjustmentTargetSummary));
                 OnPropertyChanged(nameof(IsBoxedBatchSelected));
                 OnPropertyChanged(nameof(SystemQuantity));
@@ -144,12 +146,34 @@ public class InventoryStatusViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 고른 것의 상품 목록 화면으로 넘어간다.
+    /// 배치 행에서 눌러도 그 배치의 부모 상품이 대상이다 — 상품 정보는 배치가 아니라 상품에 있다.
+    /// </summary>
+    private void ExecuteViewProductDetails()
+    {
+        Message = string.Empty;
+
+        // 제품 행에는 상품 ID가 없다(이름으로 묶은 그룹이다). 배치에서 꺼내 온다.
+        var productId = SelectedItem?.ProductId ?? SelectedGroup?.Batches.FirstOrDefault()?.ProductId;
+
+        if (productId is null)
+        {
+            Message = "Please select a product or batch.";
+            return;
+        }
+
+        NavigateToProductDetails?.Invoke(productId);
+    }
+
+    /// <summary>
     /// 선택이 바뀌면 입고 패널은 접는다. 조정 패널과 달리 입고 패널에는 고른 배치에서
     /// 미리 채워 둔 배치번호·유효기한이 들어 있어, 열어 둔 채로 다른 줄을 고르면
     /// 표에서 파랗게 보이는 줄과 패널이 가리키는 배치가 어긋난다.
     /// </summary>
     private void OnSelectionChangedForStockIn()
     {
+        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(nameof(IsBatchSelected));
         OnPropertyChanged(nameof(StockInTargetSummary));
         OnPropertyChanged(nameof(IsBoxedStockInTarget));
         OnPropertyChanged(nameof(StockInQuantityLabel));
@@ -164,6 +188,12 @@ public class InventoryStatusViewModel : ViewModelBase
 
     /// <summary>다 팔려 빈 배치만 지울 수 있다. 버튼 활성화 조건이다.</summary>
     public bool CanDeleteSelectedBatch => SelectedItem is { CurrentQuantity: 0 };
+
+    /// <summary>제품 행이든 배치 행이든 무언가 골라져 있는지. 우클릭 메뉴 활성화 조건이다.</summary>
+    public bool HasSelection => SelectedItem is not null || SelectedGroup is not null;
+
+    /// <summary>배치 행이 골라져 있는지. 배치가 대상인 메뉴(Delete Batch)의 활성화 조건이다.</summary>
+    public bool IsBatchSelected => SelectedItem is not null;
 
     /// <summary>지울 수 없는 이유를 버튼 옆에 미리 알려 준다.</summary>
     public string DeleteBatchHint => SelectedItem switch
@@ -184,6 +214,12 @@ public class InventoryStatusViewModel : ViewModelBase
     public RelayCommand AdjustmentCommand { get; }
     public RelayCommand DeleteBatchCommand { get; }
 
+    /// <summary>우클릭 메뉴 전용. 고른 상품이 선택된 채로 상품 목록 화면을 연다.</summary>
+    public RelayCommand ViewProductDetailsCommand { get; }
+
+    /// <summary>상품 목록 화면으로 넘어가 달라는 요청(상품 ID). 화면 전환은 코드 비하인드가 한다.</summary>
+    public event Action<string>? NavigateToProductDetails;
+
     public InventoryStatusViewModel(
         IInventoryRepository inventoryRepository,
         IAdjustmentService adjustmentService,
@@ -198,6 +234,7 @@ public class InventoryStatusViewModel : ViewModelBase
         _userId = userId;
 
         ViewDetailCommand = new RelayCommand(_ => ExecuteViewDetail());
+        ViewProductDetailsCommand = new RelayCommand(_ => ExecuteViewProductDetails());
         StockInCommand = new RelayCommand(_ => ExecuteOpenStockInPanel());
         AdjustmentCommand = new RelayCommand(_ => ExecuteOpenAdjustmentPanel());
         DeleteBatchCommand = new RelayCommand(async _ => await ExecuteDeleteBatchAsync());
@@ -399,6 +436,7 @@ public class InventoryStatusViewModel : ViewModelBase
     // (Products 화면의 Stock-IN 패널과 짝을 이루는 구조다.)
 
     private bool _isAdjustmentPanelVisible;
+    private string _adjustmentBatchNumber = string.Empty;
     private string _physicalBoxCount = "0";
     private string _physicalUnitCount = string.Empty;
     private string _adjustmentReason = string.Empty;
@@ -414,7 +452,7 @@ public class InventoryStatusViewModel : ViewModelBase
 
     /// <summary>패널 머리에 띄우는 "무엇을 세고 있는가".</summary>
     public string AdjustmentTargetSummary => SelectedItem is { } item
-        ? $"{item.ProductName} · Batch {item.BatchNumber}"
+        ? $"{item.ProductName} · {(item.BatchNumber.Length == 0 ? "no batch number" : $"Batch {item.BatchNumber}")}"
         : string.Empty;
 
     /// <summary>박스/낱개를 나눠 세는 상품인지. 아니면 박스 입력칸을 숨긴다.</summary>
@@ -434,6 +472,16 @@ public class InventoryStatusViewModel : ViewModelBase
     /// <summary>박스 칸이 함께 보일 때만 "Loose Units"로 갈라 부른다.</summary>
     public string PhysicalUnitCountLabel =>
         IsBoxedBatchSelected ? "Physical Count — Loose Units" : "Physical Count";
+
+    /// <summary>
+    /// 고칠 수 있는 배치번호. 초기 재고를 배치번호 없이 넣은 뒤 나중에 번호를 붙이는 칸이다.
+    /// 비워 두면 배치번호 없는 상태 그대로 저장된다.
+    /// </summary>
+    public string AdjustmentBatchNumber
+    {
+        get => _adjustmentBatchNumber;
+        set => SetProperty(ref _adjustmentBatchNumber, value);
+    }
 
     /// <summary>실사한 박스 수. 박스/낱개 구분이 없는 상품은 0으로 둔다.</summary>
     public string PhysicalBoxCount
@@ -545,7 +593,7 @@ public class InventoryStatusViewModel : ViewModelBase
 
         var result = await _adjustmentService.SaveAdjustmentAsync(
             _facilityId, item.ProductId, _userId,
-            item.InventoryId, item.BatchNumber, item.ExpiryDate,
+            item.InventoryId, AdjustmentBatchNumber, item.BatchNumber, item.ExpiryDate,
             item.CurrentQuantity, physicalBoxCount, physicalUnitCount, item.UnitsPerBox,
             AdjustmentReason, allowZeroDelta);
 
@@ -581,6 +629,9 @@ public class InventoryStatusViewModel : ViewModelBase
 
     private void ResetAdjustmentForm()
     {
+        // 배치번호는 비우지 않고 고른 배치의 값으로 되돌린다 — 고치라고 열어 둔 칸이지
+        // 매번 새로 적어야 하는 칸이 아니다.
+        AdjustmentBatchNumber = SelectedItem?.BatchNumber ?? string.Empty;
         PhysicalBoxCount = "0";
         PhysicalUnitCount = string.Empty;
         AdjustmentReason = string.Empty;
@@ -618,10 +669,14 @@ public class InventoryStatusViewModel : ViewModelBase
             // 기준 재고는 제품 속성이라 배치가 몇 개든 값이 같다. 판매가와 같은 방식으로 꺼낸다.
             var safetyStockLevel = batches.First().SafetyStockLevel;
 
-            // 세 상태 모두 배치의 합집합이다. 접힌 행에 안쪽 문제가 빠짐없이 드러나야 한다.
-            // 판단 규칙은 InventoryStatusItem이 들고 있는 걸 그대로 쓴다. 여기서 다시
-            // 계산하면 제품 행 배지와 배치 행 배지가 어긋날 수 있다.
-            var isLowStock = batches.Any(b => b.IsLowStock);
+            // 저재고는 제품 단위로만 판단한다. 기준 재고는 "이 약을 몇 개 이상 두어야 하는가"라
+            // 상품에 붙은 값이고, 배치는 그 재고를 나눠 담은 통일 뿐이다. 배치별로 재면
+            // 200개를 세 배치에 나눠 둔 것만으로 저재고가 뜨고, 정작 총량이 부족한 상품은
+            // 배치 하나에 몰려 있으면 조용히 넘어간다.
+            var isLowStock = totalQty < safetyStockLevel;
+
+            // 유효기한은 반대다. 배치마다 날짜가 다르니 배치에서 판단하고, 제품 행은 그 합집합을
+            // 보여 준다 — 접어 둔 채로도 안에 임박·만료가 있는지 알아야 한다.
             var expiringSoon = batches.Any(b => b.IsExpiringSoon);
             var hasExpired = batches.Any(b => b.IsExpired);
 

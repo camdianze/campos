@@ -52,8 +52,17 @@ public class AlertsViewModel : ViewModelBase
     public AlertItem? SelectedAlert
     {
         get => _selectedAlert;
-        set => SetProperty(ref _selectedAlert, value);
+        set
+        {
+            if (SetProperty(ref _selectedAlert, value))
+            {
+                OnPropertyChanged(nameof(HasSelection));
+            }
+        }
     }
+
+    /// <summary>우클릭 메뉴 활성화 조건. 고른 줄이 없으면 할 수 있는 일이 없다.</summary>
+    public bool HasSelection => SelectedAlert is not null;
 
     public string Message
     {
@@ -62,10 +71,14 @@ public class AlertsViewModel : ViewModelBase
     }
 
     public RelayCommand ViewInventoryCommand { get; }
+    public RelayCommand ViewProductCommand { get; }
     public RelayCommand ExportCommand { get; }
 
     /// <summary>View Inventory 클릭 시 발생. 선택한 알림의 상품명을 넘겨준다.</summary>
     public event Action<string>? NavigateToInventory;
+
+    /// <summary>상품 목록으로 넘어가 달라는 요청(상품 ID). 화면 전환은 코드 비하인드가 한다.</summary>
+    public event Action<string>? NavigateToProduct;
 
     public AlertsViewModel(IAlertService alertService, string facilityId)
     {
@@ -73,6 +86,7 @@ public class AlertsViewModel : ViewModelBase
         _facilityId = facilityId;
 
         ViewInventoryCommand = new RelayCommand(_ => ExecuteViewInventory());
+        ViewProductCommand = new RelayCommand(_ => ExecuteViewProduct());
         ExportCommand = new RelayCommand(_ => ExecuteExport());
 
         _ = ReloadAsync();
@@ -109,6 +123,16 @@ public class AlertsViewModel : ViewModelBase
         }
 
         NavigateToInventory?.Invoke(SelectedAlert.ProductName);
+    }
+
+    private void ExecuteViewProduct()
+    {
+        if (SelectedAlert is null)
+        {
+            return;
+        }
+
+        NavigateToProduct?.Invoke(SelectedAlert.ProductId);
     }
 
     private void ExecuteExport()

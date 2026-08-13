@@ -223,13 +223,17 @@
                       Height="36"/>
         </Grid>
 
-        <!-- 컬럼 헤더. 좌측 24는 행 템플릿의 펼침 화살표 컬럼과 맞춘 것이다. -->
+        <!-- 컬럼 헤더. 좌측 24는 행 템플릿의 펼침 화살표 컬럼과 맞춘 것이다.
+             우측 17은 세로 스크롤바 폭이다(SystemParameters.VerticalScrollBarWidth 기본값).
+             목록 쪽은 스크롤바가 자리를 먹어 그만큼 좁아지는데, 헤더는 안 좁아져서
+             첫 컬럼이 *인 탓에 그 차이가 뒤쪽 컬럼 경계까지 전부 밀렸다.
+             아래 TreeView에서 스크롤바를 항상 보이게 두어 이 값이 흔들리지 않게 한다. -->
         <Border Grid.Row="2"
                 Background="{StaticResource SubtleSurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrushSoft}"
                 BorderThickness="1,1,1,1"
                 CornerRadius="8,8,0,0"
-                Padding="24,0,0,0">
+                Padding="24,0,17,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"   MinWidth="200"/>
@@ -264,11 +268,36 @@
                   ItemsSource="{Binding GroupedItems}"
                   ItemContainerStyle="{StaticResource RowBase}"
                   SelectedItemChanged="OnTreeSelectedItemChanged"
+                  PreviewMouseRightButtonDown="OnTreeRightButtonDown"
+                  ContextMenuOpening="OnTreeContextMenuOpening"
                   BorderThickness="1,0,1,1"
                   BorderBrush="{StaticResource BorderBrushSoft}"
                   Background="White"
                   HorizontalContentAlignment="Stretch"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible">
+
+            <!-- 우클릭 메뉴. 아래 버튼들과 같은 Command를 그대로 쓴다 —
+                 같은 일을 하는 경로가 둘이 되면 한쪽만 고치는 일이 반드시 생긴다.
+                 Delete Batch만 배치 행에서 쓸 수 있다(제품 행에는 지울 대상이 없다). -->
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="View Product Details"
+                              Command="{Binding ViewProductDetailsCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                    <MenuItem Header="Stock-in"
+                              Command="{Binding StockInCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                    <MenuItem Header="Adjustment"
+                              Command="{Binding AdjustmentCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                    <Separator/>
+                    <MenuItem Header="Delete Batch"
+                              Command="{Binding DeleteBatchCommand}"
+                              IsEnabled="{Binding IsBatchSelected}"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+
 
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Batches}"
@@ -419,18 +448,15 @@
                                                VerticalAlignment="Center"/>
                                 </Border>
 
-                                <!-- 어느 배치가 임박/만료인지 여기서 구분된다. 제품 행은 이걸 합친 결과다. -->
+                                <!-- 배치 행에는 유효기한 배지만 둔다.
+                                     저재고(Low)는 제품 단위 판단이라 제품 행에만 나온다 —
+                                     한 배치에 8개 남았다는 것과 그 약이 모자란다는 것은 다른 이야기다. -->
                                 <Border Grid.Column="4" Style="{StaticResource Cell}">
                                     <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <Border Style="{StaticResource Badge}"
                                                 Background="{StaticResource DangerBrush}"
                                                 Visibility="{Binding IsExpired, Converter={StaticResource BoolToVis}}">
                                             <TextBlock Text="Expired" Style="{StaticResource BadgeText}" Foreground="White"/>
-                                        </Border>
-                                        <Border Style="{StaticResource Badge}" Background="#FEE2E2"
-                                                Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="Low" Style="{StaticResource BadgeText}"
-                                                       Foreground="{StaticResource DangerBrush}"/>
                                         </Border>
                                         <Border Style="{StaticResource Badge}" Background="#FEF3C7"
                                                 Visibility="{Binding IsExpiringSoon, Converter={StaticResource BoolToVis}}">
@@ -478,10 +504,19 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
 
+                    <!-- 배치번호는 고칠 수 있다. 초기 재고를 번호 없이 들여온 뒤
+                         나중에 번호를 붙이는 자리가 여기밖에 없다. -->
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                        <TextBlock Text="Batch Number" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding AdjustmentBatchNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource FieldInput}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="4,0,4,0">
                         <TextBlock Text="System Quantity" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding SystemQuantity, Mode=OneWay}"
                                  IsReadOnly="True"
@@ -494,27 +529,27 @@
 
                     <!-- 박스 칸은 박스/낱개를 나눠 파는 상품에만 나온다. 실사는 선반에서
                          "안 뜯은 통 몇 개, 헐어 놓은 알 몇 개"로 세지, 총 알 수를 암산하지 않는다. -->
-                    <StackPanel Grid.Column="1" Margin="4,0,4,0"
+                    <StackPanel Grid.Column="2" Margin="4,0,4,0"
                                 Visibility="{Binding IsBoxedBatchSelected, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="Physical Count — Unopened Boxes" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding PhysicalBoxCount, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource FieldInput}"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="2" Margin="4,0,4,0">
+                    <StackPanel Grid.Column="3" Margin="4,0,4,0">
                         <TextBlock Text="{Binding PhysicalUnitCountLabel}" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding PhysicalUnitCount, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource FieldInput}"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="3" Margin="4,0,4,0">
+                    <StackPanel Grid.Column="4" Margin="4,0,4,0">
                         <TextBlock Text="Adjustment Delta" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding Delta, Mode=OneWay}"
                                  IsReadOnly="True"
                                  Style="{StaticResource FieldInput}"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="4" Margin="4,0,0,0">
+                    <StackPanel Grid.Column="5" Margin="4,0,0,0">
                         <TextBlock Text="Reason" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding AdjustmentReason, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource FieldInput}"/>

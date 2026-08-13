@@ -1,17 +1,49 @@
-﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.ProductEditView"
+<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.ProductEditView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             d:DesignWidth="450" d:DesignHeight="700">
+             d:DesignWidth="900" d:DesignHeight="760">
 
+    <!--
+        입력칸이 스무 개 가까이 되어 한 줄로 세우면 화면 두 배 길이가 나왔다.
+        상품을 하나 등록하는 동안 위아래로 계속 굴려야 했고, 아래쪽 Save 버튼이
+        늘 화면 밖에 있었다. 그래서 좌우 2단으로 나눠 한 화면에 담는다.
+
+        나누는 기준은 "무엇을 적는 칸인가"다.
+          왼쪽 = 이 약이 무엇인지 (이름·규격·제조)
+          오른쪽 = 얼마에 얼마나 파는지 (바코드·가격·재고·항생제 분류)
+        ScrollViewer는 남겨 둔다. 소분 판매를 켜면 오른쪽이 그만큼 길어지고,
+        해상도가 낮은 계산대 PC도 있기 때문이다.
+    -->
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource EyebrowLabel}">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- 칸 사이 간격을 한 곳에서 정한다. 2단으로 접으면서 8px로 줄였다 —
+             10px로는 세로가 한 화면에 안 들어온다. -->
+        <Style x:Key="Field" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="FieldCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Opacity"      Value="0.7"/>
+            <Setter Property="FontSize"     Value="11"/>
+            <Setter Property="Margin"       Value="0,0,0,8"/>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Width="380" Margin="20" HorizontalAlignment="Center">
+        <Grid Width="820" Margin="20" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -20,96 +52,135 @@
 
             <TextBlock Grid.Row="0" Text="Product" Style="{StaticResource PageTitle}" Margin="0,0,0,18"/>
 
-            <StackPanel Grid.Row="1">
-                <TextBlock Text="Manufacturer Barcode" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Internal Barcode (auto-generated if empty)" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding InternalBarcode}" IsReadOnly="True" Margin="0,0,0,10"/>
+                <!-- ═══ 왼쪽: 이 약이 무엇인지 ═══ -->
+                <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                    <TextBlock Text="IDENTIFICATION" Style="{StaticResource SectionHeader}"/>
 
-                <TextBlock Text="Product Name *" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Product Name *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                <TextBlock Text="Generic Name" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding GenericName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Generic Name" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding GenericName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                <!-- 선택 입력. 맨 위 빈 항목이 "아직 정하지 않음"이다. -->
-                <TextBlock Text="Category (optional)" Style="{StaticResource FieldLabel}"/>
-                <ComboBox ItemsSource="{Binding AvailableCategories}"
-                          SelectedItem="{Binding Category}"
-                          Margin="0,0,0,10"/>
+                    <TextBlock Text="Strength" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Strength, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                <TextBlock Text="ATC Code (antibiotics only)" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding AtcCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
-                <TextBlock Text="Used to look up the WHO AWaRe group for counselling sheets. Leave empty for non-antibiotics."
-                           TextWrapping="Wrap" Opacity="0.7" FontSize="11" Margin="0,0,0,10"/>
+                    <TextBlock Text="Unit *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                <CheckBox Content="Fixed-dose combination product"
-                          IsChecked="{Binding IsCombination}" Margin="0,0,0,10"/>
+                    <!-- 선택 입력. 맨 위 빈 항목이 "아직 정하지 않음"이다. -->
+                    <TextBlock Text="Category (optional)" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding AvailableCategories}"
+                              SelectedItem="{Binding Category}"
+                              Style="{StaticResource FieldCombo}"/>
 
-                <TextBlock Text="Strength" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding Strength, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="SOURCE" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
 
-                <TextBlock Text="Unit *" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Manufacturer" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Manufacturer, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                <TextBlock Text="Manufacturer" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding Manufacturer, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Country of Origin" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding CountryOfOrigin, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                <TextBlock Text="Country of Origin" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding CountryOfOrigin, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="ANTIBIOTIC" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
 
-                <TextBlock Text="Cost Price *" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding CostPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="ATC Code (antibiotics only)" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding AtcCode, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,4"/>
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="Used to look up the WHO AWaRe group for counselling sheets. Leave empty for non-antibiotics."/>
 
-                <TextBlock Text="Selling Price *" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding SellingPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
-                <TextBlock Text="{Binding BoxPriceHint}"
-                           TextWrapping="Wrap" Opacity="0.7" FontSize="11" Margin="0,0,0,10"/>
+                    <CheckBox Content="Fixed-dose combination product"
+                              IsChecked="{Binding IsCombination}"/>
+                </StackPanel>
 
-                <!-- 소분 판매. 이 체크를 켜야 아래 세 가지(박스당 개수·낱개가·낱개 바코드)가
-                     의미를 갖는다. 꺼 두면 박스당 1개짜리 상품으로 저장돼 종전과 똑같이 동작한다. -->
-                <CheckBox Content="Sell loose units"
-                          IsChecked="{Binding SellsLooseUnits}" Margin="0,4,0,0"/>
+                <!-- ═══ 오른쪽: 얼마에 얼마나 파는지 ═══ -->
+                <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                    <TextBlock Text="BARCODE" Style="{StaticResource SectionHeader}"/>
 
-                <Border Visibility="{Binding SellsLooseUnits, Converter={StaticResource BoolToVis}}"
-                        Background="#F8F9FA" CornerRadius="8"
-                        Padding="14,12" Margin="0,8,0,10">
-                    <StackPanel>
-                        <TextBlock Text="{Binding UnitsPerBoxLabel}" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Manufacturer Barcode" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                        <TextBlock Text="Loose Unit Price" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding UnitSellingPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding UnitPriceHint}"
-                                   TextWrapping="Wrap" Opacity="0.7" FontSize="11" Margin="0,0,0,10"/>
+                    <TextBlock Text="Internal Barcode (auto-generated if empty)" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding InternalBarcode}" IsReadOnly="True"
+                             Style="{StaticResource Field}"/>
 
-                        <TextBlock Text="Unit Barcode" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding UnitBarcodePreview, Mode=OneWay}" IsReadOnly="True" Margin="0,0,0,4"/>
-                        <TextBlock Text="Scan this to sell one loose unit. The manufacturer barcode still sells a whole box."
-                                   TextWrapping="Wrap" Opacity="0.7" FontSize="11"/>
-                    </StackPanel>
-                </Border>
+                    <TextBlock Text="PRICE AND STOCK" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
 
-                <TextBlock Text="Safety Stock Level *" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding SafetyStockLevel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Cost Price *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding CostPrice, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
 
-                <TextBlock Text="Status *" Style="{StaticResource FieldLabel}"/>
-                <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding Status}" Margin="0,0,0,10"/>
-            </StackPanel>
+                    <TextBlock Text="Selling Price *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding SellingPrice, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding BoxPriceHint}" Style="{StaticResource Hint}"/>
 
-            <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                <Grid>
+                    <TextBlock Text="Safety Stock Level *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding SafetyStockLevel, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
+
+                    <TextBlock Text="Status *" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding Status}"
+                              Style="{StaticResource FieldCombo}"/>
+
+                    <!-- 소분 판매. 이 체크를 켜야 아래 세 가지(박스당 개수·낱개가·낱개 바코드)가
+                         의미를 갖는다. 꺼 두면 박스당 1개짜리 상품으로 저장돼 종전과 똑같이 동작한다. -->
+                    <CheckBox Content="Sell loose units"
+                              IsChecked="{Binding SellsLooseUnits}" Margin="0,6,0,0"/>
+
+                    <Border Visibility="{Binding SellsLooseUnits, Converter={StaticResource BoolToVis}}"
+                            Background="{StaticResource SubtleSurfaceBrush}" CornerRadius="8"
+                            Padding="14,12" Margin="0,8,0,0">
+                        <StackPanel>
+                            <TextBlock Text="{Binding UnitsPerBoxLabel}" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource Field}"/>
+
+                            <TextBlock Text="Loose Unit Price" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding UnitSellingPrice, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding UnitPriceHint}" Style="{StaticResource Hint}"/>
+
+                            <TextBlock Text="Unit Barcode" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding UnitBarcodePreview, Mode=OneWay}" IsReadOnly="True"
+                                     Margin="0,0,0,4"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0"
+                                       Text="Scan this to sell one loose unit. The manufacturer barcode still sells a whole box."/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- 버튼은 두 단 아래에 한 줄로 둔다. 어느 쪽 칸을 채우고 있든 눈에 들어와야 한다. -->
+            <StackPanel Grid.Row="2" Margin="0,18,0,0">
+                <Grid HorizontalAlignment="Right" Width="380">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="0" Content="Cancel" Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Command="{Binding CancelCommand}"/>
-                    <Button Grid.Column="1" Content="Save" Style="{StaticResource PrimaryBtn}" Margin="5,0,0,0" Command="{Binding SaveCommand}"/>
+                    <Button Grid.Column="0" Content="Cancel" Style="{StaticResource SecondaryBtn}"
+                            Margin="0,0,5,0" Command="{Binding CancelCommand}"/>
+                    <Button Grid.Column="1" Content="Save" Style="{StaticResource PrimaryBtn}"
+                            Margin="5,0,0,0" Command="{Binding SaveCommand}"/>
                 </Grid>
 
-                <TextBlock Text="{Binding Message}" Style="{StaticResource ErrorText}" MinHeight="18" Margin="0,10,0,0"/>
+                <TextBlock Text="{Binding Message}" Style="{StaticResource ErrorText}"
+                           MinHeight="18" Margin="0,10,0,0"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

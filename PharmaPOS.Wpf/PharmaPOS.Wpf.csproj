@@ -27,6 +27,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 로그인 전 화면의 CAMDIANS 워드마크에 쓰는 글꼴(Abril Fatface).
+         윈도우 기본 글꼴이 아니라, 어셈블리에 넣어야 고객 PC에서도 같은 모양으로 나온다.
+         Resource라서 단일 파일 게시에서도 exe 안에 함께 들어가고 곁딸린 파일이 생기지 않는다.
+         SIL Open Font License 1.1 — 함께 배포하려면 OFL.txt를 같이 두어야 한다. -->
+    <Resource Include="Fonts\AbrilFatface-Regular.ttf" />
+    <Content Include="Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PharmaPOS.Application\PharmaPOS.Application.csproj" />
     <ProjectReference Include="..\PharmaPOS.DataAccess\PharmaPOS.DataAccess.csproj" />
     <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />

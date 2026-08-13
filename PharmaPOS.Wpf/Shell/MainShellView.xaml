@@ -360,7 +360,10 @@
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
                                     <TextBlock Text="Products" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
+                                <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
+                                     WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
                                 <TextBlock Text="💊" FontSize="120"
+                                           Foreground="{StaticResource PrimaryBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Margin="0,60,0,0"/>
                             </Grid>
@@ -381,7 +384,10 @@
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
                                     <TextBlock Text="Inventory" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
+                                <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
+                                     WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
                                 <TextBlock Text="📦" FontSize="120"
+                                           Foreground="{StaticResource PrimaryBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Margin="0,60,0,0"/>
                             </Grid>
@@ -391,9 +397,9 @@
             </Border>
 
             <!-- POS Sale -->
-            <!-- POS Sale은 주 동선이라 옅은 파랑으로 남겨 다른 두 카드와 구분한다. -->
-            <Border Grid.Column="2" Background="{StaticResource PrimarySoftBrush}"
-                    BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1"
+            <!-- 세 카드를 완전히 같게 둔다. 하나만 색이 다르면 한 벌로 읽히지 않는다. -->
+            <Border Grid.Column="2" Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
                     CornerRadius="20" Margin="10,0,0,0">
                 <Border.Effect>
                     <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="8" ShadowDepth="1"/>
@@ -405,7 +411,10 @@
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
                                     <TextBlock Text="POS Sale" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
+                                <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
+                                     WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
                                 <TextBlock Text="🛒" FontSize="120"
+                                           Foreground="{StaticResource PrimaryBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Margin="0,60,0,0"/>
                             </Grid>
@@ -419,13 +428,16 @@
         <UniformGrid Grid.Row="3" Rows="1" Margin="50,0,50,24"
                      Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVis}}">
             <Button Content="⚙️  Admin Dashboard" Style="{StaticResource BottomCardBtnPrimary}" Click="OnAdminDashboardClick" Margin="0,0,6,0"/>
-            <Button Content="✏️  Adjustment"      Style="{StaticResource BottomCardBtn}" Click="OnAdjustmentClick"     Margin="3,0"/>
+            <Button Content="📈  Reports"         Style="{StaticResource BottomCardBtn}" Click="OnReportsClick"        Margin="3,0"/>
             <Button Content="📊  History"         Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"        Margin="3,0"/>
             <Button Content="🧫  Counselling"     Style="{StaticResource BottomCardBtn}" Click="OnCounsellingSettingsClick" Margin="6,0,0,0"/>
         </UniformGrid>
 
-        <!-- 하단 버튼 (직원: 3개) -->
-        <UniformGrid Grid.Row="3" Rows="1" Margin="50,0,50,24">
+        <!-- 하단 버튼 (직원).
+             조정 버튼은 뺐다 — 재고 화면에서 배치를 고르고 그 아래 패널에서 하는 쪽으로 옮겼다.
+             리포트는 관리자 줄과 같은 자리에 두되 잠가 둔다. 아예 감추면 관리자 화면과
+             자리가 어긋나 보이고, 열어 주면 직원이 매출을 보게 된다. -->
+        <UniformGrid Grid.Row="3" Rows="1" Columns="2" Margin="50,0,50,24">
             <UniformGrid.Style>
                 <Style TargetType="UniformGrid">
                     <Setter Property="Visibility" Value="Visible"/>
@@ -436,7 +448,12 @@
                     </Style.Triggers>
                 </Style>
             </UniformGrid.Style>
-            <Button Content="✏️  Adjustment" Style="{StaticResource BottomCardBtn}" Click="OnAdjustmentClick" Margin="0,0,6,0"/>
+            <!-- 잠긴 버튼. 기본 ToolTip은 비활성 컨트롤에서 안 뜨므로 ShowOnDisabled를 켠다. -->
+            <Button Content="🔒  Reports"    Style="{StaticResource BottomCardBtn}"
+                    IsEnabled="False"
+                    ToolTip="Administrators only."
+                    ToolTipService.ShowOnDisabled="True"
+                    Margin="0,0,6,0"/>
             <Button Content="📊  History"    Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"    Margin="6,0,0,0"/>
         </UniformGrid>
 

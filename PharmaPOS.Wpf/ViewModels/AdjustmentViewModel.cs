@@ -313,9 +313,11 @@ public class AdjustmentViewModel : ViewModelBase
         int.TryParse(PhysicalBoxCount, out var physicalBoxCount);
         int.TryParse(PhysicalUnitCount, out var physicalUnitCount);
 
+        // 이 화면은 배치를 목록에서 고르기만 한다 — 번호를 고치는 칸은 재고 화면의 조정 패널에 있다.
         var result = await _adjustmentService.SaveAdjustmentAsync(
             _facilityId, SelectedProduct.ProductId, _userId,
-            SelectedBatch.InventoryId, SelectedBatch.BatchNumber, SelectedBatch.ExpiryDate,
+            SelectedBatch.InventoryId, SelectedBatch.BatchNumber, SelectedBatch.BatchNumber,
+            SelectedBatch.ExpiryDate,
             SystemQuantity, physicalBoxCount, physicalUnitCount, UnitsPerBox,
             Reason, allowZeroDelta);
 
