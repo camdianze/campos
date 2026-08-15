@@ -79,7 +79,9 @@ public class InitialSetupService : IInitialSetupService
         var policyResult = _passwordPolicyValidator.Validate(adminPassword, adminUsername);
         if (!policyResult.IsValid)
         {
-            return InitialSetupResult.Failure("Password does not meet the required rules.");
+            // 검증기가 돌려준 사유를 그대로 보여준다. 여기서 뭉뚱그리면
+            // 첫 계정을 만드는 사람이 무엇을 고쳐야 하는지 알 수 없다.
+            return InitialSetupResult.Failure(policyResult.ErrorMessage!);
         }
 
         // 보안 질문/답은 관리자 본인 비밀번호 복구를 위한 유일한 안전망이므로 필수로 요구한다.

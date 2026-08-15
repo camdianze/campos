@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.InitialSetupView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:policy="clr-namespace:PharmaPOS.Application.PasswordPolicy;assembly=PharmaPOS.Application"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
@@ -70,8 +71,9 @@
                         <TextBlock Text="Password*" Style="{StaticResource FieldLabel}"/>
                         <PasswordBox x:Name="AdminPasswordInput"
                                      Style="{StaticResource FieldPassword}" Margin="0,0,0,4"/>
-                        <TextBlock Text="* Min 8 characters, 1 number. No space. Only - '! @ # $ % ^ &amp; *'"
-                                   Style="{StaticResource Caption}" FontSize="11" Margin="0,0,0,16"/>
+                        <TextBlock Text="{x:Static policy:PasswordPolicyValidator.RuleSummary}"
+                                   Style="{StaticResource Caption}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,0,0,16"/>
 
                         <TextBlock Text="Confirm Password*" Style="{StaticResource FieldLabel}"/>
                         <PasswordBox x:Name="ConfirmAdminPasswordInput"

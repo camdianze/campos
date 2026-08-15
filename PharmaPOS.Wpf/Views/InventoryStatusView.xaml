@@ -282,6 +282,10 @@
                  Delete Batch만 배치 행에서 쓸 수 있다(제품 행에는 지울 대상이 없다). -->
             <TreeView.ContextMenu>
                 <ContextMenu>
+                    <MenuItem Header="Sell in POS"
+                              Command="{Binding SellInPosCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                    <Separator/>
                     <MenuItem Header="View Product Details"
                               Command="{Binding ViewProductDetailsCommand}"
                               IsEnabled="{Binding HasSelection}"/>

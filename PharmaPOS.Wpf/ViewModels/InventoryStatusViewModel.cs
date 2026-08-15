@@ -166,6 +166,26 @@ public class InventoryStatusViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 고른 상품을 들고 판매 화면으로 넘어간다.
+    /// 바코드가 안 읽히는 상품을 팔 때 쓰는 길이다 — 재고에서 눈으로 찾은 상품을
+    /// 판매 화면에서 다시 검색하지 않아도 된다.
+    /// </summary>
+    private void ExecuteSellInPos()
+    {
+        Message = string.Empty;
+
+        var productId = SelectedItem?.ProductId ?? SelectedGroup?.Batches.FirstOrDefault()?.ProductId;
+
+        if (productId is null)
+        {
+            Message = "Please select a product or batch.";
+            return;
+        }
+
+        NavigateToPosSale?.Invoke(productId);
+    }
+
+    /// <summary>
     /// 선택이 바뀌면 입고 패널은 접는다. 조정 패널과 달리 입고 패널에는 고른 배치에서
     /// 미리 채워 둔 배치번호·유효기한이 들어 있어, 열어 둔 채로 다른 줄을 고르면
     /// 표에서 파랗게 보이는 줄과 패널이 가리키는 배치가 어긋난다.
@@ -217,8 +237,14 @@ public class InventoryStatusViewModel : ViewModelBase
     /// <summary>우클릭 메뉴 전용. 고른 상품이 선택된 채로 상품 목록 화면을 연다.</summary>
     public RelayCommand ViewProductDetailsCommand { get; }
 
+    /// <summary>우클릭 메뉴 전용. 고른 상품을 들고 판매 화면으로 넘어간다.</summary>
+    public RelayCommand SellInPosCommand { get; }
+
     /// <summary>상품 목록 화면으로 넘어가 달라는 요청(상품 ID). 화면 전환은 코드 비하인드가 한다.</summary>
     public event Action<string>? NavigateToProductDetails;
+
+    /// <summary>판매 화면으로 넘어가 달라는 요청(상품 ID).</summary>
+    public event Action<string>? NavigateToPosSale;
 
     public InventoryStatusViewModel(
         IInventoryRepository inventoryRepository,
@@ -235,6 +261,7 @@ public class InventoryStatusViewModel : ViewModelBase
 
         ViewDetailCommand = new RelayCommand(_ => ExecuteViewDetail());
         ViewProductDetailsCommand = new RelayCommand(_ => ExecuteViewProductDetails());
+        SellInPosCommand = new RelayCommand(_ => ExecuteSellInPos());
         StockInCommand = new RelayCommand(_ => ExecuteOpenStockInPanel());
         AdjustmentCommand = new RelayCommand(_ => ExecuteOpenAdjustmentPanel());
         DeleteBatchCommand = new RelayCommand(async _ => await ExecuteDeleteBatchAsync());

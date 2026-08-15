@@ -250,6 +250,46 @@ public partial class PosSaleViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 재고 화면에서 고른 상품을 그대로 들고 판매 화면을 연다.
+    /// 바코드가 안 읽히는 상품을 팔 때 쓰는 경로다 — 이름을 다시 치게 하면
+    /// 손님을 세워 둔 채로 검색을 하게 된다.
+    ///
+    /// 검색 결과 목록에도 넣어 두는 이유: 화면의 목록과 선택이 붙어 있어서,
+    /// 목록에 없는 상품을 고르면 선택이 곧바로 풀린다.
+    /// </summary>
+    public async Task PreselectProductAsync(string productId)
+    {
+        Product? product;
+
+        try
+        {
+            product = await _productRepository.GetByIdAsync(productId);
+        }
+        catch (Exception)
+        {
+            Message = "Product could not be loaded.";
+            return;
+        }
+
+        if (product is null)
+        {
+            Message = "Product not found.";
+            return;
+        }
+
+        // 바코드로 들어온 게 아니므로 판매 단위는 이름으로 찾았을 때와 같게 둔다.
+        _scannedSaleUnit = SaleUnitOption.Box;
+
+        SearchTerm = product.ProductName;
+
+        SearchResults.Clear();
+        SearchResults.Add(product);
+
+        // 화면에서 직접 누른 것과 같은 경로다. 배치 로드와 가격 표시가 여기서 이어진다.
+        SelectedProduct = product;
+    }
+
     private async Task LoadBatchesAsync()
     {
         Batches.Clear();

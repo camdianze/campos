@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
@@ -18,6 +19,7 @@ public partial class InventoryStatusView : UserControl
 
         var viewModel = BuildViewModel();
         viewModel.NavigateToProductDetails += OnNavigateToProductDetails;
+        viewModel.NavigateToPosSale += OnNavigateToPosSale;
 
         DataContext = viewModel;
     }
@@ -118,6 +120,37 @@ public partial class InventoryStatusView : UserControl
         }
 
         parentWindow.Content = ProductListView.Create(productId, ProductListOrigin.InventoryStatus);
+    }
+
+    /// <summary>
+    /// 고른 상품을 들고 판매 화면을 연다. 바코드가 안 읽히는 상품을 파는 길이다.
+    /// 판매 화면 자체는 메인 셸에서 여는 것과 똑같이 만든다 — 상품만 미리 넣어 준다.
+    /// </summary>
+    private async void OnNavigateToPosSale(string productId)
+    {
+        var parentWindow = System.Windows.Window.GetWindow(this) as MainWindow;
+
+        if (parentWindow is null || App.CurrentShellViewModel is not { } shellViewModel)
+        {
+            return;
+        }
+
+        var posSaleViewModel = new PosSaleViewModel(
+            App.Services.GetRequiredService<IProductRepository>(),
+            App.Services.GetRequiredService<IInventoryRepository>(),
+            App.Services.GetRequiredService<ISaleService>(),
+            App.Services.GetRequiredService<IReceiptPrintingService>(),
+            App.Services.GetRequiredService<ICounsellingService>(),
+            shellViewModel.CurrentUser.FacilityId,
+            shellViewModel.CurrentUser.UserId,
+            shellViewModel.CurrentUser.Role);
+
+        var posSaleView = new PosSaleView();
+        posSaleView.AttachViewModel(posSaleViewModel);
+
+        parentWindow.Content = posSaleView;
+
+        await posSaleViewModel.PreselectProductAsync(productId);
     }
 
     private void OnBackClick(object sender, System.Windows.RoutedEventArgs e)
