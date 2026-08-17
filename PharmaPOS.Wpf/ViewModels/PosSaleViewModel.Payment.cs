@@ -186,11 +186,20 @@ public partial class PosSaleViewModel
 
         foreach (var candidate in candidates)
         {
+            // 항생제를 팔았다는 사실은 인쇄 설정과 무관하게 알린다. 용지가 나가느냐는
+            // 그다음 문제다 — 프린터가 없어도 약사는 복약지도를 해야 하고, always로 두면
+            // 종이만 조용히 나가서 계산대에서는 아무 일도 없었던 것처럼 보인다.
+            var notice =
+                "This product contains an antibiotic. Counsel the patient before handing it over."
+                + $"\n\n{candidate.ProductName}"
+                + $"\nWHO AWaRe group: {AwareGroupCodes.ToCode(candidate.AwareGroup)}";
+
             if (candidate.RequiresPrompt)
             {
+                // ask: 같은 안내를 띄우면서 인쇄 여부까지 함께 묻는다.
                 var printIt = AppDialog.Confirm(
                     "Antibiotic Counselling",
-                    $"This product contains an antibiotic. Print the counselling sheet?\n\n{candidate.ProductName}",
+                    notice + "\n\nPrint the counselling sheet?",
                     confirmText: "Print",
                     cancelText: "Skip");
 
@@ -200,6 +209,11 @@ public partial class PosSaleViewModel
                         candidate, CounsellingService.SkipReasonPharmacist);
                     continue;
                 }
+            }
+            else
+            {
+                // always: 안내만 확인받고 인쇄는 그대로 진행한다.
+                AppDialog.Show("Antibiotic Counselling", notice);
             }
 
             var result = await _counsellingService.PrintAsync(candidate);
