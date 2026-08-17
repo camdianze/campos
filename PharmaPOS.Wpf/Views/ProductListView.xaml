@@ -10,6 +10,17 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- 숫자 칸은 오른쪽으로 붙인다. 왼쪽 정렬이면 10.4 / 27.61 / 6.78의 자릿수가
+             어긋나 눈으로 크기를 견줄 수가 없다. 머리글도 같이 오른쪽으로 보내야 줄이 맞는다. -->
+        <Style x:Key="NumericCell" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+
+        <Style x:Key="NumericHeader" TargetType="DataGridColumnHeader"
+               BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        </Style>
+
         <!-- 안쪽 입력칸(DatePickerTextBox) 모양은 App.xaml의 암시적 스타일이 맞춘다.
              컨트롤 템플릿 안에서 만들어지는 요소라, 화면 단위 리소스로는 잡히지 않는다. -->
         <Style x:Key="StockInDatePicker" TargetType="DatePicker">
@@ -64,18 +75,34 @@
                   BorderBrush="{StaticResource BorderBrushSoft}"
                   RowBackground="White"
                   AlternatingRowBackground="{StaticResource SubtleSurfaceBrush}"
-                  GridLinesVisibility="Horizontal"
+                  GridLinesVisibility="All"
                   HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
+                  VerticalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
+
+            <!-- Status 컬럼을 없앤 대신 비활성 상품은 행을 흐리게 둔다. 목록은 거의 전부
+                 Active라 컬럼 하나가 같은 단어를 반복하고 있었다. 규칙이 아니라 예외가 보여야 한다.
+                 Opacity를 함께 낮추는 이유: 상품명 앞의 AWaRe 색점은 글자색을 따르지 않는다. -->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Product.Status}" Value="Inactive">
+                            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+                            <Setter Property="Opacity"    Value="0.5"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
             <DataGrid.Columns>
-                <!-- 상품명 앞의 점은 WHO AWaRe 분류다.
+                <!-- 성분명 앞의 점은 WHO AWaRe 분류다.
                      초록 ACCESS · 노랑 WATCH · 빨강 RESERVE · 검정 NOT RECOMMENDED.
                      항생제가 아니거나 참조 목록에 없으면 점이 없다.
 
-                     점을 이름 뒤가 아니라 앞에 두는 이유: 뒤에 붙이면 이름 길이만큼
-                     점의 위치가 제각각이라 세로로 훑을 수가 없다. 앞에 고정폭 칸을 두면
-                     점도 이름도 모든 행에서 같은 자리에서 시작한다. -->
-                <DataGridTemplateColumn Header="Product Name" Width="*" SortMemberPath="Product.ProductName">
+                     점이 성분명 쪽에 붙는 이유: 분류를 정하는 값이 상품명이 아니라 성분명이다.
+                     맨 앞 고정폭 칸에 두면 상품마다 점의 위치가 제각각이 되지 않아
+                     세로로 훑어 내려갈 수 있다. -->
+                <DataGridTemplateColumn Header="Generic" Width="170" SortMemberPath="Product.GenericName">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Grid VerticalAlignment="Center">
@@ -94,25 +121,38 @@
                                          Visibility="{Binding HasAwareGroup, Converter={StaticResource BoolToVis}}"/>
 
                                 <TextBlock Grid.Column="1"
-                                           Text="{Binding Product.ProductName}"
+                                           Text="{Binding Product.GenericName}"
                                            VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis"/>
                             </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Generic Name"     Binding="{Binding Product.GenericName}"     Width="*"/>
-                <!-- Strength · Dosage Form · Unit 셋은 서로 다른 값이다.
+
+                <!-- 머리글은 짧게 줄였다. 이 이름들은 화면에만 쓰는 것이라
+                     가져오기·내보내기 파일의 컬럼명(product_name, cost_price …)과는 무관하다. -->
+                <DataGridTextColumn Header="Product Name"     Binding="{Binding Product.ProductName}"     Width="*"/>
+                <!-- Strength · Form · Unit 셋은 서로 다른 값이다.
                      "500 mg" / "Syrup" / "Bottle"처럼 나란히 놓여야 구분이 된다. -->
-                <DataGridTextColumn Header="Strength"         Binding="{Binding Product.Strength}"        Width="90"/>
-                <DataGridTextColumn Header="Dosage Form"      Binding="{Binding Product.DosageForm}"      Width="100"/>
-                <DataGridTextColumn Header="Unit"             Binding="{Binding Product.Unit}"            Width="90"/>
-                <DataGridTextColumn Header="Barcode"          Binding="{Binding Product.Barcode}"         Width="120"/>
-                <DataGridTextColumn Header="Internal Barcode" Binding="{Binding Product.InternalBarcode}" Width="120"/>
-                <DataGridTextColumn Header="Cost Price"       Binding="{Binding Product.CostPrice}"       Width="90"/>
-                <DataGridTextColumn Header="Selling Price"    Binding="{Binding Product.SellingPrice}"    Width="90"/>
-                <DataGridTextColumn Header="Safety Stock"     Binding="{Binding Product.SafetyStockLevel}" Width="90"/>
-                <DataGridTextColumn Header="Status"           Binding="{Binding Product.Status}"          Width="80"/>
+                <DataGridTextColumn Header="Strength"         Binding="{Binding Product.Strength}"        Width="80"/>
+                <DataGridTextColumn Header="Form"             Binding="{Binding Product.DosageForm}"      Width="90"/>
+                <DataGridTextColumn Header="Unit"             Binding="{Binding Product.Unit}"            Width="70"/>
+                <DataGridTextColumn Header="Barcode"          Binding="{Binding Product.Barcode}"         Width="118"/>
+                <DataGridTextColumn Header="Internal"         Binding="{Binding Product.InternalBarcode}" Width="115"/>
+
+                <!-- 가격은 소수점 두 자리로 고정한다. 10.4와 27.61이 섞이면 자리가 어긋난다. -->
+                <DataGridTextColumn Header="Cost"    Binding="{Binding Product.CostPrice, StringFormat={}{0:N2}}"
+                                    Width="78"
+                                    ElementStyle="{StaticResource NumericCell}"
+                                    HeaderStyle="{StaticResource NumericHeader}"/>
+                <DataGridTextColumn Header="Selling" Binding="{Binding Product.SellingPrice, StringFormat={}{0:N2}}"
+                                    Width="82"
+                                    ElementStyle="{StaticResource NumericCell}"
+                                    HeaderStyle="{StaticResource NumericHeader}"/>
+                <DataGridTextColumn Header="Safety"  Binding="{Binding Product.SafetyStockLevel}"
+                                    Width="68"
+                                    ElementStyle="{StaticResource NumericCell}"
+                                    HeaderStyle="{StaticResource NumericHeader}"/>
             </DataGrid.Columns>
         </DataGrid>
 
