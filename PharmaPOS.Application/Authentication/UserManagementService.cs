@@ -103,6 +103,20 @@ public class UserManagementService : IUserManagementService
         return UserManagementResult.Success();
     }
 
+    public async Task<UserManagementResult> ActivateUserAsync(string targetUserId)
+    {
+        try
+        {
+            await _userRepository.UpdateStatusAsync(targetUserId, EntityStatus.Active);
+        }
+        catch (Exception)
+        {
+            return UserManagementResult.Failure("User could not be activated.");
+        }
+
+        return UserManagementResult.Success();
+    }
+
     public async Task<UserManagementResult> UpdateRoleAsync(string targetUserId, UserRole newRole)
     {
         try

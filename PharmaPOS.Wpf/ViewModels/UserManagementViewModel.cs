@@ -59,8 +59,28 @@ public class UserManagementViewModel : ViewModelBase
     public User? SelectedUser
     {
         get => _selectedUser;
-        set => SetProperty(ref _selectedUser, value);
+        set
+        {
+            if (SetProperty(ref _selectedUser, value))
+            {
+                OnPropertyChanged(nameof(HasSelection));
+                OnPropertyChanged(nameof(IsActivateVisible));
+                OnPropertyChanged(nameof(IsDeactivateVisible));
+            }
+        }
     }
+
+    /// <summary>우클릭 메뉴 활성화 조건. 고른 줄이 없으면 할 수 있는 일이 없다.</summary>
+    public bool HasSelection => SelectedUser is not null;
+
+    /// <summary>
+    /// 활성/비활성 버튼은 한 자리를 나눠 쓴다. 고른 계정의 상태에 따라 둘 중 하나만 보인다 —
+    /// 이미 비활성인 계정에 Deactivate를 누르게 두면 무슨 일이 일어나는지 알 수 없다.
+    /// 아무것도 고르지 않았을 때는 Deactivate 쪽이 남아 자리가 비지 않는다.
+    /// </summary>
+    public bool IsActivateVisible => SelectedUser is { Status: EntityStatus.Inactive };
+
+    public bool IsDeactivateVisible => !IsActivateVisible;
 
     public string Message
     {
@@ -71,6 +91,7 @@ public class UserManagementViewModel : ViewModelBase
     public RelayCommand AddUserCommand { get; }
     public RelayCommand EditRoleCommand { get; }
     public RelayCommand DeactivateCommand { get; }
+    public RelayCommand ActivateCommand { get; }
     public RelayCommand ResetPasswordCommand { get; }
     public RelayCommand BackCommand { get; }
 
@@ -94,6 +115,8 @@ public class UserManagementViewModel : ViewModelBase
         EditRoleCommand = new RelayCommand(async _ => await ExecuteEditRoleAsync());
 
         DeactivateCommand = new RelayCommand(async _ => await ExecuteDeactivateAsync());
+
+        ActivateCommand = new RelayCommand(async _ => await ExecuteActivateAsync());
 
         ResetPasswordCommand = new RelayCommand(_ =>
         {
@@ -167,6 +190,35 @@ public class UserManagementViewModel : ViewModelBase
         if (result.IsSuccess)
         {
             await ReloadAsync();
+        }
+        else
+        {
+            Message = result.Message!;
+        }
+    }
+
+    private async Task ExecuteActivateAsync()
+    {
+        if (SelectedUser is null)
+        {
+            Message = "Please select a user.";
+            return;
+        }
+
+        var result = await _userManagementService.ActivateUserAsync(SelectedUser.UserId);
+
+        if (result.IsSuccess)
+        {
+            // 상태 필터가 Inactive면 방금 되살린 계정이 목록에서 사라진다. 어디로 갔는지
+            // 알 수 없으므로 그 경우에만 한 줄 남긴다.
+            var username = SelectedUser.Username;
+
+            await ReloadAsync();
+
+            if (SelectedStatusFilter == EntityStatus.Inactive)
+            {
+                Message = $"'{username}' is active again.";
+            }
         }
         else
         {

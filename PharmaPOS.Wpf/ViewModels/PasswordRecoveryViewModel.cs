@@ -67,6 +67,7 @@ public class PasswordRecoveryViewModel : ViewModelBase
     public RelayCommand VerifySecurityAnswerCommand { get; }
     public RelayCommand SendOtpCommand { get; }
     public RelayCommand VerifyOtpCommand { get; }
+    public RelayCommand BackCommand { get; }
     public RelayCommand CancelCommand { get; }
 
     public event Action? NavigateBackToLogin;
@@ -82,7 +83,37 @@ public class PasswordRecoveryViewModel : ViewModelBase
         VerifySecurityAnswerCommand = new RelayCommand(async _ => await ExecuteVerifySecurityAnswerAsync());
         SendOtpCommand = new RelayCommand(async _ => await ExecuteSendOtpAsync());
         VerifyOtpCommand = new RelayCommand(async _ => await ExecuteVerifyOtpAsync());
+        BackCommand = new RelayCommand(_ => ExecuteBack());
         CancelCommand = new RelayCommand(_ => NavigateBackToLogin?.Invoke());
+    }
+
+    /// <summary>
+    /// 한 단계 되돌린다. 아이디를 잘못 쳤거나 인증 수단을 다시 고르려면 이 길밖에 없다 —
+    /// 1단계에서 더 뒤로 가는 것은 Back이 아니라 Cancel(로그인 화면)이다.
+    ///
+    /// 지우는 범위가 단계마다 다르다. 3→2는 입력했던 답/코드만 비운다. 2→1은 아이디가
+    /// 바뀔 수 있는 자리로 돌아가는 것이라, 앞 사람 아이디로 받아 둔 검증 토큰까지 버린다.
+    /// </summary>
+    private void ExecuteBack()
+    {
+        Message = string.Empty;
+        SecurityAnswer = string.Empty;
+        OtpCode = string.Empty;
+
+        if (CurrentStep == 3)
+        {
+            // 토큰은 남겨 둔다. 이메일 OTP는 한 번 맞히면 그 코드가 소비되므로,
+            // 여기서 토큰까지 버리면 용무 없이 되돌아본 사람도 코드를 다시 받아야 한다.
+            // 3단계로 다시 가려면 어차피 이 화면의 Confirm을 통과해야 한다.
+            CurrentStep = 2;
+            return;
+        }
+
+        if (CurrentStep == 2)
+        {
+            _verifiedToken = null;
+            CurrentStep = 1;
+        }
     }
 
     private async Task ExecuteFindAccountAsync()

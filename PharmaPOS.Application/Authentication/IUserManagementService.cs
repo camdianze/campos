@@ -18,6 +18,13 @@ public interface IUserManagementService
     /// </summary>
     Task<UserManagementResult> DeactivateUserAsync(string targetUserId, string currentUserId);
 
+    /// <summary>
+    /// 비활성화한 사용자를 다시 쓸 수 있게 되돌린다.
+    /// 비활성화와 달리 본인 계정 검사가 없다 — 자기 계정은 애초에 비활성화할 수 없어
+    /// 되살릴 일이 없고, 로그인해 있다는 것 자체가 이미 Active라는 뜻이다.
+    /// </summary>
+    Task<UserManagementResult> ActivateUserAsync(string targetUserId);
+
     /// <summary>사용자의 역할을 변경한다.</summary>
     Task<UserManagementResult> UpdateRoleAsync(string targetUserId, UserRole newRole);
 

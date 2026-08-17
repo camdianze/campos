@@ -6,6 +6,10 @@
              mc:Ignorable="d"
              d:DesignWidth="700" d:DesignHeight="500">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -36,9 +40,35 @@
         <DataGrid Grid.Row="2"
                   ItemsSource="{Binding Users}"
                   SelectedItem="{Binding SelectedUser}"
+                  PreviewMouseRightButtonDown="OnGridRightButtonDown"
+                  ContextMenuOpening="OnGridContextMenuOpening"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single">
+
+            <!-- 우클릭 메뉴. 아래 버튼들과 같은 Command를 그대로 쓴다 —
+                 같은 일을 하는 경로가 둘이 되면 한쪽만 고치는 일이 반드시 생긴다.
+                 Activate와 Deactivate는 고른 계정의 상태에 따라 하나만 나온다. -->
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Edit Role"
+                              Command="{Binding EditRoleCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                    <Separator/>
+                    <MenuItem Header="Activate"
+                              Command="{Binding ActivateCommand}"
+                              Visibility="{Binding IsActivateVisible, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Deactivate"
+                              Command="{Binding DeactivateCommand}"
+                              IsEnabled="{Binding HasSelection}"
+                              Visibility="{Binding IsDeactivateVisible, Converter={StaticResource BoolToVis}}"/>
+                    <Separator/>
+                    <MenuItem Header="Reset Password"
+                              Command="{Binding ResetPasswordCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="*"/>
                 <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="140"/>
@@ -58,7 +88,11 @@
             <Button Grid.Column="0" Content="← Back"         Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Command="{Binding BackCommand}"/>
             <Button Grid.Column="1" Content="Add User"       Style="{StaticResource PrimaryBtn}"   Margin="5,0,5,0" Command="{Binding AddUserCommand}"/>
             <Button Grid.Column="2" Content="Edit Role"      Style="{StaticResource SecondaryBtn}" Margin="5,0,5,0" Command="{Binding EditRoleCommand}"/>
-            <Button Grid.Column="3" Content="Deactivate"     Style="{StaticResource DangerBtn}"    Margin="5,0,5,0" Command="{Binding DeactivateCommand}"/>
+            <!-- 두 버튼이 같은 칸을 나눠 쓴다. 고른 계정의 상태에 따라 하나만 보인다. -->
+            <Button Grid.Column="3" Content="Deactivate"     Style="{StaticResource DangerBtn}"    Margin="5,0,5,0" Command="{Binding DeactivateCommand}"
+                    Visibility="{Binding IsDeactivateVisible, Converter={StaticResource BoolToVis}}"/>
+            <Button Grid.Column="3" Content="Activate"       Style="{StaticResource PrimaryBtn}"   Margin="5,0,5,0" Command="{Binding ActivateCommand}"
+                    Visibility="{Binding IsActivateVisible, Converter={StaticResource BoolToVis}}"/>
             <Button Grid.Column="4" Content="Reset Password" Style="{StaticResource SecondaryBtn}" Margin="5,0,0,0" Command="{Binding ResetPasswordCommand}"/>
         </Grid>
 
