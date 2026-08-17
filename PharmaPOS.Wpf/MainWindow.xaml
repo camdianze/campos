@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="CamPOS" Height="450" Width="800">
     <Grid>
         <!-- 시작 화면은 App.xaml.cs의 OnStartup에서 동적으로 채워진다. -->
     </Grid>
