@@ -11,6 +11,11 @@ public class ReportData
     public required SalesTotals Current { get; init; }
     public required SalesTotals Previous { get; init; }
     public required IReadOnlyList<ProductSalesRow> Products { get; init; }
+
+    /// <summary>
+    /// 항생제 성분별 판매. <b>AWaRe 그룹으로 판정된 줄만</b> 들어 있다(UNMATCHED 제외).
+    /// 아래 세 지표가 이 목록을 그대로 합산하므로 그 전제가 깨지면 값이 조용히 틀어진다.
+    /// </summary>
     public required IReadOnlyList<AntibioticSalesRow> Antibiotics { get; init; }
 
     public string AmountChange => PeriodChange.Format(Current.Amount, Previous.Amount);

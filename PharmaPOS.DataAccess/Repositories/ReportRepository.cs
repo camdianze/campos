@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Reports;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.DataAccess.Database;
+using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.DataAccess.Repositories;
 
@@ -149,6 +150,13 @@ public class ReportRepository : IReportRepository
         // "항생제가 손님 손에 몇 번 나갔고 그 중 몇 번에 복약안내를 줬는가"이고,
         // 돈을 돌려줬다고 해서 이미 나간 항생제와 그때 한 안내가 없던 일이 되지는 않는다.
         // 그래서 이 표의 금액은 위쪽 순매출과 달리 총매출 기준이다.
+        //
+        // UNMATCHED는 뺀다. 복약안내는 판매된 모든 줄을 참조 목록과 대조하고 실패한 것도
+        // 로그에 남기는데(시드에서 빠진 항생제를 찾기 위한 기록이다), 그건 "항생제로 판정된 것"이
+        // 아니라 "판정하지 못한 것"이다. 남겨 두면 마스크나 혈압약이 성분 한 줄로 표에 오르고,
+        // 무엇보다 이 결과로 계산하는 ACCESS 비중이 항생제와 무관한 수량에 희석된다.
+        // 설정 화면의 스튜어드십 지표도 같은 이유로 UNMATCHED를 분모에서 뺀다
+        // (CounsellingLogRepository.GetMetricsAsync). 누락 확인은 거기 있는 Unmatched products가 맡는다.
         command.CommandText = """
             SELECT
                 COALESCE(NULLIF(TRIM(COALESCE(p.generic_name, '')), ''),
@@ -177,10 +185,12 @@ public class ReportRepository : IReportRepository
             WHERE st.facility_id = $facilityId
               AND st.transaction_type = 'StockOut'
               AND st.transaction_time BETWEEN $prevFrom AND $curTo
+              AND cl.aware_group <> $unmatched
             GROUP BY ingredient, strength, cl.aware_group
             ORDER BY cur_quantity DESC, cur_amount DESC, ingredient;
             """;
         AddRangeParameters(command, facilityId, range);
+        command.Parameters.AddWithValue("$unmatched", AwareGroupCodes.Unmatched);
 
         using var reader = await command.ExecuteReaderAsync();
 

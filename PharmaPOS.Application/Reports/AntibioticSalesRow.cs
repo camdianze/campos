@@ -18,7 +18,10 @@ public class AntibioticSalesRow
     /// <summary>용량. 상품에 없으면 빈 문자열.</summary>
     public required string Strength { get; init; }
 
-    /// <summary>ACCESS / WATCH / RESERVE / NOT_RECOMMENDED / UNMATCHED.</summary>
+    /// <summary>
+    /// ACCESS / WATCH / RESERVE / NOT_RECOMMENDED.
+    /// UNMATCHED(판정 실패)는 이 표에 오지 않는다 — 항생제로 확인된 것이 아니기 때문이다.
+    /// </summary>
     public required string AwareGroup { get; init; }
 
     /// <summary>낱개 기준 판매 수량.</summary>

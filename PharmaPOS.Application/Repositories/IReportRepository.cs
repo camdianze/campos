@@ -22,5 +22,11 @@ public interface IReportRepository
     /// 항생제 성분·용량별 판매와 복약안내 출력 횟수.
     /// 복약안내 로그에 남은 판매만 집계 대상이다.
     /// </summary>
+    /// <summary>
+    /// 항생제 성분별 판매. <b>AWaRe 그룹으로 판정된 것만</b> 돌려준다 —
+    /// 매칭에 실패한(UNMATCHED) 로그는 항생제가 아니므로 제외한다.
+    /// ReportData의 ACCESS 비중·항생제 판매 건수가 이 결과를 그대로 합산하므로,
+    /// 여기에 UNMATCHED를 섞으면 지표가 항생제와 무관한 수량에 희석된다.
+    /// </summary>
     Task<IReadOnlyList<AntibioticSalesRow>> GetAntibioticSalesAsync(string facilityId, ReportRange range);
 }
