@@ -102,6 +102,10 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Generic Name"     Binding="{Binding Product.GenericName}"     Width="*"/>
+                <!-- Strength · Dosage Form · Unit 셋은 서로 다른 값이다.
+                     "500 mg" / "Syrup" / "Bottle"처럼 나란히 놓여야 구분이 된다. -->
+                <DataGridTextColumn Header="Strength"         Binding="{Binding Product.Strength}"        Width="90"/>
+                <DataGridTextColumn Header="Dosage Form"      Binding="{Binding Product.DosageForm}"      Width="100"/>
                 <DataGridTextColumn Header="Unit"             Binding="{Binding Product.Unit}"            Width="90"/>
                 <DataGridTextColumn Header="Barcode"          Binding="{Binding Product.Barcode}"         Width="120"/>
                 <DataGridTextColumn Header="Internal Barcode" Binding="{Binding Product.InternalBarcode}" Width="120"/>

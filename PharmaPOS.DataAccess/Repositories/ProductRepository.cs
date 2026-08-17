@@ -91,7 +91,8 @@ public class ProductRepository : IProductRepository
             SELECT product_id, barcode, internal_barcode, product_name, generic_name,
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
-                   atc_code, is_combination, units_per_box, unit_selling_price, category
+                   atc_code, is_combination, units_per_box, unit_selling_price, category,
+                   dosage_form
             FROM Product_Master
             {whereSql}
             ORDER BY {orderBySql};
@@ -117,7 +118,8 @@ public class ProductRepository : IProductRepository
             SELECT product_id, barcode, internal_barcode, product_name, generic_name,
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
-                   atc_code, is_combination, units_per_box, unit_selling_price, category
+                   atc_code, is_combination, units_per_box, unit_selling_price, category,
+                   dosage_form
             FROM Product_Master
             WHERE product_id = $productId;
             """;
@@ -177,12 +179,14 @@ public class ProductRepository : IProductRepository
                 (product_id, barcode, internal_barcode, product_name, generic_name,
                  strength, unit, manufacturer, country_of_origin, cost_price,
                  selling_price, safety_stock_level, status, created_at,
-                 atc_code, is_combination, units_per_box, unit_selling_price, category)
+                 atc_code, is_combination, units_per_box, unit_selling_price, category,
+                 dosage_form)
             VALUES
                 ($productId, $barcode, $internalBarcode, $productName, $genericName,
                  $strength, $unit, $manufacturer, $countryOfOrigin, $costPrice,
                  $sellingPrice, $safetyStockLevel, $status, $createdAt,
-                 $atcCode, $isCombination, $unitsPerBox, $unitSellingPrice, $category);
+                 $atcCode, $isCombination, $unitsPerBox, $unitSellingPrice, $category,
+                 $dosageForm);
             """;
         AddProductParameters(command, product);
         await command.ExecuteNonQueryAsync();
@@ -211,7 +215,8 @@ public class ProductRepository : IProductRepository
                 is_combination = $isCombination,
                 units_per_box = $unitsPerBox,
                 unit_selling_price = $unitSellingPrice,
-                category = $category
+                category = $category,
+                dosage_form = $dosageForm
             WHERE product_id = $productId;
             """;
         AddProductParameters(command, product);
@@ -254,6 +259,7 @@ public class ProductRepository : IProductRepository
         command.Parameters.AddWithValue("$unitsPerBox", product.UnitsPerBox);
         command.Parameters.AddWithValue("$unitSellingPrice", (object?)product.UnitSellingPrice ?? DBNull.Value);
         command.Parameters.AddWithValue("$category", (object?)product.Category?.ToString() ?? DBNull.Value);
+        command.Parameters.AddWithValue("$dosageForm", (object?)product.DosageForm?.ToString() ?? DBNull.Value);
     }
 
     private static Product MapToProduct(SqliteDataReader reader)
@@ -282,7 +288,12 @@ public class ProductRepository : IProductRepository
             // 여기서 예외를 던지면 상품 목록 전체가 열리지 않는다.
             Category = reader.IsDBNull(18) || !Enum.TryParse<ProductCategory>(reader.GetString(18), out var category)
                 ? null
-                : category
+                : category,
+            // 제형도 같은 이유로 관대하게 읽는다. 목록에 없는 값이 들어와 있어도
+            // "정하지 않음"으로 넘어가야 상품 목록이 열린다.
+            DosageForm = reader.IsDBNull(19) || !Enum.TryParse<DosageForm>(reader.GetString(19), out var dosageForm)
+                ? null
+                : dosageForm
         };
     }
 }

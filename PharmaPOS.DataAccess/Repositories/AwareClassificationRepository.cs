@@ -16,13 +16,17 @@ public class AwareClassificationRepository : IAwareClassificationRepository
     ///
     /// WHO 목록에는 제형(경구/주사)에 따라 분류가 갈리는 항목이 있다.
     /// 실제 2025년 자료 기준으로 Minocycline(J01AA08)과 Fosfomycin(J01XX01)이
-    /// 주사는 RESERVE, 경구는 WATCH다. 그런데 상품 마스터에는 제형 정보가 없어
-    /// 둘을 구분할 수단이 없다.
+    /// 주사는 RESERVE, 경구는 WATCH다.
     ///
     /// 그래서 "더 강한 안내가 필요한 쪽"을 고른다. 경구 제품을 RESERVE로 표시하는 것은
     /// 과한 경고일 뿐이지만, 주사 제품을 WATCH로 낮춰 표시하면 필요한 경고를 놓친다.
     /// 어느 쪽으로 틀리는 편이 나은지가 분명한 경우다.
-    /// 제형을 구분하려면 상품 마스터에 제형 필드를 추가해야 한다.
+    ///
+    /// Product_Master.dosage_form이 생겼으므로 기술적으로는 둘을 가릴 수 있다.
+    /// 그래도 여기서 쓰지 않는 것은 <b>의도된 선택</b>이다 — 제형은 뒤늦게 추가한 선택 입력이라
+    /// 기존 상품 대부분이 아직 비어 있고, 비어 있는 값으로 등급을 가리면 "적지 않았다"가
+    /// "경구다"로 읽혀 주사 제품의 경고가 조용히 낮아진다. 지금은 복약안내 판정에
+    /// 제형을 일절 쓰지 않는다. 연동은 데이터가 채워진 뒤 따로 결정할 일이다.
     /// </summary>
     private const string GroupPrecedenceOrderBy = """
         ORDER BY CASE aware_group

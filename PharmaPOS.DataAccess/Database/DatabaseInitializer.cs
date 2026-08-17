@@ -84,6 +84,10 @@ public class DatabaseInitializer
         // 기본값을 넣어 두면 "아직 분류 안 함"과 "그 분류로 정함"을 구분할 수 없다.
         AddColumnIfMissing(connection, "Product_Master", "category", "TEXT");
 
+        // 제형(정제·시럽·연고…). 판매 단위(unit)와 다른 값이다 — unit은 "낱개를 세는 이름"이고
+        // 이건 "약의 형태"다. category와 같이 선택 입력이라 NULL을 그대로 둔다.
+        AddColumnIfMissing(connection, "Product_Master", "dosage_form", "TEXT");
+
         // 개발 중 잠깐 있었던 반대 방향 컬럼(박스가를 따로 받던 것)을 치운다.
         // 배포된 DB에는 없던 컬럼이라 지워도 잃을 데이터가 없다.
         DropColumnIfPresent(connection, "Product_Master", "box_selling_price");
@@ -238,7 +242,8 @@ public class DatabaseInitializer
                 is_combination      INTEGER NOT NULL DEFAULT 0,
                 units_per_box       INTEGER NOT NULL DEFAULT 1,
                 unit_selling_price  REAL,
-                category            TEXT
+                category            TEXT,
+                dosage_form         TEXT
             );
             CREATE UNIQUE INDEX IF NOT EXISTS idx_product_barcode
                 ON Product_Master(barcode) WHERE barcode IS NOT NULL;

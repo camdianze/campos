@@ -25,6 +25,27 @@
 | **대화상자** | 시스템 MessageBox는 쓰지 않는다. 전부 자체 [AppDialog](../PharmaPOS.Wpf/Views/AppDialog.xaml.cs)다. |
 | **ComboBox 항목은 enum 이름 그대로 표시된다** | `DrugShop`, `MobilePayment`, `Within7Days`, `NonMedicine`처럼 띄어쓰기 없이 나온다. 사람이 읽기 좋은 표시명으로 바꾸는 변환기가 없다. |
 
+### 0-1. `Strength` · `Dosage Form` · `Unit`은 서로 다른 값이다
+
+매뉴얼에서 가장 오해가 잦은 지점이라 먼저 못박아 둔다.
+
+| 값 | 뜻 | 입력 | 예 |
+|---|---|---|---|
+| `Strength` | 함량 | 자유 입력, 선택 | `500 mg`, `800/160`, `0.1%` |
+| `Dosage Form` | **약의 형태** | **고정 목록**, 선택 | `Tablet`, `Syrup`, `Injection`, `Ointment` |
+| `Unit` | **낱개 하나를 세는 이름** | 자유 입력, **필수** | `Tablet`, `Bottle`, `Tube`, `Piece` |
+
+**고형 경구약에서만 뒤 둘이 우연히 같습니다.**
+
+| 상품 | Strength | Dosage Form | Unit |
+|---|---|---|---|
+| Amoxicillin 정제 | `500 mg` | `Tablet` | `Tablet` ← 같음 |
+| Amoxicillin 시럽 60mL | `125 mg/5 mL` | `Syrup` | `Bottle` ← 다름 |
+| Gentamicin 연고 | `0.1%` | `Ointment` | `Tube` ← 다름 |
+| 3M N95 마스크 | — | (없음) | `Piece` ← 제형 자체가 없음 |
+
+`Unit`이 필수인 이유: 화면이 `Tablets Per Box`처럼 **복수형으로** 쓰므로 셀 수 있는 이름이어야 하고, 제형이 없는 비의약품에도 값이 필요합니다. 그래서 `Unit`에 `Syrup`을 적으면 `Syrups Per Box`가 되어 어색해집니다 — 그 칸에는 `Bottle`을 적습니다.
+
 ---
 
 ## 1. Activate PharmaPOS — [LicenseActivationView.xaml](../PharmaPOS.Wpf/Views/LicenseActivationView.xaml)
@@ -141,7 +162,7 @@
 | 1 | (질문 문장 — 읽기 전용 텍스트) | TextBlock | — | 계정에 등록된 질문 |
 | 2 | `Answer` | TextBox | ✔ | 빈 칸 |
 
-버튼: `Use Email OTP instead` (이메일 복구가 가능한 계정에만 보임) / `Confirm`.
+버튼: `Use Email OTP instead` (이메일 복구가 가능한 계정에만 보임) / `Back` (→ 1단계) / `Confirm`.
 
 ### 5-3. 2단계 `Verify Identity` — 이메일 OTP 방식
 
@@ -150,7 +171,7 @@
 | 1 | `E-mail` | (읽기 전용 텍스트) | — | 가려진 이메일 주소 |
 | 2 | `Code` | TextBox | ✔ | 빈 칸 |
 
-버튼 순서: `Send Code` (코드 칸 **위**에 있다) → 코드 입력 → `Confirm`. `Use Security Question instead`는 보안질문이 등록된 계정에만 보인다.
+버튼 순서: `Send Code` (코드 칸 **위**에 있다) → 코드 입력 → `Back` (→ 1단계) / `Confirm`. `Use Security Question instead`는 보안질문이 등록된 계정에만 보인다.
 `Send Code`를 누르면 `A recovery code has been sent to your email.` 코드 유효시간은 10분.
 
 ### 5-4. 3단계 `New Password`
@@ -160,7 +181,14 @@
 | 1 | `New Password` | PasswordBox | ✔ | 빈 칸 |
 | 2 | `Confirm Password` | PasswordBox | ✔ | 빈 칸 |
 
+버튼: `Back` (→ 2단계) / `Reset Password`.
+
 **흐름**: `Reset Password` → 앞 단계에서 받은 검증 토큰이 있는지 확인(없으면 `Please verify your identity first.`) → `ResetPasswordAsync` → 성공하면 **곧바로 로그인 화면**으로 나간다(성공 메시지는 따로 없다).
+
+**`Back`으로 되돌릴 때 지우는 범위가 단계마다 다르다.**
+
+- **3 → 2**: 적었던 답/코드만 비운다. 검증 토큰은 남는다 — 이메일 OTP는 한 번 맞히면 그 코드가 소비되므로, 토큰까지 버리면 그냥 뒤를 확인하려던 사람도 코드를 다시 받아야 한다. 3단계로 다시 가려면 어차피 2단계의 `Confirm`을 통과해야 한다.
+- **2 → 1**: 아이디를 바꿀 수 있는 자리로 돌아가므로 **검증 토큰까지 버린다.**
 
 > 복구 상태(OTP·검증 토큰)는 메모리에만 있다. 도중에 앱을 끄면 처음부터 다시 해야 한다.
 
@@ -235,13 +263,15 @@
 |---|---|---|
 | 1 | `Product Name` | 이름 **앞**에 WHO AWaRe 분류 색점. 초록 ACCESS · 노랑 WATCH · 빨강 RESERVE · 검정 NOT RECOMMENDED. 항생제가 아니거나 참조 목록에 없으면 점이 없다. 점 위에 마우스를 올리면 분류명이 뜬다 |
 | 2 | `Generic Name` | |
-| 3 | `Unit` | |
-| 4 | `Barcode` | 제조사 바코드 |
-| 5 | `Internal Barcode` | |
-| 6 | `Cost Price` | |
-| 7 | `Selling Price` | |
-| 8 | `Safety Stock` | |
-| 9 | `Status` | `Active` / `Inactive` |
+| 3 | `Strength` | `500 mg` 등 |
+| 4 | `Dosage Form` | 제형. `Tablet` / `Syrup` / `Injection` … 비어 있을 수 있다 |
+| 5 | `Unit` | **낱개를 세는 단위.** 제형이 아니다 — 0-1번 항목 참고 |
+| 6 | `Barcode` | 제조사 바코드 |
+| 7 | `Internal Barcode` | |
+| 8 | `Cost Price` | |
+| 9 | `Selling Price` | |
+| 10 | `Safety Stock` | |
+| 11 | `Status` | `Active` / `Inactive` |
 
 표는 읽기 전용, 한 줄만 선택 가능.
 
@@ -286,33 +316,34 @@
 |---|---|---|---|---|---|---|
 | 1 | IDENTIFICATION | `Product Name *` | TextBox | ✔ | 빈 칸 | |
 | 2 | IDENTIFICATION | `Generic Name` | TextBox | — | 빈 칸 | 항생제 복약안내 매칭에 쓰인다 |
-| 3 | IDENTIFICATION | `Strength` | TextBox | — | 빈 칸 | |
-| 4 | IDENTIFICATION | `Unit *` | TextBox | ✔ | 빈 칸 | 여기 적은 말이 아래 라벨에 그대로 들어간다 (`Sachet` → `Sachets Per Box *`) |
-| 5 | IDENTIFICATION | `Category (optional)` | ComboBox | — | **빈 항목** | **(빈 항목 = 아직 정하지 않음)** / `Medicine` / `NonMedicine` |
-| 6 | SOURCE | `Manufacturer` | TextBox | — | 빈 칸 | |
-| 7 | SOURCE | `Country of Origin` | TextBox | — | 빈 칸 | |
-| 8 | ANTIBIOTIC | `ATC Code (antibiotics only)` | TextBox | — | 빈 칸 | 안내문: `Used to look up the WHO AWaRe group for counselling sheets. Leave empty for non-antibiotics.` 저장 시 대문자로 변환 |
-| 9 | ANTIBIOTIC | `Fixed-dose combination product` | CheckBox | — | **꺼짐** | |
+| 3 | IDENTIFICATION | `Strength` | TextBox | — | 빈 칸 | `500 mg`, `800/160` 등 |
+| 4 | IDENTIFICATION | `Dosage Form (optional)` | ComboBox | — | **빈 항목** | **(빈 항목 = 아직 정하지 않음)** / `Tablet` / `Capsule` / `Syrup` / `Suspension` / `Powder` / `Injection` / `Infusion` / `Ointment` / `Cream` / `Drops` / `Suppository` / `Inhaler` / `Other` |
+| 5 | IDENTIFICATION | `Unit *` | TextBox | ✔ | 빈 칸 | **제형이 아니라 낱개를 세는 단위다.** 여기 적은 말이 아래 라벨에 그대로 들어간다 (`Sachet` → `Sachets Per Box *`). 안내문: `How one piece is counted and sold — Tablet, Bottle, Tube. Not the dosage form above.` |
+| 6 | IDENTIFICATION | `Category (optional)` | ComboBox | — | **빈 항목** | **(빈 항목 = 아직 정하지 않음)** / `Medicine` / `NonMedicine` |
+| 7 | SOURCE | `Manufacturer` | TextBox | — | 빈 칸 | |
+| 8 | SOURCE | `Country of Origin` | TextBox | — | 빈 칸 | |
+| 9 | ANTIBIOTIC | `ATC Code (antibiotics only)` | TextBox | — | 빈 칸 | 안내문: `Used to look up the WHO AWaRe group for counselling sheets. Leave empty for non-antibiotics.` 저장 시 대문자로 변환 |
+| 10 | ANTIBIOTIC | `Fixed-dose combination product` | CheckBox | — | **꺼짐** | |
 
 ### 10-2. 오른쪽 단
 
 | # | 구역 | 라벨 | 컨트롤 | 필수 | 기본값 | 선택 항목 |
 |---|---|---|---|---|---|---|
-| 10 | BARCODE | `Manufacturer Barcode` | TextBox | — | 빈 칸 | 중복이면 `This barcode is already registered.` |
-| 11 | BARCODE | `Internal Barcode (auto-generated if empty)` | TextBox **읽기 전용** | — | 기존 값 또는 빈 칸 | 비어 있으면 저장할 때 자동 생성 |
-| 12 | PRICE AND STOCK | `Cost Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다 |
-| 13 | PRICE AND STOCK | `Selling Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다. 아래 안내문이 **소분 판매 여부에 따라 바뀐다**: 켜짐 → `Cost price and selling price above are for one box.` / 꺼짐 → `Cost price and selling price above are for one {단위}.` |
-| 14 | PRICE AND STOCK | `Safety Stock Level *` | TextBox | ✔ | 빈 칸 | 음수 불가 |
-| 15 | PRICE AND STOCK | `Status *` | ComboBox | ✔ | **`Active`** | `Active` / `Inactive` |
-| 16 | PRICE AND STOCK | `Sell loose units` | CheckBox | — | **꺼짐** (기존 상품은 박스당 개수가 2 이상이면 켜진 상태로 열린다) | 켜면 아래 3칸이 나타난다 |
+| 11 | BARCODE | `Manufacturer Barcode` | TextBox | — | 빈 칸 | 중복이면 `This barcode is already registered.` |
+| 12 | BARCODE | `Internal Barcode (auto-generated if empty)` | TextBox **읽기 전용** | — | 기존 값 또는 빈 칸 | 비어 있으면 저장할 때 자동 생성 |
+| 13 | PRICE AND STOCK | `Cost Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다 |
+| 14 | PRICE AND STOCK | `Selling Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다. 아래 안내문이 **소분 판매 여부에 따라 바뀐다**: 켜짐 → `Cost price and selling price above are for one box.` / 꺼짐 → `Cost price and selling price above are for one {단위}.` |
+| 15 | PRICE AND STOCK | `Safety Stock Level *` | TextBox | ✔ | 빈 칸 | 음수 불가 |
+| 16 | PRICE AND STOCK | `Status *` | ComboBox | ✔ | **`Active`** | `Active` / `Inactive` |
+| 17 | PRICE AND STOCK | `Sell loose units` | CheckBox | — | **꺼짐** (기존 상품은 박스당 개수가 2 이상이면 켜진 상태로 열린다) | 켜면 아래 3칸이 나타난다 |
 
 ### 10-3. 소분 판매를 켰을 때만 나오는 칸 (회색 상자 안)
 
 | # | 라벨 | 컨트롤 | 필수 | 기본값 | 비고 |
 |---|---|---|---|---|---|
-| 17 | `{단위}s Per Box *` (예: `Tablets Per Box *`) | TextBox | ✔ | **`1`**. 단, 체크박스를 켜는 순간 값이 `1`이면 **빈 칸으로 지워진다** | **2 이상**이어야 한다. 아니면 `Enter how many {단위}s are in one box (2 or more).` |
-| 18 | `Loose Unit Price` | TextBox | — | 빈 칸 | 비워 두면 박스가 ÷ 박스당 개수로 자동 계산. 안내문이 실제 계산값을 보여준다: `Leave empty to sell one Tablet at 100 (3000 ÷ 30).` 값을 적으면 `One Tablet is sold at this price.` |
-| 19 | `Unit Barcode` | TextBox **읽기 전용** | — | `내부바코드 + -EA` / 신규 상품은 `Generated on save.` | 안내문: `Scan this to sell one loose unit. The manufacturer barcode still sells a whole box.` |
+| 18 | `{단위}s Per Box *` (예: `Tablets Per Box *`) | TextBox | ✔ | **`1`**. 단, 체크박스를 켜는 순간 값이 `1`이면 **빈 칸으로 지워진다** | **2 이상**이어야 한다. 아니면 `Enter how many {단위}s are in one box (2 or more).` |
+| 19 | `Loose Unit Price` | TextBox | — | 빈 칸 | 비워 두면 박스가 ÷ 박스당 개수로 자동 계산. 안내문이 실제 계산값을 보여준다: `Leave empty to sell one Tablet at 100 (3000 ÷ 30).` 값을 적으면 `One Tablet is sold at this price.` |
+| 20 | `Unit Barcode` | TextBox **읽기 전용** | — | `내부바코드 + -EA` / 신규 상품은 `Generated on save.` | 안내문: `Scan this to sell one loose unit. The manufacturer barcode still sells a whole box.` |
 
 ### 10-4. 저장 흐름
 
@@ -685,6 +716,17 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 `Username` / `Role` / `Status`
 
+### 우클릭 메뉴
+
+빈 곳을 우클릭하면 메뉴가 뜨지 않는다. 우클릭한 줄이 곧바로 선택된다. 아래 버튼과 **같은 동작**이다.
+
+| 항목 | 표시 조건 |
+|---|---|
+| `Edit Role` | 항상 (선택 없으면 비활성) |
+| `Activate` | **비활성 계정을 골랐을 때만** |
+| `Deactivate` | 그 외 (선택 없으면 비활성) |
+| `Reset Password` | 항상 (선택 없으면 비활성) |
+
 ### 버튼과 흐름
 
 | 버튼 | 동작 |
@@ -692,10 +734,13 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 | `← Back` | **Admin Dashboard**로 (메인 셸이 아니다) |
 | `Add User` | 아래 Add User 창 |
 | `Edit Role` | **Administrator ↔ FacilityStaff 단순 토글.** 확인 대화상자 `Confirm` / `Change role of '{아이디}' to {새 역할}?` (Yes/No) → 성공 시 목록 재조회 |
-| `Deactivate` | **확인 대화상자 없이 즉시** 비활성화. 자기 계정은 불가 (`You cannot deactivate your own account.`) |
-| `Reset Password` | 아래 Reset Password 창 |
+| `Deactivate` (빨강) | **확인 대화상자 없이 즉시** 비활성화. 자기 계정은 불가 (`You cannot deactivate your own account.`) |
+| `Activate` (파랑) | **비활성 계정을 고르면 `Deactivate` 자리에 대신 나타난다.** 확인 없이 즉시 되살린다. 본인 계정 검사는 없다 — 자기 계정은 애초에 비활성화할 수 없다. 상태 필터가 `Inactive`면 그 줄이 목록에서 사라지므로 그때만 `'{아이디}' is active again.`을 남긴다 |
+| `Reset Password` | 아래 Reset Password 창. 성공하면 `Password for '{아이디}' has been reset.` |
 
 선택 없이 누르면 전부 `Please select a user.`
+
+> `Deactivate`와 `Activate`는 **한 칸을 나눠 쓴다.** 고른 계정의 상태에 따라 하나만 보이고, 아무것도 고르지 않았을 때는 `Deactivate`가 남는다.
 
 ---
 
@@ -723,7 +768,9 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 | 1 | `New Password` | PasswordBox | ✔ | 빈 칸 (아래에 비밀번호 규칙 안내문) |
 | 2 | `Confirm New Password` | PasswordBox | ✔ | 빈 칸 |
 
-**흐름**: `Reset` → `ResetPasswordAsync` → 성공하면 창이 닫힌다(**성공 메시지도 목록 재조회도 없다**). 실패 시 창 하단에 사유.
+**흐름**: `Reset` → `ResetPasswordAsync` → 성공하면 창이 닫히고 User Management 화면에 `Password for '{아이디}' has been reset.`이 남는다(목록은 비밀번호를 보여주지 않으므로 재조회는 없다). 실패 시 창 하단에 사유.
+
+> 창 높이는 내용에 맞춰 늘어난다. 한때 `320`으로 못박혀 있어 비밀번호 규칙 안내문이 두 줄 들어가면 `Cancel`/`Reset`이 창 밖으로 밀려 보이지 않았다.
 
 ---
 
@@ -760,6 +807,8 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 **Antibiotics by Ingredient** (오른쪽 표) — `Ingredient` / `Strength` / `Group` / `Qty` / `Qty vs prev` / `Counselled` / `Rate`
 (`Counselled`의 `6 / 8`은 "판매 8건 중 6건에 복약안내가 나갔다"는 뜻)
 
+> **이 표에는 AWaRe 그룹으로 판정된 항생제만 나온다.** 복약안내 기능은 판매된 모든 줄을 참조 목록과 대조하고 실패한 것도 로그에 남기지만(시드에서 빠진 항생제를 찾는 기록이다), 그 `UNMATCHED` 행은 이 표와 위쪽 `ACCESS Share` · `{n} printed / {m} antibiotic sales` 집계에서 모두 제외된다. 마스크나 혈압약이 성분 한 줄로 오르거나 ACCESS 비중이 항생제와 무관한 수량에 희석되지 않는다. 누락 확인은 Counselling 설정 화면의 `Unmatched products` 항목이 맡는다.
+
 항생제 표가 비면 아래에 안내문이 나온다: `No antibiotic sales recorded in this period. This table is built from counselling records, so sales made before the counselling feature was in use do not appear.`
 
 ### 24-5. 흐름
@@ -788,7 +837,12 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 맨 아래 `File columns` 안내 상자:
 - 필수/기본: `product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity`
-- 선택: `generic_name, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
+- 선택: `generic_name, strength, dosage_form, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
+- `dosage_form is the form of the medicine (Tablet, Syrup, Injection, Ointment…), while unit is how one piece is counted (Tablet, Bottle, Tube). A file with only product_name and dosage_form fills the form in for products that already exist.`
+
+**`dosage_form` 값** — 고정 목록이지만 파일은 손으로 채우므로 관대하게 읽는다. 대소문자·구분자·복수형·흔한 줄임말을 받아 준다 (`tablets`, `tab`, `caps`, `inj`, `vial`, `sachet`, `Eye drops`, `OINTMENT` …). 그래도 못 읽으면 **그 행이 오류로 빠지고** 허용 값 목록이 메시지에 함께 나온다. 실제 저장 값은 `Tablet` / `Capsule` / `Syrup` / `Suspension` / `Powder` / `Injection` / `Infusion` / `Ointment` / `Cream` / `Drops` / `Suppository` / `Inhaler` / `Other`.
+
+> **필수 컬럼은 `product_name` 하나뿐**이므로, `product_name` + `dosage_form` **두 열짜리 파일**로 이미 등록된 상품 수백 개의 제형만 일괄로 채울 수 있다. 나머지 값은 건드리지 않는다. 재임포트 차단은 파일 내용의 해시 기준이라 열을 추가해 고친 파일은 막히지 않는다.
 
 ### 25-2. 오른쪽 `EXPORT / BACKUP` / `App to file`
 
@@ -891,6 +945,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 | Initial Setup · `Security Question`<br>Recovery Settings · `Question` | `What was the name of your first pet?`<br>`What is your mother's maiden name?`<br>`What was the name of your first school?`<br>`What city were you born in?` | 없음 |
 | Recovery Settings · `Email Provider` | `Gmail` / `Outlook` / `Other` | 없음 |
 | Products · 상태 필터 | `All` / `Active` / `Inactive` | `All` |
+| Product · `Dosage Form (optional)` | (빈 항목) / `Tablet` / `Capsule` / `Syrup` / `Suspension` / `Powder` / `Injection` / `Infusion` / `Ointment` / `Cream` / `Drops` / `Suppository` / `Inhaler` / `Other` | 빈 항목 |
 | Product · `Category (optional)` | (빈 항목) / `Medicine` / `NonMedicine` | 빈 항목 |
 | Product · `Status *` | `Active` / `Inactive` | `Active` |
 | Inventory Status · 유효기한 필터 | `All` / `Expired` / `Within7Days` / `Within30Days` / `Within90Days` | `All` |

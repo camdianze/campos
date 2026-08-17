@@ -55,7 +55,7 @@ public class BackupRepository : IBackupRepository
     {
         ExportDataset.Products => """
             SELECT product_name, unit, barcode, internal_barcode,
-                   generic_name, strength, atc_code, is_combination,
+                   generic_name, strength, dosage_form, atc_code, is_combination,
                    manufacturer, country_of_origin,
                    cost_price, selling_price, safety_stock_level,
                    units_per_box, unit_selling_price, category, status, created_at

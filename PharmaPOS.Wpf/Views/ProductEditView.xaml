@@ -74,9 +74,18 @@
                     <TextBox Text="{Binding Strength, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
 
+                    <!-- 제형과 판매 단위는 다른 값이라 나란히 둔다. 시럽은 제형이 Syrup이고
+                         세는 단위는 Bottle이다. 고형 경구약에서만 둘이 같아 보인다. -->
+                    <TextBlock Text="Dosage Form (optional)" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding AvailableDosageForms}"
+                              SelectedItem="{Binding DosageForm}"
+                              Style="{StaticResource FieldCombo}"/>
+
                     <TextBlock Text="Unit *" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource Field}"/>
+                             Margin="0,0,0,4"/>
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="How one piece is counted and sold — Tablet, Bottle, Tube. Not the dosage form above."/>
 
                     <!-- 선택 입력. 맨 위 빈 항목이 "아직 정하지 않음"이다. -->
                     <TextBlock Text="Category (optional)" Style="{StaticResource FieldLabel}"/>

@@ -28,6 +28,10 @@ public static class InitialImportColumns
     // 아래는 선택 컬럼. 없으면 신규 상품에서는 비워 두고, 기존 상품에서는 건드리지 않는다.
     public static readonly string[] GenericName = ["genericname"];
     public static readonly string[] Strength = ["strength"];
+
+    /// <summary>제형. 손으로 적는 서식에서는 form 한 단어로 쓰는 일이 많아 함께 받는다.</summary>
+    public static readonly string[] DosageForm = ["dosageform", "form"];
+
     public static readonly string[] AtcCode = ["atccode"];
     public static readonly string[] IsCombination = ["iscombination"];
     public static readonly string[] Manufacturer = ["manufacturer"];
@@ -105,6 +109,7 @@ public static class InitialImportColumns
         "batchnumber" => "batch_number",
         "expirydate" => "expiry_date",
         "genericname" => "generic_name",
+        "dosageform" => "dosage_form",
         "atccode" => "atc_code",
         "iscombination" => "is_combination",
         "countryoforigin" => "country_of_origin",

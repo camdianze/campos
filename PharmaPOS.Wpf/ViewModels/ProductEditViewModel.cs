@@ -19,6 +19,7 @@ public class ProductEditViewModel : ViewModelBase
     private string _productName = string.Empty;
     private string _genericName = string.Empty;
     private string _strength = string.Empty;
+    private DosageForm? _dosageForm;
     private string _unit = string.Empty;
     private string _manufacturer = string.Empty;
     private string _countryOfOrigin = string.Empty;
@@ -194,6 +195,22 @@ public class ProductEditViewModel : ViewModelBase
         set => SetProperty(ref _strength, value);
     }
 
+    /// <summary>
+    /// 제형. <b>선택 입력</b>이라 비워 둬도(null) 저장된다 — 비의약품에는 제형이 없다.
+    /// 아래 Unit과 다른 값이다: Unit은 낱개를 세는 이름(Bottle, Tube)이고 이건 약의 형태(Syrup, Ointment)다.
+    /// </summary>
+    public DosageForm? DosageForm
+    {
+        get => _dosageForm;
+        set => SetProperty(ref _dosageForm, value);
+    }
+
+    /// <summary>빈 항목(=아직 정하지 않음)을 맨 앞에 두려고 nullable 목록으로 만든다.</summary>
+    public IReadOnlyList<DosageForm?> AvailableDosageForms { get; } =
+        new List<DosageForm?> { null }
+            .Concat(Enum.GetValues<DosageForm>().Cast<DosageForm?>())
+            .ToList();
+
     public string Unit
     {
         get => _unit;
@@ -315,6 +332,7 @@ public class ProductEditViewModel : ViewModelBase
             _productName = existingProduct.ProductName;
             _genericName = existingProduct.GenericName ?? string.Empty;
             _strength = existingProduct.Strength ?? string.Empty;
+            _dosageForm = existingProduct.DosageForm;
             _unit = existingProduct.Unit;
             _manufacturer = existingProduct.Manufacturer ?? string.Empty;
             _countryOfOrigin = existingProduct.CountryOfOrigin ?? string.Empty;
@@ -401,6 +419,7 @@ public class ProductEditViewModel : ViewModelBase
             ProductName = ProductName,
             GenericName = string.IsNullOrWhiteSpace(GenericName) ? null : GenericName,
             Strength = string.IsNullOrWhiteSpace(Strength) ? null : Strength,
+            DosageForm = DosageForm,
             Unit = Unit,
             Manufacturer = string.IsNullOrWhiteSpace(Manufacturer) ? null : Manufacturer,
             CountryOfOrigin = string.IsNullOrWhiteSpace(CountryOfOrigin) ? null : CountryOfOrigin,

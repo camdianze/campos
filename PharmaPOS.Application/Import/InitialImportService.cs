@@ -203,7 +203,8 @@ public class InitialImportService : IInitialImportService
 
         if (!TryReadSafetyStock(row, out var safetyStock, out error)
             || !TryReadLooseSale(row, out var looseSale, out error)
-            || !TryReadStatus(row, out var status, out error))
+            || !TryReadStatus(row, out var status, out error)
+            || !TryReadDosageForm(row, out var dosageForm, out error))
         {
             return null;
         }
@@ -224,6 +225,7 @@ public class InitialImportService : IInitialImportService
             UnitSellingPrice = looseSale?.LooseUnitPrice,
             GenericName = NullIfEmpty(row.Get(InitialImportColumns.GenericName)),
             Strength = NullIfEmpty(row.Get(InitialImportColumns.Strength)),
+            DosageForm = dosageForm,
             AtcCode = NullIfEmpty(row.Get(InitialImportColumns.AtcCode)),
             IsCombination = ParseBoolean(row.Get(InitialImportColumns.IsCombination)),
             Manufacturer = NullIfEmpty(row.Get(InitialImportColumns.Manufacturer)),
@@ -252,6 +254,7 @@ public class InitialImportService : IInitialImportService
             InternalBarcode = existing.InternalBarcode,
             GenericName = existing.GenericName,
             Strength = existing.Strength,
+            DosageForm = existing.DosageForm,
             Unit = existing.Unit,
             Manufacturer = existing.Manufacturer,
             CountryOfOrigin = existing.CountryOfOrigin,
@@ -338,6 +341,17 @@ public class InitialImportService : IInitialImportService
         if (status is not null && status.Value != merged.Status)
         {
             merged.Status = status.Value;
+            changed = true;
+        }
+
+        if (!TryReadDosageForm(row, out var dosageForm, out error))
+        {
+            return null;
+        }
+
+        if (dosageForm is not null && dosageForm != merged.DosageForm)
+        {
+            merged.DosageForm = dosageForm;
             changed = true;
         }
 
@@ -442,6 +456,65 @@ public class InitialImportService : IInitialImportService
 
         error = "status must be Active or Inactive.";
         return false;
+    }
+
+    /// <summary>
+    /// 제형. 빈 칸이면 null(= 적지 않음)이다.
+    ///
+    /// 고정 목록이지만 파일은 현장에서 손으로 채우므로 대소문자·구분자·흔한 줄임말은 받아 준다.
+    /// 그래도 못 읽으면 그 행을 오류로 남긴다 — 조용히 비워 두면 왜 안 들어갔는지 알 수 없고,
+    /// 나중에 제형으로 거르는 조회가 빈 값을 "제형 없는 상품"으로 읽어 버린다.
+    /// </summary>
+    private static bool TryReadDosageForm(ImportSourceRow row, out DosageForm? dosageForm, out string? error)
+    {
+        dosageForm = null;
+        error = null;
+
+        var text = row.Get(InitialImportColumns.DosageForm);
+
+        if (text.Length == 0)
+        {
+            return true;
+        }
+
+        // "Eye drops", "eye-drops", "EYEDROPS"가 모두 같은 값이어야 한다.
+        var normalized = new string(text.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
+        DosageForm? resolved = normalized switch
+        {
+            "tab" or "tabs" => DosageForm.Tablet,
+            "cap" or "caps" => DosageForm.Capsule,
+            "susp" => DosageForm.Suspension,
+            "sachet" or "sachets" or "granule" or "granules" => DosageForm.Powder,
+            "inj" or "injectable" or "ampoule" or "vial" => DosageForm.Injection,
+            "oint" => DosageForm.Ointment,
+            "drop" or "eyedrop" or "eyedrops" or "eardrop" or "eardrops" => DosageForm.Drops,
+            _ => ParseName(normalized)
+        };
+
+        // 서식에는 복수형으로 적는 일이 흔하다("Tablets"). 원래 s로 끝나는 이름(Drops)은
+        // 아래 첫 번째 시도에서 이미 걸리므로 잘려 나가지 않는다.
+        static DosageForm? ParseName(string value)
+        {
+            if (Enum.TryParse<DosageForm>(value, ignoreCase: true, out var parsed))
+            {
+                return parsed;
+            }
+
+            return value.EndsWith('s')
+                   && Enum.TryParse<DosageForm>(value[..^1], ignoreCase: true, out var singular)
+                ? singular
+                : null;
+        }
+
+        if (resolved is null)
+        {
+            error = $"dosage_form must be one of: {string.Join(", ", Enum.GetNames<DosageForm>())}.";
+            return false;
+        }
+
+        dosageForm = resolved;
+        return true;
     }
 
     /// <summary>소분 판매 설정. 두 칸이 다 비면 null(= 적지 않음)이다.</summary>

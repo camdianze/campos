@@ -27,6 +27,16 @@ public class Product
 
     public string? Strength { get; set; }
 
+    /// <summary>
+    /// 제형(정제·시럽·연고…). 선택 입력이라 비어 있을 수 있다.
+    /// 아래 Unit과 다른 값이다 — DosageForm 열거형의 주석을 참고.
+    /// </summary>
+    public DosageForm? DosageForm { get; set; }
+
+    /// <summary>
+    /// 낱개 하나를 세는 단위(Tablet, Bottle, Tube…). 제형이 아니다.
+    /// 화면이 "Tablets Per Box"처럼 복수형으로 쓰므로 셀 수 있는 이름이어야 한다.
+    /// </summary>
     public required string Unit { get; set; }
 
     public string? Manufacturer { get; set; }

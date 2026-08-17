@@ -193,7 +193,7 @@ public class ShippedSeedFileTests : IDisposable
 
     /// <summary>
     /// Minocycline(J01AA08)과 Fosfomycin(J01XX01)은 같은 ATC 코드로 두 번 나오고,
-    /// 주사는 RESERVE, 경구는 WATCH다. 상품 마스터에 제형 정보가 없어 구분할 수 없으므로
+    /// 주사는 RESERVE, 경구는 WATCH다. 복약안내 판정에 제형(dosage_form)을 쓰지 않으므로
     /// 더 강한 안내가 필요한 쪽(RESERVE)을 고른다.
     ///
     /// 경구 제품을 RESERVE로 표시하는 것은 과한 경고에 그치지만,

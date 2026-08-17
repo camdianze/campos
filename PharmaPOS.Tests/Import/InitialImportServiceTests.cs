@@ -125,7 +125,8 @@ public class InitialImportServiceTests
         string looseUnitPrice = "",
         string batchNumber = "",
         string expiryDate = "",
-        string quantity = "")
+        string quantity = "",
+        string dosageForm = "")
     {
         return new ImportSourceRow
         {
@@ -142,7 +143,8 @@ public class InitialImportServiceTests
                 [InitialImportColumns.LooseUnitPrice[0]] = looseUnitPrice,
                 [InitialImportColumns.BatchNumber[0]] = batchNumber,
                 [InitialImportColumns.ExpiryDate[0]] = expiryDate,
-                [InitialImportColumns.Quantity[0]] = quantity
+                [InitialImportColumns.Quantity[0]] = quantity,
+                [InitialImportColumns.DosageForm[0]] = dosageForm
             }
         };
     }
@@ -232,6 +234,104 @@ public class InitialImportServiceTests
         Assert.Equal("Tablet", updated.Unit);       // 안 적었으니 그대로
         Assert.Equal(5, updated.SafetyStockLevel);  // 안 적었으니 그대로
         Assert.Empty(plan.ProductsToCreate);
+    }
+
+    // ── 제형(dosage_form) ───────────────────────────────────────────────────
+    //
+    // 제형은 고정 목록이지만 파일은 현장에서 손으로 채운다. 표기를 얼마나 받아 주는지가
+    // 조용히 깨지면 행이 통째로 오류로 빠지거나, 반대로 엉뚱한 제형이 들어간다.
+
+    [Theory]
+    [InlineData("Tablet", DosageForm.Tablet)]
+    [InlineData("tablet", DosageForm.Tablet)]
+    [InlineData("Tablets", DosageForm.Tablet)]     // 복수형
+    [InlineData("tab", DosageForm.Tablet)]         // 줄임말
+    [InlineData("caps", DosageForm.Capsule)]
+    [InlineData("inj", DosageForm.Injection)]
+    [InlineData("vial", DosageForm.Injection)]
+    [InlineData("Sachet", DosageForm.Powder)]
+    [InlineData("Eye drops", DosageForm.Drops)]    // 구분자
+    [InlineData("Drops", DosageForm.Drops)]        // 원래 s로 끝나는 이름
+    [InlineData("OINTMENT", DosageForm.Ointment)]
+    public async Task PlanProducts_ReadsDosageFormLeniently(string text, DosageForm expected)
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, productName: "Amoxicillin", unit: "Tablet", costPrice: "500",
+                sellingPrice: "1000", safetyStock: "5", dosageForm: text)
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(expected, Assert.Single(plan.ProductsToCreate).Product.DosageForm);
+    }
+
+    /// <summary>
+    /// 목록에 없는 값은 그 행을 오류로 남긴다. 조용히 비워 두면 왜 안 들어갔는지 알 수 없고,
+    /// 나중에 제형으로 거르는 조회가 빈 값을 "제형 없는 상품"으로 읽어 버린다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_RejectsUnknownDosageForm()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, productName: "Amoxicillin", unit: "Tablet", costPrice: "500",
+                sellingPrice: "1000", safetyStock: "5", dosageForm: "정제")
+        });
+
+        Assert.Equal(1, plan.ErrorRowCount);
+        Assert.Empty(plan.ProductsToCreate);
+
+        // 고칠 수 있게 허용 값을 함께 알려 준다.
+        var issue = Assert.Single(plan.Issues);
+        Assert.Contains("dosage_form", issue.Reason);
+        Assert.Contains("Tablet", issue.Reason);
+    }
+
+    /// <summary>
+    /// 상품명과 제형 두 칸만 담은 파일로 이미 등록된 상품의 제형을 채울 수 있어야 한다.
+    /// 제형 컬럼을 뒤늦게 추가했으므로, 기존 상품 수백 개를 채우는 길이 사실상 이것뿐이다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_FillsDosageFormOfExistingProductWithoutTouchingAnythingElse()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(ExistingProduct("Amoxicillin"));
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, productName: "Amoxicillin", dosageForm: "Syrup")
+        });
+
+        var updated = Assert.Single(plan.ProductsToUpdate).Product;
+
+        Assert.Equal(DosageForm.Syrup, updated.DosageForm);
+
+        // 제형과 세는 단위는 다른 값이다. 제형을 채워도 Unit은 그대로여야 한다.
+        Assert.Equal("Tablet", updated.Unit);
+        Assert.Equal(500m, updated.CostPrice);
+        Assert.Equal(1000m, updated.SellingPrice);
+    }
+
+    /// <summary>제형 칸이 비어 있으면 이미 정해 둔 제형을 지우지 않는다.</summary>
+    [Fact]
+    public async Task PlanProducts_KeepsDosageFormWhenColumnIsEmpty()
+    {
+        var harness = new Harness();
+
+        var existing = ExistingProduct("Amoxicillin");
+        existing.DosageForm = DosageForm.Ointment;
+        harness.Products.Products.Add(existing);
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, productName: "Amoxicillin", sellingPrice: "1500")
+        });
+
+        Assert.Equal(DosageForm.Ointment, Assert.Single(plan.ProductsToUpdate).Product.DosageForm);
     }
 
     /// <summary>소분 판매 칸이 비어 있으면 기존 설정을 끄지 않는다.</summary>

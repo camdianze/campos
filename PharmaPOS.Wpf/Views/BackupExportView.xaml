@@ -107,7 +107,9 @@
                                 <TextBlock Style="{StaticResource PanelHint}"
                                            Text="product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity"/>
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
-                                           Text="Optional: generic_name, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back."/>
+                                           Text="Optional: generic_name, strength, dosage_form, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back."/>
+                                <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
+                                           Text="dosage_form is the form of the medicine (Tablet, Syrup, Injection, Ointment…), while unit is how one piece is counted (Tablet, Bottle, Tube). A file with only product_name and dosage_form fills the form in for products that already exist."/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

@@ -645,7 +645,7 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 |---|---|
 | **QR 코드 이미지** | 용지에 `[QR]`이라는 글자와 주소 텍스트만 찍힌다. 실제 QR 이미지 인코딩 없음 (외부 패키지 미참조) — [WpfCounsellingSheetPrintingService.cs:155](../PharmaPOS.Wpf/Services/WpfCounsellingSheetPrintingService.cs#L155) |
 | **국소(외용) 항생제 제외** | 제외 로직은 구현돼 있으나(`ExcludedTopical`), 동봉된 WHO 파일의 모든 행이 `is_systemic = true`라 **실제로는 한 번도 발동하지 않는다.** 연고에도 복약안내가 나갈 수 있다 |
-| **투여 경로별 분류** | Minocycline / Fosfomycin은 정맥·경구에 따라 등급이 갈리지만 `Product_Master`에 제형 컬럼이 없어 **더 엄격한 쪽으로 통일**해 처리한다 (384행 중 2행) |
+| **투여 경로별 분류** | Minocycline / Fosfomycin은 정맥·경구에 따라 등급이 갈리지만, 복약안내 판정에 제형(`dosage_form`)을 쓰지 않기로 해서 **더 엄격한 쪽으로 통일**해 처리한다 (384행 중 2행). 제형 컬럼 자체는 존재하지만 표시·집계 전용이다 |
 | **열전사 프린터 검증** | 복약안내는 Windows 인쇄 파이프라인으로 나간다. ESC/POS가 아니며, 실물 58mm 열전사 프린터에서 검증된 적 없다 |
 
 ### 7-3. 만들어졌지만 화면에 안 나오는 것
