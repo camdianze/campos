@@ -216,12 +216,17 @@ public class ReportsViewModel : ViewModelBase
             ? _loadedProducts.OrderByDescending(r => r.Quantity).ThenByDescending(r => r.Amount)
             : _loadedProducts.OrderByDescending(r => r.Amount).ThenByDescending(r => r.Quantity);
 
+        // 비중의 분모. 정렬을 바꿔도 같은 값이라 여기서 한 번만 구한다.
+        // 표에 실린 줄들의 합을 쓰므로 화면의 비중을 다 더하면 100%가 된다.
+        var totalAmount = _loadedProducts.Sum(r => r.Amount);
+
         Products.Clear();
 
         var rank = 1;
         foreach (var row in ordered)
         {
             row.Rank = rank++;
+            row.TotalAmountInPeriod = totalAmount;
             Products.Add(row);
         }
     }
@@ -259,12 +264,15 @@ public class ReportsViewModel : ViewModelBase
             builder.AppendLine($"Units sold,{Report.Current.ItemCount},{Report.Previous.ItemCount},{Report.ItemChange}");
             builder.AppendLine();
 
-            builder.AppendLine("Rank,Product,Generic,Strength,Quantity,Amount,PrevQuantity,PrevAmount,AmountChange");
+            // 화면에는 비중만 두었지만 파일에는 증감도 함께 남긴다 —
+            // 내보낸 파일로 기간을 비교하는 것은 화면과 다른 용도다.
+            builder.AppendLine("Rank,Product,Generic,Strength,Quantity,Amount,AmountShare,PrevQuantity,PrevAmount,AmountChange");
             foreach (var row in Products)
             {
                 builder.AppendLine(
                     $"{row.Rank},{Escape(row.ProductName)},{Escape(row.GenericName)},{Escape(row.Strength)}," +
-                    $"{row.Quantity},{row.Amount},{row.PreviousQuantity},{row.PreviousAmount},{row.AmountChange}");
+                    $"{row.Quantity},{row.Amount},{Escape(row.AmountShare)}," +
+                    $"{row.PreviousQuantity},{row.PreviousAmount},{Escape(row.AmountChange)}");
             }
 
             builder.AppendLine();

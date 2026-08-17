@@ -43,6 +43,9 @@ public class AntibioticSalesRow
     public string AmountChange => PeriodChange.Format(Amount, PreviousAmount);
     public string CounsellingChange => PeriodChange.Format(CounsellingPrinted, PreviousCounsellingPrinted);
 
+    public ChangeDirection QuantityDirection => PeriodChange.DirectionOf(Quantity, PreviousQuantity);
+    public ChangeDirection AmountDirection => PeriodChange.DirectionOf(Amount, PreviousAmount);
+
     /// <summary>"6 / 8" — 판매 8건 중 6건에 안내가 나갔다는 뜻.</summary>
     public string CounsellingDisplay => $"{CounsellingPrinted} / {SaleCount}";
 

@@ -8,7 +8,7 @@
              로그인 화면과 상단 바 두 곳에 같은 문자열이 보인다. 한 곳에서만 고치도록
              여기에 둔다. csproj에 버전 속성이 없어 문자열로 관리한다.
              버전을 올릴 때 고칠 곳은 이 줄 하나다. -->
-        <sys:String x:Key="AppVersionText">CAMPOS ver 1.8</sys:String>
+        <sys:String x:Key="AppVersionText">CamPOS v.1.9</sys:String>
 
         <!--
             앱 공통 테마. 로그인 화면에서 정리한 색·타이포·상태 표시를 전체로 넓힌 것이다.
@@ -48,6 +48,12 @@
         <SolidColorBrush x:Key="BorderBrushStrong"  Color="#D1D5DB"/>
         <SolidColorBrush x:Key="TextBrush"          Color="#111827"/>
         <SolidColorBrush x:Key="MutedTextBrush"     Color="#6B7280"/>
+
+        <!-- 증감 화살표. 상승이 붉고 하락이 파란 것은 동아시아 표기 관례를 따른 것이다
+             (서양 관례와 반대이므로 바꿀 때 주의). 경고를 뜻하는 DangerBrush와 따로 두어,
+             빨강의 의미가 "위험"과 "상승" 두 갈래로 섞이지 않게 한다. -->
+        <SolidColorBrush x:Key="ChangeUpBrush"      Color="#D92B2B"/>
+        <SolidColorBrush x:Key="ChangeDownBrush"    Color="#1D4ED8"/>
         <SolidColorBrush x:Key="DisabledTextBrush"  Color="#9CA3AF"/>
 
         <!-- ===== 브랜드 패널 =====

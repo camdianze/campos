@@ -22,6 +22,17 @@ public class ReportData
     public string TransactionChange => PeriodChange.Format(Current.TransactionCount, Previous.TransactionCount);
     public string ItemChange => PeriodChange.Format(Current.ItemCount, Previous.ItemCount);
 
+    // 백분율 옆에 붙는 증감 절대량. 12.3%가 4,000인지 40인지는 백분율만으로 알 수 없다.
+    // 직전 기간이 0이거나 변화가 없으면 빈 문자열이라 카드에 아무것도 붙지 않는다.
+    public string AmountDelta => PeriodChange.FormatDelta(Current.Amount, Previous.Amount);
+    public string TransactionDelta => PeriodChange.FormatDelta(Current.TransactionCount, Previous.TransactionCount);
+    public string ItemDelta => PeriodChange.FormatDelta(Current.ItemCount, Previous.ItemCount);
+
+    // 화살표 색을 정하는 데 쓴다. 위 문자열을 되짚어 읽는 것보다 방향을 따로 내주는 편이 안전하다.
+    public ChangeDirection AmountDirection => PeriodChange.DirectionOf(Current.Amount, Previous.Amount);
+    public ChangeDirection TransactionDirection => PeriodChange.DirectionOf(Current.TransactionCount, Previous.TransactionCount);
+    public ChangeDirection ItemDirection => PeriodChange.DirectionOf(Current.ItemCount, Previous.ItemCount);
+
     /// <summary>항생제 판매 건수 합계.</summary>
     public int AntibioticSaleCount => Antibiotics.Sum(a => a.SaleCount);
 

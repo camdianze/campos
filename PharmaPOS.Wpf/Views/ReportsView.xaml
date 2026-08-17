@@ -3,12 +3,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="1000" d:DesignHeight="700">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:ChangeDirectionToBrushConverter x:Key="ChangeBrush"/>
+
+        <!-- 표 안의 증감 칸. 방향에 따라 글자색이 갈린다. 컬럼마다 바인딩 경로가 달라
+             ElementStyle을 공유할 수 없어서, 색만 각 컬럼에서 지정한다. -->
+        <Style x:Key="ChangeCell" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
 
         <!-- 요약 카드. 관리자 대시보드의 지표 카드와 같은 모양을 쓴다. -->
         <Style x:Key="SummaryCard" TargetType="Border" BasedOn="{StaticResource Card}">
@@ -91,9 +99,13 @@
                 <StackPanel>
                     <TextBlock Text="Sales Amount" Style="{StaticResource SummaryLabel}"/>
                     <TextBlock Text="{Binding Report.Current.Amount}" Style="{StaticResource SummaryValue}"/>
+                    <!-- 화살표만 방향색을 입히고 "vs 이전값"은 흐린 글씨로 둔다.
+                         줄 전체가 붉으면 비교 대상 숫자까지 경고처럼 읽힌다. -->
                     <TextBlock Style="{StaticResource SummaryChange}">
-                        <Run Text="{Binding Report.AmountChange, Mode=OneWay}"/>
-                        <Run Text="vs "/><Run Text="{Binding Report.Previous.Amount, Mode=OneWay}"/>
+                        <Run Text="{Binding Report.AmountChange, Mode=OneWay}"
+                             Foreground="{Binding Report.AmountDirection, Converter={StaticResource ChangeBrush}}"
+                             FontWeight="SemiBold"/>
+                        <Run Text="{Binding Report.AmountDelta, Mode=OneWay}"/>
                     </TextBlock>
                 </StackPanel>
             </Border>
@@ -103,8 +115,10 @@
                     <TextBlock Text="Transactions" Style="{StaticResource SummaryLabel}"/>
                     <TextBlock Text="{Binding Report.Current.TransactionCount}" Style="{StaticResource SummaryValue}"/>
                     <TextBlock Style="{StaticResource SummaryChange}">
-                        <Run Text="{Binding Report.TransactionChange, Mode=OneWay}"/>
-                        <Run Text="vs "/><Run Text="{Binding Report.Previous.TransactionCount, Mode=OneWay}"/>
+                        <Run Text="{Binding Report.TransactionChange, Mode=OneWay}"
+                             Foreground="{Binding Report.TransactionDirection, Converter={StaticResource ChangeBrush}}"
+                             FontWeight="SemiBold"/>
+                        <Run Text="{Binding Report.TransactionDelta, Mode=OneWay}"/>
                     </TextBlock>
                 </StackPanel>
             </Border>
@@ -114,8 +128,10 @@
                     <TextBlock Text="Units Sold" Style="{StaticResource SummaryLabel}"/>
                     <TextBlock Text="{Binding Report.Current.ItemCount}" Style="{StaticResource SummaryValue}"/>
                     <TextBlock Style="{StaticResource SummaryChange}">
-                        <Run Text="{Binding Report.ItemChange, Mode=OneWay}"/>
-                        <Run Text="vs "/><Run Text="{Binding Report.Previous.ItemCount, Mode=OneWay}"/>
+                        <Run Text="{Binding Report.ItemChange, Mode=OneWay}"
+                             Foreground="{Binding Report.ItemDirection, Converter={StaticResource ChangeBrush}}"
+                             FontWeight="SemiBold"/>
+                        <Run Text="{Binding Report.ItemDelta, Mode=OneWay}"/>
                     </TextBlock>
                 </StackPanel>
             </Border>
@@ -183,9 +199,12 @@
                         <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*"/>
                         <DataGridTextColumn Header="Qty"    Binding="{Binding Quantity}" Width="60"/>
                         <DataGridTextColumn Header="Amount" Binding="{Binding Amount}"   Width="90"/>
-                        <!-- 어느 값의 증감인지 헤더에 밝혀 둔다. 옆 표에도 "vs prev"가
-                             있는데 그쪽은 수량 기준이라, 이름만 같으면 구분할 수 없다. -->
-                        <DataGridTextColumn Header="Amount vs prev" Binding="{Binding AmountChange}" Width="100"/>
+                        <!-- 순위표에서는 전기 대비 증감보다 "이 약이 매출의 얼마를 차지하는가"가
+                             읽을 값이다. 순위 자체가 이미 크기순이므로, 1위가 전체의 40%인지
+                             4%인지가 그다음 질문이 된다. 증감은 위쪽 요약 카드가 맡는다.
+                             분모는 이 표에 실린 줄들의 합이라 비중을 다 더하면 100%다. -->
+                        <DataGridTextColumn Header="Share" Binding="{Binding AmountShare}" Width="70"
+                                            ElementStyle="{StaticResource ChangeCell}"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
@@ -216,7 +235,14 @@
                         <DataGridTextColumn Header="Strength"   Binding="{Binding Strength}"   Width="70"/>
                         <DataGridTextColumn Header="Group"      Binding="{Binding AwareGroup}" Width="90"/>
                         <DataGridTextColumn Header="Qty"        Binding="{Binding Quantity}"   Width="50"/>
-                        <DataGridTextColumn Header="Qty vs prev" Binding="{Binding QuantityChange}" Width="85"/>
+                        <DataGridTextColumn Header="Qty vs prev" Binding="{Binding QuantityChange}" Width="85">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource ChangeCell}">
+                                    <Setter Property="Foreground"
+                                            Value="{Binding QuantityDirection, Converter={StaticResource ChangeBrush}}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                         <!-- "6 / 8" = 판매 8건 중 6건에 복약안내가 나갔다는 뜻 -->
                         <DataGridTextColumn Header="Counselled" Binding="{Binding CounsellingDisplay}" Width="80"/>
                         <DataGridTextColumn Header="Rate"       Binding="{Binding PrintedPercentDisplay}" Width="55"/>
