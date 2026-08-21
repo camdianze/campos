@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -143,6 +143,7 @@ public partial class InventoryStatusView : UserControl
             App.Services.GetRequiredService<ICounsellingService>(),
             shellViewModel.CurrentUser.FacilityId,
             shellViewModel.CurrentUser.UserId,
+            shellViewModel.CurrentUser.Username,
             shellViewModel.CurrentUser.Role);
 
         var posSaleView = new PosSaleView();

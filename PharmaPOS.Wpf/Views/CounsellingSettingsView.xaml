@@ -1,4 +1,4 @@
-<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.CounsellingSettingsView"
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.CounsellingSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -14,12 +14,13 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Width="460" Margin="0,24,0,24" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>   <!-- 제목 -->
+                <RowDefinition Height="Auto"/>   <!-- 참조 데이터 상태 -->
+                <RowDefinition Height="Auto"/>   <!-- 인쇄 설정 -->
+                <RowDefinition Height="Auto"/>   <!-- 스튜어드십 지표 -->
+                <RowDefinition Height="Auto"/>   <!-- 연구 제출 -->
+                <RowDefinition Height="Auto"/>   <!-- 버튼 -->
+                <RowDefinition Height="Auto"/>   <!-- 메시지 -->
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
@@ -96,7 +97,27 @@
                            TextWrapping="Wrap" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <Grid Grid.Row="4" Margin="0,0,0,10">
+            <!-- ── 연구 제출 ────────────────────────────────────────────────
+                 항생제 내보내기 파일은 AMR 연구에 제출되어 약국 밖으로 나간다.
+                 그 파일에서 이 약국을 가리키는 값은 아래 코드 하나뿐이고,
+                 코드와 약국의 대응표는 연구기관만 갖는다 — 파일만 봐서는
+                 어느 약국인지 알 수 없다.
+
+                 약국이 자기 코드를 여기서 볼 수 있어야 무엇이 나가는지 알 수 있다.
+                 숨겨진 식별자가 파일에 박혀 있다는 걸 나중에 알게 되는 쪽이 훨씬 나쁘다. -->
+            <StackPanel Grid.Row="4" Margin="0,0,0,24">
+                <TextBlock Text="RESEARCH SUBMISSION" Style="{StaticResource EyebrowLabel}"/>
+
+                <TextBlock Text="Research site code" Style="{StaticResource FieldLabel}" Margin="0,8,0,4"/>
+                <TextBox Text="{Binding ResearchSiteCode, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource FieldInput}" Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,6"
+                           Text="Enter the code you were given when this pharmacy was enrolled - for example KH-PP-014. Do not enter the pharmacy name here: the point of the code is that the file identifies the site without naming it."/>
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap"
+                           Text="It is written only into the antibiotic export, never into the sales export. Sales figures are never included in the antibiotic file. Leave it empty until you are enrolled - the export still works, but the file cannot be attributed."/>
+            </StackPanel>
+
+            <Grid Grid.Row="5" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -111,7 +132,7 @@
                         Command="{Binding SaveCommand}"/>
             </Grid>
 
-            <TextBlock Grid.Row="5"
+            <TextBlock Grid.Row="6"
                        Text="{Binding Message}"
                        Style="{StaticResource ErrorText}" MinHeight="18"/>
         </Grid>

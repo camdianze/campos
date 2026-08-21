@@ -28,10 +28,15 @@
 
         <StackPanel Grid.Row="3" Margin="0,0,0,10">
             <TextBlock Text="Label Quantity" Style="{StaticResource FieldLabel}"/>
-            <TextBox Text="{Binding LabelQuantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+            <TextBox Text="{Binding LabelQuantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
 
-            <TextBlock Text="Printer" Style="{StaticResource FieldLabel}"/>
-            <ComboBox ItemsSource="{Binding AvailablePrinters}" SelectedItem="{Binding SelectedPrinter}"/>
+            <!-- 프린터는 고르지 않는다. 영수증·복약안내와 같이 기본 프린터로 나간다. -->
+            <TextBlock Text="{Binding LabelPlanHint}"
+                       Foreground="{StaticResource MutedTextBrush}"
+                       FontSize="11" TextWrapping="Wrap"/>
+            <TextBlock Text="Labels go to the default printer."
+                       Foreground="{StaticResource MutedTextBrush}"
+                       FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
         </StackPanel>
 
         <Grid Grid.Row="4" Margin="0,10,0,0">

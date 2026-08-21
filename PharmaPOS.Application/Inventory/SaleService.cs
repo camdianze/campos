@@ -120,6 +120,7 @@ public class SaleService : ISaleService
             .Select((line, index) => new ConfirmedSaleLine
             {
                 TransactionId = line.Transaction.TransactionId,
+                TransactionTime = line.Transaction.TransactionTime,
                 Line = cartItems[index]
             })
             .ToList();

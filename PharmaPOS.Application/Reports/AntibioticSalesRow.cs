@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace PharmaPOS.Application.Reports;
 
@@ -46,10 +46,29 @@ public class AntibioticSalesRow
     public ChangeDirection QuantityDirection => PeriodChange.DirectionOf(Quantity, PreviousQuantity);
     public ChangeDirection AmountDirection => PeriodChange.DirectionOf(Amount, PreviousAmount);
 
+    /// <summary>
+    /// 같은 기간 항생제 판매 수량 전체. 한 줄만으로는 알 수 없는 값이라
+    /// ViewModel이 채운다 (ProductSalesRow.TotalAmountInPeriod와 같은 자리·같은 이유).
+    /// </summary>
+    public int TotalQuantityInPeriod { get; set; }
+
+    /// <summary>
+    /// 이 성분이 기간 내 항생제 판매에서 차지하는 비중.
+    ///
+    /// 분모는 이 표에 실린 줄들의 수량 합이라 표의 비중을 다 더하면 100%가 된다.
+    /// 수량 기준인 이유는 ACCESS 비중(ReportData.AccessSharePercent)이 수량 기준이기
+    /// 때문이다. 한 표 안에서 비중의 분모가 둘이면 두 값을 나란히 읽을 수 없다.
+    /// </summary>
+    public string QuantityShare => PeriodChange.FormatShare(Quantity, TotalQuantityInPeriod);
+
     /// <summary>"6 / 8" — 판매 8건 중 6건에 안내가 나갔다는 뜻.</summary>
     public string CounsellingDisplay => $"{CounsellingPrinted} / {SaleCount}";
 
-    /// <summary>출력률. 판매가 없으면 계산할 수 없다.</summary>
+    /// <summary>
+    /// 복약안내 출력률. 화면에서는 요약 카드가 기간 전체의 출력률을 보여주므로
+    /// 표에는 두지 않고, 성분별로 되짚어 봐야 하는 내보내기 파일에만 남긴다.
+    /// 판매가 없으면 계산할 수 없다.
+    /// </summary>
     public decimal? PrintedPercent =>
         SaleCount == 0 ? null : (decimal)CounsellingPrinted / SaleCount * 100m;
 

@@ -12,9 +12,8 @@ public interface IInternalBarcodeService
     Task<BarcodeGenerationResult> GenerateOrGetInternalBarcodeAsync(string productId);
 
     /// <summary>
-    /// 라벨을 출력한다.
-    /// 주의: 실제 프린터 하드웨어 연동 전까지는 입력값 검증만 수행하고
-    /// "출력 준비 완료" 상태를 반환하는 placeholder 구현이다.
+    /// 라벨을 기본 프린터로 출력한다. 영수증·복약안내와 같이 프린터를 고르게 하지 않는다.
+    /// 소분 판매 상품이면 박스용과 낱개용을 각각 labelQuantity장씩 함께 뽑는다.
     /// </summary>
-    Task<LabelPrintResult> PrintLabelAsync(string productId, int labelQuantity, string? selectedPrinter);
+    Task<LabelPrintResult> PrintLabelAsync(string productId, int labelQuantity);
 }

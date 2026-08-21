@@ -28,6 +28,8 @@ public class DatabaseInitializer
         CreateAwareClassificationTable(connection);
         CreateCounsellingLogTable(connection);
         CreateImportHistoryTable(connection);
+        CreateReceiptCounterTable(connection);
+        CreateReceiptNumberTable(connection);
 
         ApplyMigrations(connection);
     }
@@ -108,6 +110,12 @@ public class DatabaseInitializer
         // 환불용. 환불 행이 어느 판매 줄을 되돌린 것인지 가리킨다.
         // 인덱스를 여기서 만드는 이유: CreateStockTransactionTable은 컬럼이 아직 없는
         // 기존 DB에서도 돌기 때문에, 컬럼을 추가한 뒤여야 인덱스를 걸 수 있다.
+        // 영수증 설정용. 값의 종류(text/enum/bool/number)와 누가 마지막으로 바꿨는지를 남긴다.
+        // 둘 다 NULL을 허용한다 — 이 컬럼들이 생기기 전에 저장된 복약안내 설정 값들이
+        // 이미 들어 있고, 그 값들에는 채워 넣을 출처가 없다.
+        AddColumnIfMissing(connection, "App_Setting", "value_type", "TEXT");
+        AddColumnIfMissing(connection, "App_Setting", "updated_by", "TEXT");
+
         AddColumnIfMissing(connection, "Stock_Transaction", "related_transaction_id", "TEXT");
 
         using var indexCommand = connection.CreateCommand();
@@ -268,7 +276,9 @@ public class DatabaseInitializer
             CREATE TABLE IF NOT EXISTS App_Setting (
                 setting_key   TEXT PRIMARY KEY,
                 setting_value TEXT NOT NULL,
-                updated_at    INTEGER NOT NULL
+                value_type    TEXT,
+                updated_at    INTEGER NOT NULL,
+                updated_by    TEXT
             );
             """;
         command.ExecuteNonQuery();
@@ -393,6 +403,48 @@ public class DatabaseInitializer
             );
             CREATE INDEX IF NOT EXISTS idx_import_history_hash
                 ON Import_History(file_hash);
+            """;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// 영수증 일련번호 카운터.
+    ///
+    /// counter_key가 곧 "언제 0001로 되돌리는가"를 담는다 — 일별이면 접두어+날짜,
+    /// 월별이면 접두어+연월, 초기화 없음이면 접두어 하나다.
+    /// 주기를 바꾸면 키가 달라져 새 카운터에서 다시 시작하며, 예전 카운터 값은
+    /// 그대로 남는다. 주기를 되돌렸을 때 번호가 뒤로 가지 않게 하기 위해서다.
+    /// </summary>
+    private static void CreateReceiptCounterTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Receipt_Counter (
+                counter_key TEXT PRIMARY KEY,
+                last_number INTEGER NOT NULL
+            );
+            """;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// 판매에 붙은 영수증 번호.
+    ///
+    /// 판매 헤더 테이블이 없으므로 sale_key는 "{transaction_time}|{user_id}" —
+    /// 판매 내역과 환불이 한 판매를 찾을 때 쓰는 것과 같은 짝이다.
+    /// 이 표가 있어야 판매 내역에서 재출력한 영수증이 처음과 같은 번호를 단다.
+    /// </summary>
+    private static void CreateReceiptNumberTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Receipt_Number (
+                sale_key   TEXT PRIMARY KEY,
+                receipt_no TEXT NOT NULL,
+                issued_at  INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_receipt_number_no
+                ON Receipt_Number(receipt_no);
             """;
         command.ExecuteNonQuery();
     }

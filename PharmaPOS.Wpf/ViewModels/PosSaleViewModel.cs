@@ -35,6 +35,9 @@ public partial class PosSaleViewModel : ViewModelBase
     private readonly ICounsellingService _counsellingService;
     private readonly string _facilityId;
     private readonly string _userId;
+
+    /// <summary>영수증의 담당자 줄에 찍는다. receipt.show.staff가 꺼져 있으면 쓰이지 않는다.</summary>
+    private readonly string _username;
     private readonly bool _isAdministrator;
 
     private string _searchTerm = string.Empty;
@@ -66,23 +69,36 @@ public partial class PosSaleViewModel : ViewModelBase
         get => _selectedProduct;
         set
         {
-            if (!SetProperty(ref _selectedProduct, value))
+            if (ApplySelectedProduct(value))
             {
-                return;
+                // 목록에서 손으로 고른 경로. 배치는 뒤따라 읽히고 화면이 알아서 갱신된다.
+                _ = LoadBatchesAsync();
             }
-
-            // 낱개용 바코드(-EA)를 찍었으면 그 판매 단위를 그대로 이어받는다.
-            // 이름으로 찾았거나 박스/낱개 구분이 없는 상품이면 각각 박스·낱개가 기본이다.
-            _selectedSaleUnit = value?.IsBoxedProduct == true
-                ? _scannedSaleUnit
-                : SaleUnitOption.Each;
-
-            OnPropertyChanged(nameof(SelectedSaleUnit));
-            OnPropertyChanged(nameof(IsBoxedProductSelected));
-            OnPropertyChanged(nameof(QuantityLabel));
-
-            _ = LoadBatchesAsync();
         }
+    }
+
+    /// <summary>
+    /// 선택 상태만 바꾸고 배치는 읽지 않는다. 배치 로드를 기다려야 하는 쪽(바코드 스캔)과
+    /// 기다릴 필요가 없는 쪽(목록 클릭)이 같은 상태 변경을 공유하도록 갈라 둔 것이다.
+    /// </summary>
+    private bool ApplySelectedProduct(Product? value)
+    {
+        if (!SetProperty(ref _selectedProduct, value, nameof(SelectedProduct)))
+        {
+            return false;
+        }
+
+        // 낱개용 바코드(-EA)를 찍었으면 그 판매 단위를 그대로 이어받는다.
+        // 이름으로 찾았거나 박스/낱개 구분이 없는 상품이면 각각 박스·낱개가 기본이다.
+        _selectedSaleUnit = value?.IsBoxedProduct == true
+            ? _scannedSaleUnit
+            : SaleUnitOption.Each;
+
+        OnPropertyChanged(nameof(SelectedSaleUnit));
+        OnPropertyChanged(nameof(IsBoxedProductSelected));
+        OnPropertyChanged(nameof(QuantityLabel));
+
+        return true;
     }
 
     public InventoryBatchOption? SelectedBatch
@@ -183,6 +199,7 @@ public partial class PosSaleViewModel : ViewModelBase
         ICounsellingService counsellingService,
         string facilityId,
         string userId,
+        string username,
         UserRole currentUserRole)
     {
         _productRepository = productRepository;
@@ -192,6 +209,7 @@ public partial class PosSaleViewModel : ViewModelBase
         _counsellingService = counsellingService;
         _facilityId = facilityId;
         _userId = userId;
+        _username = username;
         _isAdministrator = currentUserRole == UserRole.Administrator;
 
         SearchCommand = new RelayCommand(async _ => await ExecuteSearchAsync());
@@ -241,12 +259,48 @@ public partial class PosSaleViewModel : ViewModelBase
             return;
         }
 
-        // 딱 하나면 바로 고른다. 바코드를 찍은 경우가 대부분이고,
-        // 그때 목록에서 한 번 더 누르게 하면 스캐너를 쓰는 의미가 없다.
+        // 찍은 값이 바코드와 정확히 맞으면 장바구니까지 한 번에 간다.
+        // 스캐너를 쓰는 이유가 손을 떼지 않는 것인데, 오른쪽에서 상품을 누르고
+        // Add to Cart까지 눌러야 하면 스캐너가 검색창 대용에 그친다.
+        //
+        // 바코드는 유일 인덱스가 걸려 있어 정확히 맞은 값이 두 상품을 가리킬 수 없다.
+        // 그래서 결과가 여럿이어도(이름에 같은 숫자가 들어간 상품 등) 망설일 이유가 없다.
+        // 이름으로 찾은 경우는 종전 그대로다 — 사람이 고른다.
+        if (IsExactBarcodeMatch(results[0], lookupTerm))
+        {
+            // 배치를 다 읽은 뒤에 담아야 한다. 선택만 해 두고 바로 담으면
+            // 배치가 아직 비어 있어 "Please select a batch number."로 튕긴다.
+            await SelectProductAndLoadBatchesAsync(results[0]);
+
+            ExecuteAddToCart();
+            return;
+        }
+
+        // 딱 하나면 바로 고른다. 이름으로 찾았더라도 결과가 하나뿐이면
+        // 목록에서 한 번 더 누르는 건 의식일 뿐이다.
         // 여러 개면 고르지 않는다 — 계산대에서 엉뚱한 약이 잡히는 쪽이 훨씬 나쁘다.
         if (results.Count == 1)
         {
             SelectedProduct = results[0];
+        }
+    }
+
+    /// <summary>
+    /// 찍은 값이 이 상품의 바코드 자체인지. 이름이 걸린 것과 구분하기 위한 것이다.
+    /// 낱개용 접미사(-EA)는 부르는 쪽에서 이미 떼어 낸 값이 들어온다.
+    /// </summary>
+    private static bool IsExactBarcodeMatch(Product product, string lookupTerm) =>
+        string.Equals(product.Barcode, lookupTerm, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(product.InternalBarcode, lookupTerm, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 상품을 고르고 배치까지 읽어 온다. 목록 클릭 경로와 달리 기다릴 수 있다.
+    /// </summary>
+    private async Task SelectProductAndLoadBatchesAsync(Product product)
+    {
+        if (ApplySelectedProduct(product))
+        {
+            await LoadBatchesAsync();
         }
     }
 

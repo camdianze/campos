@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Repositories;
+﻿using PharmaPOS.Application.Repositories;
 
 namespace PharmaPOS.Application.Reports;
 
@@ -7,6 +7,9 @@ namespace PharmaPOS.Application.Reports;
 /// </summary>
 public class ReportService : IReportService
 {
+    /// <summary>추이 그래프가 보여줄 달 수. 계절성을 보려면 최소 1년이 필요하다.</summary>
+    public const int TrendMonths = 12;
+
     private readonly IReportRepository _reportRepository;
 
     public ReportService(IReportRepository reportRepository)
@@ -36,6 +39,14 @@ public class ReportService : IReportService
             var products = await _reportRepository.GetProductSalesAsync(facilityId, range);
             var antibiotics = await _reportRepository.GetAntibioticSalesAsync(facilityId, range);
 
+            // 추이는 고른 기간이 아니라 그 기간이 끝나는 달까지의 1년이다.
+            // 한 달치 표만으로는 그 달이 평소보다 많은지 적은지 판단할 수 없다.
+            var trend = await _reportRepository.GetAntibioticTrendAsync(
+                facilityId, range.To, TrendMonths);
+
+            var salesTrend = await _reportRepository.GetSalesTrendAsync(
+                facilityId, range.To, TrendMonths);
+
             // 순위(Rank)는 여기서 매기지 않는다. 화면에서 매출/판매수 중 무엇으로 정렬할지
             // 고를 수 있어서, 순위는 그 정렬을 아는 쪽이 매겨야 1위가 맨 위에 온다.
             // 조회 결과 자체는 매출 내림차순이다.
@@ -45,7 +56,9 @@ public class ReportService : IReportService
                 Current = current,
                 Previous = previous,
                 Products = products,
-                Antibiotics = antibiotics
+                Antibiotics = antibiotics,
+                AntibioticTrend = trend,
+                SalesTrend = salesTrend
             });
         }
         catch (Exception)

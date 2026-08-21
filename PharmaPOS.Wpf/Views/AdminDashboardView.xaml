@@ -1,4 +1,4 @@
-<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.AdminDashboardView"
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.AdminDashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -25,11 +25,43 @@
             <Setter Property="Margin"  Value="6"/>
             <Setter Property="Padding" Value="16,14"/>
         </Style>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- 설정 구역의 항목 간격. 이 화면에서만 쓰는 값이라 여기 둔다. -->
+        <Style x:Key="SettingField" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="SettingError" TargetType="TextBlock" BasedOn="{StaticResource ErrorText}">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin"       Value="0,3,0,0"/>
+        </Style>
+
+        <!-- 크메르어를 받는 입력 칸.
+
+             앱 전체는 글꼴을 지정하지 않아 WPF 기본값(Segoe UI)으로 그려진다.
+             Segoe UI에는 크메르 문자가 없어서 글꼴 대체에 기대게 되는데, 대체가
+             어느 글꼴로 떨어질지는 PC에 무엇이 깔렸느냐에 달린다. 인쇄물과 미리보기는
+             이미 대체 순서를 명시해 두었으므로, 입력 칸도 같은 순서를 쓴다 —
+             치는 동안 보이는 모양과 종이에 나오는 모양이 달라서는 안 된다.
+
+             Noto Sans Khmer는 Windows 기본 탑재가 아니라 맨 앞에 두되,
+             뒤의 Khmer UI / Leelawadee UI가 Windows 동봉본이라 없어도 글자는 나온다.
+
+             줄 간격을 키운 이유는 크메르 자소가 위아래로 쌓이기 때문이다.
+             기본 간격이면 입력 칸 안에서 윗부분이 잘려 보인다. -->
+        <Style x:Key="KhmerInput" TargetType="TextBox" BasedOn="{StaticResource FieldInput}">
+            <Setter Property="FontFamily" Value="Noto Sans Khmer, Khmer UI, Leelawadee UI, Segoe UI"/>
+            <Setter Property="FontSize"   Value="14"/>
+            <Setter Property="Padding"    Value="12,9"/>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="28,24,28,24">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -99,7 +131,228 @@
                 <Button Content="📁  Import / Export"     Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding BackupExportCommand}"/>
             </UniformGrid>
 
-            <StackPanel Grid.Row="3">
+            <!-- ── 영수증 설정 ──────────────────────────────────────────────
+                 판매 영수증에 찍히는 값은 전부 여기서 온다. 코드에는 약국 정보가 없다.
+
+                 별도 화면으로 빼지 않고 대시보드 안에 접히는 구역으로 둔 이유:
+                 이 설정은 한 번 정하면 거의 손대지 않는 값들이라, 관리자 화면에
+                 진입점을 하나 더 만들 만큼 자주 열리지 않는다.
+
+                 DataContext는 코드 비하인드가 ReceiptSettingsViewModel로 갈아 끼운다.
+                 대시보드 ViewModel과 별개의 화면이라 바인딩을 섞지 않는다. -->
+            <Expander Grid.Row="3" x:Name="ReceiptSettingsSection"
+                      Margin="6,0,6,20" IsExpanded="False">
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🧾  Receipt Settings" FontWeight="SemiBold" FontSize="14"/>
+                        <TextBlock Text="{Binding DirtyStatus}"
+                                   Style="{StaticResource Caption}"
+                                   VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </Expander.Header>
+
+                <Border Style="{StaticResource Card}" Padding="20,18" Margin="0,10,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- ── 왼쪽: 입력 폼 ───────────────────────────────── -->
+                        <StackPanel Grid.Row="0" Grid.Column="0"
+                                    Margin="0,0,24,0" IsEnabled="{Binding CanEdit}">
+
+                            <TextBlock Text="PHARMACY DETAILS" Style="{StaticResource EyebrowLabel}" Margin="0,0,0,8"/>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Pharmacy name (Khmer)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding ShopNameKm, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource KhmerInput}"/>
+                                <TextBlock Text="{Binding ShopNameKmError}" Style="{StaticResource SettingError}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Pharmacy name (English)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding ShopNameEn, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldInput}"/>
+                                <TextBlock Text="{Binding ShopNameEnError}" Style="{StaticResource SettingError}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Address (Khmer)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding ShopAddressKm, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource KhmerInput}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Address (English)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding ShopAddressEn, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldInput}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Telephone" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding ShopTel, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldInput}"/>
+                            </StackPanel>
+
+                            <TextBlock Text="LANGUAGE AND PAPER" Style="{StaticResource EyebrowLabel}" Margin="0,10,0,8"/>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Printed language" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                                          SelectedItem="{Binding PrintLanguage}"/>
+                                <TextBlock Text="{Binding LocaleStatus}"
+                                           Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Paper width" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding AvailableWidths}"
+                                          SelectedItem="{Binding PaperWidth}"/>
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                           Text="Mm80 prints 48 characters per line, Mm58 prints 32. A setting wider than the paper cuts the right-hand column off."/>
+                            </StackPanel>
+
+                            <TextBlock Text="CURRENCY" Style="{StaticResource EyebrowLabel}" Margin="0,10,0,8"/>
+
+                            <CheckBox Content="Print the amount in Riel as well"
+                                      IsChecked="{Binding ShowRiel}" Margin="0,0,0,10"/>
+
+                            <StackPanel Visibility="{Binding IsRielVisible, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Style="{StaticResource SettingField}">
+                                    <TextBlock Text="Exchange rate (1 USD in KHR)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding ExchangeRate, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource FieldInput}"/>
+                                    <TextBlock Text="{Binding ExchangeRateError}" Style="{StaticResource SettingError}"/>
+                                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Text="The rate is not fetched from anywhere. Update it here whenever it moves."/>
+                                </StackPanel>
+
+                                <StackPanel Style="{StaticResource SettingField}">
+                                    <TextBlock Text="Riel rounding" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding AvailableRoundings}"
+                                              SelectedItem="{Binding RielRounding}"/>
+                                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Text="Small coins are not in circulation, so 100 is the usual choice. 0 rounds to the nearest Riel."/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock Text="PRINTED ITEMS" Style="{StaticResource EyebrowLabel}" Margin="0,10,0,8"/>
+
+                            <CheckBox Content="Receipt number - used to match refunds against sales"
+                                      IsChecked="{Binding ShowReceiptNumber}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Staff name - who served the sale"
+                                      IsChecked="{Binding ShowStaffName}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Unit price - off prints line amounts only"
+                                      IsChecked="{Binding ShowUnitPrice}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Dosage form and unit in Khmer, under each medicine"
+                                      IsChecked="{Binding ShowUnitLabel}" Margin="0,0,0,14"/>
+
+                            <TextBlock Text="NUMBERING AND CLOSING LINE" Style="{StaticResource EyebrowLabel}" Margin="0,0,0,8"/>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Receipt number prefix" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding ReceiptPrefix, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldInput}"/>
+                                <TextBlock Text="{Binding ReceiptPrefixError}" Style="{StaticResource SettingError}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Restart the sequence" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding AvailableResetCycles}"
+                                          SelectedItem="{Binding ResetCycle}"/>
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                           Text="Days and months are counted in Phnom Penh time, not the time zone this PC is set to."/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Closing line (Khmer)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding FooterKm, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource KhmerInput}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="Closing line (English)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding FooterEn, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldInput}"/>
+                            </StackPanel>
+
+                            <TextBlock Text="TAX" Style="{StaticResource EyebrowLabel}" Margin="0,10,0,8"/>
+
+                            <CheckBox Content="Show VAT - only for businesses registered with the GDT"
+                                      IsChecked="{Binding VatEnabled}" Margin="0,0,0,10"/>
+
+                            <StackPanel Visibility="{Binding IsVatVisible, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Style="{StaticResource SettingField}">
+                                    <TextBlock Text="Tax registration number (TIN)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding VatTin, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource FieldInput}"/>
+                                    <TextBlock Text="{Binding VatTinError}" Style="{StaticResource SettingError}"/>
+                                </StackPanel>
+
+                                <StackPanel Style="{StaticResource SettingField}">
+                                    <TextBlock Text="VAT rate (%)" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding VatRate, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource FieldInput}"/>
+                                    <TextBlock Text="{Binding VatRateError}" Style="{StaticResource SettingError}"/>
+                                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Text="Prices are treated as VAT inclusive, so the receipt shows the tax contained in the total rather than adding it on top."/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- ── 오른쪽: 실시간 미리보기 ─────────────────────── -->
+                        <StackPanel Grid.Row="0" Grid.Column="1" Width="330">
+                            <TextBlock Text="PREVIEW" Style="{StaticResource EyebrowLabel}" Margin="0,0,0,8"/>
+
+                            <!-- 실제 인쇄와 같은 렌더러가 그린 결과다. 고정폭 글꼴이라야
+                                 칸이 어긋나지 않고, 감열 프린터가 쓰는 글꼴 목록을
+                                 그대로 써야 크메르 문자가 화면에서도 같은 모양으로 보인다.
+                                 줄 간격 1.75배는 크메르 자소가 위아래로 잘리지 않게 하는 값이다. -->
+                            <Border Background="White"
+                                    BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
+                                    Padding="14,12">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Auto" MaxHeight="620">
+                                    <TextBlock Text="{Binding Preview}"
+                                               FontFamily="Consolas, Courier New, Noto Sans Khmer, Khmer UI, Leelawadee UI"
+                                               FontSize="11"
+                                               LineHeight="19.25"
+                                               LineStackingStrategy="BlockLineHeight"
+                                               TextWrapping="NoWrap"/>
+                                </ScrollViewer>
+                            </Border>
+
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                       Text="Sample items. The layout, wording and column widths are exactly what the printer receives."/>
+                        </StackPanel>
+
+                        <!-- ── 아래: 저장 줄 ──────────────────────────────── -->
+                        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
+                                    Margin="0,18,0,0">
+                            <Button Content="Save"
+                                    Style="{StaticResource PrimaryBtn}" Padding="20,0"
+                                    IsEnabled="{Binding CanEdit}"
+                                    Command="{Binding SaveCommand}"/>
+                            <Button Content="Revert"
+                                    Style="{StaticResource SecondaryBtn}" Padding="20,0" Margin="8,0,0,0"
+                                    IsEnabled="{Binding CanEdit}"
+                                    Command="{Binding RevertCommand}"/>
+                            <TextBlock Text="{Binding Message}"
+                                       Style="{StaticResource ErrorText}"
+                                       VerticalAlignment="Center" TextWrapping="Wrap"
+                                       Margin="14,0,0,0" MaxWidth="420"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Expander>
+
+            <StackPanel Grid.Row="4">
                 <Button Content="← Back"
                         Style="{StaticResource SecondaryBtn}"
                         HorizontalAlignment="Left"

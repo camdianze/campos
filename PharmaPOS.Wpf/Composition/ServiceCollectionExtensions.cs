@@ -6,6 +6,7 @@ using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Licensing;
 using PharmaPOS.Application.PasswordPolicy;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Reports;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Application.Security;
@@ -42,7 +43,10 @@ public static class ServiceCollectionExtensions
         // 보안 / 정책 (상태 없음 → Singleton으로 재사용해도 안전)
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddSingleton<IPasswordPolicyValidator, PasswordPolicyValidator>();
-        services.AddSingleton<IReceiptPrintingService, SimulatedReceiptPrintingService>();
+        // 영수증 설정 캐시는 상태를 들고 있어야 하므로(10분 TTL, 저장 잠금) Singleton이다.
+        // 설정 서비스 자체는 다른 서비스들처럼 Transient로 두고 캐시만 공유한다.
+        services.AddSingleton<ReceiptSettingsCache>();
+        services.AddSingleton<ILabelPrintingService, WpfLabelPrintingService>();
         services.AddSingleton<ICounsellingSheetPrintingService, WpfCounsellingSheetPrintingService>();
         services.AddSingleton<ICounsellingSheetFileWriter>(_ =>
             new CounsellingSheetFileWriter(defaultSheetOutputFolder));
@@ -64,6 +68,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ISaleRepository, SaleRepository>();
         services.AddTransient<IAdminDashboardRepository, AdminDashboardRepository>();
         services.AddTransient<IAppSettingRepository, AppSettingRepository>();
+        services.AddTransient<IReceiptNumberRepository, ReceiptNumberRepository>();
         services.AddTransient<IAwareClassificationRepository, AwareClassificationRepository>();
         services.AddTransient<ICounsellingLogRepository, CounsellingLogRepository>();
         services.AddTransient<ISalesHistoryRepository, SalesHistoryRepository>();
@@ -92,6 +97,11 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IRecoverySettingsService, RecoverySettingsService>();
         services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
         services.AddTransient<IAntibioticMatchingService, AntibioticMatchingService>();
+        // 영수증 인쇄는 설정·발번·로케일을 읽으므로 다른 인쇄 서비스들과 달리 상태 없는
+        // 단순 어댑터가 아니다. Transient로 두어 저장소들과 수명을 맞춘다.
+        services.AddTransient<IReceiptPrintingService, WpfReceiptPrintingService>();
+        services.AddTransient<IReceiptSettingsService, ReceiptSettingsService>();
+        services.AddTransient<IReceiptNumberService, ReceiptNumberService>();
         services.AddTransient<ICounsellingSettingsService, CounsellingSettingsService>();
         services.AddTransient<ICounsellingService, CounsellingService>();
         services.AddTransient<ICounsellingLocaleProvider>(_ =>

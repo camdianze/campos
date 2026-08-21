@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace PharmaPOS.Application.Inventory;
 
 /// <summary>
 /// 저장이 끝난 판매 한 줄과, 그때 만들어진 거래 ID.
@@ -10,6 +10,12 @@ namespace PharmaPOS.Application.Inventory;
 public class ConfirmedSaleLine
 {
     public required string TransactionId { get; init; }
+
+    /// <summary>
+    /// 저장된 거래 시각(Unix epoch ms, UTC). 한 판매의 모든 줄이 같은 값을 갖는다.
+    /// 영수증 번호가 (거래 시각, 사용자)로 판매를 식별하므로 호출자가 이 값을 알아야 한다.
+    /// </summary>
+    public required long TransactionTime { get; init; }
 
     public required SaleLineItem Line { get; init; }
 }

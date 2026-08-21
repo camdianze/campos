@@ -109,7 +109,9 @@ public partial class MainShellView : UserControl
         var reportService = App.Services.GetRequiredService<IReportService>();
 
         var reportsViewModel = new ReportsViewModel(
-            reportService, shellViewModel.CurrentUser.FacilityId);
+            reportService,
+            App.Services.GetRequiredService<ICounsellingSettingsService>(),
+            shellViewModel.CurrentUser.FacilityId);
 
         var reportsView = new ReportsView();
         reportsView.AttachViewModel(reportsViewModel);
@@ -151,6 +153,7 @@ public partial class MainShellView : UserControl
             productRepository, inventoryRepository, saleService, receiptPrintingService,
             counsellingService,
             shellViewModel.CurrentUser.FacilityId, shellViewModel.CurrentUser.UserId,
+            shellViewModel.CurrentUser.Username,
             shellViewModel.CurrentUser.Role);
 
         var posSaleView = new PosSaleView();

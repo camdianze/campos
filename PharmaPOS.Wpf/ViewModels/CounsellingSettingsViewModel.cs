@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Microsoft.Win32;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using PharmaPOS.Application.Counselling;
@@ -33,6 +33,7 @@ public class CounsellingSettingsViewModel : ViewModelBase
     private string _fileOutputFolder = string.Empty;
     private LocaleOption? _selectedLocale;
     private string _qrUrl = string.Empty;
+    private string _researchSiteCode = string.Empty;
     private string _referenceDataStatus = "Checking…";
     private string _metricsSummary = string.Empty;
     private string _message = string.Empty;
@@ -96,6 +97,19 @@ public class CounsellingSettingsViewModel : ViewModelBase
         set => SetProperty(ref _qrUrl, value);
     }
 
+    /// <summary>
+    /// 연구기관이 등록 때 부여한 사이트 코드.
+    ///
+    /// 항생제 내보내기 파일에서 이 약국을 가리키는 유일한 값이다. 코드 자체는
+    /// 아무것도 드러내지 않고, 코드와 약국의 대응표는 연구기관만 갖는다.
+    /// 약국이 자기 코드를 화면에서 볼 수 있어야 무엇이 나가는지 알 수 있다.
+    /// </summary>
+    public string ResearchSiteCode
+    {
+        get => _researchSiteCode;
+        set => SetProperty(ref _researchSiteCode, value);
+    }
+
     public string ReferenceDataStatus
     {
         get => _referenceDataStatus;
@@ -143,6 +157,7 @@ public class CounsellingSettingsViewModel : ViewModelBase
         Output = settings.Output;
         FileOutputFolder = settings.FileOutputFolder;
         QrUrl = settings.QrUrl;
+        ResearchSiteCode = settings.ResearchSiteCode;
 
         await LoadLocaleOptionsAsync(settings.LocaleCode);
         await LoadReferenceDataStatusAsync();
@@ -250,7 +265,8 @@ public class CounsellingSettingsViewModel : ViewModelBase
                 Output = Output,
                 FileOutputFolder = FileOutputFolder?.Trim() ?? string.Empty,
                 LocaleCode = SelectedLocale?.Code ?? string.Empty,
-                QrUrl = QrUrl?.Trim() ?? string.Empty
+                QrUrl = QrUrl?.Trim() ?? string.Empty,
+                ResearchSiteCode = ResearchSiteCode?.Trim() ?? string.Empty
             });
 
             Message = "Settings saved.";

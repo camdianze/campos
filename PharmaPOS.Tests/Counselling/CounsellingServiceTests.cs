@@ -121,6 +121,7 @@ public class CounsellingServiceTests
         return new ConfirmedSaleLine
         {
             TransactionId = transactionId,
+            TransactionTime = 0,
             Line = new SaleLineItem
             {
                 ProductId = productId ?? "product-" + transactionId,

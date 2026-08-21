@@ -15,7 +15,6 @@ public class InternalBarcodeViewModel : ViewModelBase
 
     private string _internalBarcode;
     private string _labelQuantity = "1";
-    private string? _selectedPrinter;
     private string _message = string.Empty;
 
     public string ProductName => _selectedProduct.ProductName;
@@ -23,7 +22,14 @@ public class InternalBarcodeViewModel : ViewModelBase
     public string InternalBarcode
     {
         get => _internalBarcode;
-        private set => SetProperty(ref _internalBarcode, value);
+        private set
+        {
+            if (SetProperty(ref _internalBarcode, value))
+            {
+                // Generate로 방금 만든 값이 아래 안내문에도 반영돼야 한다.
+                OnPropertyChanged(nameof(LabelPlanHint));
+            }
+        }
     }
 
     public string LabelQuantity
@@ -32,21 +38,42 @@ public class InternalBarcodeViewModel : ViewModelBase
         set => SetProperty(ref _labelQuantity, value);
     }
 
-    public string? SelectedPrinter
-    {
-        get => _selectedPrinter;
-        set => SetProperty(ref _selectedPrinter, value);
-    }
-
     /// <summary>
-    /// 연결된 프린터 목록. 실제 프린터 탐색 기능은 아직 없으므로(하드웨어 미정),
-    /// 지금은 화면 확인용 더미 목록을 제공한다.
+    /// 무엇이 몇 장 나갈지 누르기 전에 알려 준다.
+    ///
+    /// 두 가지를 미리 보여야 한다. 하나는 <b>어느 값이 찍히는지</b> — 유통사 바코드가 있으면
+    /// 내부 바코드가 아니라 그쪽이 나가는데, 화면 위쪽에는 내부 바코드가 적혀 있어 어긋나 보인다.
+    /// 다른 하나는 소분 상품이면 <b>장수가 두 배</b>라는 점이다.
     /// </summary>
-    public IReadOnlyList<string> AvailablePrinters { get; } = new[]
+    public string LabelPlanHint
     {
-        "Label Printer 1 (Placeholder)",
-        "Label Printer 2 (Placeholder)"
-    };
+        get
+        {
+            // 내부 바코드는 화면에서 방금 만들었을 수 있으므로 상품 객체가 아니라 이 화면의 값을 본다.
+            var hasManufacturerBarcode = !string.IsNullOrWhiteSpace(_selectedProduct.Barcode);
+
+            var code = hasManufacturerBarcode ? _selectedProduct.Barcode! : InternalBarcode;
+
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return "No barcode yet — press Generate first.";
+            }
+
+            var source = hasManufacturerBarcode ? "manufacturer barcode" : "internal barcode";
+
+            var plan = $"Prints {code} ({source}), one label per copy.";
+
+            // 낱개 바코드는 내부 바코드에서 나온다. 화면에서 방금 만든 경우까지 반영하려면 여기서 붙인다.
+            if (!_selectedProduct.IsBoxedProduct || string.IsNullOrWhiteSpace(InternalBarcode))
+            {
+                return plan;
+            }
+
+            return plan
+                   + $" A second label per copy carries {InternalBarcode}{Product.UnitBarcodeSuffix} "
+                   + $"for a single {_selectedProduct.Unit}.";
+        }
+    }
 
     public string Message
     {
@@ -104,7 +131,7 @@ public class InternalBarcodeViewModel : ViewModelBase
         }
 
         var result = await _internalBarcodeService.PrintLabelAsync(
-            _selectedProduct.ProductId, quantity, SelectedPrinter);
+            _selectedProduct.ProductId, quantity);
 
         Message = result.Message!;
     }

@@ -1,4 +1,4 @@
-# 복약안내 로케일 파일
+﻿# 복약안내 로케일 파일
 
 복약안내 용지의 **현지어 레이어**를 담는다. 영어는 고정 레이어이므로
 이 파일들과 무관하게 항상 인쇄된다. 여기 있는 문구는 영어 줄 옆에 덧붙는다.
@@ -34,9 +34,33 @@
 
 ### 키 목록
 
+**복약안내 용지**
+
 `sheet.subtitle`, `label.dose`, `label.frequency`, `label.duration`, `label.take`,
 `take.before`, `take.after`, `take.either`, `section.important`,
 `important.1` ~ `important.5`, `qr.caption`
+
+**판매 영수증** — 접두어는 `receipt.` 로 통일한다.
+
+`receipt.lbl.receiptNo`, `receipt.lbl.date`, `receipt.lbl.servedBy`, `receipt.lbl.payment`,
+`receipt.lbl.vatTin`, `receipt.col.item`, `receipt.col.qty`, `receipt.col.price`,
+`receipt.col.amount`, `receipt.lbl.totalQty`, `receipt.lbl.vat`, `receipt.lbl.total`,
+`receipt.lbl.inRiel`, `receipt.lbl.fxRate`, `receipt.lbl.cashTendered`,
+`receipt.lbl.changeDue`, `receipt.unit.box`, `receipt.unit.each`, `receipt.lbl.pieces`,
+`receipt.brand.tagline`
+
+- 값 안의 `{tin}` `{rate}` `{count}` 는 **변수 자리표시자**다. 이름을 바꾸거나 지우면
+  그 자리에 값이 들어가지 않는다. 문장 안에서 위치는 언어에 맞게 옮겨도 된다 —
+  옮길 수 있게 하려고 문자열을 조각내지 않고 통째로 두는 것이다.
+- **영수증의 수량·금액은 아라비아 숫자로 인쇄된다.** 크메르 숫자(០១២៣)를 쓰지 않는다.
+  거래 금액을 두 가지 숫자 체계로 적으면 대조가 불가능해진다.
+- **약품명은 번역하지 않는다.** 라틴 문자 국제일반명(INN)이 그대로 나간다.
+  로케일 파일이 번역하는 것은 제형·단위와 라벨뿐이다.
+- 약국 이름·주소·맺음 문구는 이 파일이 아니라 **영수증 설정 화면**에 크메르어/영어
+  두 벌로 들어 있다. 약국마다 다른 값이라 동봉 파일에 넣을 수 없다.
+
+> `review_status`는 파일 전체에 걸린다. `approved`로 바꾸면 복약안내와 영수증의
+> 크메르어가 **함께** 켜진다. 한쪽만 검수하고 승인해서는 안 된다.
 
 - **확정된 키는 바꾸지 않는다.** 추가만 하고, 폐기할 때는 `deprecated.` 접두를 붙인다.
 - 키가 없거나 값이 비어 있으면 **그 줄만** 영어로 인쇄된다.

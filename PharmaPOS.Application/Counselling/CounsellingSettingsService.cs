@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Repositories;
+﻿using PharmaPOS.Application.Repositories;
 using PharmaPOS.Application.Settings;
 
 namespace PharmaPOS.Application.Counselling;
@@ -58,6 +58,9 @@ public class CounsellingSettingsService : ICounsellingSettingsService
 
             settings.QrUrl =
                 await _settingRepository.GetAsync(AppSettingKeys.CounsellingQrUrl) ?? string.Empty;
+
+            settings.ResearchSiteCode =
+                await _settingRepository.GetAsync(AppSettingKeys.ResearchSiteCode) ?? string.Empty;
         }
         catch (Exception)
         {
@@ -81,6 +84,8 @@ public class CounsellingSettingsService : ICounsellingSettingsService
             AppSettingKeys.CounsellingLocale, settings.LocaleCode ?? string.Empty);
         await _settingRepository.SetAsync(
             AppSettingKeys.CounsellingQrUrl, settings.QrUrl ?? string.Empty);
+        await _settingRepository.SetAsync(
+            AppSettingKeys.ResearchSiteCode, settings.ResearchSiteCode ?? string.Empty);
     }
 
     public async Task<(int Count, string? SourceVersion)> GetReferenceDataStatusAsync()

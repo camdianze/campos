@@ -5,7 +5,7 @@
   "render_mode": "raster",
   "review_status": "pending",
   "reviewed_by": null,
-  "content_version": "1.0.0",
+  "content_version": "1.1.0",
   "strings": {
     "sheet.subtitle": "ការណែនាំប្រើថ្នាំអង់ទីប៊ីយោទិច",
     "label.dose": "កម្រិតថ្នាំ",
@@ -21,6 +21,27 @@
     "important.3": "កុំចែកថ្នាំអង់ទីប៊ីយោទិចឲ្យអ្នកដទៃ",
     "important.4": "កុំទុកថ្នាំសល់សម្រាប់ពេលក្រោយ",
     "important.5": "បើមានផលរំខាន ត្រូវទៅជួបគ្រូពេទ្យ",
-    "qr.caption": "ព័ត៌មានបន្ថែម"
+    "qr.caption": "ព័ត៌មានបន្ថែម",
+
+    "receipt.lbl.receiptNo": "លេខវិក្កយបត្រ",
+    "receipt.lbl.date": "កាលបរិច្ឆេទ",
+    "receipt.lbl.servedBy": "បម្រើដោយ",
+    "receipt.lbl.payment": "ការទូទាត់",
+    "receipt.lbl.vatTin": "លេខសម្គាល់អាករ {tin}",
+    "receipt.col.item": "ទំនិញ",
+    "receipt.col.qty": "បរិមាណ",
+    "receipt.col.price": "តម្លៃ",
+    "receipt.col.amount": "ចំនួនទឹកប្រាក់",
+    "receipt.lbl.totalQty": "បរិមាណសរុប",
+    "receipt.lbl.vat": "អាករលើតម្លៃបន្ថែម",
+    "receipt.lbl.total": "សរុប",
+    "receipt.lbl.inRiel": "ជាប្រាក់រៀល",
+    "receipt.lbl.fxRate": "1 ដុល្លារ = {rate} រៀល",
+    "receipt.lbl.cashTendered": "ប្រាក់ទទួល",
+    "receipt.lbl.changeDue": "ប្រាក់អាប់",
+    "receipt.unit.box": "ប្រអប់",
+    "receipt.unit.each": "ឯកតា",
+    "receipt.lbl.pieces": "{count} ឯកតា",
+    "receipt.brand.tagline": "ប្រព័ន្ធគ្រប់គ្រងស្តុកឱសថស្ថាន"
   }
 }

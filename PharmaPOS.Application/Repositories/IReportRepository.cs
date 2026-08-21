@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Reports;
+﻿using PharmaPOS.Application.Reports;
 
 namespace PharmaPOS.Application.Repositories;
 
@@ -29,4 +29,22 @@ public interface IReportRepository
     /// 여기에 UNMATCHED를 섞으면 지표가 항생제와 무관한 수량에 희석된다.
     /// </summary>
     Task<IReadOnlyList<AntibioticSalesRow>> GetAntibioticSalesAsync(string facilityId, ReportRange range);
+
+    /// <summary>
+    /// 월별 항생제 판매 수량을 AWaRe 등급으로 나누어 돌려준다.
+    ///
+    /// 위 세 메서드와 달리 직전 기간 비교가 없다 — 추이 자체가 비교라서
+    /// 옆에 또 다른 기간을 붙일 이유가 없다.
+    /// </summary>
+    /// <param name="endMonth">마지막으로 셀 달. 그 달을 포함해 뒤로 months개를 돌려준다.</param>
+    /// <param name="months">돌려줄 달 수. 판매가 없던 달도 0으로 채워 정확히 이 개수가 나온다.</param>
+    Task<IReadOnlyList<AntibioticTrendPoint>> GetAntibioticTrendAsync(
+        string facilityId, DateTime endMonth, int months);
+
+    /// <summary>
+    /// 월별 순매출. 항생제 추이와 같은 창(같은 끝 달, 같은 개수)을 쓴다 —
+    /// 두 그래프가 나란히 놓이므로 가로축이 어긋나면 비교가 되지 않는다.
+    /// </summary>
+    Task<IReadOnlyList<SalesTrendPoint>> GetSalesTrendAsync(
+        string facilityId, DateTime endMonth, int months);
 }

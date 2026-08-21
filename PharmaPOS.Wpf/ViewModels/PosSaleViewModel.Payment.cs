@@ -144,9 +144,16 @@ public partial class PosSaleViewModel
         var cartSnapshot = Cart.ToList();
         var totalAmount = TotalAmount;
         var changeDue = ChangeDue;
+        var paymentMethod = SelectedPaymentMethod?.ToString();
         decimal? cashTenderedSnapshot = IsCashPayment && decimal.TryParse(CashTendered, out var tendered)
             ? tendered
             : null;
+
+        // 영수증 번호는 (거래 시각, 사용자)로 판매를 식별한다. 판매 내역에서 재출력할 때
+        // 같은 번호가 다시 나오게 하려면 방금 저장된 그 시각을 그대로 써야 한다.
+        var transactionTime = confirmedLines.Count > 0
+            ? confirmedLines[0].TransactionTime
+            : DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         // 판매 확정 성공 후 화면을 먼저 초기화한다 (Screen §4.1절 17~18단계:
         // 판매 완료 메시지 표시 후 초기 상태로 이동).
@@ -155,12 +162,24 @@ public partial class PosSaleViewModel
 
         // 영수증 출력은 판매 확정과 완전히 분리된 단계이며,
         // 실패해도 판매 자체는 이미 완료된 상태이다 (Screen §5절 원칙).
-        var printResult = await _receiptPrintingService.PrintReceiptAsync(
-            cartSnapshot, totalAmount, cashTenderedSnapshot, changeDue);
+        // 프린터가 없거나 드라이버가 죽어도 여기서 예외가 올라오지 않는다 — ThermalTextPrinter가
+        // 안에서 삼키고 실패만 돌려준다. 계산대가 종이 때문에 멈추면 안 된다.
+        var printResult = await _receiptPrintingService.PrintReceiptAsync(new ReceiptPrintRequest
+        {
+            Lines = cartSnapshot,
+            TotalAmount = totalAmount,
+            TransactionTime = transactionTime,
+            UserId = _userId,
+            Username = _username,
+            PaymentMethod = paymentMethod,
+            CashTendered = cashTenderedSnapshot,
+            ChangeDue = changeDue
+        });
 
         if (!printResult.IsSuccess)
         {
-            Message = "Sale completed, but receipt could not be printed.";
+            // 판매가 끝났다는 말이 먼저 와야 한다. 계산대에서는 이 줄만 보고 판단한다.
+            Message = "Sale completed. The receipt did not print — check the printer.";
         }
 
         await HandleAntibioticCounsellingAsync(confirmedLines);

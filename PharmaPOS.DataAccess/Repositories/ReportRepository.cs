@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Reports;
 using PharmaPOS.Application.Repositories;
@@ -214,6 +215,154 @@ public class ReportRepository : IReportRepository
         }
 
         return results;
+    }
+
+    public async Task<IReadOnlyList<AntibioticTrendPoint>> GetAntibioticTrendAsync(
+        string facilityId, DateTime endMonth, int months)
+    {
+        var (firstMonth, count, fromUtc, toUtc) = TrendWindow(endMonth, months);
+
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+
+        // GetAntibioticSalesAsync와 같은 조인·같은 제외 규칙을 쓴다(StockOut만, UNMATCHED 제외).
+        // 규칙이 갈라지면 표의 합과 그래프의 합이 달라지고, 어느 쪽이 맞는지 알 수 없게 된다.
+        //
+        // 'localtime'을 붙이는 이유: 저장된 transaction_time은 UTC epoch지만 이 앱의 날짜
+        // 경계는 전부 현지 자정 기준이다(ReportRange가 new DateTimeOffset(date)로 잡는다).
+        // UTC로 묶으면 자정 근처 판매가 옆 달로 넘어가 표와 그래프가 어긋난다.
+        command.CommandText = """
+            SELECT
+                strftime('%Y-%m', st.transaction_time / 1000, 'unixepoch', 'localtime') AS bucket,
+                cl.aware_group,
+                COALESCE(SUM(st.quantity), 0) AS quantity
+            FROM Counselling_Log cl
+            JOIN Stock_Transaction st ON st.transaction_id = cl.transaction_id
+            WHERE st.facility_id = $facilityId
+              AND st.transaction_type = 'StockOut'
+              AND st.transaction_time BETWEEN $from AND $to
+              AND cl.aware_group <> $unmatched
+            GROUP BY bucket, cl.aware_group;
+            """;
+        command.Parameters.AddWithValue("$facilityId", facilityId);
+        command.Parameters.AddWithValue("$from", fromUtc);
+        command.Parameters.AddWithValue("$to", toUtc);
+        command.Parameters.AddWithValue("$unmatched", AwareGroupCodes.Unmatched);
+
+        // (달, 등급) → 수량. 판매가 없던 달은 여기 들어오지 않으므로 아래에서 0으로 채운다.
+        var quantities = new Dictionary<(string Bucket, string Group), int>();
+
+        using (var reader = await command.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                quantities[(reader.GetString(0), reader.GetString(1))] = reader.GetInt32(2);
+            }
+        }
+
+        var points = new List<AntibioticTrendPoint>(count);
+
+        for (var offset = 0; offset < count; offset++)
+        {
+            var month = firstMonth.AddMonths(offset);
+            var bucket = month.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+
+            int QuantityOf(string group) =>
+                quantities.TryGetValue((bucket, group), out var value) ? value : 0;
+
+            points.Add(new AntibioticTrendPoint
+            {
+                Month = month,
+                AccessQuantity = QuantityOf(AwareGroupCodes.Access),
+                WatchQuantity = QuantityOf(AwareGroupCodes.Watch),
+                ReserveQuantity = QuantityOf(AwareGroupCodes.Reserve),
+                NotRecommendedQuantity = QuantityOf(AwareGroupCodes.NotRecommended)
+            });
+        }
+
+        return points;
+    }
+
+    public async Task<IReadOnlyList<SalesTrendPoint>> GetSalesTrendAsync(
+        string facilityId, DateTime endMonth, int months)
+    {
+        var (firstMonth, count, fromUtc, toUtc) = TrendWindow(endMonth, months);
+
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+
+        // GetSalesTotalsAsync와 같은 규칙이다. 환불 행은 금액이 음수로 쌓여 있어
+        // 함께 더하면 저절로 상계돼 순매출이 되고, 건수만 판매 행으로 한정한다.
+        // 판매 행만 더하면 총매출이 되어 위 요약 카드와 숫자가 어긋난다.
+        //
+        // 'localtime'을 붙이는 이유는 항생제 추이와 같다 — 이 앱의 날짜 경계가
+        // 전부 현지 자정이라, UTC로 묶으면 자정 근처 판매가 옆 달로 넘어간다.
+        command.CommandText = """
+            SELECT
+                strftime('%Y-%m', transaction_time / 1000, 'unixepoch', 'localtime') AS bucket,
+                COALESCE(SUM(total_amount), 0) AS amount,
+                COUNT(DISTINCT CASE WHEN transaction_type = 'StockOut'
+                                    THEN transaction_time || '|' || user_id END) AS transactions
+            FROM Stock_Transaction
+            WHERE facility_id = $facilityId
+              AND transaction_type IN ('StockOut', 'Refund')
+              AND transaction_time BETWEEN $from AND $to
+            GROUP BY bucket;
+            """;
+        command.Parameters.AddWithValue("$facilityId", facilityId);
+        command.Parameters.AddWithValue("$from", fromUtc);
+        command.Parameters.AddWithValue("$to", toUtc);
+
+        var totals = new Dictionary<string, (decimal Amount, int Transactions)>();
+
+        using (var reader = await command.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                totals[reader.GetString(0)] = ((decimal)reader.GetDouble(1), reader.GetInt32(2));
+            }
+        }
+
+        var points = new List<SalesTrendPoint>(count);
+
+        for (var offset = 0; offset < count; offset++)
+        {
+            var month = firstMonth.AddMonths(offset);
+            var bucket = month.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+
+            totals.TryGetValue(bucket, out var total);
+
+            points.Add(new SalesTrendPoint
+            {
+                Month = month,
+                Amount = total.Amount,
+                TransactionCount = total.Transactions
+            });
+        }
+
+        return points;
+    }
+
+    /// <summary>
+    /// 추이 그래프가 덮는 창. 두 그래프가 나란히 놓이므로 같은 계산을 써야
+    /// 가로축이 어긋나지 않는다.
+    ///
+    /// 경계는 ReportRange와 같은 방식으로 잡는다 — 현지 자정을 UTC epoch로 바꾼다.
+    /// </summary>
+    private static (DateTime FirstMonth, int Count, long FromUtc, long ToUtc) TrendWindow(
+        DateTime endMonth, int months)
+    {
+        var count = Math.Max(1, months);
+        var lastMonth = new DateTime(endMonth.Year, endMonth.Month, 1);
+        var firstMonth = lastMonth.AddMonths(-(count - 1));
+
+        return (
+            firstMonth,
+            count,
+            new DateTimeOffset(firstMonth).ToUnixTimeMilliseconds(),
+            new DateTimeOffset(lastMonth.AddMonths(1).AddMilliseconds(-1)).ToUnixTimeMilliseconds());
     }
 
     private static void AddRangeParameters(SqliteCommand command, string facilityId, ReportRange range)

@@ -244,7 +244,17 @@ public class SalesHistoryViewModel : ViewModelBase
 
         var totalAmount = cartItems.Sum(i => i.LineTotal);
 
-        var printResult = await _receiptPrintingService.PrintReceiptAsync(cartItems, totalAmount, null, null);
+        // 원래 판매의 시각과 사용자를 그대로 넘긴다. 그래야 처음 발급된 영수증 번호를
+        // 다시 찾아 같은 번호로 나온다 — 재출력마다 번호가 새로 나가면 환불 대조가 깨진다.
+        var printResult = await _receiptPrintingService.PrintReceiptAsync(new ReceiptPrintRequest
+        {
+            Lines = cartItems,
+            TotalAmount = totalAmount,
+            TransactionTime = SelectedLine.TransactionTime,
+            UserId = SelectedLine.UserId,
+            Username = SelectedLine.Username,
+            PaymentMethod = SelectedLine.PaymentMethod
+        });
 
         Message = printResult.IsSuccess
             ? string.Empty
