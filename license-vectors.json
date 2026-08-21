@@ -1,0 +1,43 @@
+{
+  "note": "계약 벡터. 발급 저장소와 CamPOS 저장소에 같은 내용으로 있어야 한다.",
+  "testPrivateKeyPkcs8": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgaTU49FXZF8I0dR27qp0tZYynBGj+ctDDOfJULgWeqK+hRANCAARk2dhF8oJw/dK63H6zgJtFPEzMzXoTzFKB/8WkFtgpnhMeRFofw9Zta4w6ePCcWBcP39x5ZpVwDkCkfRY0Z7rG",
+  "testPublicKeySpki": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZNnYRfKCcP3Sutx+s4CbRTxMzM16E8xSgf/FpBbYKZ4THkRaH8PWbWuMOnjwnFgXD9/ceWaVcA5ApH0WNGe6xg==",
+  "vectors": [
+    {
+      "version": 1,
+      "serialNumber": 1,
+      "issuedAt": 1750000000,
+      "expiresAt": 0,
+      "payloadBytesHex": "0100000001684EE18000000000",
+      "signatureBase64": "VC7DfGe8M4QIIdtFGLcAkbGUg3tQln5ByfxzihgnCz7qhGdkZHmEx3P2L2NlGtv98sLFj9YmSqzX8Bcx4hjfbQ==",
+      "code": "CAMPOS-04000001-D17E3000-00000N1E-RDY6FF1K-GG423PT5-32VG14DH-JJ1QPM4P-FS0WKZ3K-H8C2E2SY-XA26ES34-F62CEWZP-5XHPA6PV-ZQSC5HCF-TRK4NB6Q-Y0BK3RGR-VXPG"
+    },
+    {
+      "version": 1,
+      "serialNumber": 42,
+      "issuedAt": 1750000000,
+      "expiresAt": 1830000000,
+      "payloadBytesHex": "010000002A684EE1806D139580",
+      "signatureBase64": "L2JCgq/3MgG0h1c3gVRv31Vhb2/ym8Y2AX07YS1iP5SYPlQ4V2smtMw8DO8HvoA5htAx0OK2lKh0AzdLZhfNGA==",
+      "code": "CAMPOS-0400001A-D17E303D-2EAR0BV2-8A1AZXSJ-06T8ENSQ-G5A6ZQTN-C5QPZWMV-RRV02Z9V-C4PP4FWM-K0Z58E2Q-DCKB9K1W-1KQGFFM0-763D0CEG-WAV99A3M-0CVMPSGQ-SMC0"
+    },
+    {
+      "version": 1,
+      "serialNumber": 999999,
+      "issuedAt": 1600000000,
+      "expiresAt": 2000000000,
+      "payloadBytesHex": "01000F423F5F5E100077359400",
+      "signatureBase64": "kW9iVd28yk+DnhJhXOsSksvSe4w8I0c+jxulXLJjYkqMixyUE72ThTyRFIzzTfjGUOtWY5BpGPocVgQwrDXtzw==",
+      "code": "CAMPOS-0400YGHZ-BXF1003Q-6PA014BF-C9AXVF6A-9Y1SW4K1-BKNH54PB-T9XRRF13-8WZ8Y6X5-BJS66RJA-HJ5HS50K-QP9RAF4H-2J6F6KFR-RS8EPNK3-J1MHHYGW-AR231B1N-XQ7G"
+    },
+    {
+      "version": 1,
+      "serialNumber": 4294967295,
+      "issuedAt": 4294967295,
+      "expiresAt": 4294967295,
+      "payloadBytesHex": "01FFFFFFFFFFFFFFFFFFFFFFFF",
+      "signatureBase64": "6nOx3TOahEn0rYjjWW2xNncH99jEiF/jnu3JAhnueykHUK2zbiQiMpOl4N0G/YXSPxDkauAtPqdqu7+4MNYNFw==",
+      "code": "CAMPOS-07ZZZZZZ-ZZZZZZZZ-ZZZZZTKK-P7EK76M4-97TAV273-B5PV2DKQ-0ZVXHH48-BZHSXVE9-08CYWYS9-0X8AVCVE-4GH354X5-W3EGDZC5-T8ZH1S3A-W0PKX9VA-QEZVGC6P-1MBG"
+    }
+  ]
+}

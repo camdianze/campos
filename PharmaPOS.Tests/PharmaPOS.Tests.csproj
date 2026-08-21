@@ -18,6 +18,12 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- 라이선스 계약 벡터. 발급 저장소(campos-license-issuer)와 글자 하나까지 같은 파일이어야 한다.
+       한쪽이 코드 형식을 건드리면 양쪽 테스트가 함께 깨져서, 고객 PC가 아니라 빌드에서 잡힌다. -->
+  <ItemGroup>
+    <None Include="..\license-vectors.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />
     <ProjectReference Include="..\PharmaPOS.Application\PharmaPOS.Application.csproj" />

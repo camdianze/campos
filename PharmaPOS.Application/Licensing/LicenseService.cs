@@ -1,11 +1,11 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace PharmaPOS.Application.Licensing;
 
 /// <summary>
 /// 오프라인 라이선스 검증. 공개키 서명 방식이다.
 ///
-/// 프로그램에는 공개키만 들어간다. 코드를 만드는 개인키는 발급자(tools/LicenseIssuer)만
+/// 프로그램에는 공개키만 들어간다. 코드를 만드는 개인키는 발급자(별도 저장소 campos-license-issuer)만
 /// 갖고 있고 배포본에는 절대 포함되지 않는다. 그래서 이 exe를 아무리 뜯어봐도
 /// 새 코드를 만들어낼 수 없다 — 공개키로는 "이 코드가 맞는가"에 예/아니오만 답할 수 있다.
 ///
@@ -26,7 +26,10 @@ public class LicenseService : ILicenseService
     ///
     /// 이 값을 바꾸면 이전 개인키로 발급한 코드는 전부 무효가 된다.
     /// 이미 활성화를 마친 PC는 license.dat이 있어 영향받지 않는다.
-    /// 값은 tools/LicenseIssuer의 keygen 명령이 출력해 준다.
+    /// 값은 발급 저장소(campos-license-issuer)의 keygen 명령이 출력해 준다.
+    ///
+    /// 이 파일은 발급 저장소와 공유하지 않는다 — 검증만 하는 쪽이라 앱에만 있으면 된다.
+    /// 공유하는 것은 Base32/LicensePayload/LicenseCodeCodec 세 개뿐이다.
     /// </summary>
     private const string PublicKeyBase64 =
         "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfaQ8ngaQCwVbt7v7R+oNxz14RCeMYyd1UH0AJaZULQl7LGl1XUiK+jslChMDEo+wdvc/dsuo4u+uZvQXqwVVwg==";
