@@ -28,7 +28,11 @@ public partial class PosSaleViewModel
         }
     }
 
-    public IReadOnlyList<PaymentMethod> AvailablePaymentMethods { get; } = Enum.GetValues<PaymentMethod>();
+    /// <summary>
+    /// 열거형 전체가 아니라 계산대에서 받는 것만 보여준다.
+    /// 무엇을 받는지는 영업 방침이라 Application 쪽(PaymentMethods)이 정한다.
+    /// </summary>
+    public IReadOnlyList<PaymentMethod> AvailablePaymentMethods { get; } = PaymentMethods.OfferedAtTill;
 
     /// <summary>Cash 선택 시에만 Cash Tendered 입력칸을 보여준다 (Screen §3.2절).</summary>
     public bool IsCashPayment => SelectedPaymentMethod == PaymentMethod.Cash;
