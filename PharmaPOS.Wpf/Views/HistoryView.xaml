@@ -8,15 +8,17 @@
              d:DesignWidth="800" d:DesignHeight="450">
 
     <UserControl.Resources>
-        <!-- 이 화면에만 있는 큰 선택 카드. 색은 App.xaml 팔레트를 참조한다.
-             아래쪽 52px 여백은 카드 밑에 겹쳐 놓인 Back 버튼 자리를 비워두기 위한 것이다. -->
+        <!-- 이 화면에만 있는 선택 카드. 색은 App.xaml 팔레트를 참조한다.
+             높이를 고정해 둔다 — 화면 높이를 다 먹으면 카드 두 장이 빈 여백만
+             거대하게 두르고, 정작 읽을 글자는 구석에 남는다. -->
         <Style x:Key="HistoryCardBtn" TargetType="Button">
             <Setter Property="Background"          Value="{StaticResource SurfaceBrush}"/>
             <Setter Property="BorderBrush"         Value="{StaticResource PrimaryBrush}"/>
             <Setter Property="BorderThickness"     Value="1.5"/>
             <Setter Property="Cursor"              Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment"   Value="Stretch"/>
+            <Setter Property="VerticalAlignment"   Value="Top"/>
+            <Setter Property="Height"              Value="150"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -24,7 +26,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="20" Margin="0,0,0,52">
+                                CornerRadius="14">
                             <ContentPresenter HorizontalAlignment="Stretch"
                                               VerticalAlignment="Stretch"/>
                         </Border>
@@ -46,6 +48,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -58,10 +61,10 @@
         <TextBlock Grid.Row="1"
                    Text="Select a history type to view records."
                    Style="{StaticResource Caption}" FontSize="14"
-                   Margin="0,0,0,32"/>
+                   Margin="0,0,0,24"/>
 
         <!-- 카드 2개 -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="720">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -69,50 +72,50 @@
 
             <!-- Sale History -->
             <Button Grid.Column="0" Style="{StaticResource HistoryCardBtn}"
-                    Margin="0,0,16,0" Click="OnSaleHistoryClick">
+                    Margin="0,0,12,0" Width="340" Click="OnSaleHistoryClick">
                 <Grid>
                     <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
-                                Margin="32,28,0,0">
+                                Margin="22,18,0,0">
                         <TextBlock Text="Sale History"
-                                   FontSize="26" FontWeight="SemiBold"
+                                   FontSize="18" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextBrush}"/>
                         <TextBlock Text="View all sales transactions"
                                    Style="{StaticResource Caption}"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
-                    <TextBlock Text="🛒" FontSize="75"
+                    <TextBlock Text="🛒" FontSize="38"
                                HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Margin="0,60,0,0"/>
+                               VerticalAlignment="Bottom"
+                               Margin="0,0,0,16"/>
                 </Grid>
             </Button>
 
             <!-- Stock History -->
             <Button Grid.Column="1" Style="{StaticResource HistoryCardBtn}"
-                    Margin="16,0,0,0" Click="OnStockHistoryClick">
+                    Margin="12,0,0,0" Width="340" Click="OnStockHistoryClick">
                 <Grid>
                     <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
-                                Margin="32,28,0,0">
+                                Margin="22,18,0,0">
                         <TextBlock Text="Stock History"
-                                   FontSize="26" FontWeight="SemiBold"
+                                   FontSize="18" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextBrush}"/>
                         <TextBlock Text="Stock in and adjustments, in one timeline"
                                    Style="{StaticResource Caption}"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
-                    <TextBlock Text="📦" FontSize="75"
+                    <TextBlock Text="📦" FontSize="38"
                                HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Margin="0,60,0,0"/>
+                               VerticalAlignment="Bottom"
+                               Margin="0,0,0,16"/>
                 </Grid>
             </Button>
         </Grid>
 
         <!-- 뒤로 버튼 -->
-        <Button Grid.Row="2"
+        <Button Grid.Row="3"
                 Content="← Back"
                 Style="{StaticResource SecondaryBtn}"
-                VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                HorizontalAlignment="Left" Margin="0,24,0,0"
                 Click="OnBackClick"/>
     </Grid>
 </UserControl>

@@ -60,12 +60,14 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   GridLinesVisibility="All"
+                  HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
+                  VerticalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   HeadersVisibility="Column">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Date" Binding="{Binding TransactionTimeText}" Width="120"/>
+                <DataGridTextColumn Header="Date" Binding="{Binding TransactionTimeText}" Width="140"/>
                 <DataGridTextColumn Header="Type" Binding="{Binding TypeText}" Width="90"/>
                 <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*"/>
-                <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="100"/>
+                <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="130"/>
                 <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
                 <!-- 이 두 값이 이 화면의 목적이다. Inventory에서 다시 읽은 값이라
                      기록된 수량과 어긋날 수 있고, 어긋나는 그 지점이 찾는 것이다. -->
