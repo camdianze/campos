@@ -18,7 +18,7 @@
             <Setter Property="Cursor"              Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment"   Value="Top"/>
-            <Setter Property="Height"              Value="150"/>
+            <Setter Property="Height"              Value="300"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -26,7 +26,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="14">
+                                CornerRadius="20">
                             <ContentPresenter HorizontalAlignment="Stretch"
                                               VerticalAlignment="Stretch"/>
                         </Border>
@@ -48,8 +48,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- 제목 -->
@@ -64,7 +64,7 @@
                    Margin="0,0,0,24"/>
 
         <!-- 카드 2개 -->
-        <Grid Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="720">
+        <Grid Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -72,41 +72,41 @@
 
             <!-- Sale History -->
             <Button Grid.Column="0" Style="{StaticResource HistoryCardBtn}"
-                    Margin="0,0,12,0" Width="340" Click="OnSaleHistoryClick">
+                    Margin="0,0,16,0" Width="380" Click="OnSaleHistoryClick">
                 <Grid>
                     <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
-                                Margin="22,18,0,0">
+                                Margin="30,26,0,0">
                         <TextBlock Text="Sale History"
-                                   FontSize="18" FontWeight="SemiBold"
+                                   FontSize="26" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextBrush}"/>
                         <TextBlock Text="View all sales transactions"
                                    Style="{StaticResource Caption}"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
-                    <TextBlock Text="🛒" FontSize="38"
+                    <TextBlock Text="🛒" FontSize="76"
                                HorizontalAlignment="Center"
-                               VerticalAlignment="Bottom"
-                               Margin="0,0,0,16"/>
+                               VerticalAlignment="Center"
+                               Margin="0,40,0,0"/>
                 </Grid>
             </Button>
 
             <!-- Stock History -->
             <Button Grid.Column="1" Style="{StaticResource HistoryCardBtn}"
-                    Margin="12,0,0,0" Width="340" Click="OnStockHistoryClick">
+                    Margin="16,0,0,0" Width="380" Click="OnStockHistoryClick">
                 <Grid>
                     <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
-                                Margin="22,18,0,0">
+                                Margin="30,26,0,0">
                         <TextBlock Text="Stock History"
-                                   FontSize="18" FontWeight="SemiBold"
+                                   FontSize="26" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextBrush}"/>
                         <TextBlock Text="Stock in and adjustments, in one timeline"
                                    Style="{StaticResource Caption}"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
-                    <TextBlock Text="📦" FontSize="38"
+                    <TextBlock Text="📦" FontSize="76"
                                HorizontalAlignment="Center"
-                               VerticalAlignment="Bottom"
-                               Margin="0,0,0,16"/>
+                               VerticalAlignment="Center"
+                               Margin="0,40,0,0"/>
                 </Grid>
             </Button>
         </Grid>
@@ -115,7 +115,8 @@
         <Button Grid.Row="3"
                 Content="← Back"
                 Style="{StaticResource SecondaryBtn}"
-                HorizontalAlignment="Left" Margin="0,24,0,0"
+                HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                Margin="0,24,0,0"
                 Click="OnBackClick"/>
     </Grid>
 </UserControl>
