@@ -1,4 +1,4 @@
-# PharmaPOS 화면별 입력 필드 · 목록 · 저장 흐름
+﻿# PharmaPOS 화면별 입력 필드 · 목록 · 저장 흐름
 
 매뉴얼 작성용으로 `.xaml`과 그에 딸린 ViewModel·서비스를 읽어 정리한 것이다. 코드는 수정하지 않았다.
 기준 시점: 작업 트리 현재 상태 (`main`, 최근 커밋 `6a36a26` + 미커밋 변경분).
@@ -275,6 +275,14 @@
 
 표는 읽기 전용, 한 줄만 선택 가능.
 
+### 9-2-1. 우클릭 메뉴
+
+| 항목 | 동작 |
+|---|---|
+| `View Details` | 사진과 모든 값이 있는 **Product 화면**으로 간다. 하단 `Edit` 버튼과 같은 화면이다 |
+
+빈 곳을 우클릭하면 메뉴가 뜨지 않는다. 우클릭한 줄이 곧바로 선택된다.
+
 ### 9-3. 입고(Stock-IN) 패널 — 표에서 상품을 고르면 펼쳐진다
 
 패널 머리에 `Stock-IN` + 고른 상품명. **다른 상품으로 옮기면 입력값이 전부 초기화된다.**
@@ -310,7 +318,24 @@
 
 좌우 2단. 왼쪽 = "이 약이 무엇인지", 오른쪽 = "얼마에 얼마나 파는지". 신규 등록과 수정이 같은 화면이다.
 
-### 10-1. 왼쪽 단
+이 화면이 **상세 보기이자 수정 화면**이다. 목록의 `Edit` 버튼과 우클릭 `View Details`가 모두 여기로 온다.
+
+### 10-0. 사진 칸 (맨 왼쪽)
+
+| 라벨 | 컨트롤 | 비고 |
+|---|---|---|
+| (사진 자리) | 240×240 이미지 | 사진이 없으면 **빈 회색 자리**. 아이콘·문구 없음 |
+| `Photo updated {yyyy-MM-dd}` | 읽기 전용 | 사진이 없거나 넣은 시각을 모르면 빈 줄 |
+| `Set Photo` | 파일 선택 (jpg/jpeg/png/bmp) | **누르는 즉시 저장된다** |
+| `Remove` | | 즉시 지워진다 |
+
+**사진은 `Save`와 무관하게 즉시 저장·삭제됩니다.** 나머지 칸은 `Save`를 눌러야 반영됩니다. 그래서 사진을 바꾸고 `Cancel`을 눌러도 사진은 남고, 정보만 고쳐 저장해도 사진은 지워지지 않습니다.
+
+**신규 등록 중에는 두 버튼이 꺼져 있고** `Save the product first, then reopen it to add a photo.`가 뜬다 — 사진은 상품 ID에 매달아 저장하는데 그 ID가 저장하는 순간 생긴다.
+
+저장 시 긴 변 800px로 줄이고 JPEG로 다시 압축한다. 원본 20MB 초과는 거부한다.
+
+### 10-1. 가운데 단
 
 | # | 구역 | 라벨 | 컨트롤 | 필수 | 기본값 | 선택 항목 |
 |---|---|---|---|---|---|---|
@@ -835,6 +860,14 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - `①  Import Products` — `Adds new products. For products that already exist, only the columns filled in the file are updated — empty columns are left as they are.`
 - `②  Import Inventory` — `Adds stock batch by batch, recorded as stock-in. Quantity is counted in single units. Put N in expiry_date when the expiry date is unknown.`
 
+**`③  Import Photos`** — 파일이 아니라 **폴더**를 고른다. 시트에 컬럼을 늘리지 않는다.
+
+- 사진 파일명을 **바코드**로 둔다 (`8801234567890.jpg`). 매칭 순서는 유통사 바코드 → 내부 바코드 → `-EA` 뗀 값 → 상품명.
+- 확장자는 **`.jpg` 권장**. `.jpeg` `.png` `.bmp`도 읽는다.
+- **HEIC는 못 읽는다** — 아이폰 기본 저장 형식이다. 카메라 설정을 "높은 호환성"으로 바꾸거나 JPG로 변환해야 한다. 읽지 못한 파일은 이유와 함께 미리보기에 나온다.
+- 미리보기에 **덮어쓸 장수**가 따로 나온다. 되돌릴 수 없다.
+- ①②와 달리 **같은 폴더를 다시 넣어도 막지 않는다.** 사진은 덮어쓰기라 쌓이지 않는다.
+
 맨 아래 `File columns` 안내 상자:
 - 필수/기본: `product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity`
 - 선택: `generic_name, strength, dosage_form, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
@@ -983,6 +1016,24 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 | Inventory Status 표의 `STOCK`, 판매 이력의 `Qty` | 언제나 **낱개** |
 
 ---
+
+## 부록 B-1. 재고가 맞지 않을 때 (`StockBefore` / `StockAfter`)
+
+판매 이력 내보내기와 Import/Export의 `sales_history` 파일에 두 컬럼이 있다. 그 거래 **직전·직후 그 배치의 재고**다.
+
+| Product | Batch | Qty | StockBefore | StockAfter |
+|---|---|---|---|---|
+| Amoxicillin 500mg | B2401 | 10 | 300 | 290 |
+| Amoxicillin 500mg | B2401 | 5 | 290 | 285 |
+| Amoxicillin 500mg | B2401 | 2 | **280** ← 어긋남 | 278 |
+
+**배치별로 시간순 정렬해 훑는다.** 앞 줄의 `StockAfter`와 다음 줄의 `StockBefore`가 어긋나는 지점이 원인 자리다 — 원장에 남지 않은 재고 변동이 거기서 일어났다는 뜻이다.
+
+- 입고·판매·조정·환불 **모두** 기록된다. 하나라도 빠지면 정상 동작에서도 체인이 끊긴다.
+- 계산값이 아니라 **실제 재고에서 읽은 값**이다.
+- 재고 반환을 끈 환불은 두 값이 **같다** — 돈만 돌려주고 재고는 그대로라는 뜻이다.
+- 배치가 처음 생기는 입고는 `StockBefore`가 **빈칸**이다.
+- **이 기능이 생기기 전의 거래는 두 칸이 모두 빈칸이다.** 역추적은 그 이후 거래에만 된다.
 
 ## 부록 C. 저장되지 않거나 동작하지 않는 입력 칸
 

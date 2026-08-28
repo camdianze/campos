@@ -1,4 +1,4 @@
-<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.BackupExportView"
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.BackupExportView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -98,6 +98,14 @@
                                 Command="{Binding ImportInventoryCommand}"/>
                         <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
                                    Text="Adds stock batch by batch, recorded as stock-in. Quantity is counted in single units. Put N in expiry_date when the expiry date is unknown."/>
+
+                        <Button Content="&#x2462;  Import Photos"
+                                Style="{StaticResource PrimaryBtn}"
+                                Padding="16,0" HorizontalAlignment="Stretch"
+                                Margin="0,0,0,4"
+                                Command="{Binding ImportPhotosCommand}"/>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
+                                   Text="Asks for a folder instead of a file. Name each photo after the product's barcode - 8801234567890.jpg - and it is attached to that product. Use JPG; photos straight off an iPhone are HEIC and cannot be read."/>
 
                         <Border Background="{StaticResource SurfaceBrush}"
                                 BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"

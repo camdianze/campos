@@ -17,6 +17,9 @@ public partial class ProductEditView : UserControl
         viewModel.NavigateBackToList += OnNavigateBackToList;
 
         DataContext = viewModel;
+
+        // 사진은 화면을 띄운 뒤에 읽는다. 목록에서 들어오는 길이 사진 때문에 느려지면 안 된다.
+        _ = viewModel.LoadPhotoAsync();
     }
 
     private void OnConfirmationRequested(string message)

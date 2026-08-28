@@ -1,4 +1,7 @@
-﻿using PharmaPOS.Application.Products;
+﻿using System.IO;
+using System.Windows.Media.Imaging;
+using Microsoft.Win32;
+using PharmaPOS.Application.Products;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
@@ -12,6 +15,7 @@ namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 public class ProductEditViewModel : ViewModelBase
 {
     private readonly IProductService _productService;
+    private readonly IProductPhotoService _photoService;
 
     private string _productId = string.Empty;
     private string _barcode = string.Empty;
@@ -318,9 +322,13 @@ public class ProductEditViewModel : ViewModelBase
     /// </summary>
     public event Action<string>? ConfirmationRequested;
 
-    public ProductEditViewModel(IProductService productService, Product? existingProduct)
+    public ProductEditViewModel(
+        IProductService productService,
+        IProductPhotoService photoService,
+        Product? existingProduct)
     {
         _productService = productService;
+        _photoService = photoService;
 
         IsNewProduct = existingProduct is null;
 
@@ -351,6 +359,9 @@ public class ProductEditViewModel : ViewModelBase
 
         SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync(acknowledgeWarning: false));
         CancelCommand = new RelayCommand(_ => NavigateBackToList?.Invoke());
+
+        SetPhotoCommand = new RelayCommand(async _ => await ExecuteSetPhotoAsync(), _ => CanEditPhoto);
+        RemovePhotoCommand = new RelayCommand(async _ => await ExecuteRemovePhotoAsync(), _ => CanEditPhoto && HasPhoto);
     }
 
     /// <summary>
@@ -448,6 +459,188 @@ public class ProductEditViewModel : ViewModelBase
         else
         {
             Message = result.Message!;
+        }
+    }
+
+    // ── 사진 ────────────────────────────────────────────────────────────────
+    //
+    // 사진이 이 화면에 함께 있는 이유: 상세 보기와 수정 화면을 따로 두면 같은 입력 폼이
+    // 두 벌이 되고, 검증 규칙이 갈라지면서 한쪽만 고치는 일이 생긴다.
+    // 목록에서 Edit으로 들어오든 우클릭으로 들어오든 같은 화면이다.
+
+    private BitmapImage? _photo;
+    private string _photoUpdatedText = string.Empty;
+    private bool _isPhotoBusy;
+
+    /// <summary>사진. 없으면 null이고 화면은 빈 자리로 둔다.</summary>
+    public BitmapImage? Photo
+    {
+        get => _photo;
+        private set
+        {
+            if (SetProperty(ref _photo, value))
+            {
+                OnPropertyChanged(nameof(HasPhoto));
+                RemovePhotoCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    public bool HasPhoto => _photo is not null;
+
+    /// <summary>사진 아래에 붙는 갱신 시각. 사진이 없으면 빈 문자열이다.</summary>
+    public string PhotoUpdatedText
+    {
+        get => _photoUpdatedText;
+        private set => SetProperty(ref _photoUpdatedText, value);
+    }
+
+    /// <summary>
+    /// 신규 등록 중에는 사진을 붙일 수 없다. 사진은 상품 ID에 매달아 저장하는데
+    /// 그 ID가 저장하는 순간에 생기기 때문이다. 저장한 뒤 다시 열어서 넣는다.
+    /// </summary>
+    public bool CanEditPhoto => !IsNewProduct && !_isPhotoBusy;
+
+    /// <summary>사진 칸에 띄우는 안내. 신규 등록일 때 왜 못 넣는지 알려 준다.</summary>
+    public string PhotoHint => IsNewProduct
+        ? "Save the product first, then reopen it to add a photo."
+        : string.Empty;
+
+    public RelayCommand SetPhotoCommand { get; }
+    public RelayCommand RemovePhotoCommand { get; }
+
+    /// <summary>사진은 화면을 띄운 뒤에 읽는다. 목록에서 들어오는 길이 사진 때문에 느려지면 안 된다.</summary>
+    public async Task LoadPhotoAsync()
+    {
+        if (IsNewProduct)
+        {
+            return;
+        }
+
+        ApplyPhoto(await _photoService.GetAsync(_productId));
+    }
+
+    private async Task ExecuteSetPhotoAsync()
+    {
+        Message = string.Empty;
+
+        var dialog = new OpenFileDialog
+        {
+            Title = "Select product photo",
+            Filter = "Images (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp|All files (*.*)|*.*",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        SetPhotoBusy(true);
+
+        try
+        {
+            byte[] fileBytes;
+
+            try
+            {
+                fileBytes = await File.ReadAllBytesAsync(dialog.FileName);
+            }
+            catch (Exception)
+            {
+                Message = "The selected file could not be read.";
+                return;
+            }
+
+            var result = await _photoService.SaveAsync(_productId, fileBytes);
+
+            if (!result.IsSuccess)
+            {
+                Message = result.Message!;
+                return;
+            }
+
+            ApplyPhoto(result.Photo);
+        }
+        finally
+        {
+            SetPhotoBusy(false);
+        }
+    }
+
+    private async Task ExecuteRemovePhotoAsync()
+    {
+        Message = string.Empty;
+        SetPhotoBusy(true);
+
+        try
+        {
+            var result = await _photoService.RemoveAsync(_productId);
+
+            if (!result.IsSuccess)
+            {
+                Message = result.Message!;
+                return;
+            }
+
+            ApplyPhoto(null);
+        }
+        finally
+        {
+            SetPhotoBusy(false);
+        }
+    }
+
+    private void SetPhotoBusy(bool isBusy)
+    {
+        _isPhotoBusy = isBusy;
+        OnPropertyChanged(nameof(CanEditPhoto));
+        SetPhotoCommand.RaiseCanExecuteChanged();
+        RemovePhotoCommand.RaiseCanExecuteChanged();
+    }
+
+    private void ApplyPhoto(ProductPhoto? photo)
+    {
+        if (photo is null)
+        {
+            Photo = null;
+            PhotoUpdatedText = string.Empty;
+            return;
+        }
+
+        Photo = ToBitmap(photo.Bytes);
+
+        // 시각이 0이면 언제 넣었는지 알 수 없는 사진이다(컬럼이 생기기 전에 넣었거나 직접 손댄 DB).
+        // 그때 1970년을 찍으면 틀린 정보가 되므로 날짜 줄을 아예 붙이지 않는다.
+        PhotoUpdatedText = photo.UpdatedAt <= 0
+            ? string.Empty
+            : "Photo updated " +
+              DateTimeOffset.FromUnixTimeMilliseconds(photo.UpdatedAt).ToLocalTime().ToString("yyyy-MM-dd");
+    }
+
+    /// <summary>
+    /// 바이트를 화면에 쓸 수 있는 이미지로. Freeze해 두면 스트림을 붙들고 있지 않아
+    /// 사진을 바꿔도 파일이 잠기지 않는다.
+    /// </summary>
+    private static BitmapImage? ToBitmap(byte[] bytes)
+    {
+        try
+        {
+            using var stream = new MemoryStream(bytes);
+
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.StreamSource = stream;
+            image.EndInit();
+            image.Freeze();
+
+            return image;
+        }
+        catch (Exception)
+        {
+            // 저장된 바이트가 깨졌더라도 화면은 열려야 한다.
+            return null;
         }
     }
 }

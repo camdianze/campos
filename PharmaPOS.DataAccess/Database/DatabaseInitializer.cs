@@ -90,6 +90,12 @@ public class DatabaseInitializer
         // 이건 "약의 형태"다. category와 같이 선택 입력이라 NULL을 그대로 둔다.
         AddColumnIfMissing(connection, "Product_Master", "dosage_form", "TEXT");
 
+        // 상품 사진. 파일이 아니라 DB에 넣는 이유는 백업이 pharmapos.db 하나만 복사하기 때문이다 —
+        // 파일로 두면 백업본을 복원했을 때 사진만 통째로 사라지고, 현장에서 원인을 찾을 수 없다.
+        // 대신 저장 전에 줄이고 다시 압축해서 장당 수백 KB로 묶는다(ProductPhotoService).
+        AddColumnIfMissing(connection, "Product_Master", "photo", "BLOB");
+        AddColumnIfMissing(connection, "Product_Master", "photo_updated_at", "INTEGER");
+
         // 개발 중 잠깐 있었던 반대 방향 컬럼(박스가를 따로 받던 것)을 치운다.
         // 배포된 DB에는 없던 컬럼이라 지워도 잃을 데이터가 없다.
         DropColumnIfPresent(connection, "Product_Master", "box_selling_price");
@@ -117,6 +123,13 @@ public class DatabaseInitializer
         AddColumnIfMissing(connection, "App_Setting", "updated_by", "TEXT");
 
         AddColumnIfMissing(connection, "Stock_Transaction", "related_transaction_id", "TEXT");
+
+        // 그 배치의 재고가 이 거래 직전·직후에 얼마였는지. 재고가 맞지 않을 때 역추적하는 값이다.
+        // 계산이 아니라 Inventory에서 실제로 읽은 값이라야 뜻이 있다 — 원장이 적은 수량과
+        // 실제로 재고에 일어난 일이 다른 경우가 바로 찾으려는 것이기 때문이다.
+        // 이 컬럼이 생기기 전의 거래는 채울 방법이 없으므로 NULL로 남는다.
+        AddColumnIfMissing(connection, "Stock_Transaction", "stock_before", "INTEGER");
+        AddColumnIfMissing(connection, "Stock_Transaction", "stock_after", "INTEGER");
 
         using var indexCommand = connection.CreateCommand();
         indexCommand.CommandText = """
@@ -251,7 +264,9 @@ public class DatabaseInitializer
                 units_per_box       INTEGER NOT NULL DEFAULT 1,
                 unit_selling_price  REAL,
                 category            TEXT,
-                dosage_form         TEXT
+                dosage_form         TEXT,
+                photo               BLOB,
+                photo_updated_at    INTEGER
             );
             CREATE UNIQUE INDEX IF NOT EXISTS idx_product_barcode
                 ON Product_Master(barcode) WHERE barcode IS NOT NULL;
@@ -467,6 +482,8 @@ public class DatabaseInitializer
                 total_amount                  REAL,
                 reason                        TEXT,
                 related_transaction_id        TEXT,
+                stock_before                  INTEGER,
+                stock_after                   INTEGER,
                 transaction_time              INTEGER NOT NULL,
                 FOREIGN KEY (facility_id) REFERENCES Facility(facility_id),
                 FOREIGN KEY (product_id) REFERENCES Product_Master(product_id),

@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
         // 설정 서비스 자체는 다른 서비스들처럼 Transient로 두고 캐시만 공유한다.
         services.AddSingleton<ReceiptSettingsCache>();
         services.AddSingleton<ILabelPrintingService, WpfLabelPrintingService>();
+        services.AddSingleton<IPhotoEncoder, WpfPhotoEncoder>();
         services.AddSingleton<ICounsellingSheetPrintingService, WpfCounsellingSheetPrintingService>();
         services.AddSingleton<ICounsellingSheetFileWriter>(_ =>
             new CounsellingSheetFileWriter(defaultSheetOutputFolder));
@@ -82,6 +83,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IChangePasswordService, ChangePasswordService>();
         services.AddTransient<IInitialSetupService, InitialSetupService>();
         services.AddTransient<IProductService, ProductService>();
+        services.AddTransient<IProductPhotoService, ProductPhotoService>();
         services.AddTransient<IInternalBarcodeService, InternalBarcodeService>();
         services.AddTransient<IStockInService, StockInService>();
         services.AddTransient<IAdjustmentService, AdjustmentService>();
@@ -92,6 +94,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ISalesHistoryService, SalesHistoryService>();
         services.AddTransient<IRefundService, RefundService>();
         services.AddTransient<IInitialImportService, InitialImportService>();
+        services.AddTransient<IPhotoImportService, PhotoImportService>();
         services.AddTransient<IReportService, ReportService>();
         services.AddTransient<IBackupService, BackupService>();
         services.AddTransient<IRecoverySettingsService, RecoverySettingsService>();

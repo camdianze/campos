@@ -66,6 +66,8 @@
 
         <DataGrid Grid.Row="2"
                   x:Name="ProductsGrid"
+                  PreviewMouseRightButtonDown="OnGridRightButtonDown"
+                  ContextMenuOpening="OnGridContextMenuOpening"
                   ItemsSource="{Binding Products}"
                   SelectedItem="{Binding SelectedRow}"
                   AutoGenerateColumns="False"
@@ -79,6 +81,16 @@
                   HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   VerticalGridLinesBrush="{StaticResource BorderBrushSoft}"
                   RowHeight="36">
+
+            <!-- 우클릭 메뉴. 재고·알림 화면과 같은 방식이다 — 빈 곳에서는 뜨지 않고,
+                 우클릭한 줄이 곧바로 선택된다(WPF는 우클릭으로 선택을 옮기지 않는다). -->
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="View Details"
+                              Command="{Binding ViewDetailCommand}"
+                              IsEnabled="{Binding HasSelection}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
 
             <!-- Status 컬럼을 없앤 대신 비활성 상품은 행을 흐리게 둔다. 목록은 거의 전부
                  Active라 컬럼 하나가 같은 단어를 반복하고 있었다. 규칙이 아니라 예외가 보여야 한다.

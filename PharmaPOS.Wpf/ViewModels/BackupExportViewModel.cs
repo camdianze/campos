@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -26,6 +26,7 @@ public class BackupExportViewModel : ViewModelBase
 
     private readonly IBackupService _backupService;
     private readonly IInitialImportService _initialImportService;
+    private readonly IPhotoImportService _photoImportService;
     private readonly string _facilityId;
     private readonly string _userId;
 
@@ -52,6 +53,7 @@ public class BackupExportViewModel : ViewModelBase
     public RelayCommand SelectImportFileCommand { get; }
     public RelayCommand ImportProductsCommand { get; }
     public RelayCommand ImportInventoryCommand { get; }
+    public RelayCommand ImportPhotosCommand { get; }
 
     // ── 내보내기 ────────────────────────────────────────────────────────────
 
@@ -110,17 +112,20 @@ public class BackupExportViewModel : ViewModelBase
     public BackupExportViewModel(
         IBackupService backupService,
         IInitialImportService initialImportService,
+        IPhotoImportService photoImportService,
         string facilityId,
         string userId)
     {
         _backupService = backupService;
         _initialImportService = initialImportService;
+        _photoImportService = photoImportService;
         _facilityId = facilityId;
         _userId = userId;
 
         SelectImportFileCommand = new RelayCommand(_ => ExecuteSelectImportFile());
         ImportProductsCommand = new RelayCommand(async _ => await ExecuteImportProductsAsync());
         ImportInventoryCommand = new RelayCommand(async _ => await ExecuteImportInventoryAsync());
+        ImportPhotosCommand = new RelayCommand(async _ => await ExecuteImportPhotosAsync());
 
         SelectExportFolderCommand = new RelayCommand(_ => ExecuteSelectExportFolder());
         ExportDataCommand = new RelayCommand(async _ => await ExecuteExportDataAsync());
@@ -451,5 +456,103 @@ public class BackupExportViewModel : ViewModelBase
         }
 
         Application.Current.Shutdown();
+    }
+
+    // ── 사진 가져오기 ───────────────────────────────────────────────────────
+    //
+    // 상품·재고와 달리 파일 하나가 아니라 폴더를 받는다. CSV 셀에는 이미지를 담을 수 없고
+    // (200KB 사진이 270KB 텍스트가 되는데 엑셀 셀 한도가 32,767자다), 파일명을 바코드로
+    // 두면 시트를 손대지 않아도 된다.
+    //
+    // 같은 폴더를 다시 넣는 것도 막지 않는다. 그 차단은 재고가 두 배가 되는 것을 막으려는
+    // 장치인데 사진은 덮어쓰기라 쌓이지 않고, 다시 찍어 넣는 것이 정상적인 사용이다.
+
+    private async Task ExecuteImportPhotosAsync()
+    {
+        Message = string.Empty;
+
+        var dialog = new OpenFolderDialog { Title = "Select the folder that holds the product photos" };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        IImportPhotoSource source;
+
+        try
+        {
+            source = new FolderPhotoSource(dialog.FolderName);
+        }
+        catch (Exception ex)
+        {
+            Message = $"Import error: {ex.Message}";
+            return;
+        }
+
+        var plan = await _photoImportService.PlanAsync(source);
+
+        var preview = new StringBuilder();
+        preview.AppendLine("STEP 3 - PHOTOS");
+        preview.AppendLine("--------------------------------");
+        preview.AppendLine($"Files in folder       : {plan.TotalFiles}");
+        preview.AppendLine($"New photos            : {plan.NewCount}");
+        preview.AppendLine($"Photos to replace     : {plan.ReplaceCount}");
+        preview.AppendLine($"No matching product   : {plan.UnmatchedFiles.Count}");
+        preview.AppendLine($"Cannot be read        : {plan.SkippedFiles.Count}");
+
+        AppendNames(preview, "No matching product", plan.UnmatchedFiles);
+        AppendIssues(preview, "Cannot be read", plan.SkippedFiles);
+        AppendIssues(preview, "Errors", plan.Issues);
+
+        if (!plan.HasWork)
+        {
+            preview.AppendLine();
+            preview.AppendLine("There is nothing to import.");
+            preview.AppendLine("Name each photo after the product's barcode, for example 8801234567890.jpg.");
+            AppDialog.Show("Import Photos", preview.ToString(), monospace: true);
+            return;
+        }
+
+        preview.AppendLine();
+
+        if (plan.ReplaceCount > 0)
+        {
+            preview.AppendLine($"{plan.ReplaceCount} product(s) already have a photo. It will be replaced.");
+        }
+
+        preview.AppendLine("Files listed above are skipped. Continue?");
+
+        if (!AppDialog.Confirm("Import Photos", preview.ToString(), "Import", "Cancel"))
+        {
+            Message = "Import cancelled.";
+            return;
+        }
+
+        var result = await _photoImportService.ApplyAsync(plan, source);
+
+        ShowApplyResult("Import Photos", result, "photos");
+    }
+
+    /// <summary>파일 이름만 늘어놓는 목록. 오류 줄 번호가 뜻이 없는 경우에 쓴다.</summary>
+    private static void AppendNames(StringBuilder builder, string title, IReadOnlyList<string> names)
+    {
+        if (names.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine();
+        builder.AppendLine($"{title}:");
+
+        foreach (var name in names.Take(MaxIssueLinesInDialog))
+        {
+            builder.AppendLine($"  {name}");
+        }
+
+        if (names.Count > MaxIssueLinesInDialog)
+        {
+            builder.AppendLine($"  ... and {names.Count - MaxIssueLinesInDialog} more");
+        }
     }
 }

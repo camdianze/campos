@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Input;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
@@ -56,6 +58,7 @@ public partial class ProductListView : UserControl
         viewModel.NavigateToAddProduct += OnNavigateToAddProduct;
         viewModel.NavigateToEditProduct += OnNavigateToEditProduct;
         viewModel.NavigateToPrintBarcode += OnNavigateToPrintBarcode;
+        viewModel.NavigateToDetail += OnNavigateToDetail;
         viewModel.RequestScrollToRow += ScrollToRow;
 
         DataContext = viewModel;
@@ -114,7 +117,10 @@ public partial class ProductListView : UserControl
     private void NavigateToProductEdit(Product? existingProduct)
     {
         var productService = App.Services.GetRequiredService<IProductService>();
-        var editViewModel = new ProductEditViewModel(productService, existingProduct);
+        var editViewModel = new ProductEditViewModel(
+            productService,
+            App.Services.GetRequiredService<IProductPhotoService>(),
+            existingProduct);
 
         var editView = new ProductEditView();
         editView.AttachViewModel(editViewModel);
@@ -172,4 +178,54 @@ public partial class ProductListView : UserControl
             DataContext = App.CurrentShellViewModel
         };
     }
+
+    /// <summary>
+    /// 마지막 우클릭이 실제 줄 위에서 일어났는지.
+    /// 빈 곳을 우클릭해도 이전 선택이 남아 있어, 선택 여부만으로는 알 수 없다.
+    /// </summary>
+    private bool _rightClickHitRow;
+
+    /// <summary>
+    /// 우클릭한 줄을 선택 상태로 만든다. DataGrid는 우클릭으로 선택이 바뀌지 않아,
+    /// 그냥 두면 메뉴가 엉뚱한 상품에 작용한다 (알림 화면과 같은 처리).
+    /// </summary>
+    private void OnGridRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var row = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+
+        _rightClickHitRow = row is not null;
+
+        if (row is not null)
+        {
+            row.IsSelected = true;
+        }
+    }
+
+    /// <summary>빈 곳에서 우클릭했으면 메뉴를 띄우지 않는다.</summary>
+    private void OnGridContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        if (!_rightClickHitRow || DataContext is not ProductListViewModel { HasSelection: true })
+        {
+            e.Handled = true;
+        }
+    }
+
+    private static T? FindAncestor<T>(DependencyObject? source) where T : DependencyObject
+    {
+        while (source is not null and not T)
+        {
+            // 줄 안의 요소가 시각 트리에 없는 경우가 있어 논리 부모도 함께 본다.
+            source = source is Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(source)
+                : LogicalTreeHelper.GetParent(source);
+        }
+
+        return source as T;
+    }
+
+    /// <summary>
+    /// 우클릭 메뉴의 상세 보기. Edit 버튼과 같은 화면으로 간다 —
+    /// 사진과 모든 값이 거기 한 자리에 있고, 그 자리에서 고친다.
+    /// </summary>
+    private void OnNavigateToDetail(Product product) => NavigateToProductEdit(existingProduct: product);
 }

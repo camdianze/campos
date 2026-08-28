@@ -296,4 +296,54 @@ public class ProductRepository : IProductRepository
                 : dosageForm
         };
     }
+
+    /// <summary>
+    /// 사진만 따로 읽는다. SearchAsync/GetByIdAsync의 SELECT 목록에 photo를 넣지 않는 이유는
+    /// 상품 목록이 수백 줄을 한 번에 읽기 때문이다 — 거기에 이미지가 딸려 오면 검색이 느려진다.
+    /// </summary>
+    public async Task<ProductPhoto?> GetPhotoAsync(string productId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT photo, photo_updated_at
+            FROM Product_Master
+            WHERE product_id = $productId;
+            """;
+        command.Parameters.AddWithValue("$productId", productId);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        if (!await reader.ReadAsync() || reader.IsDBNull(0))
+        {
+            return null;
+        }
+
+        var bytes = (byte[])reader.GetValue(0);
+
+        // 사진은 있는데 시각이 비어 있는 경우(수동으로 넣은 DB 등)는 0으로 읽는다.
+        // 화면에서 "언제 바꿨는지 모름"으로 다룬다.
+        var updatedAt = reader.IsDBNull(1) ? 0L : reader.GetInt64(1);
+
+        return new ProductPhoto(bytes, updatedAt);
+    }
+
+    public async Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            UPDATE Product_Master
+            SET photo = $photo,
+                photo_updated_at = $updatedAt
+            WHERE product_id = $productId;
+            """;
+        command.Parameters.AddWithValue("$productId", productId);
+        command.Parameters.AddWithValue("$photo", (object?)photo ?? DBNull.Value);
+        command.Parameters.AddWithValue("$updatedAt", (object?)updatedAt ?? DBNull.Value);
+
+        await command.ExecuteNonQueryAsync();
+    }
 }

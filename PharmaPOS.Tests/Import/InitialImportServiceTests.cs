@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Import;
+﻿using PharmaPOS.Application.Import;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
@@ -58,6 +58,26 @@ public class InitialImportServiceTests
         }
 
         public Task DeactivateAsync(string productId) => Task.CompletedTask;
+
+        /// <summary>사진은 상품 저장 경로와 갈라져 있다. 임포트는 사진을 건드리지 않는다.</summary>
+        public Dictionary<string, ProductPhoto> Photos { get; } = new();
+
+        public Task<ProductPhoto?> GetPhotoAsync(string productId) =>
+            Task.FromResult(Photos.TryGetValue(productId, out var photo) ? photo : null);
+
+        public Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt)
+        {
+            if (photo is null)
+            {
+                Photos.Remove(productId);
+            }
+            else
+            {
+                Photos[productId] = new ProductPhoto(photo, updatedAt ?? 0);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FakeBarcodeSequenceRepository : IInternalBarcodeSequenceRepository

@@ -44,4 +44,13 @@ public interface IProductRepository
     /// 상품을 비활성화한다 (물리 삭제 아님, status = Inactive로 변경).
     /// </summary>
     Task DeactivateAsync(string productId);
+
+    /// <summary>
+    /// 상품 사진. 없으면 null.
+    /// 목록 조회와 갈라 둔 이유: 사진은 장당 수백 KB라 상품 목록에 딸려 오면 검색이 느려진다.
+    /// </summary>
+    Task<ProductPhoto?> GetPhotoAsync(string productId);
+
+    /// <summary>사진을 넣거나 바꾼다. photo가 null이면 지운다.</summary>
+    Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt);
 }

@@ -107,6 +107,7 @@ public class ProductListViewModel : ViewModelBase
             }
 
             OnPropertyChanged(nameof(SelectedProduct));
+            OnPropertyChanged(nameof(HasSelection));
             OnPropertyChanged(nameof(IsBoxedProductSelected));
             OnPropertyChanged(nameof(StockInQuantityLabel));
             OnPropertyChanged(nameof(StockInTotalPreview));
@@ -213,10 +214,19 @@ public class ProductListViewModel : ViewModelBase
     public RelayCommand DeactivateCommand { get; }
     public RelayCommand PrintInternalBarcodeCommand { get; }
 
+    /// <summary>우클릭 메뉴 전용. 사진과 모든 값을 한 화면에서 본다.</summary>
+    public RelayCommand ViewDetailCommand { get; }
+
+    /// <summary>우클릭 메뉴 활성화 조건. 고른 줄이 없으면 할 수 있는 일이 없다.</summary>
+    public bool HasSelection => SelectedRow is not null;
+
     /// <summary>View가 구독해서 실제 화면 전환을 처리하는 이벤트들.</summary>
     public event Action? NavigateToAddProduct;
     public event Action<Product>? NavigateToEditProduct;
     public event Action<Product>? NavigateToPrintBarcode;
+
+    /// <summary>상세 화면으로 넘어가 달라는 요청. 화면 전환은 코드 비하인드가 한다.</summary>
+    public event Action<Product>? NavigateToDetail;
 
     /// <summary>
     /// 미리 고른 줄이 화면 밖에 있을 때 그 줄로 스크롤해 달라는 요청.
@@ -274,6 +284,17 @@ public class ProductListViewModel : ViewModelBase
         });
 
         DeactivateCommand = new RelayCommand(async _ => await ExecuteDeactivateAsync());
+
+        ViewDetailCommand = new RelayCommand(_ =>
+        {
+            if (SelectedProduct is null)
+            {
+                Message = "Please select a product.";
+                return;
+            }
+
+            NavigateToDetail?.Invoke(SelectedProduct);
+        });
 
         PrintInternalBarcodeCommand = new RelayCommand(_ =>
         {

@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -165,6 +165,8 @@ The screen (reached from the admin dashboard) is split by direction of data flow
 
 Marked with `TODO` in source: sale `notes` (no column exists on `Stock_Transaction`).
 
+The app version shown on screen and stamped into exported file names comes from one place, [AppVersion](PharmaPOS.Application/AppVersion.cs). It used to live only as a XAML resource, which Application could not read, so exported files carried no version at all. Reports carry it inside the file as well; products and inventory exports carry it only in the file name, because those files must re-import and the importer requires the header on the first line.
+
 Receipts, counselling sheets and barcode labels all print through [ThermalTextPrinter](PharmaPOS.Wpf/Services/ThermalTextPrinter.cs) — the Windows print pipeline (`FixedDocument`) rather than ESC/POS, sized from what the driver reports so the paper width is not hard-coded. (`print.width` only decides how many characters a receipt line holds — 48 or 32 — not the physical page size, which stays whatever the driver says.) It swallows every printer failure and returns `false`: the receipt and counselling callers run *after* the sale is committed, so a missing printer must never throw into a finished transaction. No path opens a print dialog or asks which printer to use — everything goes to the default. **Not verified against a physical thermal printer.**
 
 Labels draw their own bars: [Code128Encoder](PharmaPOS.Application/Products/Code128Encoder.cs) turns a code into module widths and [WpfLabelPrintingService](PharmaPOS.Wpf/Services/WpfLabelPrintingService.cs) renders them as rectangles. No barcode font and no package — the same reasoning that kept ESC/POS out. Code 128-B specifically, because internal barcodes look like `INT-00000146` (and `-EA` for loose units), which digit-only symbologies cannot hold. The pattern table and the check-digit rule are covered by `Code128EncoderTests`; a wrong check digit prints bars that look fine and simply never scan.
@@ -178,6 +180,26 @@ Antibiotic counselling (AMR) additionally needs:
 - Two WHO entries are classified by route (Minocycline `J01AA08`, Fosfomycin `J01XX01`: IV = RESERVE, oral = WATCH). Lookups deliberately pick the stricter group instead of reading `dosage_form`, for the reason in the first bullet. Two rows out of 384.
 - **QR image.** The sheet prints `[QR]` plus the configured URL as text; encoding an actual QR needs a package (none is referenced) and a decision on what the URL points to.
 - Counselling sheets print through the Windows print pipeline ([WpfCounsellingSheetPrintingService](PharmaPOS.Wpf/Services/WpfCounsellingSheetPrintingService.cs)), not ESC/POS. It has not been verified against a physical thermal printer.
+
+## Product photos
+
+`Product_Master` carries the photo itself (`photo` BLOB, `photo_updated_at`). Files on disk were the obvious alternative and are the wrong one here: a backup is a copy of `pharmapos.db` and nothing else, so a restored backup would come back with every photo missing and no sign of why.
+
+The cost of that choice is size, so it is paid at the door — [ProductPhotoService](PharmaPOS.Application/Products/ProductPhotoService.cs) shrinks the longest edge to 800px and re-encodes as JPEG before storing, and rejects source files over 20MB before decoding them. A phone photo is 3–5MB; 300 of those stored raw would outgrow what a single-file backup can carry.
+
+**The photo is never on the `Product` entity.** The product list reads hundreds of rows and would drag the images along with them, so `IProductRepository` exposes `GetPhotoAsync`/`SavePhotoAsync` separately and the detail screen loads the image after the screen is up. `UpdateAsync` does not touch the photo columns either, which is why editing a product cannot wipe its photo.
+
+Encoding lives in WPF (`WpfPhotoEncoder`) for the same reason DPAPI and printing do — decoding and resizing an image is `PresentationCore`, which Application must not know about.
+
+Photos are set on the product screen one at a time, or in bulk from the Import / Export screen (step ③). The bulk import takes a **folder**, not a file: a CSV cell cannot hold an image (a 200KB photo is 270KB of base64 against Excel's 32,767-character cell limit), and naming each file after the barcode means the survey sheet needs no new column. Matching goes manufacturer barcode → internal barcode → the same minus `-EA` → product name; barcodes win because they are unique and names are not. Unlike steps ① and ②, re-importing the same folder is **not** blocked — that block exists to stop stock doubling, and photos overwrite rather than accumulate. Formats Windows cannot decode without an extra codec (HEIC above all, which is what an iPhone produces by default) are reported by name rather than skipped in silence, because otherwise a folder full of photos imports nothing and says nothing.
+
+## Tracing stock
+
+Every `Stock_Transaction` row records `stock_before` and `stock_after` — that batch's balance either side of the transaction. Sales, stock-in, adjustments and refunds all write them; leaving any one out would break the chain during normal operation and make the whole thing useless.
+
+**Both values are read from `Inventory`, never computed.** Writing `after = before - quantity` makes `before + quantity == after` a tautology that can never fail, and the thing worth catching is precisely when the ledger's quantity and what actually happened to stock disagree. [StockLedgerTrace](PharmaPOS.DataAccess/Repositories/StockLedgerTrace.cs) re-reads the balance after the update and patches the ledger row inside the same transaction — the four writers order their inventory work and ledger insert differently, and reordering them all was the riskier change.
+
+Reading down a batch's rows in time order, the first place `stock_after` of one row disagrees with `stock_before` of the next is where stock moved without a ledger row. Rows written before these columns existed are NULL and export as blank; **zero would read as "stock was zero".**
 
 ## Licensing
 
