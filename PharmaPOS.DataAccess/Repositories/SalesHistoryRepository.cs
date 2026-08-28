@@ -73,6 +73,7 @@ public class SalesHistoryRepository : ISalesHistoryRepository
                    st.total_amount, st.payment_method, st.user_id,
                    COALESCE(u.username, st.user_id) AS username,
                    st.transaction_time, st.transaction_type,
+                   st.stock_before, st.stock_after,
                    COALESCE((SELECT -SUM(r.quantity)
                              FROM Stock_Transaction r
                              WHERE r.related_transaction_id = st.transaction_id
@@ -108,6 +109,7 @@ public class SalesHistoryRepository : ISalesHistoryRepository
                    st.total_amount, st.payment_method, st.user_id,
                    COALESCE(u.username, st.user_id) AS username,
                    st.transaction_time, st.transaction_type,
+                   st.stock_before, st.stock_after,
                    COALESCE((SELECT -SUM(r.quantity)
                              FROM Stock_Transaction r
                              WHERE r.related_transaction_id = st.transaction_id
@@ -136,6 +138,10 @@ public class SalesHistoryRepository : ISalesHistoryRepository
         return results;
     }
 
+    /// <summary>
+    /// 위 두 SELECT가 <b>같은 순서로 같은 컬럼</b>을 내야 한다. 읽기는 자리 번호로 하므로
+    /// 한쪽에만 컬럼을 더하면 그 뒤 값들이 통째로 한 칸씩 밀린다.
+    /// </summary>
     private static SalesHistoryLineItem MapToLineItem(SqliteDataReader reader)
     {
         return new SalesHistoryLineItem
@@ -152,7 +158,11 @@ public class SalesHistoryRepository : ISalesHistoryRepository
             Username = reader.GetString(9),
             TransactionTime = reader.GetInt64(10),
             TransactionType = reader.GetString(11),
-            RefundedQuantity = reader.GetInt32(12)
+            // 이 컬럼이 생기기 전의 거래는 값이 없다. 0으로 바꾸지 않는다 —
+            // "그때 재고가 0이었다"와 "모른다"는 다른 이야기다.
+            StockBefore = reader.IsDBNull(12) ? null : reader.GetInt64(12),
+            StockAfter = reader.IsDBNull(13) ? null : reader.GetInt64(13),
+            RefundedQuantity = reader.GetInt32(14)
         };
     }
 }

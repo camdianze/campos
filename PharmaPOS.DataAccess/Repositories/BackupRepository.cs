@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Inventory;
@@ -83,6 +83,10 @@ public class BackupRepository : IBackupRepository
                    st.total_amount,
                    st.payment_method,
                    COALESCE(u.username, st.user_id) AS sold_by,
+                   -- 재고가 맞지 않을 때 역추적하는 값. 배치별로 정렬해 훑으면
+                   -- 앞 줄의 stock_after와 다음 줄의 stock_before가 어긋나는 곳이 원인 자리다.
+                   st.stock_before,
+                   st.stock_after,
                    COALESCE(st.reason, '') AS reason
             FROM Stock_Transaction st
             LEFT JOIN Product_Master p ON p.product_id = st.product_id

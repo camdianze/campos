@@ -115,6 +115,16 @@ public class AdjustmentRepository : IAdjustmentRepository
                 await insertCommand.ExecuteNonQueryAsync();
             }
 
+            // before는 expectedCurrentQuantity를 그대로 쓴다. 위 UPDATE가
+            // "current_quantity = $expectedCurrentQuantity"를 조건으로 걸고 성공했으므로,
+            // 그 값이 실제 재고였다는 것을 DB가 확인해 준 셈이다.
+            var stockAfter = await StockLedgerTrace.ReadQuantityByInventoryIdAsync(
+                connection, dbTransaction, inventoryId);
+
+            await StockLedgerTrace.RecordAsync(
+                connection, dbTransaction, transaction.TransactionId,
+                expectedCurrentQuantity, stockAfter);
+
             dbTransaction.Commit();
             return true;
         }

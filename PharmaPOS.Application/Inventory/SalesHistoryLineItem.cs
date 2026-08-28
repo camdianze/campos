@@ -18,6 +18,15 @@ public class SalesHistoryLineItem
     public required string Username { get; set; }
     public required long TransactionTime { get; set; }
 
+    /// <summary>
+    /// 이 거래 직전·직후 그 배치의 재고. 재고가 맞지 않을 때 역추적하는 값이다.
+    /// 이 컬럼이 생기기 전의 거래는 채울 방법이 없어 null이고, 파일에는 빈칸으로 나간다 —
+    /// 0으로 채우면 "그때 재고가 0이었다"로 읽힌다.
+    /// </summary>
+    public long? StockBefore { get; set; }
+
+    public long? StockAfter { get; set; }
+
     /// <summary>"StockOut" 또는 "Refund".</summary>
     public required string TransactionType { get; set; }
 

@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using Microsoft.Win32;
+using PharmaPOS.Application;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
@@ -272,7 +273,7 @@ public class SalesHistoryViewModel : ViewModelBase
         var dialog = new SaveFileDialog
         {
             Filter = "CSV files (*.csv)|*.csv",
-            FileName = $"sales_history_{DateTime.Now:yyyyMMdd}.csv"
+            FileName = $"sales_history_{AppVersion.FileTag}_{DateTime.Now:yyyyMMdd}.csv"
         };
 
         if (dialog.ShowDialog() != true)
@@ -284,7 +285,7 @@ public class SalesHistoryViewModel : ViewModelBase
         {
             var builder = new StringBuilder();
             // 환불 행이 섞여 있으므로 Type 컬럼이 없으면 음수 수량의 정체를 알 수 없다.
-            builder.AppendLine("Type,ProductName,BatchNumber,Quantity,UnitPrice,LineTotal,PaymentMethod,Username,TransactionTime");
+            builder.AppendLine("Type,ProductName,BatchNumber,Quantity,UnitPrice,LineTotal,StockBefore,StockAfter,PaymentMethod,Username,TransactionTime");
 
             foreach (var item in Results)
             {
@@ -292,7 +293,9 @@ public class SalesHistoryViewModel : ViewModelBase
                 var type = item.IsRefund ? "Refund" : "Sale";
                 builder.AppendLine(
                     $"{type},{item.ProductName},{item.BatchNumber},{item.Quantity},{item.UnitPrice}," +
-                    $"{item.LineTotal},{item.PaymentMethod},{item.Username},{time:yyyy-MM-dd HH:mm}");
+                    // 값이 없는 거래는 빈칸이다. 0으로 채우면 재고가 0이었다는 뜻이 된다.
+                    $"{item.LineTotal},{item.StockBefore},{item.StockAfter}," +
+                    $"{item.PaymentMethod},{item.Username},{time:yyyy-MM-dd HH:mm}");
             }
 
             File.WriteAllText(dialog.FileName, builder.ToString(), Encoding.UTF8);

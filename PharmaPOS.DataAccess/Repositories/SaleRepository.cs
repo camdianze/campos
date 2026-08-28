@@ -114,6 +114,16 @@ public class SaleRepository : ISaleRepository
                     insertCommand.Parameters.AddWithValue("$transactionTime", t.TransactionTime);
                     await insertCommand.ExecuteNonQueryAsync();
                 }
+
+                // 차감 전후 재고를 원장에 남긴다. after는 위에서 계산한 newStock이 아니라
+                // 갱신된 Inventory에서 다시 읽는다 — 계산값을 넣으면 늘 맞아떨어져서
+                // 정작 찾으려는 "원장과 재고가 어긋난 경우"를 못 잡는다.
+                var stockAfter = await StockLedgerTrace.ReadQuantityByInventoryIdAsync(
+                    connection, dbTransaction, line.InventoryId);
+
+                await StockLedgerTrace.RecordAsync(
+                    connection, dbTransaction, line.Transaction.TransactionId,
+                    currentStock.TotalUnits, stockAfter);
             }
 
             dbTransaction.Commit();

@@ -51,6 +51,11 @@ public class StockInRepository : IStockInRepository
                 await insertCommand.ExecuteNonQueryAsync();
             }
 
+            // 손대기 전 재고. 배치가 아직 없으면 null이고, 그건 이 입고로 배치가 처음 생긴다는 뜻이다.
+            var stockBefore = await StockLedgerTrace.ReadQuantityByBatchAsync(
+                connection, dbTransaction,
+                transaction.FacilityId, transaction.ProductId, transaction.BatchNumber);
+
             // 동일 facility+product+batch가 Inventory에 이미 있는지 확인 (UPSERT).
             long existingQuantity = -1;
 
@@ -122,6 +127,13 @@ public class StockInRepository : IStockInRepository
                 insertInventoryCommand.Parameters.AddWithValue("$updatedAt", transaction.TransactionTime);
                 await insertInventoryCommand.ExecuteNonQueryAsync();
             }
+
+            var stockAfter = await StockLedgerTrace.ReadQuantityByBatchAsync(
+                connection, dbTransaction,
+                transaction.FacilityId, transaction.ProductId, transaction.BatchNumber);
+
+            await StockLedgerTrace.RecordAsync(
+                connection, dbTransaction, transaction.TransactionId, stockBefore, stockAfter);
 
             dbTransaction.Commit();
         }

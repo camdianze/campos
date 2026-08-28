@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.DataAccess.Database;
@@ -122,6 +122,12 @@ public class RefundRepository : IRefundRepository
                     return false;
                 }
 
+                // 재고를 건드리기 전 값. 재고 반환을 끄면 뒤에서 읽는 값과 같아지고,
+                // 그 자체가 "돈만 돌려주고 재고는 그대로"라는 사실을 파일에서 읽히게 한다.
+                var stockBefore = await StockLedgerTrace.ReadQuantityByBatchAsync(
+                    connection, dbTransaction,
+                    line.Transaction.FacilityId, line.Transaction.ProductId, line.Transaction.BatchNumber);
+
                 if (line.ReturnToStock)
                 {
                     await ReturnToStockAsync(connection, dbTransaction, line);
@@ -160,6 +166,13 @@ public class RefundRepository : IRefundRepository
                     insertCommand.Parameters.AddWithValue("$transactionTime", t.TransactionTime);
                     await insertCommand.ExecuteNonQueryAsync();
                 }
+
+                var stockAfter = await StockLedgerTrace.ReadQuantityByBatchAsync(
+                    connection, dbTransaction,
+                    line.Transaction.FacilityId, line.Transaction.ProductId, line.Transaction.BatchNumber);
+
+                await StockLedgerTrace.RecordAsync(
+                    connection, dbTransaction, line.Transaction.TransactionId, stockBefore, stockAfter);
             }
 
             dbTransaction.Commit();
