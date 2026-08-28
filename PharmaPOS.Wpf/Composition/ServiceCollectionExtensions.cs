@@ -73,6 +73,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAwareClassificationRepository, AwareClassificationRepository>();
         services.AddTransient<ICounsellingLogRepository, CounsellingLogRepository>();
         services.AddTransient<ISalesHistoryRepository, SalesHistoryRepository>();
+        services.AddTransient<IStockHistoryRepository, StockHistoryRepository>();
         services.AddTransient<IRefundRepository, RefundRepository>();
         services.AddTransient<IImportHistoryRepository, ImportHistoryRepository>();
         services.AddTransient<IReportRepository, ReportRepository>();
@@ -92,6 +93,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAdminDashboardService, AdminDashboardService>();
         services.AddTransient<IUserManagementService, UserManagementService>();
         services.AddTransient<ISalesHistoryService, SalesHistoryService>();
+        services.AddTransient<IStockHistoryService, StockHistoryService>();
         services.AddTransient<IRefundService, RefundService>();
         services.AddTransient<IInitialImportService, InitialImportService>();
         services.AddTransient<IPhotoImportService, PhotoImportService>();

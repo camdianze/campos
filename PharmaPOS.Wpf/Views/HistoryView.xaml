@@ -87,20 +87,20 @@
                 </Grid>
             </Button>
 
-            <!-- Adjustment History -->
+            <!-- Stock History -->
             <Button Grid.Column="1" Style="{StaticResource HistoryCardBtn}"
-                    Margin="16,0,0,0" Click="OnAdjustmentHistoryClick">
+                    Margin="16,0,0,0" Click="OnStockHistoryClick">
                 <Grid>
                     <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
                                 Margin="32,28,0,0">
-                        <TextBlock Text="Adjustment History"
+                        <TextBlock Text="Stock History"
                                    FontSize="26" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="View all inventory adjustments"
+                        <TextBlock Text="Stock in and adjustments, in one timeline"
                                    Style="{StaticResource Caption}"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
-                    <TextBlock Text="✏️" FontSize="75"
+                    <TextBlock Text="📦" FontSize="75"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,60,0,0"/>

@@ -1,0 +1,97 @@
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.StockHistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
+             mc:Ignorable="d"
+             Background="White"
+             d:DesignWidth="950" d:DesignHeight="550">
+
+    <UserControl.Resources>
+        <conv:UnixToDateConverter x:Key="UnixToDate"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Stock History" Style="{StaticResource PageTitle}" Margin="0,0,0,4"/>
+
+        <TextBlock Grid.Row="1" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
+                   Text="Every movement of stock other than the shelf count itself. Read one batch down in time order: where a row&apos;s Before does not match the row above&apos;s After, stock moved without a record."/>
+
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="90"/>
+            </Grid.ColumnDefinitions>
+
+            <DatePicker Grid.Column="0" SelectedDate="{Binding DateFrom}" Margin="0,0,5,0"/>
+            <DatePicker Grid.Column="1" SelectedDate="{Binding DateTo}" Margin="5,0,5,0"/>
+
+            <TextBox Grid.Column="2"
+                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="5,0,5,0"/>
+
+            <!-- 종류 필터. 기본값 All에서 입고와 조정이 한 목록에 시간순으로 섞여 보인다. -->
+            <ComboBox Grid.Column="3"
+                      ItemsSource="{Binding AvailableFilters}"
+                      SelectedItem="{Binding SelectedFilter}"
+                      Margin="5,0,5,0"/>
+
+            <Button Grid.Column="4" Content="Search" Style="{StaticResource PrimaryBtn}" Margin="5,0,5,0" Command="{Binding SearchCommand}"/>
+            <Button Grid.Column="5" Content="Reset" Style="{StaticResource SecondaryBtn}" Margin="5,0,0,0" Command="{Binding ResetCommand}"/>
+        </Grid>
+
+        <DataGrid Grid.Row="3" x:Name="HistoryGrid"
+                  ItemsSource="{Binding Results}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  GridLinesVisibility="All"
+                  HeadersVisibility="Column">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date" Binding="{Binding TransactionTimeText}" Width="120"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding TypeText}" Width="90"/>
+                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*"/>
+                <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="100"/>
+                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
+                <!-- 이 두 값이 이 화면의 목적이다. Inventory에서 다시 읽은 값이라
+                     기록된 수량과 어긋날 수 있고, 어긋나는 그 지점이 찾는 것이다. -->
+                <DataGridTextColumn Header="Before" Binding="{Binding StockBefore}" Width="70"/>
+                <DataGridTextColumn Header="After" Binding="{Binding StockAfter}" Width="70"/>
+                <!-- 입고만 볼 때는 유효기간이 아래 제 컬럼으로 빠지므로 이 칸에서 감춘다. -->
+                <DataGridTextColumn x:Name="DetailColumn" Header="Detail" Binding="{Binding Detail}" Width="160"/>
+                <DataGridTextColumn x:Name="ExpiryColumn" Header="Expiry"
+                                    Binding="{Binding ExpiryDate, Converter={StaticResource UnixToDate}}"
+                                    Width="110" Visibility="Collapsed"/>
+                <DataGridTextColumn Header="User" Binding="{Binding Username}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="4" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="&#8592; Back" Style="{StaticResource SecondaryBtn}" Margin="0,0,5,0" Command="{Binding BackCommand}"/>
+            <Button Grid.Column="1" Content="Export" Style="{StaticResource SecondaryBtn}" Margin="5,0,5,0" Command="{Binding ExportCommand}"/>
+            <TextBlock Grid.Column="2"/>
+        </Grid>
+
+        <TextBlock Grid.Row="5" Text="{Binding Message}" Style="{StaticResource ErrorText}" MinHeight="18" Margin="0,10,0,0"/>
+    </Grid>
+</UserControl>

@@ -16,7 +16,7 @@
 
 | 항목 | 실제 동작 |
 |---|---|
-| **자리표시자(Placeholder) 문구는 하나도 없다** | 코드 전체에 watermark/placeholder 구현이 없다. 빈 입력칸은 그냥 빈 칸이다. 특히 **검색 상자에는 라벨도 자리표시자도 없어**, 화면만 보고는 무엇을 치는 칸인지 알 수 없다 (Products, Inventory Status, Sales History, Adjustment History, User Management). 매뉴얼에서 "여기에 상품명 또는 바코드를 입력합니다"처럼 보충해 주어야 한다. |
+| **자리표시자(Placeholder) 문구는 하나도 없다** | 코드 전체에 watermark/placeholder 구현이 없다. 빈 입력칸은 그냥 빈 칸이다. 특히 **검색 상자에는 라벨도 자리표시자도 없어**, 화면만 보고는 무엇을 치는 칸인지 알 수 없다 (Products, Inventory Status, Sales History, Stock History, User Management). 매뉴얼에서 "여기에 상품명 또는 바코드를 입력합니다"처럼 보충해 주어야 한다. |
 | **툴팁은 딱 두 개** | 재고 화면 상품명 앞의 AWaRe 색점(분류명이 뜬다), 메인 셸 직원 화면의 잠긴 `🔒 Reports` 버튼(`Administrators only.`). 그 외에는 없다. |
 | **라벨의 `*` 표시는 일관되지 않다** | 실제로 필수인데 `*`가 없는 칸이 많다(초기 설정 1단계 전부, 보안 질문/답, 입고 배치번호·수량 등). 이 문서의 "필수" 열은 화면 표기가 아니라 **코드가 실제로 막는지**를 기준으로 적었다. |
 | **검증 시점** | 입력 중에는 아무 검증도 하지 않는다. **저장/확인 버튼을 눌러야** 한 번에 검사하고, 첫 번째로 걸린 항목의 메시지 하나만 화면 하단(또는 패널 하단)에 빨간 글씨로 표시한다. 입력칸에 붉은 테두리가 생기거나 하지 않는다. |
@@ -578,7 +578,7 @@
 입력 칸 없음. 부제 `Select a history type to view records.`
 
 - 카드 `Sale History` (부제 `View all sales transactions`, 🛒) → Sales History
-- 카드 `Adjustment History` (부제 `View all inventory adjustments`, ✏️) → Adjustment History
+- 카드 `Stock History` (부제 `Stock in and adjustments, in one timeline`, 📦) → Stock History
 - `← Back` → 메인 셸
 
 ---
@@ -665,27 +665,71 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 18. Adjustment History — [AdjustmentHistoryView.xaml](../PharmaPOS.Wpf/Views/AdjustmentHistoryView.xaml)
+## 18. Stock History — [StockHistoryView.xaml](../PharmaPOS.Wpf/Views/StockHistoryView.xaml)
 
-읽기 전용 화면. 열자마자 전체를 한 번 조회한다.
+읽기 전용 화면. 열자마자 **종류를 가리지 않고** 전체를 한 번 조회한다.
 
-### 검색·필터 (왼쪽부터)
+판매를 뺀 나머지가 아니라 **재고가 움직인 모든 기록**이 한 목록에 시간순으로 섞여 나온다. 화면 부제가 그 용도를 말한다 — *"Read one batch down in time order: where a row's Before does not match the row above's After, stock moved without a record."*
 
-| # | 컨트롤 | 라벨 | 기준 | 기본값 |
+### 18-1. 검색·필터 (왼쪽부터)
+
+| # | 컨트롤 | 라벨 | 기준 | 선택지 / 기본값 |
 |---|---|---|---|---|
-| 1 | DatePicker | 없음 | 시작일 | 비어 있음 |
-| 2 | DatePicker | 없음 | 종료일 | 비어 있음 |
-| 3 | TextBox | 없음 | 상품명 **또는** 배치번호 | 빈 칸 |
+| 1 | DatePicker | **없음** | 시작일 | **비어 있음**(제한 없음) |
+| 2 | DatePicker | **없음** | 종료일 | **비어 있음** |
+| 3 | TextBox | **없음** | 상품명 / 제네릭명 / 바코드 / **배치번호** | 빈 칸 |
+| 4 | ComboBox | **없음** | 거래 종류 | `All` / `StockIn` / `Adjustment` / `Sale` — 기본 **`All`** |
 
-`Search`를 눌러야 반영된다. `Reset`은 셋을 비우고 재조회. 결과 없으면 `No adjustment records found.`
+- `Search` — 위 조건으로 재조회. 결과 없으면 `No stock records found.`
+- `Reset` — 네 조건을 모두 비우고(종류는 `All`로) 다시 조회한다.
+- **종류 ComboBox만은 고르는 즉시 재조회된다** (`Search`를 누를 필요가 없다).
 
-### 표 컬럼 (왼쪽부터)
+### 18-2. 종류 필터가 가져오는 것
 
-`Date` / `Product` / `Batch` / `Qty Change` / `Reason` / `Adjusted By`
+| 선택 | 가져오는 `transaction_type` |
+|---|---|
+| `All` | 전부 (종류 조건을 아예 걸지 않는다) |
+| `StockIn` | `StockIn` |
+| `Adjustment` | `Adjustment` |
+| `Sale` | `StockOut` **+ `Refund`** |
 
-`Qty Change`는 실사 − 전산이라 음수일 수 있다. 배치번호를 고친 조정은 사유에 `Batch number: (none) → A1` 형태의 문구가 함께 남는다.
+`Sale`이 환불을 함께 가져오는 것은, 환불이 판매를 되돌린 줄이라 떼어 놓으면 남은 판매 줄이 이미 취소된 것인지 알 수 없기 때문이다.
 
-`← Back` → History 화면.
+> **기본값이 `All`인 이유.** `Before`/`After`는 한 배치를 시간순으로 훑으며 *앞 줄의 After* 와 *다음 줄의 Before* 가 어긋나는 지점을 찾는 값이다. 종류별로 갈라 놓으면 중간 줄이 빠져서 **어느 목록에서도 그 어긋남이 보이지 않는다.**
+
+### 18-3. 표 컬럼 (왼쪽부터)
+
+| # | 머리글 | 내용 |
+|---|---|---|
+| 1 | `Date` | `yyyy-MM-dd HH:mm`. **분까지 보여준다** — 같은 날 안에서의 순서가 이 화면의 핵심이라서 |
+| 2 | `Type` | `Stock In` / `Adjustment` / `Sale` / `Refund` (`StockOut`은 계산대 말인 `Sale`로 표시) |
+| 3 | `Product` | 상품명 |
+| 4 | `Batch` | 배치번호 |
+| 5 | `Qty` | **기록된 그대로의 수량.** 종류별로 부호를 맞춰 놓지 않았다 (아래 주의) |
+| 6 | `Before` | 그 거래 직전 그 배치의 재고 |
+| 7 | `After` | 직후 재고 |
+| 8 | `Detail` | 종류마다 다른 값 (아래) |
+| 9 | `User` | 기록한 사용자 |
+
+`Detail` 한 칸이 종류별 값을 나눠 갖는다 — 종류마다 컬럼을 따로 두면 목록의 대부분이 빈칸이 되기 때문이다.
+
+| Type | `Detail`에 들어가는 것 |
+|---|---|
+| `Stock In` | `Exp 2027-06` (유효기간이 없으면 **`Exp —`**) |
+| `Adjustment` | 조정 사유 |
+| `Refund` | 환불 사유 (없으면 결제수단) |
+| `Sale` | 결제수단 |
+
+**종류를 `StockIn`으로 좁히면** 모든 줄에 유효기간이 있으므로 `Detail`이 사라지고 그 자리에 **`Expiry` 컬럼**이 제 모습으로 펼쳐진다.
+
+> **`Qty`의 부호를 재고 증감으로 읽지 말 것.** 환불은 판매를 되돌린다는 뜻으로 수량이 음수인데 재고는 오히려 늘고, 게다가 **재고로 돌리지 않는 환불**도 있다. 재고가 실제로 얼마나 움직였는지는 `Before`/`After`가 답한다.
+
+> **빈 `Before`/`After`는 "재고 0"이 아니라 "기록 없음"이다.** 재고 추적 컬럼이 생기기 전에 쌓인 거래는 채울 방법이 없어 빈칸으로 남는다.
+
+### 18-4. 버튼
+
+- `← Back` → History 화면
+- `Export` — 지금 조회된 목록을 CSV로 내보낸다. 파일명 `stock_history_{버전}_{yyyyMMdd}.csv`, 컬럼 `Date,Type,Product,Batch,Quantity,StockBefore,StockAfter,Detail,User`. 값이 없는 재고 칸은 빈칸으로 나간다.
 
 ---
 

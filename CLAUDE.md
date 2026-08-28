@@ -203,6 +203,8 @@ Every `Stock_Transaction` row records `stock_before` and `stock_after` — that 
 
 Reading down a batch's rows in time order, the first place `stock_after` of one row disagrees with `stock_before` of the next is where stock moved without a ledger row. Rows written before these columns existed are NULL and export as blank; **zero would read as "stock was zero".**
 
+The screen that does that reading is **Stock History** (History → Stock History), and its type filter defaults to `All` for exactly this reason: the chain only holds if every row that touched the batch is in the list, so splitting stock-in from adjustment into separate screens hides the very gap the columns exist to reveal. `StockHistoryTests` pins both halves — that `All` returns the interleaved timeline, and that filtering to `StockIn` drops the adjustment that breaks the chain. The filter's `Sale` option covers `StockOut` **and** `Refund` together, since a refund is the row that undoes a sale. Sales History stays a separate screen because it does a different job — reprinting receipts and issuing refunds.
+
 ## Licensing
 
 Activation is offline and signature-based: the app carries only the **public** key (`LicenseService.PublicKeyBase64`) and answers yes/no; the private key that mints codes is never in this repo or in any build.

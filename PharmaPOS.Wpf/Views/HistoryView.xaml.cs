@@ -51,20 +51,23 @@ public partial class HistoryView : UserControl
         }
     }
 
-    private void OnAdjustmentHistoryClick(object sender, RoutedEventArgs e)
+    private void OnStockHistoryClick(object sender, RoutedEventArgs e)
     {
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is null) return;
 
         try
         {
-            var vm = new AdjustmentHistoryViewModel(_facilityId);
+            var stockHistoryService = App.Services.GetRequiredService<IStockHistoryService>();
+
+            var vm = new StockHistoryViewModel(stockHistoryService, _facilityId);
             vm.NavigateBack += () =>
             {
                 parentWindow.Content = new HistoryView(_facilityId, _userId);
             };
 
-            var view = new AdjustmentHistoryView { DataContext = vm };
+            var view = new StockHistoryView();
+            view.AttachViewModel(vm);
             parentWindow.Content = view;
         }
         catch (Exception ex)
