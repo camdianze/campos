@@ -27,7 +27,7 @@ public class BackupService : IBackupService
             return BackupResult.Failure("Backup location is not available.");
         }
 
-        var fileName = $"pharmapos_backup_{DateTime.Now:yyyyMMdd_HHmmss}.db";
+        var fileName = $"pharmapos_backup_{AppVersion.FileTag}_{DateTime.Now:yyyyMMdd_HHmmss}.db";
         var destinationPath = Path.Combine(backupLocation, fileName);
 
         try
@@ -71,7 +71,10 @@ public class BackupService : IBackupService
         {
             foreach (var dataset in datasets)
             {
-                var fileName = $"{_backupRepository.GetDatasetFileName(dataset)}_{timestamp}.{extension}";
+                // 버전을 파일 이름에 넣는다. 상품·재고 파일은 그대로 다시 가져올 수 있어야 해서
+                // 안쪽 첫 줄은 반드시 헤더여야 한다 — 버전 줄을 위에 붙이면 임포트가 깨진다.
+                var fileName =
+                    $"{_backupRepository.GetDatasetFileName(dataset)}_{AppVersion.FileTag}_{timestamp}.{extension}";
                 var destinationPath = Path.Combine(backupLocation, fileName);
 
                 await _backupRepository.ExportDatasetAsync(dataset, destinationPath, isCsvFormat);
@@ -106,7 +109,7 @@ public class BackupService : IBackupService
         // 복원 처리 원칙(Screen §5.1절): 복원 전 반드시 기존 DB를 자동 백업한다.
         try
         {
-            var autoBackupFileName = $"pharmapos_pre_restore_backup_{DateTime.Now:yyyyMMdd_HHmmss}.db";
+            var autoBackupFileName = $"pharmapos_pre_restore_backup_{AppVersion.FileTag}_{DateTime.Now:yyyyMMdd_HHmmss}.db";
             var autoBackupPath = Path.Combine(autoBackupFolder, autoBackupFileName);
             await _backupRepository.BackupDatabaseAsync(autoBackupPath);
         }

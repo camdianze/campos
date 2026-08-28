@@ -4,11 +4,9 @@
              xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <Application.Resources>
 
-        <!-- ===== 제품 이름과 버전 =====
-             로그인 화면과 상단 바 두 곳에 같은 문자열이 보인다. 한 곳에서만 고치도록
-             여기에 둔다. csproj에 버전 속성이 없어 문자열로 관리한다.
-             버전을 올릴 때 고칠 곳은 이 줄 하나다. -->
-        <sys:String x:Key="AppVersionText">CamPOS v.1.10</sys:String>
+        <!-- 제품 이름과 버전은 여기 있지 않다. PharmaPOS.Application의 AppVersion 상수를 쓴다 —
+             화면뿐 아니라 내보낸 파일 이름과 리포트 머리글에도 같은 값이 들어가야 하는데,
+             XAML 리소스는 Application 계층에서 읽을 수 없었다. 버전을 올릴 곳은 그 상수 하나다. -->
 
         <!--
             앱 공통 테마. 로그인 화면에서 정리한 색·타이포·상태 표시를 전체로 넓힌 것이다.

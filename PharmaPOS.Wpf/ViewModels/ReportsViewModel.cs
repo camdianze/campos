@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Microsoft.Win32;
 using PharmaPOS.Application.Counselling;
+using PharmaPOS.Application;
 using PharmaPOS.Application.Reports;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using Lightweight_Digital_Inventory_Management___POS_System.Views;
@@ -386,8 +387,8 @@ public class ReportsViewModel : ViewModelBase
             return;
         }
 
-        var salesFileName = $"report_sales_{Report.Range.From:yyyyMMdd}_{Report.Range.To:yyyyMMdd}.csv";
-        var antibioticsFileName = $"report_antibiotics_{Report.Range.From:yyyyMMdd}_{Report.Range.To:yyyyMMdd}.csv";
+        var salesFileName = $"report_sales_{AppVersion.FileTag}_{Report.Range.From:yyyyMMdd}_{Report.Range.To:yyyyMMdd}.csv";
+        var antibioticsFileName = $"report_antibiotics_{AppVersion.FileTag}_{Report.Range.From:yyyyMMdd}_{Report.Range.To:yyyyMMdd}.csv";
 
         var salesPath = Path.Combine(dialog.FolderName, salesFileName);
         var antibioticsPath = Path.Combine(dialog.FolderName, antibioticsFileName);
@@ -491,6 +492,7 @@ public class ReportsViewModel : ViewModelBase
     /// </summary>
     private static void AppendPeriodHeader(StringBuilder builder, ReportData report)
     {
+        builder.AppendLine($"App version,{AppVersion.Display}");
         builder.AppendLine($"Report period,{report.Range.Label}");
         builder.AppendLine($"Compared with,{report.Range.PreviousLabel}");
         builder.AppendLine();

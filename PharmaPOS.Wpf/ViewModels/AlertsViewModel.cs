@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
+using PharmaPOS.Application;
 using PharmaPOS.Application.Inventory;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 
@@ -146,7 +147,7 @@ public class AlertsViewModel : ViewModelBase
         var dialog = new SaveFileDialog
         {
             Filter = "CSV files (*.csv)|*.csv",
-            FileName = $"inventory_alerts_{DateTime.Now:yyyyMMdd}.csv"
+            FileName = $"inventory_alerts_{AppVersion.FileTag}_{DateTime.Now:yyyyMMdd}.csv"
         };
 
         if (dialog.ShowDialog() != true)

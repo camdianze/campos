@@ -43,6 +43,7 @@ public static class AntibioticExportCsv
 
         // 파일 하나만 열어도 언제 것인지, 어디 것인지 알 수 있어야 한다.
         // 파일 이름은 옮기다 보면 바뀐다.
+        builder.AppendLine($"App version,{AppVersion.Display}");
         builder.AppendLine($"Report period,{report.Range.Label}");
         builder.AppendLine($"Site code,{Escape(NormalizeSiteCode(siteCode))}");
         builder.AppendLine($"Compared with,{report.Range.PreviousLabel}");

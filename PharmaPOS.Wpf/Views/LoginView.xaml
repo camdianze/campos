@@ -1,6 +1,7 @@
-<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.LoginView"
+﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.LoginView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="clr-namespace:PharmaPOS.Application;assembly=PharmaPOS.Application"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
@@ -82,7 +83,7 @@
                        MinHeight="18"/>
         </Grid>
 
-        <TextBlock Text="{StaticResource AppVersionText}"
+        <TextBlock Text="{x:Static app:AppVersion.Display}"
                    Style="{StaticResource Caption}"
                    FontSize="11"
                    HorizontalAlignment="Left"
