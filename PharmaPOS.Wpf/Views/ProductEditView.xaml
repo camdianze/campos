@@ -200,7 +200,7 @@
                             <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource Field}"/>
 
-                            <TextBlock Text="Loose Unit Price" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="Loose Unit Price (max 2 decimals)" Style="{StaticResource FieldLabel}"/>
                             <TextBox Text="{Binding UnitSellingPrice, UpdateSourceTrigger=PropertyChanged}"
                                      Margin="0,0,0,4"/>
                             <TextBlock Text="{Binding UnitPriceHint}" Style="{StaticResource Hint}"/>

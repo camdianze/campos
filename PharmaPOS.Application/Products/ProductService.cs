@@ -61,6 +61,15 @@ public class ProductService : IProductService
             return ProductSaveResult.Failure("Loose unit price must be greater than zero.");
         }
 
+        // 낱개가는 실제로 주고받는 돈이라 소수점 두 자리를 넘길 수 없다.
+        // 여기서 막지 않으면 0.4533 같은 값이 그대로 저장되고, 영수증·판매 이력에는
+        // 통화 단위로 낼 수 없는 금액이 찍힌다.
+        if (product.UnitSellingPrice is { } looseUnitPrice
+            && decimal.Round(looseUnitPrice, 2) != looseUnitPrice)
+        {
+            return ProductSaveResult.Failure("Loose unit price can have at most 2 decimal places.");
+        }
+
         // 낱개가는 헐어서 파는 상품에만 의미가 있다. 낱개 판매를 끈 상품에 값만 남아 있으면
         // 화면에는 안 보이는데 나중에 다시 켜는 순간 옛 가격이 되살아난다.
         if (!product.IsBoxedProduct)
