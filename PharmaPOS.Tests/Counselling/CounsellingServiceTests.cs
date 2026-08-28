@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Counselling;
+﻿using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
@@ -283,23 +283,6 @@ public class CounsellingServiceTests
             new[] { Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin") });
 
         Assert.True(Assert.Single(candidates).RequiresPrompt);
-    }
-
-    /// <summary>never로 꺼 두어도 지표는 계속 쌓인다.</summary>
-    [Fact]
-    public async Task PrepareAsync_StillLogsWhenPrintingIsDisabled()
-    {
-        var harness = new Harness();
-        harness.Settings.Settings.PrintMode = CounsellingPrintMode.Never;
-
-        var candidates = await harness.Build().PrepareAsync(
-            new[] { Line("t1", "Amoxicillin 500mg", "J01CA04", "Amoxicillin") });
-
-        Assert.Empty(candidates);
-
-        var entry = Assert.Single(harness.Log.Entries);
-        Assert.Equal(AwareGroupCodes.Access, entry.AwareGroup);
-        Assert.Equal(CounsellingService.SkipReasonDisabled, entry.SkipReason);
     }
 
     /// <summary>참조 데이터가 아예 없으면 전부 unmatched로 떨어지고 판매는 통과한다.</summary>

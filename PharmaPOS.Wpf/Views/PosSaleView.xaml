@@ -101,6 +101,11 @@
                         <DataGridTextColumn Header="Unit"     Binding="{Binding SaleUnitLabel}" Width="55"/>
                         <DataGridTextColumn Header="Price"    Binding="{Binding UnitPrice}"   Width="80"/>
                         <DataGridTextColumn Header="Total"    Binding="{Binding LineTotal}"   Width="80"/>
+                        <!-- 확정하면 이 배치 재고가 어떻게 되는지 미리 보여준다. 아직 차감 전이라
+                             예상값이고, 같은 배치를 여러 줄에 담으면 앞 줄을 뺀 값에서 이어진다.
+                             마지막 몇 개를 집어 가는 중인지 계산대에서 바로 보인다. -->
+                        <DataGridTextColumn Header="Stock"    Binding="{Binding StockBefore}" Width="55"/>
+                        <DataGridTextColumn Header="After"    Binding="{Binding StockAfter}"  Width="55"/>
                         <DataGridTemplateColumn Header="" Width="70">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

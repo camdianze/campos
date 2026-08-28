@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Inventory;
+﻿using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -16,7 +16,6 @@ public class CounsellingService : ICounsellingService
 {
     /// <summary>로그의 skip_reason에 쓰는 값. 집계할 수 있도록 문구를 고정한다.</summary>
     public const string SkipReasonUnmatched = "unmatched";
-    public const string SkipReasonDisabled = "setting_never";
     public const string SkipReasonPharmacist = "pharmacist_skipped";
     public const string SkipReasonPrintFailed = "print_failed";
 
@@ -100,15 +99,6 @@ public class CounsellingService : ICounsellingService
                 if (candidateIndexByProduct.TryGetValue(line.ProductId, out var existingIndex))
                 {
                     linkedTransactionIds[existingIndex].Add(confirmed.TransactionId);
-                    continue;
-                }
-
-                if (settings.PrintMode == CounsellingPrintMode.Never)
-                {
-                    await LogAsync(
-                        confirmed.TransactionId, line.ProductId, classification.AtcCode,
-                        AwareGroupCodes.ToCode(classification.AwareGroup), printed: false,
-                        SkipReasonDisabled, loggedLocale, classification.SourceVersion);
                     continue;
                 }
 

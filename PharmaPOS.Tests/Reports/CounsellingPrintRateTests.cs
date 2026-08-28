@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Reports;
+﻿using PharmaPOS.Application.Reports;
 using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.Tests.Reports;
@@ -47,8 +47,8 @@ public class CounsellingPrintRateTests
     }
 
     /// <summary>
-    /// 안내 인쇄를 꺼 두면(PrintMode = Never) 판매는 기록되지만 출력은 0이다.
-    /// 그 상태가 0%로 드러나야 한다 — 설정을 꺼 놓은 것을 잊으면 기능이 고장 난 줄 안다.
+    /// 약사가 매번 Skip을 눌렀거나 프린터가 죽어 있으면 판매는 기록되지만 출력은 0이다.
+    /// 그 상태가 0%로 드러나야 한다 — 아니면 안내가 나가고 있다고 착각한다.
     /// </summary>
     [Fact]
     public void PrintRate_IsZeroWhenNothingWasPrinted()

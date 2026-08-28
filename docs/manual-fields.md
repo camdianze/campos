@@ -534,7 +534,11 @@
 | 4 | `Unit` | **이 수량이 박스인지 낱개인지는 이 컬럼으로만 구분된다** |
 | 5 | `Price` | 단가 |
 | 6 | `Total` | 줄 합계 |
-| 7 | (머리글 없음) | `Remove` 버튼 |
+| 7 | `Stock` | 이 배치의 **현재 재고**. 아직 차감 전이다 |
+| 8 | `After` | 판매를 확정하면 남을 재고 (**예상값**) |
+| 9 | (머리글 없음) | `Remove` 버튼 |
+
+> 같은 배치를 여러 줄에 담으면 둘째 줄의 `Stock`이 첫째 줄을 뺀 값에서 이어진다. 줄을 빼면 뒤 줄들의 값이 함께 다시 계산된다. 마지막 몇 개를 집어 가는 중인지 계산대에서 바로 보인다.
 
 ### 14-3. 오른쪽 주문 패널 (배치 순서대로)
 
@@ -942,7 +946,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 | # | 라벨 | 컨트롤 | 필수 | 기본값 | 선택 항목 |
 |---|---|---|---|---|---|
-| 1 | `When an antibiotic is sold` | ComboBox | ✔ | 저장값 (초기 **`Always`**) | `Always` / `Ask` / `Never`<br>안내문: `Always prints without asking. Ask prompts each time. Never stops printing but still records stewardship figures.` |
+| 1 | `When an antibiotic is sold` | ComboBox | ✔ | 저장값 (초기 **`Always`**) | `Always` / `Ask`<br>안내문: `A counselling notice is shown on screen for every antibiotic sale — this cannot be turned off. Always prints the sheet as well; Ask lets you decide each time.` |
 | 2 | `Send the sheet to` | ComboBox | ✔ | 저장값 (초기 **`Printer`**) | `Printer` / `File`<br>안내문: `Printer sends the sheet to the default printer. File saves it as a text file instead - useful for checking the sheet when no printer is attached.` |
 | 3 | `Folder (leave empty for the default location)` | TextBox + `Browse` | — | 저장값 | **`File`을 골랐을 때만 나타난다.** 비우면 `%APPDATA%\PharmaPOS\counselling-sheets\` |
 | 4 | `Sheet length` | ComboBox | ✔ | 저장값 (초기 **`Full`**) | `Full` / `Compact`<br>안내문: `Full is about 20 cm on 58 mm paper. Compact is about 10 cm and drops the signature and QR block.` |
@@ -991,7 +995,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 | User Management · 상태 필터 | (빈 항목=전체) / `Active` / `Inactive` | 빈 항목 |
 | Add User · `Role` | `FacilityStaff` / `Administrator` | 없음 |
 | Reports · `Sort by` | `Amount` / `Quantity` | `Amount` |
-| Counselling · `When an antibiotic is sold` | `Always` / `Ask` / `Never` | 저장값 (초기 `Always`) |
+| Counselling · `When an antibiotic is sold` | `Always` / `Ask` | 저장값 (초기 `Always`) |
 | Counselling · `Send the sheet to` | `Printer` / `File` | 저장값 (초기 `Printer`) |
 | Counselling · `Sheet length` | `Full` / `Compact` | 저장값 (초기 `Full`) |
 | Counselling · `Local language` | `English only` + 설치된 로케일 | 저장값 |

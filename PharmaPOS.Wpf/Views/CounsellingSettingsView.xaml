@@ -45,7 +45,7 @@
                 <ComboBox ItemsSource="{Binding AvailablePrintModes}"
                           SelectedItem="{Binding PrintMode}" Margin="0,0,0,4"/>
                 <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
-                           Text="A counselling notice is shown on screen for every antibiotic sale. Always prints the sheet as well, Ask lets you skip the print, Never shows nothing and only records stewardship figures."/>
+                           Text="A counselling notice is shown on screen for every antibiotic sale — this cannot be turned off. Always prints the sheet as well; Ask lets you decide each time."/>
 
                 <TextBlock Text="Send the sheet to" Style="{StaticResource FieldLabel}"/>
                 <ComboBox ItemsSource="{Binding AvailableOutputs}"

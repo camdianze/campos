@@ -173,6 +173,8 @@ Labels draw their own bars: [Code128Encoder](PharmaPOS.Application/Products/Code
 
 One counselling rule is easy to break by accident: **a sheet is per product per sale, not per sale line.** Quantity is never consulted, and a product split across two cart lines (two batches, or box + loose) still prints one sheet — `CounsellingService.PrepareAsync` merges those lines into a single candidate. The merged lines are still logged individually (`CounsellingCandidate.TransactionIds`), because the report counts antibiotic sales and counselling coverage per sale line.
 
+**A counselling notice is shown for every matched antibiotic sale and cannot be switched off.** The print setting only decides whether paper follows: `always` prints after the notice, `ask` offers Print/Skip on it. The old `never` value is gone — it silenced the notice along with the printing, which left the feature with nothing to do. A database still holding `never` fails to parse and falls back to `always`, which is the intended outcome of removing it.
+
 Antibiotic counselling (AMR) additionally needs:
 
 - **Counselling is keyed off the antibiotic match alone.** `Product_Master.dosage_form` exists ([DosageForm](PharmaPOS.Domain/Enums/DosageForm.cs), a fixed list, optional) but is deliberately **not** consulted anywhere in the counselling path — a sheet is decided by whether `generic_name`/`atc_code` matches the AWaRe list, nothing else. Do not wire dosage form into it without an explicit decision: it is a late, optional column, so most existing products are still blank, and treating blank as a route would silently downgrade warnings.

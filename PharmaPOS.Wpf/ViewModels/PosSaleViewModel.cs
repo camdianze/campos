@@ -528,7 +528,9 @@ public partial class PosSaleViewModel : ViewModelBase
                 // 원가도 판매 단위에 맞춰야 "원가보다 싸게 판다" 경고가 제대로 걸린다.
                 CostPrice = isBoxSale ? product.CostPrice : product.UnitCostPrice,
                 IsBoxSale = isBoxSale,
-                UnitsPerBox = product.UnitsPerBox
+                UnitsPerBox = product.UnitsPerBox,
+                // 담을 때의 배치 재고. 아래 차감 예상값의 출발점이다.
+                BatchStockAtSelection = SelectedBatch.CurrentQuantity
             });
         }
 
@@ -567,6 +569,32 @@ public partial class PosSaleViewModel : ViewModelBase
         }
 
         return stock;
+    }
+
+    /// <summary>
+    /// 배치별로 앞 줄들을 차례로 빼며 차감 예상 재고를 매긴다.
+    ///
+    /// 줄마다 따로 계산할 수 없는 값이다 — 같은 배치를 두 줄에 담으면 둘째 줄의 출발점이
+    /// 첫째 줄을 뺀 값이어야 한다. 장바구니가 바뀔 때마다 전부 다시 매긴다.
+    /// </summary>
+    private void RecalculateStockPreview()
+    {
+        var remainingByBatch = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        foreach (var line in Cart)
+        {
+            if (!remainingByBatch.TryGetValue(line.InventoryId, out var before))
+            {
+                before = line.BatchStockAtSelection;
+            }
+
+            var after = before - line.PieceQuantity;
+
+            line.StockBefore = before;
+            line.StockAfter = after;
+
+            remainingByBatch[line.InventoryId] = after;
+        }
     }
 
     private void ExecuteRemoveFromCart(SaleLineItem? item)

@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Settings;
 using PharmaPOS.DataAccess.Database;
@@ -201,8 +201,8 @@ public class CounsellingDatabaseTests : IDisposable
         await repository.SetAsync(AppSettingKeys.CounsellingPrintMode, "Ask");
         Assert.Equal("Ask", await repository.GetAsync(AppSettingKeys.CounsellingPrintMode));
 
-        await repository.SetAsync(AppSettingKeys.CounsellingPrintMode, "Never");
-        Assert.Equal("Never", await repository.GetAsync(AppSettingKeys.CounsellingPrintMode));
+        await repository.SetAsync(AppSettingKeys.CounsellingPrintMode, "Always");
+        Assert.Equal("Always", await repository.GetAsync(AppSettingKeys.CounsellingPrintMode));
     }
 
     [Fact]
