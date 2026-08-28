@@ -96,9 +96,6 @@ public partial class PosSaleViewModel
     /// </summary>
     private void RaiseTotalsChanged()
     {
-        // 금액과 함께 차감 예상 재고도 다시 매긴다. 줄을 빼면 그 뒤 같은 배치 줄들의 값이 바뀐다.
-        RecalculateStockPreview();
-
         OnPropertyChanged(nameof(TotalAmount));
         OnPropertyChanged(nameof(ChangeDue));
     }

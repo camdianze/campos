@@ -54,6 +54,11 @@
                 <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
                 <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice}" Width="90"/>
                 <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal}" Width="90"/>
+                <!-- 그 거래 직전·직후 그 배치의 재고. 재고가 맞지 않을 때, 배치별로 시간순으로 훑어
+                     앞 줄의 After와 다음 줄의 Before가 어긋나는 지점을 찾는 값이다.
+                     이 기능이 생기기 전의 거래는 값이 없어 빈칸으로 남는다. -->
+                <DataGridTextColumn Header="Stock Before" Binding="{Binding StockBefore}" Width="90"/>
+                <DataGridTextColumn Header="Stock After"  Binding="{Binding StockAfter}"  Width="90"/>
                 <DataGridTextColumn Header="Payment" Binding="{Binding PaymentMethod}" Width="110"/>
                 <DataGridTextColumn Header="Sold By" Binding="{Binding Username}" Width="100"/>
                 <!-- 환불 행과, 이미 일부/전부 환불된 판매 줄을 여기서 구분한다. -->
