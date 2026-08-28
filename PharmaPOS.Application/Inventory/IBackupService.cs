@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace PharmaPOS.Application.Inventory;
 
 /// <summary>
 /// F-11 백업/내보내기/복원 로직을 담당하는 인터페이스. (Screen SCR-BACKUP-018)
@@ -13,8 +13,14 @@ public interface IBackupService
     /// 하나도 고르지 않았으면 실패로 돌려준다 — 아무 일도 일어나지 않은 것과
     /// "성공"을 구분해야 한다.
     /// </summary>
+    /// <param name="dateFrom">기간 시작(포함). null이면 제한 없음.</param>
+    /// <param name="dateTo">기간 끝(포함, 그날 자정까지). null이면 제한 없음.</param>
     Task<BackupResult> ExportDatasetsAsync(
-        string? backupLocation, IReadOnlyList<ExportDataset> datasets, bool isCsvFormat);
+        string? backupLocation,
+        IReadOnlyList<ExportDataset> datasets,
+        bool isCsvFormat,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null);
 
     /// <summary>
     /// 복원을 수행한다. 호출 전에 이미 사용자 확인(Confirm)을 받았다고 가정한다.

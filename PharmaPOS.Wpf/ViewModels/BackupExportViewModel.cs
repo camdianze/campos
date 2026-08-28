@@ -37,6 +37,8 @@ public class BackupExportViewModel : ViewModelBase
     private bool _exportInventory = true;
     private bool _exportSalesHistory = true;
     private bool _isCsvFormat = true;
+    private DateTime? _exportDateFrom;
+    private DateTime? _exportDateTo;
 
     private string _backupFilePath = string.Empty;
     private string _message = string.Empty;
@@ -80,6 +82,22 @@ public class BackupExportViewModel : ViewModelBase
     {
         get => _exportSalesHistory;
         set => SetProperty(ref _exportSalesHistory, value);
+    }
+
+    /// <summary>
+    /// 판매 내역에만 걸리는 기간이다. 상품은 현재 카탈로그라 잘라내면 다시 가져올 수 없고,
+    /// 재고는 배치별 현재 수량이라 기간이라는 게 없다 (ExportDatasets.SupportsDateRange).
+    /// </summary>
+    public DateTime? ExportDateFrom
+    {
+        get => _exportDateFrom;
+        set => SetProperty(ref _exportDateFrom, value);
+    }
+
+    public DateTime? ExportDateTo
+    {
+        get => _exportDateTo;
+        set => SetProperty(ref _exportDateTo, value);
     }
 
     public bool IsCsvFormat
@@ -382,7 +400,28 @@ public class BackupExportViewModel : ViewModelBase
         if (ExportInventory) datasets.Add(ExportDataset.Inventory);
         if (ExportSalesHistory) datasets.Add(ExportDataset.SalesHistory);
 
-        var result = await _backupService.ExportDatasetsAsync(ExportFolder, datasets, IsCsvFormat);
+        // 기간을 비워 둔 채 판매 내역을 뽑으면 개업 이후 전부가 나간다. 몇 해 쓰고 나면
+        // 그건 실수로 만들 파일의 크기가 아니라서, 한 번 묻고 넘어간다.
+        // 기간이 걸리지 않는 묶음만 골랐다면 물을 것도 없다.
+        var exportsEveryPeriod =
+            datasets.Any(ExportDatasets.SupportsDateRange)
+            && ExportDateFrom is null
+            && ExportDateTo is null;
+
+        if (exportsEveryPeriod
+            && !AppDialog.Confirm(
+                "Export",
+                "No period is set, so the sales history file will cover every sale since the pharmacy opened."
+                + "\n\nExport the whole period?",
+                confirmText: "Export all",
+                cancelText: "Cancel"))
+        {
+            Message = "Export cancelled.";
+            return;
+        }
+
+        var result = await _backupService.ExportDatasetsAsync(
+            ExportFolder, datasets, IsCsvFormat, ExportDateFrom, ExportDateTo);
 
         Message = result.IsSuccess ? result.Message ?? "Export completed successfully." : result.Message!;
     }

@@ -931,9 +931,26 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 | 2 | `Products — product list` | CheckBox | — | **켜짐** | |
 | 3 | `Inventory — stock by batch` | CheckBox | — | **켜짐** | |
 | 4 | `Sales history — sales and refunds` | CheckBox | — | **켜짐** | |
-| 5 | `Format` | RadioButton 2개 | ✔ | **`CSV`** | `CSV` / `Excel` |
+| 5 | `Period (sales history only)` | DatePicker 2개 (시작 / 끝) | — | **둘 다 비어 있음** | 아래 참조 |
+| 6 | `Format` | RadioButton 2개 | ✔ | **`CSV`** | `CSV` / `Excel` |
+
+#### 기간은 판매 내역에만 걸린다
+
+설명: `Leave both empty to export every sale ever recorded — you will be asked to confirm. Products and inventory always export in full: one is the current catalogue, the other the current stock count.`
+
+| 묶음 | 기간 적용 | 이유 |
+|---|---|---|
+| `Sales history` | **✔** | 기간이 있는 유일한 묶음. 몇 해 쓰면 이 파일만 계속 커진다 |
+| `Products` | ✕ | **현재 카탈로그**다. 잘라내면 고쳐서 다시 넣는 왕복이 깨진다 |
+| `Inventory` | ✕ | **배치별 현재 수량**이라 기간이라는 게 없다. `updated_at`으로 자르면 그동안 움직이지 않은 배치가 빠져서, 재고 실사에 쓰라고 만든 파일이 정확히 그 용도로 못 쓰게 된다 |
+
+- 시작 > 끝이면 **파일을 하나도 쓰지 않고** 거절한다 — `Start date cannot be later than end date.`
+- 한쪽만 채워도 된다 (그 방향으로만 자른다).
+- 끝 날짜는 **그날 자정까지 포함**한다.
+- **기간을 자른 파일은 이름에 기간이 붙는다** — `sales_history_v1.10_20260310-20260620_20260828_141530.csv`. 한쪽만 채웠으면 `start` / `latest`가 그 자리에 들어간다. 기간이 걸리지 않는 상품·재고 파일에는 **기간을 넣었더라도 붙지 않는다** (걸리지도 않은 조건이라 이름에 적으면 거짓말이 된다).
 
 - `📤  Export Selected Data` — 설명: `One file per selected item. These files are for reading and record keeping — they cannot be restored.`
+- **판매 내역을 고른 채 기간을 비워 두면 한 번 확인받는다**: `No period is set, so the sales history file will cover every sale since the pharmacy opened.` / `Export the whole period?` (버튼 `Export all` / `Cancel`). 취소하면 `Export cancelled.` 판매 내역을 고르지 않았다면 묻지 않는다.
 - 아래 `Full backup (.db)` 상자 — 설명 `Copies the whole database into a single file. This is the only file the restore below can read.` / 버튼 `💾  Create Backup File`
 
 ### 25-3. 아래 `RESTORE` / `Roll back to a backup file`

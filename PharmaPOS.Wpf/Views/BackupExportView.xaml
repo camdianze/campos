@@ -163,6 +163,21 @@
                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
                         </StackPanel>
 
+                        <!-- 기간. 판매 내역에만 걸린다 — 상품은 현재 카탈로그라 잘라내면
+                             고쳐서 다시 넣는 왕복이 깨지고, 재고는 배치별 현재 수량이라
+                             기간이라는 게 없다. -->
+                        <TextBlock Text="Period (sales history only)" Style="{StaticResource FieldLabel}"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <DatePicker Grid.Column="0" SelectedDate="{Binding ExportDateFrom}" Margin="0,0,4,0"/>
+                            <DatePicker Grid.Column="1" SelectedDate="{Binding ExportDateTo}" Margin="4,0,0,0"/>
+                        </Grid>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
+                                   Text="Leave both empty to export every sale ever recorded — you will be asked to confirm. Products and inventory always export in full: one is the current catalogue, the other the current stock count."/>
+
                         <TextBlock Text="Format" Style="{StaticResource FieldLabel}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                             <RadioButton Content="CSV" IsChecked="{Binding IsCsvFormat}"

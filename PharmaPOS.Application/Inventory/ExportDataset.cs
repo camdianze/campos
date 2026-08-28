@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace PharmaPOS.Application.Inventory;
 
 /// <summary>
 /// 내보낼 수 있는 데이터 묶음.
@@ -17,4 +17,18 @@ public enum ExportDataset
 
     /// <summary>판매와 환불 내역.</summary>
     SalesHistory
+}
+
+/// <summary>
+/// 기간을 지정할 수 있는 묶음이 무엇인지 한 곳에서 정한다.
+///
+/// 판매 내역만 해당한다. 상품은 현재 카탈로그라 기간으로 자르면 고쳐서 다시
+/// 넣는 왕복이 깨지고, 재고는 배치별 현재 수량이라 애초에 기간이라는 게 없다 —
+/// updated_at으로 자르면 그동안 움직이지 않은 배치가 통째로 빠져서,
+/// 재고 실사에 쓰라고 만든 파일이 정확히 그 용도로 못 쓰게 된다.
+/// </summary>
+public static class ExportDatasets
+{
+    public static bool SupportsDateRange(ExportDataset dataset) =>
+        dataset == ExportDataset.SalesHistory;
 }

@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Inventory;
+﻿using PharmaPOS.Application.Inventory;
 
 namespace PharmaPOS.Application.Repositories;
 
@@ -13,8 +13,16 @@ public interface IBackupRepository
     /// </summary>
     Task BackupDatabaseAsync(string destinationDbPath);
 
-    /// <summary>데이터 묶음 하나를 CSV 또는 Excel 파일로 내보낸다.</summary>
-    Task ExportDatasetAsync(ExportDataset dataset, string destinationFilePath, bool isCsvFormat);
+    /// <summary>
+    /// 데이터 묶음 하나를 CSV 또는 Excel 파일로 내보낸다.
+    /// dateFromUtc/dateToUtc는 기간을 갖는 묶음(ExportDatasets.SupportsDateRange)에만 걸린다.
+    /// </summary>
+    Task ExportDatasetAsync(
+        ExportDataset dataset,
+        string destinationFilePath,
+        bool isCsvFormat,
+        long? dateFromUtc = null,
+        long? dateToUtc = null);
 
     /// <summary>내보내기 파일 이름에 쓸 이름(products, inventory, sales_history).</summary>
     string GetDatasetFileName(ExportDataset dataset);

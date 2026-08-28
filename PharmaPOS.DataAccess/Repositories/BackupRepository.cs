@@ -51,7 +51,28 @@ public class BackupRepository : IBackupRepository
     /// 묶음별 질의. 컬럼 별칭이 그대로 파일의 헤더가 되므로,
     /// 상품 묶음은 임포트가 읽는 이름(product_name, cost_price …)에 맞춰 둔다.
     /// </summary>
-    private static string GetQuery(ExportDataset dataset) => dataset switch
+    private static string GetQuery(ExportDataset dataset, bool hasDateFrom, bool hasDateTo)
+    {
+        var query = GetBaseQuery(dataset);
+
+        if (!ExportDatasets.SupportsDateRange(dataset) || (!hasDateFrom && !hasDateTo))
+        {
+            return query;
+        }
+
+        // 기간 조건은 ORDER BY 앞에 들어가야 한다. 질의마다 WHERE 유무가 달라
+        // 문자열을 자르지 않고, 이 자리를 표시해 둔 자리표시자를 바꿔 넣는다.
+        var conditions = new List<string>();
+        if (hasDateFrom) conditions.Add("st.transaction_time >= $dateFrom");
+        if (hasDateTo) conditions.Add("st.transaction_time <= $dateTo");
+
+        return query.Replace(DateRangePlaceholder, " AND " + string.Join(" AND ", conditions));
+    }
+
+    /// <summary>기간 조건이 들어갈 자리. 조건이 없으면 빈 문자열로 지운다.</summary>
+    private const string DateRangePlaceholder = "/*DATE_RANGE*/";
+
+    private static string GetBaseQuery(ExportDataset dataset) => dataset switch
     {
         ExportDataset.Products => """
             SELECT product_name, unit, barcode, internal_barcode,
@@ -91,7 +112,7 @@ public class BackupRepository : IBackupRepository
             FROM Stock_Transaction st
             LEFT JOIN Product_Master p ON p.product_id = st.product_id
             LEFT JOIN Users u ON u.user_id = st.user_id
-            WHERE st.transaction_type IN ('StockOut', 'Refund')
+            WHERE st.transaction_type IN ('StockOut', 'Refund')/*DATE_RANGE*/
             ORDER BY st.transaction_time DESC;
             """,
 
@@ -107,24 +128,47 @@ public class BackupRepository : IBackupRepository
         source.BackupDatabase(destination);
     }
 
-    public async Task ExportDatasetAsync(ExportDataset dataset, string destinationFilePath, bool isCsvFormat)
+    public async Task ExportDatasetAsync(
+        ExportDataset dataset,
+        string destinationFilePath,
+        bool isCsvFormat,
+        long? dateFromUtc = null,
+        long? dateToUtc = null)
     {
         if (isCsvFormat)
         {
-            await ExportToCsvAsync(dataset, destinationFilePath);
+            await ExportToCsvAsync(dataset, destinationFilePath, dateFromUtc, dateToUtc);
         }
         else
         {
-            await ExportToExcelAsync(dataset, destinationFilePath);
+            await ExportToExcelAsync(dataset, destinationFilePath, dateFromUtc, dateToUtc);
         }
     }
 
-    private async Task ExportToCsvAsync(ExportDataset dataset, string destinationFilePath)
+    /// <summary>
+    /// 기간을 갖지 않는 묶음에는 조건도 파라미터도 붙이지 않는다.
+    /// 쓰이지 않는 파라미터를 넘기면 SQLite가 거부한다.
+    /// </summary>
+    private static void PrepareQuery(
+        SqliteCommand command, ExportDataset dataset, long? dateFromUtc, long? dateToUtc)
+    {
+        var applies = ExportDatasets.SupportsDateRange(dataset);
+        var hasFrom = applies && dateFromUtc is not null;
+        var hasTo = applies && dateToUtc is not null;
+
+        command.CommandText = GetQuery(dataset, hasFrom, hasTo).Replace(DateRangePlaceholder, string.Empty);
+
+        if (hasFrom) command.Parameters.AddWithValue("$dateFrom", dateFromUtc!.Value);
+        if (hasTo) command.Parameters.AddWithValue("$dateTo", dateToUtc!.Value);
+    }
+
+    private async Task ExportToCsvAsync(
+        ExportDataset dataset, string destinationFilePath, long? dateFromUtc, long? dateToUtc)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
 
         using var command = connection.CreateCommand();
-        command.CommandText = GetQuery(dataset);
+        PrepareQuery(command, dataset, dateFromUtc, dateToUtc);
 
         using var reader = await command.ExecuteReaderAsync();
 
@@ -144,12 +188,13 @@ public class BackupRepository : IBackupRepository
         await File.WriteAllTextAsync(destinationFilePath, builder.ToString(), new UTF8Encoding(true));
     }
 
-    private async Task ExportToExcelAsync(ExportDataset dataset, string destinationFilePath)
+    private async Task ExportToExcelAsync(
+        ExportDataset dataset, string destinationFilePath, long? dateFromUtc, long? dateToUtc)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
 
         using var command = connection.CreateCommand();
-        command.CommandText = GetQuery(dataset);
+        PrepareQuery(command, dataset, dateFromUtc, dateToUtc);
 
         using var reader = await command.ExecuteReaderAsync();
 
