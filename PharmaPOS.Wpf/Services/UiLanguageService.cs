@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows.Media;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Repositories;
@@ -76,7 +76,7 @@ public class UiLanguageService : INotifyPropertyChanged
         try
         {
             var saved = await _appSettingRepository.GetAsync(SettingKey);
-            if (saved == Khmer && _khmer is not null)
+            if (saved == Khmer && IsKhmerAvailable)
             {
                 _current = Khmer;
             }
@@ -87,12 +87,18 @@ public class UiLanguageService : INotifyPropertyChanged
         }
     }
 
-    /// <summary>크메르어 파일이 아예 없으면 고를 것도 없으므로 토글을 감춘다.</summary>
-    public bool IsKhmerAvailable => _khmer is not null;
+    /// <summary>
+    /// 고를 만한 크메르어가 실제로 있는가.
+    ///
+    /// 파일이 없거나 깨졌을 때 제공자는 null이 아니라 EnglishOnly를 돌려준다.
+    /// 그것을 "있다"로 세면 토글은 보이는데 눌러도 아무것도 안 바뀌고,
+    /// 원인이 파일이라는 걸 화면만 봐서는 알 수 없다. 그래서 코드까지 확인한다.
+    /// </summary>
+    public bool IsKhmerAvailable => _khmer is not null && _khmer.LocaleCode == Khmer;
 
     public async Task SetLanguageAsync(string language)
     {
-        var next = language == Khmer && _khmer is not null ? Khmer : English;
+        var next = language == Khmer && IsKhmerAvailable ? Khmer : English;
 
         if (next == _current)
         {

@@ -208,8 +208,9 @@ public partial class PosSaleViewModel : ViewModelBase
         UserRole currentUserRole,
         UiLanguageService uiLanguage)
     {
+        // 언어 토글은 메인 화면에만 있어서, 이 화면이 떠 있는 동안 언어가 바뀔 수 없다.
+        // 구독해 두면 화면을 드나들 때마다 해제되지 않은 구독이 쌓여 ViewModel이 살아남는다.
         _uiLanguage = uiLanguage;
-        _uiLanguage.LanguageChanged += RaiseLanguageLabels;
 
         _productRepository = productRepository;
         _inventoryRepository = inventoryRepository;
@@ -609,14 +610,4 @@ public partial class PosSaleViewModel : ViewModelBase
     /// <summary>미검수 번역이면 붉은 글씨. 검수를 마치면 저절로 보통 색이 된다.</summary>
     public Brush LabelBrush =>
         _uiLanguage.TextBrushOverride ?? (Brush)System.Windows.Application.Current.Resources["TextBrush"];
-
-    private void RaiseLanguageLabels()
-    {
-        OnPropertyChanged(nameof(AddToCartLabel));
-        OnPropertyChanged(nameof(ConfirmSaleLabel));
-        OnPropertyChanged(nameof(CancelSaleLabel));
-        OnPropertyChanged(nameof(RemoveLabel));
-        OnPropertyChanged(nameof(BackLabel));
-        OnPropertyChanged(nameof(LabelBrush));
-    }
 }

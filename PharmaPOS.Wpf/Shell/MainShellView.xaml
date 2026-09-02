@@ -153,6 +153,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0"
@@ -165,24 +166,6 @@
                            Style="{StaticResource Caption}"
                            FontSize="11"
                            Margin="0,2,0,0"/>
-            </StackPanel>
-
-            <!-- 언어 토글. 계산대 직원이 영어를 못 읽는 경우가 있어서 둔다.
-                 크메르어 파일이 없으면 코드 비하인드가 통째로 감춘다. -->
-            <StackPanel x:Name="LanguageToggle" Grid.Column="0" Orientation="Horizontal"
-                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                        Margin="0,0,12,0">
-                <RadioButton x:Name="EnglishOption" Content="EN" GroupName="UiLanguage"
-                             IsChecked="True" VerticalContentAlignment="Center"
-                             Foreground="{StaticResource TextBrush}" FontSize="12"
-                             Margin="0,0,10,0"
-                             Checked="OnLanguageChecked"/>
-                <RadioButton x:Name="KhmerOption" GroupName="UiLanguage"
-                             VerticalContentAlignment="Center" FontSize="12"
-                             Foreground="{StaticResource TextBrush}"
-                             Checked="OnLanguageChecked">
-                    <TextBlock Text="ខ្មែរ" FontFamily="{StaticResource KhmerFont}"/>
-                </RadioButton>
             </StackPanel>
 
             <Button Grid.Column="1" Content="My Page"
@@ -237,7 +220,7 @@
                HorizontalAlignment="Center"
                VerticalAlignment="Center"/>
                                     </Border>
-                                </Grid>
+        </Grid>
                             </Border>
                         </ControlTemplate>
                     </Button.Template>
@@ -351,6 +334,24 @@
                     </Border>
                 </Popup>
             </Grid>
+
+            <!-- 언어 토글. 알림 벨 오른쪽. 계산대 직원이 영어를 못 읽는 경우가 있어서 둔다.
+                 크메르어 파일이 없거나 깨졌으면 코드 비하인드가 통째로 감춘다 —
+                 눌러도 아무 일이 없는 버튼이 더 나쁘다. -->
+            <StackPanel x:Name="LanguageToggle" Grid.Column="5" Orientation="Horizontal"
+                        VerticalAlignment="Center" Margin="16,0,0,0">
+                <RadioButton x:Name="EnglishOption" Content="EN" GroupName="UiLanguage"
+                             IsChecked="True" VerticalContentAlignment="Center"
+                             Foreground="{StaticResource TextBrush}" FontSize="12"
+                             Margin="0,0,10,0"
+                             Checked="OnLanguageChecked"/>
+                <RadioButton x:Name="KhmerOption" GroupName="UiLanguage"
+                             VerticalContentAlignment="Center" FontSize="12"
+                             Foreground="{StaticResource TextBrush}"
+                             Checked="OnLanguageChecked">
+                    <TextBlock Text="ខ្មែរ" FontFamily="{StaticResource KhmerFont}"/>
+                </RadioButton>
+            </StackPanel>
         </Grid>
 
         <!-- 구분선 -->
