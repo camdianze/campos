@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace PharmaPOS.Application.Counselling;
 
 /// <summary>
 /// 복합 문자 계열은 자소 결합 때문에 별도 처리가 필요하다는 표시.
@@ -75,6 +75,24 @@ public class CounsellingLocale
         reviewedBy: null,
         contentVersion: null,
         strings: new Dictionary<string, string>());
+
+    /// <summary>
+    /// 화면 라벨용. 검수 여부로 막지 않는다.
+    ///
+    /// 인쇄물과 위험이 다르기 때문이다. 복약 문구는 환자가 그대로 따라 하는 글이라
+    /// 틀리면 되돌릴 방법이 없지만, 버튼에 적힌 낱말이 어색한 것은 계산대에서 바로
+    /// 눈에 띄고 고치면 그만이다. 대신 화면이 미검수 번역을 붉은 글씨로 보여 준다 —
+    /// 검수를 마치고 approved로 바꾸면 저절로 보통 글씨가 된다.
+    /// </summary>
+    public string? GetInterfaceString(string key)
+    {
+        if (!_strings.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return value;
+    }
 
     /// <summary>
     /// 해당 키의 현지어 문구를 돌려준다. 없으면 null.

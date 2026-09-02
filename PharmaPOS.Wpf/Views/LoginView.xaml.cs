@@ -5,6 +5,8 @@ using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Entities;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using Lightweight_Digital_Inventory_Management___POS_System.Services;
+
 namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 public partial class LoginView : UserControl
@@ -35,7 +37,8 @@ public partial class LoginView : UserControl
     private void OnLoginSucceeded(User loggedInUser)
     {
         var alertService = App.Services.GetRequiredService<IAlertService>();
-        var shellViewModel = new MainShellViewModel(loggedInUser, alertService);
+        var uiLanguage = App.Services.GetRequiredService<UiLanguageService>();
+        var shellViewModel = new MainShellViewModel(loggedInUser, alertService, uiLanguage);
         App.CurrentShellViewModel = shellViewModel;
 
         var shellView = new MainShellView { DataContext = shellViewModel };

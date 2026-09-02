@@ -5,7 +5,7 @@
   "render_mode": "raster",
   "review_status": "pending",
   "reviewed_by": null,
-  "content_version": "1.1.0",
+  "content_version": "1.2.0",
   "strings": {
     "sheet.subtitle": "ការណែនាំប្រើថ្នាំអង់ទីប៊ីយោទិច",
     "label.dose": "កម្រិតថ្នាំ",
@@ -22,7 +22,6 @@
     "important.4": "កុំទុកថ្នាំសល់សម្រាប់ពេលក្រោយ",
     "important.5": "បើមានផលរំខាន ត្រូវទៅជួបគ្រូពេទ្យ",
     "qr.caption": "ព័ត៌មានបន្ថែម",
-
     "receipt.lbl.receiptNo": "លេខវិក្កយបត្រ",
     "receipt.lbl.date": "កាលបរិច្ឆេទ",
     "receipt.lbl.servedBy": "បម្រើដោយ",
@@ -42,6 +41,22 @@
     "receipt.unit.box": "ប្រអប់",
     "receipt.unit.each": "ឯកតា",
     "receipt.lbl.pieces": "{count} ឯកតា",
-    "receipt.brand.tagline": "ប្រព័ន្ធគ្រប់គ្រងស្តុកឱសថស្ថាន"
+    "receipt.brand.tagline": "ប្រព័ន្ធគ្រប់គ្រងស្តុកឱសថស្ថាន",
+    "ui.products": "ឱសថ",
+    "ui.products.hint": "បញ្ជីឱសថ និងការទទួលស្តុក",
+    "ui.inventory": "ស្តុក",
+    "ui.inventory.hint": "ចំនួនស្តុកតាមឡូត៍",
+    "ui.pos_sale": "លក់",
+    "ui.pos_sale.hint": "ស្កេនបាកូដ រួចលក់",
+    "ui.pos.search": "ស្វែងរក",
+    "ui.pos.add_to_cart": "បន្ថែមទៅកន្ត្រក",
+    "ui.pos.confirm_sale": "បញ្ជាក់ការលក់",
+    "ui.pos.cancel_sale": "បោះបង់ការលក់",
+    "ui.pos.remove": "លុបចេញ",
+    "ui.pos.back": "ត្រឡប់ក្រោយ",
+    "ui.pos.total": "សរុប",
+    "ui.pos.quantity": "ចំនួន",
+    "ui.pos.box": "ប្រអប់",
+    "ui.pos.each": "គ្រាប់"
   }
 }

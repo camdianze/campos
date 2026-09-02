@@ -9,6 +9,8 @@ using PharmaPOS.Application.Repositories;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
+using Lightweight_Digital_Inventory_Management___POS_System.Services;
+
 namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
 
 public partial class InventoryStatusView : UserControl
@@ -144,7 +146,8 @@ public partial class InventoryStatusView : UserControl
             shellViewModel.CurrentUser.FacilityId,
             shellViewModel.CurrentUser.UserId,
             shellViewModel.CurrentUser.Username,
-            shellViewModel.CurrentUser.Role);
+            shellViewModel.CurrentUser.Role,
+            App.Services.GetRequiredService<UiLanguageService>());
 
         var posSaleView = new PosSaleView();
         posSaleView.AttachViewModel(posSaleViewModel);

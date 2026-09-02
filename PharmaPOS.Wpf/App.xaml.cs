@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +9,8 @@ using PharmaPOS.DataAccess.Database;
 using Lightweight_Digital_Inventory_Management___POS_System.Composition;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.Views;
+
+using Lightweight_Digital_Inventory_Management___POS_System.Services;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System;
 
@@ -97,6 +99,10 @@ public partial class App : Application
     private static async Task<UserControl> BuildPostActivationScreenAsync()
     {
         var initialSetupRepository = Services.GetRequiredService<IInitialSetupRepository>();
+        // 화면 언어를 먼저 읽어 둔다. 로케일 파일과 지난번 선택을 여기서 한 번만 읽고,
+        // 이후 화면들은 이미 준비된 값을 쓴다.
+        await Services.GetRequiredService<UiLanguageService>().InitializeAsync();
+
         var isSetupComplete = await initialSetupRepository.IsSetupCompleteAsync();
 
         return isSetupComplete

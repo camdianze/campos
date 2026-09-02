@@ -111,6 +111,10 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ICounsellingService, CounsellingService>();
         services.AddTransient<ICounsellingLocaleProvider>(_ =>
             new FileCounsellingLocaleProvider(localeDirectories));
+
+        // 화면 언어는 앱 하나에 하나뿐이라 Singleton이다. 화면마다 새로 만들면
+        // 한쪽에서 바꾼 언어가 다른 화면에 전해지지 않는다.
+        services.AddSingleton<UiLanguageService>();
         services.AddTransient<IAwareSeedLoader>(sp => new AwareSeedLoader(
             sp.GetRequiredService<IAwareClassificationRepository>(),
             sp.GetRequiredService<IAppSettingRepository>(),

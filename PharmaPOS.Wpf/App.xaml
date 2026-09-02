@@ -635,6 +635,10 @@
             </Setter>
         </Style>
 
+        <!-- 크메르 글꼴. 함께 싣는 파일을 먼저 쓰고, 없으면 윈도우 글꼴로 넘어간다.
+             약국 PC에 크메르 글꼴이 없으면 글자가 네모로 나오므로 기대지 않는다. -->
+        <FontFamily x:Key="KhmerFont">pack://application:,,,/Fonts/#Noto Sans Khmer, Khmer UI, Leelawadee UI, Segoe UI</FontFamily>
+
         <!-- ===== DataGrid ===== -->
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background"                 Value="{StaticResource SubtleSurfaceBrush}"/>

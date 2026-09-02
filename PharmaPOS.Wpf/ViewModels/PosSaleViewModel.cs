@@ -11,6 +11,10 @@ using Lightweight_Digital_Inventory_Management___POS_System.Views;
 // 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
 using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
 
+using System.Windows.Media;
+
+using Lightweight_Digital_Inventory_Management___POS_System.Services;
+
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
 /// <summary>
@@ -29,6 +33,7 @@ public enum SaleUnitOption
 public partial class PosSaleViewModel : ViewModelBase
 {
     private readonly IProductRepository _productRepository;
+    private readonly UiLanguageService _uiLanguage;
     private readonly IInventoryRepository _inventoryRepository;
     private readonly ISaleService _saleService;
     private readonly IReceiptPrintingService _receiptPrintingService;
@@ -200,8 +205,12 @@ public partial class PosSaleViewModel : ViewModelBase
         string facilityId,
         string userId,
         string username,
-        UserRole currentUserRole)
+        UserRole currentUserRole,
+        UiLanguageService uiLanguage)
     {
+        _uiLanguage = uiLanguage;
+        _uiLanguage.LanguageChanged += RaiseLanguageLabels;
+
         _productRepository = productRepository;
         _inventoryRepository = inventoryRepository;
         _saleService = saleService;
@@ -578,5 +587,36 @@ public partial class PosSaleViewModel : ViewModelBase
 
         Cart.Remove(item);
         RaiseTotalsChanged();
+    }
+
+    // ── 화면 언어 ────────────────────────────────────────────────────────────
+    // 계산대 직원이 종일 보는 화면이라 주요 버튼만 번역한다.
+    // 번역이 없는 키는 영어가 그대로 나온다 — 빈 버튼보다 영어 버튼이 낫다.
+    //
+    // QuantityLabel은 이미 "Quantity (boxes)"처럼 판매 단위를 알려 주는 다른 뜻으로
+    // 쓰이고 있어 건드리지 않는다.
+
+    public string AddToCartLabel => _uiLanguage.Text("ui.pos.add_to_cart", "＋  Add to Cart");
+
+    public string ConfirmSaleLabel => _uiLanguage.Text("ui.pos.confirm_sale", "✓  Confirm Sale");
+
+    public string CancelSaleLabel => _uiLanguage.Text("ui.pos.cancel_sale", "✕  Cancel Sale");
+
+    public string RemoveLabel => _uiLanguage.Text("ui.pos.remove", "Remove");
+
+    public string BackLabel => _uiLanguage.Text("ui.pos.back", "← Back");
+
+    /// <summary>미검수 번역이면 붉은 글씨. 검수를 마치면 저절로 보통 색이 된다.</summary>
+    public Brush LabelBrush =>
+        _uiLanguage.TextBrushOverride ?? (Brush)System.Windows.Application.Current.Resources["TextBrush"];
+
+    private void RaiseLanguageLabels()
+    {
+        OnPropertyChanged(nameof(AddToCartLabel));
+        OnPropertyChanged(nameof(ConfirmSaleLabel));
+        OnPropertyChanged(nameof(CancelSaleLabel));
+        OnPropertyChanged(nameof(RemoveLabel));
+        OnPropertyChanged(nameof(BackLabel));
+        OnPropertyChanged(nameof(LabelBrush));
     }
 }

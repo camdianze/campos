@@ -12,6 +12,8 @@ using PharmaPOS.Application.Security;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 using Lightweight_Digital_Inventory_Management___POS_System.Views;
 
+using Lightweight_Digital_Inventory_Management___POS_System.Services;
+
 namespace Lightweight_Digital_Inventory_Management___POS_System.Shell;
 
 public partial class MainShellView : UserControl
@@ -19,6 +21,8 @@ public partial class MainShellView : UserControl
     public MainShellView()
     {
         InitializeComponent();
+
+        InitializeLanguageToggle();
 
         Loaded += (_, _) =>
         {
@@ -154,7 +158,8 @@ public partial class MainShellView : UserControl
             counsellingService,
             shellViewModel.CurrentUser.FacilityId, shellViewModel.CurrentUser.UserId,
             shellViewModel.CurrentUser.Username,
-            shellViewModel.CurrentUser.Role);
+            shellViewModel.CurrentUser.Role,
+            App.Services.GetRequiredService<UiLanguageService>());
 
         var posSaleView = new PosSaleView();
         posSaleView.AttachViewModel(posSaleViewModel);
@@ -190,5 +195,43 @@ public partial class MainShellView : UserControl
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
             parentWindow.Content = historyView;
+    }
+
+    // ── 화면 언어 ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 토글을 현재 언어에 맞춰 놓는다. 크메르어 파일이 아예 없으면 고를 것이
+    /// 없으므로 토글을 통째로 감춘다 — 눌러도 아무 일이 없는 버튼이 더 나쁘다.
+    /// </summary>
+    private void InitializeLanguageToggle()
+    {
+        var uiLanguage = App.Services.GetRequiredService<UiLanguageService>();
+
+        if (!uiLanguage.IsKhmerAvailable)
+        {
+            LanguageToggle.Visibility = System.Windows.Visibility.Collapsed;
+            return;
+        }
+
+        // 여기서 붙이는 IsChecked는 사용자가 누른 것이 아니므로 저장을 부르지 않는다.
+        _suppressLanguageChange = true;
+        EnglishOption.IsChecked = !uiLanguage.IsKhmer;
+        KhmerOption.IsChecked = uiLanguage.IsKhmer;
+        _suppressLanguageChange = false;
+    }
+
+    private bool _suppressLanguageChange;
+
+    private async void OnLanguageChecked(object sender, System.Windows.RoutedEventArgs e)
+    {
+        if (_suppressLanguageChange)
+        {
+            return;
+        }
+
+        var uiLanguage = App.Services.GetRequiredService<UiLanguageService>();
+
+        await uiLanguage.SetLanguageAsync(
+            ReferenceEquals(sender, KhmerOption) ? UiLanguageService.Khmer : UiLanguageService.English);
     }
 }

@@ -167,6 +167,24 @@
                            Margin="0,2,0,0"/>
             </StackPanel>
 
+            <!-- 언어 토글. 계산대 직원이 영어를 못 읽는 경우가 있어서 둔다.
+                 크메르어 파일이 없으면 코드 비하인드가 통째로 감춘다. -->
+            <StackPanel x:Name="LanguageToggle" Grid.Column="0" Orientation="Horizontal"
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Margin="0,0,12,0">
+                <RadioButton x:Name="EnglishOption" Content="EN" GroupName="UiLanguage"
+                             IsChecked="True" VerticalContentAlignment="Center"
+                             Foreground="{StaticResource TextBrush}" FontSize="12"
+                             Margin="0,0,10,0"
+                             Checked="OnLanguageChecked"/>
+                <RadioButton x:Name="KhmerOption" GroupName="UiLanguage"
+                             VerticalContentAlignment="Center" FontSize="12"
+                             Foreground="{StaticResource TextBrush}"
+                             Checked="OnLanguageChecked">
+                    <TextBlock Text="ខ្មែរ" FontFamily="{StaticResource KhmerFont}"/>
+                </RadioButton>
+            </StackPanel>
+
             <Button Grid.Column="1" Content="My Page"
                     Style="{StaticResource TopBtnPrimary}"
                     Command="{Binding MyPageCommand}"
@@ -362,7 +380,10 @@
                                  하나의 버튼이 된다(보이는 색은 바깥 Border가 그린다). -->
                             <Grid Background="Transparent">
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
-                                    <TextBlock Text="Products" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                    <TextBlock Text="{Binding ProductsLabel}"
+                                               FontFamily="{StaticResource KhmerFont}"
+                                               FontSize="30" FontWeight="SemiBold"
+                                               Foreground="{Binding LabelBrush}"/>
                                 </StackPanel>
                                 <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
                                      WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
@@ -389,7 +410,10 @@
                                  하나의 버튼이 된다(보이는 색은 바깥 Border가 그린다). -->
                             <Grid Background="Transparent">
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
-                                    <TextBlock Text="Inventory" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                    <TextBlock Text="{Binding InventoryLabel}"
+                                               FontFamily="{StaticResource KhmerFont}"
+                                               FontSize="30" FontWeight="SemiBold"
+                                               Foreground="{Binding LabelBrush}"/>
                                 </StackPanel>
                                 <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
                                      WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
@@ -419,7 +443,10 @@
                                  하나의 버튼이 된다(보이는 색은 바깥 Border가 그린다). -->
                             <Grid Background="Transparent">
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
-                                    <TextBlock Text="POS Sale" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                    <TextBlock Text="{Binding PosSaleLabel}"
+                                               FontFamily="{StaticResource KhmerFont}"
+                                               FontSize="30" FontWeight="SemiBold"
+                                               Foreground="{Binding LabelBrush}"/>
                                 </StackPanel>
                                 <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
                                      WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->

@@ -32,6 +32,10 @@
          Resource라서 단일 파일 게시에서도 exe 안에 함께 들어가고 곁딸린 파일이 생기지 않는다.
          SIL Open Font License 1.1 — 함께 배포하려면 OFL.txt를 같이 두어야 한다. -->
     <Resource Include="Fonts\AbrilFatface-Regular.ttf" />
+    <!-- 크메르어 화면·인쇄용. 윈도우에 크메르 폰트가 없는 PC가 흔하고, 없으면
+         글자가 네모로 나온다. 있는지 없는지에 기대지 않도록 함께 싣는다. -->
+    <Resource Include="Fonts\NotoSansKhmer-Regular.ttf" />
+    <Resource Include="Fonts\NotoSansKhmer-Bold.ttf" />
     <Content Include="Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
