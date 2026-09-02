@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
              mc:Ignorable="d"
              Background="White"
-             d:DesignWidth="1000" d:DesignHeight="700">
+             d:DesignWidth="1000" d:DesignHeight="700"
+             PreviewTextInput="OnPreviewTextInput">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
