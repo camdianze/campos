@@ -5,7 +5,7 @@
   "render_mode": "raster",
   "review_status": "pending",
   "reviewed_by": null,
-  "content_version": "1.2.0",
+  "content_version": "1.3.0",
   "strings": {
     "sheet.subtitle": "ការណែនាំប្រើថ្នាំអង់ទីប៊ីយោទិច",
     "label.dose": "កម្រិតថ្នាំ",
@@ -57,6 +57,20 @@
     "ui.pos.total": "សរុប",
     "ui.pos.quantity": "ចំនួន",
     "ui.pos.box": "ប្រអប់",
-    "ui.pos.each": "គ្រាប់"
+    "ui.pos.each": "គ្រាប់",
+    "ui.common.back": "ត្រឡប់ក្រោយ",
+    "ui.common.add": "បន្ថែម",
+    "ui.common.edit": "កែសម្រួល",
+    "ui.common.deactivate": "បិទដំណើរការ",
+    "ui.common.activate": "បើកដំណើរការ",
+    "ui.common.search": "ស្វែងរក",
+    "ui.common.reset": "កំណត់ឡើងវិញ",
+    "ui.common.save": "រក្សាទុក",
+    "ui.common.cancel": "បោះបង់",
+    "ui.common.export": "នាំចេញ",
+    "ui.products.add": "បន្ថែមឱសថ",
+    "ui.products.print_barcode": "បោះពុម្ពបាកូដ",
+    "ui.inventory.stock_in": "ទទួលស្តុក",
+    "ui.inventory.adjust": "កែតម្រូវស្តុក"
   }
 }

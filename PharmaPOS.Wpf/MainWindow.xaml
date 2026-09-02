@@ -7,7 +7,11 @@
         mc:Ignorable="d"
         Title="CamPOS"
         WindowState="Maximized"
+        FontFamily="Segoe UI, pack://application:,,,/Fonts/#Noto Sans Khmer"
         Height="800" Width="1280">
+    <!-- FontFamily는 폴백 목록이다. 라틴 글자는 앞의 Segoe UI가 그리고, 그 폰트에
+         없는 크메르 글자만 함께 싣는 Noto Sans Khmer로 떨어진다. 버튼마다 크메르
+         폰트를 직접 지정하면 영어일 때도 그 폰트로 그려져 글씨체가 달라진다. -->
     <Grid>
         <!-- 시작 화면은 App.xaml.cs의 OnStartup에서 동적으로 채워진다. -->
     </Grid>

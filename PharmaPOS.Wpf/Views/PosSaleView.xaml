@@ -50,7 +50,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="{Binding BackLabel}" FontFamily="{StaticResource KhmerFont}" Foreground="{Binding LabelBrush}"
+            <Button Grid.Column="0" Content="{Binding BackLabel}" Foreground="{Binding LabelBrush}"
                     Style="{StaticResource SecondaryBtn}"
                     Padding="16,0"
                     Click="OnBackClick"/>
@@ -107,7 +107,7 @@
                                 <DataTemplate>
                                     <Button Content="{Binding DataContext.RemoveLabel,
                                                       RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            FontFamily="{StaticResource KhmerFont}"
+                                           
                                             Style="{StaticResource SoftDangerBtn}"
                                             Command="{Binding DataContext.RemoveFromCartCommand,
                                                       RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -163,7 +163,7 @@
                              Style="{StaticResource FieldInput}" Margin="0,0,0,10"/>
 
                     <!-- Add to Cart -->
-                    <Button Content="{Binding AddToCartLabel}" FontFamily="{StaticResource KhmerFont}"
+                    <Button Content="{Binding AddToCartLabel}"
                             Style="{StaticResource PrimaryBtn}"
                             Height="38"
                             Command="{Binding AddToCartCommand}"
@@ -212,13 +212,13 @@
                     </StackPanel>
 
                     <!-- 버튼 -->
-                    <Button Content="{Binding ConfirmSaleLabel}" FontFamily="{StaticResource KhmerFont}"
+                    <Button Content="{Binding ConfirmSaleLabel}"
                             Style="{StaticResource PrimaryBtn}"
                             Height="42" FontSize="14"
                             Command="{Binding ConfirmSaleCommand}"
                             Margin="0,0,0,6"/>
 
-                    <Button Content="{Binding CancelSaleLabel}" FontFamily="{StaticResource KhmerFont}"
+                    <Button Content="{Binding CancelSaleLabel}"
                             Style="{StaticResource SecondaryBtn}"
                             Height="34"
                             Command="{Binding CancelSaleCommand}"/>

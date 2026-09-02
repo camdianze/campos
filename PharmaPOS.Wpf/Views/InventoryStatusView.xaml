@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:converters="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
+             xmlns:svc="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Services"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="960" d:DesignHeight="600">
@@ -671,7 +672,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="← Back"
+            <Button Grid.Column="0" Content="{svc:Loc ui.common.back, ← Back}"
                     Style="{StaticResource SecondaryBtn}"
                     Click="OnBackClick" Margin="0,0,8,0"/>
 
@@ -688,11 +689,11 @@
                     IsEnabled="{Binding CanDeleteSelectedBatch}"
                     Command="{Binding DeleteBatchCommand}" Margin="0,0,8,0"/>
 
-            <Button Grid.Column="3" Content="Stock-in"
+            <Button Grid.Column="3" Content="{svc:Loc ui.inventory.stock_in, Stock-in}"
                     Style="{StaticResource PrimaryBtn}"
                     Command="{Binding StockInCommand}" Margin="0,0,8,0"/>
 
-            <Button Grid.Column="4" Content="Adjustment"
+            <Button Grid.Column="4" Content="{svc:Loc ui.inventory.adjust, Adjustment}"
                     Style="{StaticResource PrimaryBtn}"
                     Command="{Binding AdjustmentCommand}"/>
         </Grid>

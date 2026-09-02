@@ -340,8 +340,11 @@
                  눌러도 아무 일이 없는 버튼이 더 나쁘다. -->
             <StackPanel x:Name="LanguageToggle" Grid.Column="5" Orientation="Horizontal"
                         VerticalAlignment="Center" Margin="16,0,0,0">
+                <!-- IsChecked를 XAML에 두지 않는다. InitializeComponent() 안에서 Checked가
+                     발생하는데 그때는 아직 억제 플래그를 켤 수 없어, 화면을 드나들 때마다
+                     저장된 언어를 영어로 덮어써 버린다. 초기 상태는 코드가 정한다. -->
                 <RadioButton x:Name="EnglishOption" Content="EN" GroupName="UiLanguage"
-                             IsChecked="True" VerticalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
                              Foreground="{StaticResource TextBrush}" FontSize="12"
                              Margin="0,0,10,0"
                              Checked="OnLanguageChecked"/>
@@ -349,7 +352,7 @@
                              VerticalContentAlignment="Center" FontSize="12"
                              Foreground="{StaticResource TextBrush}"
                              Checked="OnLanguageChecked">
-                    <TextBlock Text="ខ្មែរ" FontFamily="{StaticResource KhmerFont}"/>
+                    <TextBlock Text="ខ្មែរ"/>
                 </RadioButton>
             </StackPanel>
         </Grid>
@@ -382,7 +385,7 @@
                             <Grid Background="Transparent">
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
                                     <TextBlock Text="{Binding ProductsLabel}"
-                                               FontFamily="{StaticResource KhmerFont}"
+                                              
                                                FontSize="30" FontWeight="SemiBold"
                                                Foreground="{Binding LabelBrush}"/>
                                 </StackPanel>
@@ -412,7 +415,7 @@
                             <Grid Background="Transparent">
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
                                     <TextBlock Text="{Binding InventoryLabel}"
-                                               FontFamily="{StaticResource KhmerFont}"
+                                              
                                                FontSize="30" FontWeight="SemiBold"
                                                Foreground="{Binding LabelBrush}"/>
                                 </StackPanel>
@@ -445,7 +448,7 @@
                             <Grid Background="Transparent">
                                 <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="32,28,0,0">
                                     <TextBlock Text="{Binding PosSaleLabel}"
-                                               FontFamily="{StaticResource KhmerFont}"
+                                              
                                                FontSize="30" FontWeight="SemiBold"
                                                Foreground="{Binding LabelBrush}"/>
                                 </StackPanel>

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:svc="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Services"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="800" d:DesignHeight="550">
@@ -236,7 +237,7 @@
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal"
                             HorizontalAlignment="Right" Margin="0,14,0,0">
-                    <Button Content="Cancel"
+                    <Button Content="{svc:Loc ui.common.cancel, Cancel}"
                             Background="#F0F0F0" Foreground="{StaticResource TextBrush}"
                             BorderThickness="0" Height="36" MinWidth="96" Cursor="Hand"
                             Margin="0,0,8,0"
@@ -250,7 +251,7 @@
                         </Button.Template>
                     </Button>
 
-                    <Button Content="Save"
+                    <Button Content="{svc:Loc ui.common.save, Save}"
                             Background="#BF5B92E5" Foreground="White" FontWeight="SemiBold"
                             BorderThickness="0" Height="36" MinWidth="96" Cursor="Hand"
                             Command="{Binding SaveStockInCommand}">
@@ -282,23 +283,23 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="← Back"
+            <Button Grid.Column="0" Content="{svc:Loc ui.common.back, ← Back}"
                     Style="{StaticResource SecondaryBtn}"
                     Padding="16,0" Click="OnBackClick" Margin="0,0,8,0"/>
 
-            <Button Grid.Column="2" Content="Add Product"
+            <Button Grid.Column="2" Content="{svc:Loc ui.products.add, Add Product}"
                     Style="{StaticResource PrimaryBtn}"
                     Padding="16,0" Command="{Binding AddProductCommand}" Margin="0,0,8,0"/>
 
-            <Button Grid.Column="3" Content="Edit"
+            <Button Grid.Column="3" Content="{svc:Loc ui.common.edit, Edit}"
                     Style="{StaticResource SecondaryBtn}"
                     Padding="16,0" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
 
-            <Button Grid.Column="4" Content="Deactivate"
+            <Button Grid.Column="4" Content="{svc:Loc ui.common.deactivate, Deactivate}"
                     Style="{StaticResource DangerBtn}"
                     Padding="16,0" Command="{Binding DeactivateCommand}" Margin="0,0,8,0"/>
 
-            <Button Grid.Column="5" Content="Print Barcode"
+            <Button Grid.Column="5" Content="{svc:Loc ui.products.print_barcode, Print Barcode}"
                     Style="{StaticResource SecondaryBtn}"
                     Padding="16,0" Command="{Binding PrintInternalBarcodeCommand}"/>
         </Grid>

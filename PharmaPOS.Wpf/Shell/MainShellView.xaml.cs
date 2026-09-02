@@ -220,7 +220,12 @@ public partial class MainShellView : UserControl
         _suppressLanguageChange = false;
     }
 
-    private bool _suppressLanguageChange;
+    /// <summary>
+    /// 처음부터 켜 둔다. 필드 초기화는 생성자 본문보다 먼저 돌기 때문에,
+    /// InitializeComponent()가 라디오를 붙이며 쏘는 Checked까지 이 플래그가 덮는다.
+    /// 그러지 않으면 화면을 드나들 때마다 저장된 언어가 영어로 덮인다.
+    /// </summary>
+    private bool _suppressLanguageChange = true;
 
     private async void OnLanguageChecked(object sender, System.Windows.RoutedEventArgs e)
     {
