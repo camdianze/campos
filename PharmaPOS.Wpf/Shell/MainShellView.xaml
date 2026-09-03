@@ -9,6 +9,40 @@
              d:DesignWidth="1440" d:DesignHeight="1024">
 
     <UserControl.Resources>
+        <!-- 언어 토글 한 칸. 라디오 동그라미 대신 맞붙은 네모 상자 둘로 그린다 —
+             둘 중 하나를 고르는 것이라는 게 모양으로 바로 읽힌다. 고른 쪽만 진해진다.
+             GroupName은 그대로라 하나만 켜지는 동작은 라디오 그대로다. -->
+        <Style x:Key="LanguageSegment" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Box"
+                                Background="#F3F4F6"
+                                BorderBrush="{StaticResource BorderBrushSoft}"
+                                BorderThickness="1"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="#D1D5DB"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="#E5E7EB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <!-- 셸 전용 버튼 두 종류. 크기와 배치가 이 화면에만 있는 형태라 여기 남기고,
@@ -344,16 +378,12 @@
                      발생하는데 그때는 아직 억제 플래그를 켤 수 없어, 화면을 드나들 때마다
                      저장된 언어를 영어로 덮어써 버린다. 초기 상태는 코드가 정한다. -->
                 <RadioButton x:Name="EnglishOption" Content="EN" GroupName="UiLanguage"
-                             VerticalContentAlignment="Center"
-                             Foreground="{StaticResource TextBrush}" FontSize="12"
-                             Margin="0,0,10,0"
+                             Style="{StaticResource LanguageSegment}"
                              Checked="OnLanguageChecked"/>
-                <RadioButton x:Name="KhmerOption" GroupName="UiLanguage"
-                             VerticalContentAlignment="Center" FontSize="12"
-                             Foreground="{StaticResource TextBrush}"
-                             Checked="OnLanguageChecked">
-                    <TextBlock Text="ខ្មែរ"/>
-                </RadioButton>
+                <RadioButton x:Name="KhmerOption" Content="ខ្មែរ" GroupName="UiLanguage"
+                             Style="{StaticResource LanguageSegment}"
+                             Margin="-1,0,0,0"
+                             Checked="OnLanguageChecked"/>
             </StackPanel>
         </Grid>
 
