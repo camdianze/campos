@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
+             xmlns:svc="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Services"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="1000" d:DesignHeight="700"
@@ -18,7 +19,7 @@
 
         <!-- 제목 -->
         <TextBlock DockPanel.Dock="Top"
-                   Text="POS Sale"
+                   Text="{svc:Loc ui.pos.title, POS Sale}"
                    Style="{StaticResource PageTitle}"
                    Margin="0,0,0,12"/>
 
@@ -78,7 +79,7 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0"
-                           Text="Cart"
+                           Text="{svc:Loc ui.pos.cart, Cart}"
                            FontSize="15" FontWeight="SemiBold"
                            Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
 
@@ -127,7 +128,7 @@
                 <StackPanel>
 
                     <!-- 선택 상품 -->
-                    <TextBlock Text="Selected Product"
+                    <TextBlock Text="{svc:Loc ui.pos.selected_product, Selected Product}"
                                FontSize="11" FontWeight="SemiBold"
                                Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
                     <TextBlock Text="{Binding SelectedProduct.ProductName}"
@@ -136,7 +137,7 @@
                                MinHeight="18" Margin="0,0,0,10"/>
 
                     <!-- Batch -->
-                    <TextBlock Text="Batch Number" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{svc:Loc ui.pos.batch_number, Batch Number}" Style="{StaticResource FieldLabel}"/>
                     <ComboBox ItemsSource="{Binding Batches}"
                               SelectedItem="{Binding SelectedBatch}"
                               DisplayMemberPath="BatchNumber"
@@ -145,7 +146,7 @@
                     <!-- 박스/낱개. 바코드를 찍으면 자동으로 정해지고, 이름으로 찾았을 때만
                          손으로 고르면 된다. 구분이 없는 상품에는 아예 나타나지 않는다. -->
                     <StackPanel Visibility="{Binding IsBoxedProductSelected, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Sell As" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{svc:Loc ui.pos.sell_as, Sell As}" Style="{StaticResource FieldLabel}"/>
                         <ComboBox ItemsSource="{Binding AvailableSaleUnits}"
                                   SelectedItem="{Binding SelectedSaleUnit}"
                                   Height="34" Margin="0,0,0,8"/>
@@ -157,7 +158,7 @@
                              Style="{StaticResource FieldInput}" Margin="0,0,0,8"/>
 
                     <!-- 가격 -->
-                    <TextBlock Text="Selling Price" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{svc:Loc ui.pos.selling_price, Selling Price}" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged}"
                              IsReadOnly="{Binding CanEditUnitPrice, Converter={StaticResource InverseBoolConverter}}"
                              Style="{StaticResource FieldInput}" Margin="0,0,0,10"/>
@@ -172,18 +173,18 @@
                     <Border Height="1" Background="{StaticResource BorderBrushSoft}" Margin="0,0,0,12"/>
 
                     <!-- 결제 -->
-                    <TextBlock Text="Payment Method" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{svc:Loc ui.pos.payment_method, Payment Method}" Style="{StaticResource FieldLabel}"/>
                     <ComboBox ItemsSource="{Binding AvailablePaymentMethods}"
                               SelectedItem="{Binding SelectedPaymentMethod}"
                               Height="34" Margin="0,0,0,8"/>
 
                     <StackPanel Visibility="{Binding IsCashPayment, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Cash Tendered" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{svc:Loc ui.pos.cash_tendered, Cash Tendered}" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding CashTendered, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource FieldInput}" Margin="0,0,0,8"/>
                     </StackPanel>
 
-                    <TextBlock Text="Notes" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{svc:Loc ui.pos.notes, Notes}" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource FieldInput}" Margin="0,0,0,12"/>
 
@@ -191,7 +192,7 @@
 
                     <!-- 합계 -->
                     <Grid Margin="0,0,0,4">
-                        <TextBlock Text="Total" FontSize="13" Foreground="{StaticResource MutedTextBrush}"
+                        <TextBlock Text="{svc:Loc ui.pos.total, Total}" FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding TotalAmount}"
                                    FontSize="20" FontWeight="Bold"
@@ -202,7 +203,7 @@
                     <StackPanel Visibility="{Binding IsCashPayment, Converter={StaticResource BoolToVis}}"
                                 Margin="0,0,0,12">
                         <Grid>
-                            <TextBlock Text="Change" FontSize="12" Foreground="{StaticResource MutedTextBrush}"
+                            <TextBlock Text="{svc:Loc ui.pos.change, Change}" FontSize="12" Foreground="{StaticResource MutedTextBrush}"
                                        VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding ChangeDue}"
                                        FontSize="16" FontWeight="SemiBold"

@@ -145,8 +145,8 @@ public partial class PosSaleViewModel : ViewModelBase
     /// <summary>박스로 팔 때는 수량이 박스 개수라는 걸 라벨에 드러낸다.</summary>
     public string QuantityLabel =>
         IsBoxedProductSelected && SelectedSaleUnit == SaleUnitOption.Box
-            ? "Quantity (boxes)"
-            : "Quantity";
+            ? _uiLanguage.Text("ui.pos.quantity_boxes", "Quantity (boxes)")
+            : _uiLanguage.Text("ui.pos.quantity", "Quantity");
 
     /// <summary>지금 고른 판매 단위 기준의 상품 판매가.</summary>
     private decimal? CurrentSaleUnitPrice()
