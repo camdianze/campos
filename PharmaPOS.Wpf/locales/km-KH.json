@@ -5,7 +5,7 @@
   "render_mode": "raster",
   "review_status": "pending",
   "reviewed_by": null,
-  "content_version": "1.4.1",
+  "content_version": "1.5.0",
   "strings": {
     "sheet.subtitle": "ការណែនាំប្រើថ្នាំអង់ទីប៊ីយោទិច",
     "label.dose": "កម្រិតថ្នាំ",
@@ -81,6 +81,22 @@
     "ui.pos.cash_tendered": "ប្រាក់ដែលទទួល",
     "ui.pos.notes": "កំណត់ចំណាំ",
     "ui.pos.change": "ប្រាក់អាប់",
-    "ui.pos.quantity_boxes": "ចំនួន (ប្រអប់)"
+    "ui.pos.quantity_boxes": "ចំនួន (ប្រអប់)",
+    "ui.alert.title": "🔔  ការជូនដំណឹង",
+    "ui.alert.screen_title": "ការជូនដំណឹងអំពីស្តុក",
+    "ui.alert.view_all": "មើលទាំងអស់ →",
+    "ui.alert.none": "គ្មានការជូនដំណឹង 🎉",
+    "ui.alert.type.LowStock": "ស្តុកតិច",
+    "ui.alert.type.Expiry": "ជិតផុតកំណត់",
+    "ui.alert.priority.Critical": "បន្ទាន់",
+    "ui.alert.priority.Warning": "ប្រយ័ត្ន",
+    "ui.alert.priority.Normal": "ធម្មតា",
+    "ui.alert.col.type": "ប្រភេទ",
+    "ui.alert.col.priority": "កម្រិត",
+    "ui.alert.col.product": "ឈ្មោះឱសថ",
+    "ui.alert.col.quantity": "ចំនួន",
+    "ui.alert.go_inventory": "ទៅកាន់ស្តុក",
+    "ui.alert.go_product": "ទៅកាន់ឱសថ",
+    "ui.alert.view_inventory": "មើលស្តុក"
   }
 }

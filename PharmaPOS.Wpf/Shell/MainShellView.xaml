@@ -4,6 +4,7 @@
              xmlns:app="clr-namespace:PharmaPOS.Application;assembly=PharmaPOS.Application"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:svc="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Services"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="1440" d:DesignHeight="1024">
@@ -281,7 +282,7 @@
                             <!-- 팝업 헤더 -->
                             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12,12,0,0" Padding="16,12">
                                 <Grid>
-                                    <TextBlock Text="🔔  Alerts"
+                                    <TextBlock Text="{svc:Loc ui.alert.title, 🔔  Alerts}"
                                            FontSize="15" FontWeight="SemiBold"
                                            Foreground="{StaticResource TextBrush}"/>
                                     <Border Background="{StaticResource DangerBrush}" CornerRadius="8"
@@ -329,10 +330,10 @@
                                                            FontSize="13" FontWeight="SemiBold"
                                                            Foreground="{StaticResource TextBrush}"/>
                                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                        <TextBlock Text="{Binding AlertType}"
+                                                        <TextBlock Text="{Binding AlertType, Converter={StaticResource LocalizedEnum}, ConverterParameter=ui.alert.type}"
                                                                FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
                                                         <TextBlock Text=" · " FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
-                                                        <TextBlock Text="{Binding Priority}"
+                                                        <TextBlock Text="{Binding Priority, Converter={StaticResource LocalizedEnum}, ConverterParameter=ui.alert.priority}"
                                                                FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
                                                     </StackPanel>
                                                 </StackPanel>
@@ -343,7 +344,7 @@
                             </ItemsControl>
 
                             <!-- 빈 상태 -->
-                            <TextBlock Text="No alerts 🎉"
+                            <TextBlock Text="{svc:Loc ui.alert.none, No alerts 🎉}"
                                    FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,16,0,8">
@@ -360,7 +361,7 @@
                             </TextBlock>
 
                             <!-- View All 버튼 -->
-                            <Button Content="View All Alerts →"
+                            <Button Content="{svc:Loc ui.alert.view_all, View All Alerts →}"
                                 Style="{StaticResource PrimaryBtn}"
                                 Margin="16,4,16,0"
                                 Click="OnAlertsClick"/>

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:svc="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Services"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="750" d:DesignHeight="500">
@@ -17,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Text="Inventory Alerts"
+                   Text="{svc:Loc ui.alert.screen_title, Inventory Alerts}"
                    Style="{StaticResource PageTitle}"
                    Margin="0,0,0,20"/>
 
@@ -58,20 +59,20 @@
                  그 약의 재고를 보러 가거나, 상품 정보를 고치러 가거나. -->
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Go to Inventory"
+                    <MenuItem Header="{svc:Loc ui.alert.go_inventory, Go to Inventory}"
                               Command="{Binding ViewInventoryCommand}"
                               IsEnabled="{Binding HasSelection}"/>
-                    <MenuItem Header="Go to Product"
+                    <MenuItem Header="{svc:Loc ui.alert.go_product, Go to Product}"
                               Command="{Binding ViewProductCommand}"
                               IsEnabled="{Binding HasSelection}"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Type"         Binding="{Binding AlertType}"   Width="100"/>
-                <DataGridTextColumn Header="Priority"     Binding="{Binding Priority}"    Width="100"/>
-                <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="*"/>
-                <DataGridTextColumn Header="Quantity"     Binding="{Binding Quantity}"    Width="90"/>
+                <DataGridTextColumn Header="{svc:Loc ui.alert.col.type, Type}"         Binding="{Binding AlertType, Converter={StaticResource LocalizedEnum}, ConverterParameter=ui.alert.type}"   Width="100"/>
+                <DataGridTextColumn Header="{svc:Loc ui.alert.col.priority, Priority}"     Binding="{Binding Priority, Converter={StaticResource LocalizedEnum}, ConverterParameter=ui.alert.priority}"    Width="100"/>
+                <DataGridTextColumn Header="{svc:Loc ui.alert.col.product, Product Name}" Binding="{Binding ProductName}" Width="*"/>
+                <DataGridTextColumn Header="{svc:Loc ui.alert.col.quantity, Quantity}"     Binding="{Binding Quantity}"    Width="90"/>
                 <DataGridTextColumn Header="Batch Number" Binding="{Binding BatchNumber}" Width="130"/>
             </DataGrid.Columns>
         </DataGrid>
@@ -84,9 +85,9 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="← Back"         Style="{StaticResource SecondaryBtn}" Click="OnBackClick"                     Margin="0,0,8,0"/>
-            <Button Grid.Column="2" Content="View Inventory"  Style="{StaticResource SecondaryBtn}" Command="{Binding ViewInventoryCommand}" Margin="0,0,8,0"/>
-            <Button Grid.Column="3" Content="Export"          Style="{StaticResource PrimaryBtn}"   Command="{Binding ExportCommand}"/>
+            <Button Grid.Column="0" Content="{svc:Loc ui.common.back, ← Back}"         Style="{StaticResource SecondaryBtn}" Click="OnBackClick"                     Margin="0,0,8,0"/>
+            <Button Grid.Column="2" Content="{svc:Loc ui.alert.view_inventory, View Inventory}"  Style="{StaticResource SecondaryBtn}" Command="{Binding ViewInventoryCommand}" Margin="0,0,8,0"/>
+            <Button Grid.Column="3" Content="{svc:Loc ui.common.export, Export}"          Style="{StaticResource PrimaryBtn}"   Command="{Binding ExportCommand}"/>
         </Grid>
 
         <TextBlock Grid.Row="4"
