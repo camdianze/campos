@@ -46,13 +46,14 @@
              이미 대체 순서를 명시해 두었으므로, 입력 칸도 같은 순서를 쓴다 —
              치는 동안 보이는 모양과 종이에 나오는 모양이 달라서는 안 된다.
 
-             Noto Sans Khmer는 Windows 기본 탑재가 아니라 맨 앞에 두되,
+             Battambang은 exe 안에 함께 실은 글꼴이라 pack:// 주소로 부른다. 이름만
+             적으면 PC에 설치된 글꼴에서만 찾아서, 실어 놓고도 쓰지 못한다.
              뒤의 Khmer UI / Leelawadee UI가 Windows 동봉본이라 없어도 글자는 나온다.
 
              줄 간격을 키운 이유는 크메르 자소가 위아래로 쌓이기 때문이다.
              기본 간격이면 입력 칸 안에서 윗부분이 잘려 보인다. -->
         <Style x:Key="KhmerInput" TargetType="TextBox" BasedOn="{StaticResource FieldInput}">
-            <Setter Property="FontFamily" Value="Noto Sans Khmer, Khmer UI, Leelawadee UI, Segoe UI"/>
+            <Setter Property="FontFamily" Value="pack://application:,,,/Fonts/#Battambang, Khmer UI, Leelawadee UI, Segoe UI"/>
             <Setter Property="FontSize"   Value="14"/>
             <Setter Property="Padding"    Value="12,9"/>
         </Style>
@@ -320,7 +321,7 @@
                                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Auto" MaxHeight="620">
                                     <TextBlock Text="{Binding Preview}"
-                                               FontFamily="Consolas, Courier New, Noto Sans Khmer, Khmer UI, Leelawadee UI"
+                                               FontFamily="Consolas, Courier New, pack://application:,,,/Fonts/#Battambang, Khmer UI, Leelawadee UI"
                                                FontSize="11"
                                                LineHeight="19.25"
                                                LineStackingStrategy="BlockLineHeight"

@@ -23,9 +23,22 @@ public static class ThermalTextPrinter
     /// <summary>
     /// 고정폭 글꼴 + 대체 글꼴 목록. 앞 글꼴에 없는 글자는 뒤 글꼴에서 찾는다.
     /// 크메르 문자와 도형 문자(■□▨)가 두부(tofu)로 찍히지 않게 하기 위한 것이다.
+    ///
+    /// Battambang만 "./Fonts/#"이 붙는 것은 exe 안에 함께 실은 글꼴이기 때문이다.
+    /// 이름만 적으면 WPF가 PC에 설치된 글꼴에서만 찾아서, 실어 놓고도 쓰지 못한다.
+    /// 뒤의 Khmer UI / Leelawadee UI는 Windows 동봉본이라 이름만으로 찾는다.
     /// </summary>
     public const string FontFamilyList =
-        "Consolas, Courier New, Noto Sans Khmer, Khmer UI, Leelawadee UI, Malgun Gothic, Segoe UI Symbol";
+        "Consolas, Courier New, ./Fonts/#Battambang, Khmer UI, Leelawadee UI, Malgun Gothic, Segoe UI Symbol";
+
+    /// <summary>
+    /// 위 목록의 "./Fonts/#..." 부분을 풀 기준. 이 기준 없이 FontFamily를 만들면
+    /// 함께 실은 글꼴은 조용히 무시되고 대체 글꼴로 떨어진다 — 인쇄물이 의도한
+    /// 글꼴과 다르게 나오는데 오류는 나지 않는다.
+    /// </summary>
+    private static readonly Uri FontBaseUri = new("pack://application:,,,/");
+
+    private static FontFamily CreateFontFamily() => new(FontBaseUri, FontFamilyList);
 
     /// <summary>58mm 감열지의 인쇄 가능 폭 근사치 (1/96인치 단위). 드라이버 정보를 못 얻을 때만 쓴다.</summary>
     private const double FallbackPaperWidth = 200;
@@ -118,7 +131,7 @@ public static class ThermalTextPrinter
         IReadOnlyList<string> lines, double pageWidth, double pageHeight, double lineHeightFactor)
     {
         var typeface = new Typeface(
-            new FontFamily(FontFamilyList),
+            CreateFontFamily(),
             FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
 
         var contentWidth = Math.Max(20, pageWidth - Margin * 2);
@@ -137,7 +150,7 @@ public static class ThermalTextPrinter
             var textBlock = new TextBlock
             {
                 Text = string.Join(Environment.NewLine, pageLines),
-                FontFamily = new FontFamily(FontFamilyList),
+                FontFamily = CreateFontFamily(),
                 FontSize = fontSize,
                 LineHeight = lineHeight,
                 LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
