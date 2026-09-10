@@ -137,7 +137,10 @@
                                MinHeight="18" Margin="0,0,0,10"/>
 
                     <!-- Batch -->
-                    <TextBlock Text="{svc:Loc ui.pos.batch_number, Batch Number}" Style="{StaticResource FieldLabel}"/>
+                    <!-- 배치번호는 번역하지 않는다. 값 자체가 제조사가 찍은 영숫자라
+                         (B2401, LOT-77) 라벨만 크메르어로 바꾸면 라벨과 내용의
+                         글자 체계가 갈려 오히려 읽기 어렵다. -->
+                    <TextBlock Text="Batch Number" Style="{StaticResource FieldLabel}"/>
                     <ComboBox ItemsSource="{Binding Batches}"
                               SelectedItem="{Binding SelectedBatch}"
                               DisplayMemberPath="BatchNumber"
