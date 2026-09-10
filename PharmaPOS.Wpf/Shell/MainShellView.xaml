@@ -499,10 +499,10 @@
         <!-- 하단 버튼 (관리자: 4개). Recovery Settings는 My Page 안으로 옮겼다. -->
         <UniformGrid Grid.Row="3" Rows="1" Margin="50,0,50,24"
                      Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVis}}">
-            <Button Content="⚙️  Admin Dashboard" Style="{StaticResource BottomCardBtnPrimary}" Click="OnAdminDashboardClick" Margin="0,0,6,0"/>
-            <Button Content="📈  Reports"         Style="{StaticResource BottomCardBtn}" Click="OnReportsClick"        Margin="3,0"/>
-            <Button Content="📊  History"         Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"        Margin="3,0"/>
-            <Button Content="🧫  Counselling"     Style="{StaticResource BottomCardBtn}" Click="OnCounsellingSettingsClick" Margin="6,0,0,0"/>
+            <Button Content="{svc:Loc ui.nav.admin, ⚙️  Admin Dashboard}" Style="{StaticResource BottomCardBtnPrimary}" Click="OnAdminDashboardClick" Margin="0,0,6,0"/>
+            <Button Content="{svc:Loc ui.nav.reports, 📈  Reports}"         Style="{StaticResource BottomCardBtn}" Click="OnReportsClick"        Margin="3,0"/>
+            <Button Content="{svc:Loc ui.nav.history, 📊  History}"         Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"        Margin="3,0"/>
+            <Button Content="{svc:Loc ui.nav.counselling, 🧫  Counselling}"     Style="{StaticResource BottomCardBtn}" Click="OnCounsellingSettingsClick" Margin="6,0,0,0"/>
         </UniformGrid>
 
         <!-- 하단 버튼 (직원).
@@ -521,12 +521,12 @@
                 </Style>
             </UniformGrid.Style>
             <!-- 잠긴 버튼. 기본 ToolTip은 비활성 컨트롤에서 안 뜨므로 ShowOnDisabled를 켠다. -->
-            <Button Content="🔒  Reports"    Style="{StaticResource BottomCardBtn}"
+            <Button Content="{svc:Loc ui.nav.reports_locked, 🔒  Reports}"    Style="{StaticResource BottomCardBtn}"
                     IsEnabled="False"
                     ToolTip="Administrators only."
                     ToolTipService.ShowOnDisabled="True"
                     Margin="0,0,6,0"/>
-            <Button Content="📊  History"    Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"    Margin="6,0,0,0"/>
+            <Button Content="{svc:Loc ui.nav.history, 📊  History}"    Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"    Margin="6,0,0,0"/>
         </UniformGrid>
 
     </Grid>
