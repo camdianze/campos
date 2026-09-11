@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-PharmaPOS — a Windows desktop (WPF, .NET 10) inventory management and point-of-sale system for a single pharmacy/health facility. Single-machine deployment: a local SQLite file, no server, no network dependency except optional SMTP for password recovery.
+**The product is called CamPOS (캄포스).** That is the name on screen, in the window title, in the published folder, and the name to use when writing anything a pharmacy will read. `PharmaPOS` is only ever the internal name — the repository, the assembly, the namespaces, and `%APPDATA%\PharmaPOS`. Do not "correct" one into the other in either direction: renaming the assembly or that folder would strand every existing database, and putting `PharmaPOS` in front of a user contradicts the product. The single source for the displayed name is [AppVersion.Display](PharmaPOS.Application/AppVersion.cs) (`"CamPOS v." + Number`), which also stamps exported file names, so a version bump is one edit.
+
+CamPOS — a Windows desktop (WPF, .NET 10) inventory management and point-of-sale system for a single pharmacy/health facility. Single-machine deployment: a local SQLite file, no server, no network dependency except optional SMTP for password recovery.
 
 Code comments and design rationale are written in Korean; all user-facing strings (validation messages, labels) are in English. Match that convention when adding code.
 
