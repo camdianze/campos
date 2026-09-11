@@ -11,7 +11,6 @@ using Lightweight_Digital_Inventory_Management___POS_System.Views;
 // 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
 using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
 
-using System.Windows.Media;
 
 using Lightweight_Digital_Inventory_Management___POS_System.Services;
 
@@ -606,8 +605,4 @@ public partial class PosSaleViewModel : ViewModelBase
     public string RemoveLabel => _uiLanguage.Text("ui.pos.remove", "Remove");
 
     public string BackLabel => _uiLanguage.Text("ui.pos.back", "← Back");
-
-    /// <summary>미검수 번역이면 붉은 글씨. 검수를 마치면 저절로 보통 색이 된다.</summary>
-    public Brush LabelBrush =>
-        _uiLanguage.TextBrushOverride ?? (Brush)System.Windows.Application.Current.Resources["TextBrush"];
 }

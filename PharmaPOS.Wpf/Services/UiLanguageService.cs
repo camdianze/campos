@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Windows.Media;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Repositories;
 
@@ -13,7 +12,7 @@ namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
 ///
 /// 복약안내 시트·영수증과 달리 검수(review_status)로 막지 않는다. 그쪽은 환자가
 /// 그대로 따라 하는 글이지만 이쪽은 버튼에 적힌 낱말이고, 어색하면 현장에서 바로
-/// 눈에 띈다. 대신 미검수 로케일은 붉은 글씨로 나온다.
+/// 눈에 띈다.
 /// </summary>
 public class UiLanguageService : INotifyPropertyChanged
 {
@@ -22,13 +21,6 @@ public class UiLanguageService : INotifyPropertyChanged
 
     public const string English = "en";
     public const string Khmer = "km-KH";
-
-    /// <summary>
-    /// 미검수 번역을 칠하는 색. 검수를 마치고 approved로 바꾸면 이 색이 사라진다.
-    /// 배지나 각주 대신 글자색으로만 알리는 것은, 메인 화면에 표시가 덕지덕지
-    /// 붙으면 정작 읽어야 할 낱말이 묻히기 때문이다.
-    /// </summary>
-    public static readonly Brush UnreviewedBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
 
     private readonly ICounsellingLocaleProvider _localeProvider;
     private readonly IAppSettingRepository _appSettingRepository;
@@ -50,15 +42,6 @@ public class UiLanguageService : INotifyPropertyChanged
     public event Action? LanguageChanged;
 
     public bool IsKhmer => _current == Khmer;
-
-    /// <summary>
-    /// 크메르어를 보여 주고 있고, 그 번역이 아직 검수 전인가.
-    /// 영어일 때는 언제나 false — 영어는 원문이라 검수할 것이 없다.
-    /// </summary>
-    public bool IsShowingUnreviewedTranslation => IsKhmer && _khmer is not null && !_khmer.IsApproved;
-
-    /// <summary>글자에 칠할 색. 검수된 번역과 영어는 null(원래 색 그대로).</summary>
-    public Brush? TextBrushOverride => IsShowingUnreviewedTranslation ? UnreviewedBrush : null;
 
     /// <summary>앱이 시작할 때 한 번. 로케일 파일과 지난번 선택을 읽어 둔다.</summary>
     public async Task InitializeAsync()
@@ -108,8 +91,6 @@ public class UiLanguageService : INotifyPropertyChanged
         _current = next;
 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsKhmer)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsShowingUnreviewedTranslation)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TextBrushOverride)));
         LanguageChanged?.Invoke();
 
         try

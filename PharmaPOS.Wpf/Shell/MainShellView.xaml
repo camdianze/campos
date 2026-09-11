@@ -418,7 +418,7 @@
                                     <TextBlock Text="{Binding ProductsLabel}"
                                               
                                                FontSize="30" FontWeight="SemiBold"
-                                               Foreground="{Binding LabelBrush}"/>
+                                               Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
                                 <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
                                      WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
@@ -448,7 +448,7 @@
                                     <TextBlock Text="{Binding InventoryLabel}"
                                               
                                                FontSize="30" FontWeight="SemiBold"
-                                               Foreground="{Binding LabelBrush}"/>
+                                               Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
                                 <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
                                      WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
@@ -481,7 +481,7 @@
                                     <TextBlock Text="{Binding PosSaleLabel}"
                                               
                                                FontSize="30" FontWeight="SemiBold"
-                                               Foreground="{Binding LabelBrush}"/>
+                                               Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
                                 <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
                                      WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->

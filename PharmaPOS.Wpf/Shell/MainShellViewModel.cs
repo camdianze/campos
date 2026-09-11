@@ -2,7 +2,6 @@
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
-using System.Windows.Media;
 using Lightweight_Digital_Inventory_Management___POS_System.Services;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 
@@ -87,18 +86,10 @@ public class MainShellViewModel : ViewModelBase
 
     public string PosSaleLabel => _uiLanguage.Text("ui.pos_sale", "POS Sale");
 
-    /// <summary>
-    /// 미검수 번역은 붉은 글씨로 나온다. 검수를 마치고 로케일 파일을 approved로
-    /// 바꾸면 저절로 보통 색이 된다 — 화면에 따로 손댈 것이 없다.
-    /// </summary>
-    public Brush LabelBrush =>
-        _uiLanguage.TextBrushOverride ?? (Brush)System.Windows.Application.Current.Resources["TextBrush"];
-
     private void RaiseLanguageLabels()
     {
         OnPropertyChanged(nameof(ProductsLabel));
         OnPropertyChanged(nameof(InventoryLabel));
         OnPropertyChanged(nameof(PosSaleLabel));
-        OnPropertyChanged(nameof(LabelBrush));
     }
 }

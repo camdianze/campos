@@ -51,7 +51,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="{Binding BackLabel}" Foreground="{Binding LabelBrush}"
+            <Button Grid.Column="0" Content="{Binding BackLabel}"
                     Style="{StaticResource SecondaryBtn}"
                     Padding="16,0"
                     Click="OnBackClick"/>
