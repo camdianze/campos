@@ -207,9 +207,12 @@ public partial class PosSaleViewModel : ViewModelBase
         UserRole currentUserRole,
         UiLanguageService uiLanguage)
     {
-        // 언어 토글은 메인 화면에만 있어서, 이 화면이 떠 있는 동안 언어가 바뀔 수 없다.
-        // 구독해 두면 화면을 드나들 때마다 해제되지 않은 구독이 쌓여 ViewModel이 살아남는다.
         _uiLanguage = uiLanguage;
+
+        // 이 화면에도 언어 토글이 있어 떠 있는 채로 언어가 바뀐다. 언어 서비스는 앱과
+        // 수명이 같으니 약한 구독으로 걸어, 화면이 걷힐 때 이 ViewModel도 함께 걷히게 한다.
+        WeakEventManager<UiLanguageService, EventArgs>.AddHandler(
+            _uiLanguage, nameof(UiLanguageService.LanguageChanged), OnLanguageChanged);
 
         _productRepository = productRepository;
         _inventoryRepository = inventoryRepository;
@@ -605,4 +608,14 @@ public partial class PosSaleViewModel : ViewModelBase
     public string RemoveLabel => _uiLanguage.Text("ui.pos.remove", "Remove");
 
     public string BackLabel => _uiLanguage.Text("ui.pos.back", "← Back");
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(QuantityLabel));
+        OnPropertyChanged(nameof(AddToCartLabel));
+        OnPropertyChanged(nameof(ConfirmSaleLabel));
+        OnPropertyChanged(nameof(CancelSaleLabel));
+        OnPropertyChanged(nameof(RemoveLabel));
+        OnPropertyChanged(nameof(BackLabel));
+    }
 }

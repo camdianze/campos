@@ -103,3 +103,11 @@
 
 읽기는 `CounsellingLocale.GetInterfaceString(key)`가 맡는다. 인쇄용 `GetString(key)`는 종전대로 `approved`가 아니면 `null`을 돌려준다 — `InterfaceStringTests`가 두 갈래를 모두 붙잡고 있다.
 
+## 언어 토글은 화면마다 있다
+
+`EN / ខ្មែរ` 토글은 메인 화면뿐 아니라 **크메르어가 있는 모든 화면**(Products, Inventory, POS Sale, Alerts)의 우측 상단에 있다. 영어로 잠깐 보려고 메인으로 나갔다 들어오는 왕복을 없애기 위해서다. 컨트롤은 [Controls/LanguageToggle](../Controls/LanguageToggle.xaml) 하나이고, 어느 화면에서 바꾸든 다른 화면의 토글도 따라간다.
+
+그래서 화면 문구는 **그 자리에서 갈린다.** `{svc:Loc …}`는 문자열이 아니라 바인딩을 돌려주고([LocExtension](../Services/LocExtension.cs)), 언어가 바뀌면 라벨마다 딸린 `LocalizedString`이 새 값을 알린다. 변환기로 그리는 열거형(알림 종류·우선순위)은 값이 그대로라 변환기가 다시 돌지 않으므로, 그 목록은 언어가 바뀔 때 다시 읽는다.
+
+언어 서비스는 앱과 수명이 같고 구독자는 화면마다 새로 생기므로, 구독은 전부 `WeakEventManager`로 한다. **핸들러는 인스턴스 메서드여야 한다** — 람다를 넘기면 클로저가 약하게만 붙들려 다음 GC 뒤에 조용히 멈춘다.
+

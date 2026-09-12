@@ -38,8 +38,15 @@ public class UiLanguageService : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    /// <summary>언어가 바뀌었다. 화면들이 글자를 다시 읽어 가라는 신호.</summary>
-    public event Action? LanguageChanged;
+    /// <summary>
+    /// 언어가 바뀌었다. 화면들이 글자를 다시 읽어 가라는 신호.
+    ///
+    /// 이 서비스는 앱과 수명이 같고, 구독자는 화면마다 새로 생긴다. 보통 방식으로
+    /// 구독하면 해제할 곳이 없어 닫힌 화면이 여기에 매달려 살아남는다.
+    /// 그래서 구독은 WeakEventManager로 한다 — 이 이벤트가 Action이 아니라
+    /// EventHandler인 이유다.
+    /// </summary>
+    public event EventHandler? LanguageChanged;
 
     public bool IsKhmer => _current == Khmer;
 
@@ -91,7 +98,7 @@ public class UiLanguageService : INotifyPropertyChanged
         _current = next;
 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsKhmer)));
-        LanguageChanged?.Invoke();
+        LanguageChanged?.Invoke(this, EventArgs.Empty);
 
         try
         {

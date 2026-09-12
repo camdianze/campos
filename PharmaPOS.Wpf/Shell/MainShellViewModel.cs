@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -39,7 +40,9 @@ public class MainShellViewModel : ViewModelBase
         _uiLanguage = uiLanguage;
 
         // 언어가 바뀌면 카드 글자를 다시 읽어 간다.
-        _uiLanguage.LanguageChanged += RaiseLanguageLabels;
+        // 셸 ViewModel은 로그인마다 하나라 오래 살지만, 그래도 같은 방식으로 맞춘다.
+        WeakEventManager<UiLanguageService, EventArgs>.AddHandler(
+            _uiLanguage, nameof(UiLanguageService.LanguageChanged), OnLanguageChanged);
 
         CurrentUser = loggedInUser;
         WelcomeMessage = $"Welcome, {loggedInUser.Username}";
@@ -85,6 +88,15 @@ public class MainShellViewModel : ViewModelBase
     public string InventoryLabel => _uiLanguage.Text("ui.inventory", "Inventory");
 
     public string PosSaleLabel => _uiLanguage.Text("ui.pos_sale", "POS Sale");
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        RaiseLanguageLabels();
+
+        // 알림 종류·우선순위는 변환기가 그리는데, 변환기는 값이 바뀔 때만 다시 돈다.
+        // 언어만 바뀌면 값은 그대로라 목록을 다시 채워야 새 말로 나온다.
+        _ = LoadAlertsAsync();
+    }
 
     private void RaiseLanguageLabels()
     {

@@ -1,7 +1,9 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Extensions.DependencyInjection;
+using Lightweight_Digital_Inventory_Management___POS_System.Services;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -25,6 +27,25 @@ public partial class AlertsView : UserControl
         viewModel.NavigateToInventory += OnNavigateToInventory;
         viewModel.NavigateToProduct += OnNavigateToProduct;
         DataContext = viewModel;
+
+        // 종류·우선순위 열은 변환기가 그리는데, 변환기는 값이 바뀔 때만 다시 돈다.
+        // 언어만 바뀌면 값은 그대로라 목록을 다시 읽어야 새 말로 나온다.
+        // 언어 서비스는 앱과 수명이 같으니 약한 구독으로 걸어 둔다.
+        //
+        // 핸들러는 인스턴스 메서드여야 한다. 람다를 넘기면 WeakEventManager가 그 람다의
+        // 클로저를 약하게만 붙들어, 다음 GC에서 걷히고 나면 아무 일도 안 일어난다 —
+        // 오류 없이 그냥 멈춘다. 이 뷰가 살아 있는 동안은 뷰의 메서드도 살아 있다.
+        var uiLanguage = App.Services.GetRequiredService<UiLanguageService>();
+        WeakEventManager<UiLanguageService, EventArgs>.AddHandler(
+            uiLanguage, nameof(UiLanguageService.LanguageChanged), OnLanguageChanged);
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        if (DataContext is AlertsViewModel viewModel)
+        {
+            _ = viewModel.ReloadAsync();
+        }
     }
 
     /// <summary>

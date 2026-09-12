@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:svc="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Services"
+             xmlns:ctl="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Controls"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="750" d:DesignHeight="500">
@@ -21,6 +22,9 @@
                    Text="{svc:Loc ui.alert.screen_title, Inventory Alerts}"
                    Style="{StaticResource PageTitle}"
                    Margin="0,0,0,20"/>
+        <!-- 언어 토글. 메인 화면과 같은 자리(우측 상단). 영어로 잠깐 보려고
+             메인으로 나갔다 들어오는 왕복을 없애기 위해 화면마다 둔다. -->
+        <ctl:LanguageToggle Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
 
         <Grid Grid.Row="1" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
