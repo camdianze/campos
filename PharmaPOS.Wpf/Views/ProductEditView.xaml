@@ -52,21 +52,23 @@
 
             <TextBlock Grid.Row="0" Text="Product" Style="{StaticResource PageTitle}" Margin="0,0,0,18"/>
 
+            <!-- 두 단, 같은 너비. 오른쪽이 "무엇을 얼마에 파는가"(식별·가격·소분),
+                 왼쪽이 그 나머지(사진·바코드·출처·항생제)다. -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- ═══ 사진 ═══
-                     상세 보기와 수정을 한 화면에서 한다. 따로 두면 같은 입력 폼이 두 벌이 되고,
-                     검증 규칙이 갈라지면서 한쪽만 고치는 일이 생긴다. -->
-                <StackPanel Grid.Column="0" Width="240" Margin="0,0,20,0">
+                <!-- ═══ 왼쪽 ═══ -->
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+
+                    <!-- 사진. 상세 보기와 수정을 한 화면에서 한다. 따로 두면 같은 입력 폼이
+                         두 벌이 되고, 검증 규칙이 갈라지면서 한쪽만 고치는 일이 생긴다. -->
                     <TextBlock Text="PHOTO" Style="{StaticResource SectionHeader}"/>
 
                     <!-- 사진이 없으면 빈 자리로 둔다. 자리 자체를 없애면 넣을 수 있다는 걸 알 수 없다. -->
-                    <Border Height="240"
+                    <Border Height="220"
                             Background="{StaticResource SubtleSurfaceBrush}"
                             BorderBrush="{StaticResource BorderBrushSoft}"
                             BorderThickness="1" CornerRadius="10">
@@ -97,42 +99,16 @@
                     <!-- 신규 등록 중에는 사진을 붙일 수 없다. 상품 ID가 저장하는 순간 생기기 때문이다. -->
                     <TextBlock Text="{Binding PhotoHint}" Style="{StaticResource Hint}"
                                Margin="0,8,0,0"/>
-                </StackPanel>
 
-                <!-- ═══ 가운데: 이 약이 무엇인지 ═══ -->
-                <StackPanel Grid.Column="1" Margin="0,0,14,0">
-                    <TextBlock Text="IDENTIFICATION" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Text="BARCODE" Style="{StaticResource SectionHeader}" Margin="0,14,0,8"/>
 
-                    <TextBlock Text="Product Name *" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}"
+                    <TextBlock Text="Manufacturer Barcode" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
 
-                    <TextBlock Text="Generic Name" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding GenericName, UpdateSourceTrigger=PropertyChanged}"
+                    <TextBlock Text="Internal Barcode (auto-generated if empty)" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding InternalBarcode}" IsReadOnly="True"
                              Style="{StaticResource Field}"/>
-
-                    <TextBlock Text="Strength" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding Strength, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource Field}"/>
-
-                    <!-- 제형과 판매 단위는 다른 값이라 나란히 둔다. 시럽은 제형이 Syrup이고
-                         세는 단위는 Bottle이다. 고형 경구약에서만 둘이 같아 보인다. -->
-                    <TextBlock Text="Dosage Form (optional)" Style="{StaticResource FieldLabel}"/>
-                    <ComboBox ItemsSource="{Binding AvailableDosageForms}"
-                              SelectedItem="{Binding DosageForm}"
-                              Style="{StaticResource FieldCombo}"/>
-
-                    <TextBlock Text="Unit *" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
-                             Margin="0,0,0,4"/>
-                    <TextBlock Style="{StaticResource Hint}"
-                               Text="How one piece is counted and sold — Tablet, Bottle, Tube. Not the dosage form above."/>
-
-                    <!-- 선택 입력. 맨 위 빈 항목이 "아직 정하지 않음"이다. -->
-                    <TextBlock Text="Category (optional)" Style="{StaticResource FieldLabel}"/>
-                    <ComboBox ItemsSource="{Binding AvailableCategories}"
-                              SelectedItem="{Binding Category}"
-                              Style="{StaticResource FieldCombo}"/>
 
                     <TextBlock Text="SOURCE" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
 
@@ -156,41 +132,77 @@
                               IsChecked="{Binding IsCombination}"/>
                 </StackPanel>
 
-                <!-- ═══ 오른쪽: 얼마에 얼마나 파는지 ═══ -->
-                <StackPanel Grid.Column="2" Margin="14,0,0,0">
-                    <TextBlock Text="BARCODE" Style="{StaticResource SectionHeader}"/>
+                <!-- ═══ 오른쪽: 이 약이 무엇이고 얼마에 파는지 ═══ -->
+                <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                    <TextBlock Text="IDENTIFICATION" Style="{StaticResource SectionHeader}"/>
 
-                    <TextBlock Text="Manufacturer Barcode" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}"
+                    <TextBlock Text="Product Name *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
 
-                    <TextBlock Text="Internal Barcode (auto-generated if empty)" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding InternalBarcode}" IsReadOnly="True"
+                    <!-- 성분명은 약에만 필수다. 붕대처럼 성분명이 없는 것은 아래 제형에서
+                         Other를 고르면 비워 둘 수 있다. 규칙은 ProductService가 건다. -->
+                    <TextBlock Text="Generic Name *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding GenericName, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,4"/>
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="The active ingredient (INN) — Amoxicillin, not Amoxil. Antibiotic counselling is matched on this. Not needed when dosage form is Other."/>
+
+                    <TextBlock Text="Strength" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Strength, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
+
+                    <!-- 제형과 판매 단위는 다른 값이라 나란히 둔다. 시럽은 제형이 Syrup이고
+                         세는 단위는 Bottle이다. 고형 경구약에서만 둘이 같아 보인다. -->
+                    <TextBlock Text="Dosage Form *" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding AvailableDosageForms}"
+                              SelectedItem="{Binding DosageForm}"
+                              Margin="0,0,0,4"/>
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="What the medicine is — Tablet, Syrup, Injection. Choose Other for anything that is not a medicine."/>
+
+                    <TextBlock Text="Unit *" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding AvailableUnits}"
+                              Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
+                              IsEditable="True"
+                              Margin="0,0,0,4"/>
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="How one piece is counted and sold — Tablet, Bottle, Tube. Pick from the list or type your own."/>
+
+                    <!-- 선택 입력. 맨 위 빈 항목이 "아직 정하지 않음"이다. -->
+                    <TextBlock Text="Category" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding AvailableCategories}"
+                              SelectedItem="{Binding Category}"
+                              Style="{StaticResource FieldCombo}"/>
 
                     <TextBlock Text="PRICE AND STOCK" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
-
-                    <TextBlock Text="Cost Price *" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding CostPrice, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource Field}"/>
 
                     <TextBlock Text="Selling Price *" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding SellingPrice, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,4"/>
                     <TextBlock Text="{Binding BoxPriceHint}" Style="{StaticResource Hint}"/>
 
-                    <TextBlock Text="Safety Stock Level *" Style="{StaticResource FieldLabel}"/>
+                    <!-- 원가는 선택이다. 비우면 0으로 저장되고, 원가보다 싸게 판다는 경고만 뜨지 않는다. -->
+                    <TextBlock Text="Cost Price" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding CostPrice, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
+
+                    <!-- 안전재고도 선택이다. 비우면 0이라 부족 알림이 뜨지 않는다. -->
+                    <TextBlock Text="Safety Stock Level" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding SafetyStockLevel, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
 
-                    <TextBlock Text="Status *" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="Status" Style="{StaticResource FieldLabel}"/>
                     <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding Status}"
                               Style="{StaticResource FieldCombo}"/>
 
                     <!-- 소분 판매. 이 체크를 켜야 아래 세 가지(박스당 개수·낱개가·낱개 바코드)가
-                         의미를 갖는다. 꺼 두면 박스당 1개짜리 상품으로 저장돼 종전과 똑같이 동작한다. -->
+                         의미를 갖는다. 꺼 두면 박스당 1개짜리 상품으로 저장돼 종전과 똑같이 동작한다.
+                         오른쪽 단의 맨 아래에 둔다. -->
+                    <TextBlock Text="LOOSE UNITS" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
+
                     <CheckBox Content="Sell loose units"
-                              IsChecked="{Binding SellsLooseUnits}" Margin="0,6,0,0"/>
+                              IsChecked="{Binding SellsLooseUnits}"/>
 
                     <Border Visibility="{Binding SellsLooseUnits, Converter={StaticResource BoolToVis}}"
                             Background="{StaticResource SubtleSurfaceBrush}" CornerRadius="8"

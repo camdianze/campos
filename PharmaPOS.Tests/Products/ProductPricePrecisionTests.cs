@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Products;
+﻿using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -47,6 +47,7 @@ public class ProductPricePrecisionTests
         CreatedAt = 0,
         ProductName = "Amoxil 500mg Capsule",
         GenericName = "Amoxicillin",
+        DosageForm = DosageForm.Capsule,
         Unit = "Capsule",
         UnitsPerBox = 100,
         CostPrice = 3.00m,

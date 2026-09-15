@@ -146,7 +146,8 @@ public class InitialImportServiceTests
         string batchNumber = "",
         string expiryDate = "",
         string quantity = "",
-        string dosageForm = "")
+        string dosageForm = "",
+        string genericName = "")
     {
         return new ImportSourceRow
         {
@@ -164,24 +165,40 @@ public class InitialImportServiceTests
                 [InitialImportColumns.BatchNumber[0]] = batchNumber,
                 [InitialImportColumns.ExpiryDate[0]] = expiryDate,
                 [InitialImportColumns.Quantity[0]] = quantity,
-                [InitialImportColumns.DosageForm[0]] = dosageForm
+                [InitialImportColumns.DosageForm[0]] = dosageForm,
+                [InitialImportColumns.GenericName[0]] = genericName
             }
         };
     }
 
-    /// <summary>상품 정보가 다 들어간 정상 행.</summary>
+    /// <summary>
+    /// 정상 행과 기존 상품이 같은 성분명을 갖도록, 상품명에서 한 규칙으로 만든다.
+    /// 상품명 매칭 테스트가 "  amoxicillin  "처럼 흔든 이름을 넣는데, 그것이
+    /// 성분명으로 그대로 새면 기존 상품과 달라져 "변경 없음"이 아니게 된다.
+    /// </summary>
+    private static string GenericOf(string productName) =>
+        "INN-" + productName.Trim().ToLowerInvariant();
+
+    /// <summary>
+    /// 상품 정보가 다 들어간 정상 행. 제형과 성분명이 들어 있는 것은 저장 규칙이
+    /// 그 둘을 요구하기 때문이다 — 약이면 성분명이 있어야 항생제 판별이 된다.
+    /// </summary>
     private static ImportSourceRow FullRow(
         int lineNumber, string productName, string batchNumber = "B1",
         string expiryDate = "2099-12-31", string quantity = "10",
         string unitsPerBox = "", string looseUnitPrice = "")
         => Row(lineNumber, productName, unit: "Tablet", costPrice: "500", sellingPrice: "1000",
             safetyStock: "5", unitsPerBox: unitsPerBox, looseUnitPrice: looseUnitPrice,
-            batchNumber: batchNumber, expiryDate: expiryDate, quantity: quantity);
+            batchNumber: batchNumber, expiryDate: expiryDate, quantity: quantity,
+            dosageForm: "Tablet", genericName: GenericOf(productName));
 
+    /// <summary>이미 저장돼 있는 상품. 저장 규칙을 만족하는 상태라 제형과 성분명이 있다.</summary>
     private static Product ExistingProduct(string name, int unitsPerBox = 1) => new()
     {
         ProductId = "id-" + name,
         ProductName = name,
+        GenericName = GenericOf(name),
+        DosageForm = DosageForm.Tablet,
         Unit = "Tablet",
         CostPrice = 500,
         SellingPrice = 1000,
@@ -411,6 +428,7 @@ public class InitialImportServiceTests
                 ["unitsperbox"] = "30",
                 ["unitsellingprice"] = "50",
                 ["genericname"] = "Amoxicillin",
+                ["dosageform"] = "Capsule",
                 ["atccode"] = "J01CA04"
             }
         };

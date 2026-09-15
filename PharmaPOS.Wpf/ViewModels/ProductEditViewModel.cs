@@ -210,6 +210,17 @@ public class ProductEditViewModel : ViewModelBase
     }
 
     /// <summary>빈 항목(=아직 정하지 않음)을 맨 앞에 두려고 nullable 목록으로 만든다.</summary>
+    /// <summary>
+    /// 판매 단위 후보. 실제로 등록돼 있던 값을 빈도순으로 옮겼다. 자유 입력만 두면
+    /// "yg" 같은 오타가 들어오고, 목록만 두면 없는 단위를 못 넣는다 — 그래서 고르되
+    /// 직접 칠 수도 있는 편집 가능 콤보로 쓴다.
+    /// </summary>
+    public IReadOnlyList<string> AvailableUnits { get; } = new[]
+    {
+        "Tablet", "Capsule", "Piece", "Bottle", "Vial", "Ampoule",
+        "Tube", "Roll", "Sachet", "Pack", "Pair", "Box"
+    };
+
     public IReadOnlyList<DosageForm?> AvailableDosageForms { get; } =
         new List<DosageForm?> { null }
             .Concat(Enum.GetValues<DosageForm>().Cast<DosageForm?>())
@@ -378,9 +389,11 @@ public class ProductEditViewModel : ViewModelBase
 
         // 가격/재고 숫자 파싱. Screen §4.3절 필수값 검증은 서비스가 담당하지만,
         // 애초에 숫자로 변환이 안 되는 입력(문자 등)은 화면 단에서 먼저 걸러준다.
-        if (!decimal.TryParse(CostPrice, out var costPrice))
+        // 원가는 선택이라 비워 두면 0이다. 숫자가 아닌 글자가 들어온 경우만 막는다.
+        var costPrice = 0m;
+        if (!string.IsNullOrWhiteSpace(CostPrice) && !decimal.TryParse(CostPrice, out costPrice))
         {
-            Message = "Cost price must be greater than zero.";
+            Message = "Cost price must be a number.";
             return;
         }
 
@@ -390,9 +403,11 @@ public class ProductEditViewModel : ViewModelBase
             return;
         }
 
-        if (!int.TryParse(SafetyStockLevel, out var safetyStockLevel))
+        // 안전재고도 선택이다. 비우면 0 — 부족 알림이 뜨지 않을 뿐이다.
+        var safetyStockLevel = 0;
+        if (!string.IsNullOrWhiteSpace(SafetyStockLevel) && !int.TryParse(SafetyStockLevel, out safetyStockLevel))
         {
-            Message = "Safety stock level cannot be negative.";
+            Message = "Safety stock level must be a whole number.";
             return;
         }
 

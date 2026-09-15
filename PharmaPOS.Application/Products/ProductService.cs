@@ -31,14 +31,30 @@ public class ProductService : IProductService
             return ProductSaveResult.Failure("Please enter the product name.");
         }
 
+        // 제형은 언제나 필수다. 약이 아닌 것(붕대·채혈관·폐기물 봉투)은 Other를 고른다.
+        if (product.DosageForm is null)
+        {
+            return ProductSaveResult.Failure("Please select the dosage form.");
+        }
+
+        // 성분명은 약에만 필수다. 항생제 판별이 성분명으로 되기 때문에 약에서 비면
+        // 복약안내가 조용히 빠진다. 반면 붕대에는 성분명이라는 것이 없다 —
+        // 그것까지 요구하면 상품의 1/4이 저장 자체를 못 하게 된다.
+        if (product.DosageForm != DosageForm.Other && string.IsNullOrWhiteSpace(product.GenericName))
+        {
+            return ProductSaveResult.Failure(
+                "Please enter the generic name. For items that are not medicines, choose dosage form 'Other'.");
+        }
+
         if (string.IsNullOrWhiteSpace(product.Unit))
         {
             return ProductSaveResult.Failure("Please enter the unit.");
         }
 
-        if (product.CostPrice <= 0)
+        // 원가는 선택이다. 모르면 0으로 두고, 그때는 "원가보다 싸게 판다" 경고가 뜨지 않을 뿐이다.
+        if (product.CostPrice < 0)
         {
-            return ProductSaveResult.Failure("Cost price must be greater than zero.");
+            return ProductSaveResult.Failure("Cost price cannot be negative.");
         }
 
         if (product.SellingPrice <= 0)

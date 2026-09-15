@@ -335,40 +335,59 @@
 
 저장 시 긴 변 800px로 줄이고 JPEG로 다시 압축한다. 원본 20MB 초과는 거부한다.
 
-### 10-1. 가운데 단
+### 10-1. 필수 항목은 다섯 개
+
+**Product Name · Dosage Form · Generic Name(약일 때) · Unit · Selling Price.** 나머지는 전부 선택이다.
+
+| 항목 | 규칙 | 비우면 |
+|---|---|---|
+| `Product Name *` | 필수 | `Please enter the product name.` |
+| `Dosage Form *` | **항상 필수.** 약이 아니면 `Other` | `Please select the dosage form.` |
+| `Generic Name *` | **제형이 `Other`가 아닐 때만 필수** | `Please enter the generic name. For items that are not medicines, choose dosage form 'Other'.` |
+| `Unit *` | 필수 | `Please enter the unit.` |
+| `Selling Price *` | 필수, 0보다 커야 | `Selling price must be greater than zero.` |
+| `Cost Price` | 선택. 비우면 **0** | — (원가보다 싸게 판다는 경고만 안 뜬다) |
+| `Safety Stock Level` | 선택. 비우면 **0** | — (부족 알림이 안 뜬다) |
+
+> **성분명이 약에만 필수인 이유.** 항생제 판별이 성분명으로 되므로 약에서 비면 복약안내가 조용히 빠진다. 반면 붕대·채혈관·폐기물 봉투에는 성분명이라는 것이 없다 — 실제 재고의 1/4이 그런 것들이라, 무조건 요구하면 그 상품들은 수정할 때마다 저장이 막힌다. **제형 `Other`가 "약이 아니다"라는 표시**이고, 그러면 성분명을 비워도 된다.
+
+> **초기 재고 조사 시트에도 같은 규칙이 걸린다.** 임포트가 같은 저장 경로를 지나므로, `dosage_form`이 빈 행은 들어가지 않는다. 붕대 행은 `Other`로 채운다.
+
+### 10-2. 왼쪽 단
 
 | # | 구역 | 라벨 | 컨트롤 | 필수 | 기본값 | 선택 항목 |
 |---|---|---|---|---|---|---|
-| 1 | IDENTIFICATION | `Product Name *` | TextBox | ✔ | 빈 칸 | |
-| 2 | IDENTIFICATION | `Generic Name` | TextBox | — | 빈 칸 | 항생제 복약안내 매칭에 쓰인다 |
-| 3 | IDENTIFICATION | `Strength` | TextBox | — | 빈 칸 | `500 mg`, `800/160` 등 |
-| 4 | IDENTIFICATION | `Dosage Form (optional)` | ComboBox | — | **빈 항목** | **(빈 항목 = 아직 정하지 않음)** / `Tablet` / `Capsule` / `Syrup` / `Suspension` / `Powder` / `Injection` / `Infusion` / `Ointment` / `Cream` / `Drops` / `Suppository` / `Inhaler` / `Other` |
-| 5 | IDENTIFICATION | `Unit *` | TextBox | ✔ | 빈 칸 | **제형이 아니라 낱개를 세는 단위다.** 여기 적은 말이 아래 라벨에 그대로 들어간다 (`Sachet` → `Sachets Per Box *`). 안내문: `How one piece is counted and sold — Tablet, Bottle, Tube. Not the dosage form above.` |
-| 6 | IDENTIFICATION | `Category (optional)` | ComboBox | — | **빈 항목** | **(빈 항목 = 아직 정하지 않음)** / `Medicine` / `NonMedicine` |
-| 7 | SOURCE | `Manufacturer` | TextBox | — | 빈 칸 | |
-| 8 | SOURCE | `Country of Origin` | TextBox | — | 빈 칸 | |
-| 9 | ANTIBIOTIC | `ATC Code (antibiotics only)` | TextBox | — | 빈 칸 | 안내문: `Used to look up the WHO AWaRe group for counselling sheets. Leave empty for non-antibiotics.` 저장 시 대문자로 변환 |
-| 10 | ANTIBIOTIC | `Fixed-dose combination product` | CheckBox | — | **꺼짐** | |
+| 1 | PHOTO | (사진 자리) | Image + `Set Photo` / `Remove` | — | 빈 자리 | 신규 상품은 저장 후에 넣을 수 있다 |
+| 2 | BARCODE | `Manufacturer Barcode` | TextBox | — | 빈 칸 | 중복이면 `This barcode is already registered.` |
+| 3 | BARCODE | `Internal Barcode (auto-generated if empty)` | TextBox **읽기 전용** | — | 기존 값 또는 빈 칸 | 비어 있으면 저장할 때 자동 생성 |
+| 4 | SOURCE | `Manufacturer` | TextBox | — | 빈 칸 | |
+| 5 | SOURCE | `Country of Origin` | TextBox | — | 빈 칸 | |
+| 6 | ANTIBIOTIC | `ATC Code (antibiotics only)` | TextBox | — | 빈 칸 | 안내문: `Used to look up the WHO AWaRe group for counselling sheets. Leave empty for non-antibiotics.` 저장 시 대문자로 변환 |
+| 7 | ANTIBIOTIC | `Fixed-dose combination product` | CheckBox | — | **꺼짐** | |
 
-### 10-2. 오른쪽 단
+### 10-2-1. 오른쪽 단
 
 | # | 구역 | 라벨 | 컨트롤 | 필수 | 기본값 | 선택 항목 |
 |---|---|---|---|---|---|---|
-| 11 | BARCODE | `Manufacturer Barcode` | TextBox | — | 빈 칸 | 중복이면 `This barcode is already registered.` |
-| 12 | BARCODE | `Internal Barcode (auto-generated if empty)` | TextBox **읽기 전용** | — | 기존 값 또는 빈 칸 | 비어 있으면 저장할 때 자동 생성 |
-| 13 | PRICE AND STOCK | `Cost Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다 |
+| 8 | IDENTIFICATION | `Product Name *` | TextBox | ✔ | 빈 칸 | |
+| 9 | IDENTIFICATION | `Generic Name *` | TextBox | ✔(약) | 빈 칸 | 안내문: `The active ingredient (INN) — Amoxicillin, not Amoxil. Antibiotic counselling is matched on this. Not needed when dosage form is Other.` |
+| 10 | IDENTIFICATION | `Strength` | TextBox | — | 빈 칸 | `500 mg`, `800/160` 등 |
+| 11 | IDENTIFICATION | `Dosage Form *` | ComboBox | ✔ | **빈 항목** | `Tablet` / `Capsule` / `Syrup` / `Suspension` / `Powder` / `Injection` / `Infusion` / `Ointment` / `Cream` / `Drops` / `Suppository` / `Inhaler` / `Other`. 안내문: `What the medicine is — Tablet, Syrup, Injection. Choose Other for anything that is not a medicine.` |
+| 12 | IDENTIFICATION | `Unit *` | **편집 가능 ComboBox** | ✔ | 빈 칸 | `Tablet` / `Capsule` / `Piece` / `Bottle` / `Vial` / `Ampoule` / `Tube` / `Roll` / `Sachet` / `Pack` / `Pair` / `Box` — **목록에 없으면 직접 친다.** 여기 적은 말이 소분 라벨에 그대로 들어간다 (`Sachet` → `Sachets Per Box *`). 안내문: `How one piece is counted and sold — Tablet, Bottle, Tube. Pick from the list or type your own.` |
+| 13 | IDENTIFICATION | `Category` | ComboBox | — | **빈 항목** | **(빈 항목 = 아직 정하지 않음)** / `Medicine` / `NonMedicine` |
 | 14 | PRICE AND STOCK | `Selling Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다. 아래 안내문이 **소분 판매 여부에 따라 바뀐다**: 켜짐 → `Cost price and selling price above are for one box.` / 꺼짐 → `Cost price and selling price above are for one {단위}.` |
-| 15 | PRICE AND STOCK | `Safety Stock Level *` | TextBox | ✔ | 빈 칸 | 음수 불가 |
-| 16 | PRICE AND STOCK | `Status *` | ComboBox | ✔ | **`Active`** | `Active` / `Inactive` |
-| 17 | PRICE AND STOCK | `Sell loose units` | CheckBox | — | **꺼짐** (기존 상품은 박스당 개수가 2 이상이면 켜진 상태로 열린다) | 켜면 아래 3칸이 나타난다 |
+| 15 | PRICE AND STOCK | `Cost Price` | TextBox | — | 빈 칸 (= 0) | 음수 불가 |
+| 16 | PRICE AND STOCK | `Safety Stock Level` | TextBox | — | 빈 칸 (= 0) | 음수 불가 |
+| 17 | PRICE AND STOCK | `Status` | ComboBox | — | **`Active`** | `Active` / `Inactive` |
+| 18 | LOOSE UNITS | `Sell loose units` | CheckBox | — | **꺼짐** (기존 상품은 박스당 개수가 2 이상이면 켜진 상태로 열린다) | 켜면 아래 3칸이 나타난다. **오른쪽 단 맨 아래**에 있다 |
 
 ### 10-3. 소분 판매를 켰을 때만 나오는 칸 (회색 상자 안)
 
 | # | 라벨 | 컨트롤 | 필수 | 기본값 | 비고 |
 |---|---|---|---|---|---|
-| 18 | `{단위}s Per Box *` (예: `Tablets Per Box *`) | TextBox | ✔ | **`1`**. 단, 체크박스를 켜는 순간 값이 `1`이면 **빈 칸으로 지워진다** | **2 이상**이어야 한다. 아니면 `Enter how many {단위}s are in one box (2 or more).` |
-| 19 | `Loose Unit Price` | TextBox | — | 빈 칸 | 비워 두면 박스가 ÷ 박스당 개수로 자동 계산. 안내문이 실제 계산값을 보여준다: `Leave empty to sell one Tablet at 100 (3000 ÷ 30).` 값을 적으면 `One Tablet is sold at this price.` |
-| 20 | `Unit Barcode` | TextBox **읽기 전용** | — | `내부바코드 + -EA` / 신규 상품은 `Generated on save.` | 안내문: `Scan this to sell one loose unit. The manufacturer barcode still sells a whole box.` |
+| 19 | `{단위}s Per Box *` (예: `Tablets Per Box *`) | TextBox | ✔ | **`1`**. 단, 체크박스를 켜는 순간 값이 `1`이면 **빈 칸으로 지워진다** | **2 이상**이어야 한다. 아니면 `Enter how many {단위}s are in one box (2 or more).` |
+| 20 | `Loose Unit Price` | TextBox | — | 빈 칸 | 비워 두면 박스가 ÷ 박스당 개수로 자동 계산. 안내문이 실제 계산값을 보여준다: `Leave empty to sell one Tablet at 100 (3000 ÷ 30).` 값을 적으면 `One Tablet is sold at this price.` |
+| 21 | `Unit Barcode` | TextBox **읽기 전용** | — | `내부바코드 + -EA` / 신규 상품은 `Generated on save.` | 안내문: `Scan this to sell one loose unit. The manufacturer barcode still sells a whole box.` |
 
 ### 10-4. 저장 흐름
 
