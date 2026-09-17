@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Counselling;
+﻿using PharmaPOS.Application.Counselling;
 
 namespace PharmaPOS.Tests.Counselling;
 
@@ -32,23 +32,33 @@ public class ShippedLocaleFileTests
         Assert.Equal("km-KH", locale.LocaleCode);
         Assert.Equal(LocaleRenderMode.Raster, locale.RenderMode);
 
-        // 검수 전이라 GetString은 잠겨 있다. 키가 실제로 들어 있는지 보려면
-        // 검수된 사본을 만들어 확인해야 한다.
-        Assert.False(locale.IsApproved);
+        // 검수를 마친 동봉본이다. 그래서 GetString이 실제 값을 돌려준다.
+        Assert.True(locale.IsApproved);
+        Assert.Equal("កម្រិតថ្នាំ", locale.GetString(CounsellingStringKeys.LabelDose));
     }
 
     /// <summary>
-    /// 동봉본은 반드시 미검수 상태여야 한다.
-    /// 검수도 하지 않은 번역이 기본값으로 환자에게 나가면 안 된다.
+    /// 승인된 동봉본은 누가 검수했는지 적혀 있어야 한다.
+    ///
+    /// 전에는 "동봉본은 반드시 미검수"였다 — 검수도 안 한 번역이 기본값으로 환자에게
+    /// 나가면 안 되니까. 검수를 마치고 승인하면서 그 규칙은 끝났지만, 취지는 남긴다:
+    /// 이름 없이 approved만 켜 두면 몇 달 뒤 누구도 그 번역을 책임지지 않는다.
     /// </summary>
     [Fact]
-    public async Task ShippedLocales_AreNotApprovedByDefault()
+    public async Task ApprovedShippedLocales_NameTheirReviewer()
     {
         var provider = new FileCounsellingLocaleProvider(new[] { FindLocalesDirectory() });
 
         var locales = await provider.ListAvailableLocalesAsync();
 
         Assert.NotEmpty(locales);
-        Assert.All(locales, locale => Assert.False(locale.IsApproved));
+        Assert.All(locales, locale =>
+        {
+            if (locale.IsApproved)
+            {
+                Assert.False(string.IsNullOrWhiteSpace(locale.ReviewedBy),
+                    $"{locale.LocaleCode} is approved but reviewed_by is empty.");
+            }
+        });
     }
 }

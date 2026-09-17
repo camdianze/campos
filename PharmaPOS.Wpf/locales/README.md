@@ -14,7 +14,7 @@
   "language_name": "ភាសាខ្មែរ",
   "script": "Khmer",
   "render_mode": "raster",
-  "review_status": "pending",
+  "review_status": "approved",
   "reviewed_by": null,
   "content_version": "1.0.0",
   "strings": {
@@ -27,7 +27,7 @@
 | 필드 | 규칙 |
 |---|---|
 | `review_status` | **`approved`가 아니면 현지어를 한 글자도 인쇄하지 않는다.** 영어 단독으로 출력된다. 검수를 마친 뒤에만 `approved`로 바꾼다. |
-| `reviewed_by` | 누가 검수했는지. `approved`로 바꿀 때 함께 채운다. |
+| `reviewed_by` | 누가 검수했는지. `approved`로 바꿀 때 함께 채운다. **비워 둔 채 승인하면 테스트가 막는다**(`ApprovedShippedLocales_NameTheirReviewer`) — 이름 없이 켜 두면 몇 달 뒤 누구도 그 번역을 책임지지 않는다. |
 | `content_version` | 문구 개정 버전. AWaRe `source_version`과 **별개로** 관리한다. |
 | `render_mode` | `text` / `raster`. 복합 문자 계열(크메르·라오·미얀마·태국·싱할라)은 `raster`. |
 | `strings` | 키는 고정이다. 아래 표 참조. |
@@ -110,4 +110,10 @@
 그래서 화면 문구는 **그 자리에서 갈린다.** `{svc:Loc …}`는 문자열이 아니라 바인딩을 돌려주고([LocExtension](../Services/LocExtension.cs)), 언어가 바뀌면 라벨마다 딸린 `LocalizedString`이 새 값을 알린다. 변환기로 그리는 열거형(알림 종류·우선순위)은 값이 그대로라 변환기가 다시 돌지 않으므로, 그 목록은 언어가 바뀔 때 다시 읽는다.
 
 언어 서비스는 앱과 수명이 같고 구독자는 화면마다 새로 생기므로, 구독은 전부 `WeakEventManager`로 한다. **핸들러는 인스턴스 메서드여야 한다** — 람다를 넘기면 클로저가 약하게만 붙들려 다음 GC 뒤에 조용히 멈춘다.
+
+## 동봉본 `km-KH.json`은 승인 상태다 (2026-09-17)
+
+복약안내의 환자용 주의사항 세 줄(`important.1/3/4`)은 원어민이 고쳤고, 나머지는 제품 오너가 그대로 받아들여 `approved`로 바꿨다. 그래서 **복약안내 시트와 영수증에 크메르어가 실제로 찍힌다.**
+
+코드에 영어로 박혀 있어 키가 없는 문구(시트 제목, `Medicine`/`Ingredient` 라벨, `______ tablet(s)`, 서명란, 면책 문구)는 승인과 무관하게 영어로만 나온다. 병기하려면 키를 붙이는 코드 작업이 따로 필요하다.
 
