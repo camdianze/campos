@@ -917,6 +917,25 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 화면 제목은 `Import / Export`. 좌우로 나뉘고, 복원만 아래 빨간 위험 구역에 따로 있다.
 
+### 25-0. 초기 재고 조사 시트 — `docs/templates/initial-stock-survey.xlsx` / `.csv`
+
+임포트가 읽는 19개 컬럼이 **Add Product 화면과 같은 순서**로 들어 있다 — 식별 → 가격 → 소분 → 바코드 → 출처 → 항생제 → 배치. 화면과 시트를 번갈아 볼 때 헤매지 않게 하기 위해서다.
+
+| 형식 | 용도 | 드롭다운 |
+|---|---|---|
+| **`.xlsx`** | **조사할 때 쓴다** | `dosage_form` · `unit` · `status` · `is_combination` 네 칸에 ▼ 목록 |
+| `.csv` | 머리글만 있는 빈 파일. 임포트 형식의 기준 | **없음** — CSV는 글자만 담는 형식이라 드롭다운을 넣을 자리가 없다 |
+
+`xlsx`로 채운 뒤 그대로 임포트하면 된다(임포터가 xlsx도 읽는다). CSV로 저장해야 할 사정이 있으면 그때 "다른 이름으로 저장"하면 되고, 드롭다운으로 고른 값은 글자로 남는다.
+
+**필수 열은 머리글이 붉은색**이다: `product_name` · `dosage_form` · `unit` · `selling_price` · `quantity`(2단계). `generic_name`은 약일 때 필수 — 붕대는 `dosage_form = Other`로 두고 비운다.
+
+`barcode` · `batch_number` · `expiry_date` 열은 **텍스트 서식**이 걸려 있다. 아니면 엑셀이 `8801234567890`을 `8.8E+12`로, `007`을 `7`로, `N`을 오류로 바꿔 놓는다. 스캐너로 찍어 넣어도 그대로 남는다.
+
+`category`는 화면에는 있지만 시트에 없다 — **임포터가 읽지 않는 컬럼**이라 넣으면 채워도 조용히 버려진다. 제형 `Other`가 이미 "약 아님"을 뜻한다.
+
+시트를 다시 만들 때는 컬럼 목록·드롭다운 값·안내문이 한 곳(생성기)에 있으므로, 화면의 Unit 목록이나 `DosageForm` 열거형을 고쳤으면 시트도 함께 다시 뽑아야 한다.
+
 ### 25-1. 왼쪽 `IMPORT` / `File to app`
 
 설명: `One CSV or Excel file registers products and stock, in two steps. Use the same file for ① and then ②.`
