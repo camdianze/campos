@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using PharmaPOS.Application.Authentication;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.PasswordPolicy;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Reports;
@@ -153,6 +154,7 @@ public partial class MainShellView : UserControl
 
         var posSaleViewModel = new PosSaleViewModel(
             productRepository, inventoryRepository, saleService, receiptPrintingService,
+            App.Services.GetRequiredService<IReceiptSettingsService>(),
             counsellingService,
             shellViewModel.CurrentUser.FacilityId, shellViewModel.CurrentUser.UserId,
             shellViewModel.CurrentUser.Username,

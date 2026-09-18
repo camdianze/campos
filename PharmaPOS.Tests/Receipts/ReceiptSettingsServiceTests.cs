@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Receipts;
+﻿using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Settings;
 using PharmaPOS.Domain.Enums;
 
@@ -27,6 +27,66 @@ public class ReceiptSettingsServiceTests
     };
 
     // ── 읽기 ──────────────────────────────────────────────────────────────
+
+    // ── 영수증 인쇄 방식 ──────────────────────────────────────────────────
+    // 저장된 값이 없으면 언제나 인쇄다 — 이 설정이 생기기 전과 같은 동작이어야
+    // 업그레이드한 약국에서 영수증이 갑자기 사라지지 않는다.
+
+    [Fact]
+    public async Task PrintMode_DefaultsToAlwaysWhenNothingIsStored()
+    {
+        var (service, _) = Build();
+
+        var settings = await service.GetAsync();
+
+        Assert.Equal(ReceiptPrintMode.Always, settings.PrintMode);
+    }
+
+    [Theory]
+    [InlineData("always", ReceiptPrintMode.Always)]
+    [InlineData("ask", ReceiptPrintMode.Ask)]
+    [InlineData("never", ReceiptPrintMode.Never)]
+    [InlineData(" Ask ", ReceiptPrintMode.Ask)]
+    public async Task PrintMode_ReadsTheStoredCode(string stored, ReceiptPrintMode expected)
+    {
+        var repository = new FakeAppSettingRepository();
+        repository.Seed(AppSettingKeys.ReceiptPrintMode, stored);
+        var (service, _) = Build(repository);
+
+        var settings = await service.GetAsync();
+
+        Assert.Equal(expected, settings.PrintMode);
+    }
+
+    /// <summary>깨진 값 하나 때문에 영수증이 조용히 사라지면 안 된다. 모르는 값은 언제나 인쇄로 간다.</summary>
+    [Fact]
+    public async Task PrintMode_UnknownCodeFallsBackToAlways()
+    {
+        var repository = new FakeAppSettingRepository();
+        repository.Seed(AppSettingKeys.ReceiptPrintMode, "sometimes");
+        var (service, _) = Build(repository);
+
+        var settings = await service.GetAsync();
+
+        Assert.Equal(ReceiptPrintMode.Always, settings.PrintMode);
+    }
+
+    [Theory]
+    [InlineData(ReceiptPrintMode.Always, "always")]
+    [InlineData(ReceiptPrintMode.Ask, "ask")]
+    [InlineData(ReceiptPrintMode.Never, "never")]
+    public async Task PrintMode_SavesAsItsCode(ReceiptPrintMode mode, string expectedCode)
+    {
+        var (service, repository) = Build();
+        var settings = Valid();
+        settings.PrintMode = mode;
+
+        var result = await service.SaveAsync(settings, UserRole.Administrator, "admin");
+
+        Assert.True(result.IsSuccess, result.Message);
+        Assert.Equal(expectedCode, await repository.GetAsync(AppSettingKeys.ReceiptPrintMode));
+    }
+
 
     [Fact]
     public async Task GetAsync_ReturnsCodeDefaultsWhenNothingIsStored()

@@ -201,7 +201,17 @@
                                          Style="{StaticResource FieldInput}"/>
                             </StackPanel>
 
-                            <TextBlock Text="LANGUAGE AND PAPER" Style="{StaticResource EyebrowLabel}" Margin="0,10,0,8"/>
+                            <TextBlock Text="PRINTING" Style="{StaticResource EyebrowLabel}" Margin="0,10,0,8"/>
+
+                            <!-- 복약안내 설정의 "When an antibiotic is sold"와 같은 모양이다.
+                                 여기에는 Never가 있다 — 영수증을 안 받는 손님이 흔한 매장이 있다. -->
+                            <StackPanel Style="{StaticResource SettingField}">
+                                <TextBlock Text="After each sale" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding AvailablePrintModes}"
+                                          SelectedItem="{Binding PrintMode}"/>
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                           Text="Always prints a receipt after every sale. Ask offers Print / Skip each time. Never prints nothing. A receipt number is issued for every sale regardless, so Reprint Receipt in Sales History still works."/>
+                            </StackPanel>
 
                             <StackPanel Style="{StaticResource SettingField}">
                                 <TextBlock Text="Printed language" Style="{StaticResource FieldLabel}"/>

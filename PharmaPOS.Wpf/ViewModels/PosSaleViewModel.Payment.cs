@@ -1,6 +1,7 @@
 ﻿using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Receipts;
 using Lightweight_Digital_Inventory_Management___POS_System.Views;
 using PharmaPOS.Domain.Enums;
 
@@ -168,27 +169,62 @@ public partial class PosSaleViewModel
         // 실패해도 판매 자체는 이미 완료된 상태이다 (Screen §5절 원칙).
         // 프린터가 없거나 드라이버가 죽어도 여기서 예외가 올라오지 않는다 — ThermalTextPrinter가
         // 안에서 삼키고 실패만 돌려준다. 계산대가 종이 때문에 멈추면 안 된다.
-        var printResult = await _receiptPrintingService.PrintReceiptAsync(new ReceiptPrintRequest
+        //
+        // 종이를 낼지는 설정이 정한다. Never면 묻지도 않고 넘어가고, Ask면 한 번 묻는다.
+        // 어느 쪽이든 영수증 번호는 판매 확정 때 이미 발급됐다 — 재출력·환불 대조는
+        // 종이가 나갔는지와 무관하게 되어야 한다.
+        if (await ShouldPrintReceiptAsync())
         {
-            Lines = cartSnapshot,
-            TotalAmount = totalAmount,
-            TransactionTime = transactionTime,
-            UserId = _userId,
-            Username = _username,
-            PaymentMethod = paymentMethod,
-            CashTendered = cashTenderedSnapshot,
-            ChangeDue = changeDue
-        });
+            var printResult = await _receiptPrintingService.PrintReceiptAsync(new ReceiptPrintRequest
+            {
+                Lines = cartSnapshot,
+                TotalAmount = totalAmount,
+                TransactionTime = transactionTime,
+                UserId = _userId,
+                Username = _username,
+                PaymentMethod = paymentMethod,
+                CashTendered = cashTenderedSnapshot,
+                ChangeDue = changeDue
+            });
 
-        if (!printResult.IsSuccess)
-        {
-            // 판매가 끝났다는 말이 먼저 와야 한다. 계산대에서는 이 줄만 보고 판단한다.
-            Message = "Sale completed. The receipt did not print — check the printer.";
+            if (!printResult.IsSuccess)
+            {
+                // 판매가 끝났다는 말이 먼저 와야 한다. 계산대에서는 이 줄만 보고 판단한다.
+                Message = "Sale completed. The receipt did not print — check the printer.";
+            }
         }
 
         await HandleAntibioticCounsellingAsync(confirmedLines);
 
         SaleCompleted?.Invoke();
+    }
+
+    /// <summary>
+    /// 설정의 영수증 인쇄 방식에 따라 종이를 낼지 정한다.
+    /// 설정을 못 읽으면 종전 동작(언제나 인쇄)으로 간다 — 설정 하나 때문에 영수증이
+    /// 조용히 사라지는 쪽이 더 나쁘다.
+    /// </summary>
+    private async Task<bool> ShouldPrintReceiptAsync()
+    {
+        ReceiptPrintMode mode;
+
+        try
+        {
+            mode = (await _receiptSettingsService.GetAsync()).PrintMode;
+        }
+        catch (Exception)
+        {
+            mode = ReceiptPrintMode.Always;
+        }
+
+        return mode switch
+        {
+            ReceiptPrintMode.Never => false,
+            ReceiptPrintMode.Ask => AppDialog.Confirm(
+                "Receipt", "Print a receipt for this sale?",
+                confirmText: "Print", cancelText: "Skip"),
+            _ => true
+        };
     }
 
     /// <summary>

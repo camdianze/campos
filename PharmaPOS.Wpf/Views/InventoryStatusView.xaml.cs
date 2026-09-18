@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Repositories;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -142,6 +143,7 @@ public partial class InventoryStatusView : UserControl
             App.Services.GetRequiredService<IInventoryRepository>(),
             App.Services.GetRequiredService<ISaleService>(),
             App.Services.GetRequiredService<IReceiptPrintingService>(),
+            App.Services.GetRequiredService<IReceiptSettingsService>(),
             App.Services.GetRequiredService<ICounsellingService>(),
             shellViewModel.CurrentUser.FacilityId,
             shellViewModel.CurrentUser.UserId,

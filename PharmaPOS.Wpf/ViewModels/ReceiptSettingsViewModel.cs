@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using PharmaPOS.Application.Counselling;
@@ -48,6 +48,7 @@ public class ReceiptSettingsViewModel : ViewModelBase
     private string _shopAddressEn = string.Empty;
     private string _shopTel = string.Empty;
     private ReceiptPrintLanguage _printLanguage = ReceiptPrintLanguage.KhmerAndEnglish;
+    private ReceiptPrintMode _printMode = ReceiptPrintMode.Always;
     private ReceiptPaperWidth _paperWidth = ReceiptPaperWidth.Mm80;
     private bool _showRiel = true;
     private string _exchangeRate = string.Empty;
@@ -125,6 +126,16 @@ public class ReceiptSettingsViewModel : ViewModelBase
 
     public IReadOnlyList<ReceiptPaperWidth> AvailableWidths { get; } =
         Enum.GetValues<ReceiptPaperWidth>();
+
+    public IReadOnlyList<ReceiptPrintMode> AvailablePrintModes { get; } =
+        Enum.GetValues<ReceiptPrintMode>();
+
+    /// <summary>판매 후 영수증을 낼지. 복약안내의 같은 설정과 짝을 이룬다.</summary>
+    public ReceiptPrintMode PrintMode
+    {
+        get => _printMode;
+        set => SetSetting(ref _printMode, value, AppSettingKeys.ReceiptPrintMode);
+    }
 
     public ReceiptPrintLanguage PrintLanguage
     {
@@ -320,6 +331,7 @@ public class ReceiptSettingsViewModel : ViewModelBase
         _shopAddressEn = settings.ShopAddressEn;
         _shopTel = settings.ShopTel;
         _printLanguage = settings.PrintLanguage;
+        _printMode = settings.PrintMode;
         _paperWidth = settings.PaperWidth;
         _showRiel = settings.ShowRiel;
         _exchangeRate = settings.ExchangeRate.ToString("0.####", CultureInfo.InvariantCulture);
@@ -375,6 +387,7 @@ public class ReceiptSettingsViewModel : ViewModelBase
         ShopAddressEn = ShopAddressEn,
         ShopTel = ShopTel,
         PrintLanguage = PrintLanguage,
+        PrintMode = PrintMode,
         PaperWidth = PaperWidth,
         ShowRiel = ShowRiel,
         ExchangeRate = ParseDecimal(ExchangeRate),

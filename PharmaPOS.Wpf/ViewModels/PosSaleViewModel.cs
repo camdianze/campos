@@ -2,6 +2,7 @@
 using System.Windows;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -36,6 +37,7 @@ public partial class PosSaleViewModel : ViewModelBase
     private readonly IInventoryRepository _inventoryRepository;
     private readonly ISaleService _saleService;
     private readonly IReceiptPrintingService _receiptPrintingService;
+    private readonly IReceiptSettingsService _receiptSettingsService;
     private readonly ICounsellingService _counsellingService;
     private readonly string _facilityId;
     private readonly string _userId;
@@ -200,6 +202,7 @@ public partial class PosSaleViewModel : ViewModelBase
         IInventoryRepository inventoryRepository,
         ISaleService saleService,
         IReceiptPrintingService receiptPrintingService,
+        IReceiptSettingsService receiptSettingsService,
         ICounsellingService counsellingService,
         string facilityId,
         string userId,
@@ -218,6 +221,7 @@ public partial class PosSaleViewModel : ViewModelBase
         _inventoryRepository = inventoryRepository;
         _saleService = saleService;
         _receiptPrintingService = receiptPrintingService;
+        _receiptSettingsService = receiptSettingsService;
         _counsellingService = counsellingService;
         _facilityId = facilityId;
         _userId = userId;

@@ -56,6 +56,9 @@ public static class AppSettingKeys
     /// <summary>영수증 표기 언어. km_en | km | en.</summary>
     public const string PrintLanguage = "print.lang";
 
+    /// <summary>판매 후 영수증을 낼지: always / ask / never. 없으면 always.</summary>
+    public const string ReceiptPrintMode = "receipt.print_mode";
+
     /// <summary>용지 폭. 80 | 58 (mm).</summary>
     public const string PrintWidth = "print.width";
 
@@ -91,7 +94,7 @@ public static class AppSettingKeys
     public static readonly IReadOnlyList<string> ReceiptSettingKeys = new[]
     {
         ShopNameKm, ShopNameEn, ShopAddressKm, ShopAddressEn, ShopTel,
-        PrintLanguage, PrintWidth,
+        PrintLanguage, ReceiptPrintMode, PrintWidth,
         CurrencyShowRiel, CurrencyRate, CurrencyRounding,
         ReceiptShowNo, ReceiptShowStaff, ReceiptShowPrice, ReceiptShowUnit,
         ReceiptPrefix, ReceiptResetCycle, ReceiptFooterKm, ReceiptFooterEn,

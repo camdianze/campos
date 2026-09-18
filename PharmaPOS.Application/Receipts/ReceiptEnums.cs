@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Receipts;
+﻿namespace PharmaPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증에 어느 언어를 찍을지.
@@ -18,6 +18,20 @@ public enum ReceiptPaperWidth
 {
     Mm80,
     Mm58
+}
+
+/// <summary>
+/// 판매를 확정한 뒤 영수증 종이를 낼지.
+///
+/// 복약안내의 print_mode와 같은 모양이되, 여기에는 Never가 있다. 복약안내는 알림이
+/// 핵심이라 끄면 기능이 사라지지만, 영수증은 손님이 안 받는 매장이 흔하다.
+/// 어느 값이든 영수증 번호는 판매마다 발급된다 — 재출력·환불 대조에 쓰이기 때문이다.
+/// </summary>
+public enum ReceiptPrintMode
+{
+    Always,
+    Ask,
+    Never
 }
 
 /// <summary>영수증 일련번호를 언제 0001로 되돌릴지.</summary>
@@ -42,6 +56,10 @@ public static class ReceiptSettingCodes
     public const string Width80 = "80";
     public const string Width58 = "58";
 
+    public const string PrintAlways = "always";
+    public const string PrintAsk = "ask";
+    public const string PrintNever = "never";
+
     public const string CycleDaily = "daily";
     public const string CycleMonthly = "monthly";
     public const string CycleNever = "never";
@@ -55,6 +73,13 @@ public static class ReceiptSettingCodes
 
     public static string ToCode(ReceiptPaperWidth value) =>
         value == ReceiptPaperWidth.Mm58 ? Width58 : Width80;
+
+    public static string ToCode(ReceiptPrintMode value) => value switch
+    {
+        ReceiptPrintMode.Ask => PrintAsk,
+        ReceiptPrintMode.Never => PrintNever,
+        _ => PrintAlways
+    };
 
     public static string ToCode(ReceiptNumberResetCycle value) => value switch
     {
@@ -81,6 +106,15 @@ public static class ReceiptSettingCodes
         {
             Width80 => ReceiptPaperWidth.Mm80,
             Width58 => ReceiptPaperWidth.Mm58,
+            _ => fallback
+        };
+
+    public static ReceiptPrintMode ParsePrintMode(string? code, ReceiptPrintMode fallback) =>
+        code?.Trim().ToLowerInvariant() switch
+        {
+            PrintAlways => ReceiptPrintMode.Always,
+            PrintAsk => ReceiptPrintMode.Ask,
+            PrintNever => ReceiptPrintMode.Never,
             _ => fallback
         };
 

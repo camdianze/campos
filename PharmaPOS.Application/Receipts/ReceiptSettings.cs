@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Receipts;
+﻿namespace PharmaPOS.Application.Receipts;
 
 /// <summary>
 /// 판매 영수증 설정값 묶음.
@@ -16,6 +16,9 @@ public class ReceiptSettings
     public string ShopTel { get; set; } = string.Empty;
 
     public ReceiptPrintLanguage PrintLanguage { get; set; } = ReceiptPrintLanguage.KhmerAndEnglish;
+
+    /// <summary>판매 후 영수증 종이를 낼지. 기본은 언제나 — 종전 동작 그대로다.</summary>
+    public ReceiptPrintMode PrintMode { get; set; } = ReceiptPrintMode.Always;
 
     public ReceiptPaperWidth PaperWidth { get; set; } = ReceiptPaperWidth.Mm80;
 

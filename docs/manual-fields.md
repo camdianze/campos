@@ -795,6 +795,17 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
+### 20-x. 영수증 설정 — `PRINTING` 구역
+
+| 라벨 | 컨트롤 | 기본값 | 선택지 | 설명 |
+|---|---|---|---|---|
+| `After each sale` | ComboBox | **`Always`** | `Always` / `Ask` / `Never` | 판매 확정 뒤 영수증 종이를 낼지. 복약안내의 `When an antibiotic is sold`와 같은 모양이되 **`Never`가 있다** — 영수증을 안 받는 손님이 흔한 매장이 있어서. `Ask`는 판매마다 `Print a receipt for this sale?` (`Print` / `Skip`)을 묻는다 |
+
+- **어느 값이든 영수증 번호는 판매마다 발급된다.** 재출력·환불 대조가 종이와 무관하게 되어야 하기 때문이다. `Never`로 두고 나중에 Sales History의 `Reprint Receipt`를 누르면 그때 처음 종이가 나온다.
+- `Reprint Receipt`는 이 설정을 보지 않는다 — 사람이 직접 누른 것이라 언제나 인쇄한다.
+- 설정을 못 읽는 상황(파일 손상 등)에서는 `Always`로 간다. 설정 하나 때문에 영수증이 조용히 사라지는 쪽이 더 나쁘다.
+
+
 ## 21. User Management — [UserManagementView.xaml](../PharmaPOS.Wpf/Views/UserManagementView.xaml)
 
 ### 검색·필터

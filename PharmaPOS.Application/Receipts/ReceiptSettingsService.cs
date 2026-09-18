@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Application.Settings;
 using PharmaPOS.Domain.Enums;
@@ -61,6 +61,8 @@ public class ReceiptSettingsService : IReceiptSettingsService
 
         settings.PrintLanguage = ReceiptSettingCodes.ParseLanguage(
             Raw(stored, AppSettingKeys.PrintLanguage), settings.PrintLanguage);
+        settings.PrintMode = ReceiptSettingCodes.ParsePrintMode(
+            Raw(stored, AppSettingKeys.ReceiptPrintMode), settings.PrintMode);
 
         settings.PaperWidth = ReceiptSettingCodes.ParseWidth(
             Raw(stored, AppSettingKeys.PrintWidth), settings.PaperWidth);
@@ -148,6 +150,8 @@ public class ReceiptSettingsService : IReceiptSettingsService
 
         await Write(AppSettingKeys.PrintLanguage,
             ReceiptSettingCodes.ToCode(settings.PrintLanguage), TypeEnum);
+        await Write(AppSettingKeys.ReceiptPrintMode,
+            ReceiptSettingCodes.ToCode(settings.PrintMode), TypeEnum);
         await Write(AppSettingKeys.PrintWidth,
             ReceiptSettingCodes.ToCode(settings.PaperWidth), TypeEnum);
 
