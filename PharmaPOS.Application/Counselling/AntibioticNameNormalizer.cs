@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 
 namespace PharmaPOS.Application.Counselling;
 
@@ -16,7 +16,10 @@ public static class AntibioticNameNormalizer
     /// 정규화 규칙 버전. 이 값이 바뀌면 저장된 normalized_name이 낡은 것이므로
     /// 시드를 강제로 다시 적재한다. 규칙을 손볼 때 반드시 같이 올릴 것.
     /// </summary>
-    public const string RuleVersion = "2";
+    // 3: 에스테르·프로드러그 접미(axetil, proxetil, pivoxil …)와 trometamol을 벗기고,
+    //    clavulanate를 clavulanic acid로 통일. 시드 쪽 "Cefpodoxime-proxetil"과 상품 쪽
+    //    "Cefpodoxime"이 같은 이름이 되게 한다 — WHO 원본은 접미 없이 적는다.
+    public const string RuleVersion = "3";
 
     /// <summary>
     /// 염·수화물 형태를 나타내는 토큰. 성분 자체를 가리키지 않으므로 제거한다.
@@ -38,7 +41,12 @@ public static class AntibioticNameNormalizer
         "gluconate", "glutamate", "hyclate", "lactate", "lactobionate",
         "maleate", "malate", "mandelate", "mesylate", "mesilate", "napsylate",
         "oxalate", "palmitate", "pamoate", "propionate", "salicylate",
-        "stearate", "succinate", "tartrate", "tosylate", "valerate", "xinafoate"
+        "stearate", "succinate", "tartrate", "tosylate", "valerate", "xinafoate",
+        // 에스테르·프로드러그. 먹는 약으로 만들기 위해 붙인 부분이라 성분은 같다 —
+        // Cefuroxime axetil은 몸에서 cefuroxime이 된다. WHO는 접미 없이 적고,
+        // 한국·인도산 제품의 영문 성분명은 접미까지 붙여 적는 것이 보통이라 여기서 맞춘다.
+        "axetil", "proxetil", "pivoxil", "hexetil", "fosamil", "medocaril",
+        "trometamol", "tromethamine"
     };
 
     /// <summary>용량 토큰 판별용 단위. "500mg" 같은 토큰을 통째로 버린다.</summary>
@@ -155,6 +163,11 @@ public static class AntibioticNameNormalizer
         {
             value = "sulf" + value[5..];
         }
+
+        // 염 이름과 산 이름이 같은 성분을 가리키는 경우. "Clavulanate potassium"의 potassium은
+        // 위에서 벗겨지고 clavulanate만 남는데, WHO는 "clavulanic acid"로 적는다.
+        // 붙여 쓴 상태에서 바꾸므로 "amoxicillinclavulanate" → "amoxicillinclavulanicacid".
+        value = value.Replace("clavulanate", "clavulanicacid", StringComparison.Ordinal);
 
         return value;
     }

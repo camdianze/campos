@@ -1,8 +1,8 @@
 # AWaRe 시드 데이터
 
 `aware_2025.csv`는 WHO AWaRe 분류표를 담는 참조 데이터 파일이다.
-동봉본은 **실제 WHO 2025 목록 384행**이다 (ACCESS 93 / WATCH 145 / RESERVE 30,
-합계 268개 분류 항생제 + NOT_RECOMMENDED 116개 복합제).
+동봉본은 **실제 WHO 2025 목록 386행**이다 (ACCESS 95 / WATCH 145 / RESERVE 30,
+합계 270개 분류 항생제 + NOT_RECOMMENDED 116개 복합제).
 
 출처: WHO, *The selection and use of essential medicines, 2025: WHO AWaRe
 classification of antibiotics for evaluation and monitoring of use* (2025-09-05)
@@ -60,7 +60,7 @@ ATC는 표기 흔들림이 없다는 장점 때문에 우선할 뿐이며, 상�
 `Product_Master.dosage_form`이 생겼으므로 기술적으로는 둘을 가릴 수 있다. 그래도
 **지금은 복약안내 판정에 제형을 쓰지 않는다.** 제형은 뒤늦게 추가한 선택 입력이라
 기존 상품 대부분이 아직 비어 있고, 비어 있는 값으로 등급을 가리면 "적지 않았다"가
-"경구다"로 읽혀 주사 제품의 경고가 조용히 낮아진다. 384행 중 2행 이야기이므로
+"경구다"로 읽혀 주사 제품의 경고가 조용히 낮아진다. 386행 중 2행 이야기이므로
 데이터가 채워질 때까지 서둘 이유도 없다.
 
 (`J01CR02`도 두 행이 쓰지만 Amoxicillin/clavulanic acid와 Amoxicillin/sulbactam
@@ -103,3 +103,15 @@ ATC 접두사(J01 등)로 전신 여부를 자동 판별하지 않는 이유는 
 형식이 잘못된 줄이 있으면 그 줄만 건너뛰고 나머지는 적재한다.
 `PharmaPOS.Tests`의 `ShippedSeedFileTests`가 동봉본 전체를 실제로 적재해
 건너뛴 줄이 하나도 없는지 검사하므로, 파일을 교체하면 `dotnet test`로 먼저 확인할 것.
+
+## 2026-09-19 WHO 포털 대조
+
+`aware.essentialmeds.org/list`의 376건과 행 단위로 대조했다.
+
+- 이름이 맞는 항목끼리 **등급 불일치 0건**.
+- WHO에 있는데 시드에 없던 **Capreomycin(ACCESS)**, **Sulfamethizole/trimethoprim(ACCESS)** 2건을 추가했다(id 385, 386). 등급·EML 여부는 포털 값 그대로. Sulfamethizole/trimethoprim은 고유 ATC가 확인되지 않아 비워 뒀다 — 복합제 116행과 같은 처리이며 이름으로 매칭된다.
+- `ceftazidime/tobramicin` 오타를 `tobramycin`으로 고쳤다(id 164).
+- 시드에만 있는 NR 복합제 7건은 그대로 뒀다. WHO 포털에 없어도 NR로 잡히는 것이 옳은 방향이다.
+
+시드의 `-proxetil` `-pivoxil` `-fosamil` `-medocaril` 접미는 WHO 원본에는 없다. 지우지 않고 정규화기(`AntibioticNameNormalizer`, RuleVersion 3)가 벗기게 했다 — 상품 쪽 "Cefuroxime Axetil"과 시드 쪽 "Cefuroxime"이 같은 이름이 돼야 하므로, 양쪽에 같은 규칙이 걸리는 쪽이 맞다.
+

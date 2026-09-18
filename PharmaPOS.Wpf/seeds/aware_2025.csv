@@ -1,4 +1,4 @@
-id,atc_code,antibiotic_name,match_key,route,aware_group,antibiotic_class,on_eml,is_systemic,source_version
+﻿id,atc_code,antibiotic_name,match_key,route,aware_group,antibiotic_class,on_eml,is_systemic,source_version
 1,J01GB06,Amikacin,amikacin,ANY,ACCESS,Aminoglycosides,Yes,true,WHO AWaRe 2025
 2,J01CA04,Amoxicillin,amoxicillin,ANY,ACCESS,Penicillins,Yes,true,WHO AWaRe 2025
 3,J01CR02,Amoxicillin/clavulanic-acid,amoxicillin/clavulanicacid,ANY,ACCESS,Beta-lactam/beta-lactamase-inhibitor,Yes,true,WHO AWaRe 2025
@@ -162,7 +162,7 @@ id,atc_code,antibiotic_name,match_key,route,aware_group,antibiotic_class,on_eml,
 161,,cefpodoxime proxetil/sulbactam,cefpodoximeproxetil/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
 162,,ceftazidime/sulbactam,ceftazidime/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
 163,,ceftazidime/tazobactam,ceftazidime/tazobactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
-164,,ceftazidime/tobramicin,ceftazidime/tobramicin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
+164,,ceftazidime/tobramycin,ceftazidime/tobramycin,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
 165,,ceftibuten/clavulanic acid,ceftibuten/clavulanicacid,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
 166,,ceftriaxone/sulbactam,ceftriaxone/sulbactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
 167,,ceftriaxone/tazobactam,ceftriaxone/tazobactam,ANY,NOT_RECOMMENDED,Fixed-dose combination,No,true,WHO AWaRe 2025
@@ -383,3 +383,5 @@ id,atc_code,antibiotic_name,match_key,route,aware_group,antibiotic_class,on_eml,
 382,J01MA13,Trovafloxacin,trovafloxacin,ANY,WATCH,Fluoroquinolones,No,true,WHO AWaRe 2025
 383,J01XA01,Vancomycin,vancomycin,IV,WATCH,Glycopeptides,Yes,true,WHO AWaRe 2025
 384,A07AA09,Vancomycin,vancomycin,ORAL,WATCH,Glycopeptides,Yes,true,WHO AWaRe 2025
+385,J04AB30,Capreomycin,capreomycin,ANY,ACCESS,Other antibacterials,No,true,WHO AWaRe 2025
+386,,Sulfamethizole/trimethoprim,sulfamethizole/trimethoprim,ANY,ACCESS,Sulfonamide-trimethoprim-combinations,No,true,WHO AWaRe 2025

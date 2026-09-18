@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Counselling;
+﻿using PharmaPOS.Application.Counselling;
 
 namespace PharmaPOS.Tests.Counselling;
 
@@ -110,5 +110,59 @@ public class AntibioticNameNormalizerTests
     public void NormalizeAtcCode_UppercasesAndStripsPunctuation(string? input, string expected)
     {
         Assert.Equal(expected, AntibioticNameNormalizer.NormalizeAtcCode(input));
+    }
+
+    // ── 에스테르·프로드러그 접미와 산/염 표기 ───────────────────────────────
+    // 한국·인도산 제품의 영문 성분명은 "Cefuroxime Axetil"처럼 에스테르까지 적는다.
+    // WHO는 "Cefuroxime"으로 적는다. 같은 약이 다른 글자로 갈라지면 흔한 경구
+    // 세팔로스포린이 통째로 항생제 집계에서 빠진다.
+
+    [Theory]
+    [InlineData("Cefuroxime Axetil", "cefuroxime")]
+    [InlineData("Cefpodoxime Proxetil", "cefpodoxime")]
+    [InlineData("Cefpodoxime-proxetil", "cefpodoxime")]       // 시드 쪽 표기
+    [InlineData("Cefditoren Pivoxil", "cefditoren")]
+    [InlineData("Ceftaroline fosamil", "ceftaroline")]
+    [InlineData("Ceftobiprole medocaril", "ceftobiprole")]
+    [InlineData("Fosfomycin Trometamol", "fosfomycin")]
+    [InlineData("Fosfomycin tromethamine", "fosfomycin")]
+    public void EsterAndProdrugSuffixes_AreStripped(string input, string expected)
+    {
+        Assert.Equal(expected, AntibioticNameNormalizer.Normalize(input));
+    }
+
+    /// <summary>
+    /// 상품과 시드가 같은 함수를 지나므로, 접미가 있는 쪽과 없는 쪽이 같은 이름이 돼야 한다.
+    /// 이 짝이 어긋나면 시드에 "-proxetil"이 있는지 없는지에 따라 매칭이 갈린다.
+    /// </summary>
+    [Theory]
+    [InlineData("Cefpodoxime", "Cefpodoxime-proxetil")]
+    [InlineData("Cefuroxime", "Cefuroxime Axetil")]
+    [InlineData("Cefcapene", "Cefcapene-pivoxil")]
+    public void ProductAndSeedSpellings_MeetInTheMiddle(string plain, string withSuffix)
+    {
+        Assert.Equal(
+            AntibioticNameNormalizer.Normalize(plain),
+            AntibioticNameNormalizer.Normalize(withSuffix));
+    }
+
+    [Theory]
+    [InlineData("Amoxicillin/Clavulanate", "amoxicillinclavulanicacid")]
+    [InlineData("Amoxicillin / Clavulanate Potassium", "amoxicillinclavulanicacid")]
+    [InlineData("Amoxicillin/clavulanic-acid", "amoxicillinclavulanicacid")]   // 시드 쪽 표기
+    [InlineData("Ticarcillin/Clavulanate", "ticarcillinclavulanicacid")]
+    public void Clavulanate_IsTheSameAsClavulanicAcid(string input, string expected)
+    {
+        Assert.Equal(expected, AntibioticNameNormalizer.Normalize(input));
+    }
+
+    /// <summary>접미를 벗겨도 나머지가 목록과 같아야만 잡힌다. 항생제 아닌 것이 새로 걸리면 안 된다.</summary>
+    [Theory]
+    [InlineData("Ferrous Sulfate", "ferrous")]
+    [InlineData("Zinc Sulfate", "zincsulfate")]      // 두 토큰 다 염 목록이라 원문으로 되돌아간다
+    [InlineData("Pantoprazole Sodium", "pantoprazole")]
+    public void NonAntibiotics_StayDistinctAfterStripping(string input, string expected)
+    {
+        Assert.Equal(expected, AntibioticNameNormalizer.Normalize(input));
     }
 }
