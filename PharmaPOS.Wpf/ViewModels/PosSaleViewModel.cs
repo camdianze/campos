@@ -289,6 +289,17 @@ public partial class PosSaleViewModel : ViewModelBase
             await SelectProductAndLoadBatchesAsync(results[0]);
 
             ExecuteAddToCart();
+
+            // 스캔 경로에서 담기가 거절되면 창으로 알린다. 이유는 Message에 이미 들어
+            // 있지만 화면 왼쪽 아래 한 줄이라, 스캐너를 보고 있는 계산대에서는 보이지
+            // 않는다 — "찍었는데 아무 일도 없다"로 읽히고 손님 앞에서 같은 바코드를
+            // 다시 찍게 된다. 손으로 담는 경로는 그대로 둔다. 그때는 버튼을 눌렀으니
+            // 아래 줄을 본다.
+            if (!string.IsNullOrEmpty(Message))
+            {
+                AppDialog.Show("Not added to cart", Message);
+            }
+
             return;
         }
 
@@ -360,8 +371,17 @@ public partial class PosSaleViewModel : ViewModelBase
         SelectedProduct = product;
     }
 
+    /// <summary>
+    /// 마지막으로 시작한 배치 조회의 번호. 조회가 겹치면(목록 선택과 스캔이 잇따를 때)
+    /// 먼저 끝난 옛 조회가 새 목록을 덮어써 SelectedBatch가 목록에 없는 객체를 가리키게
+    /// 되고, 그러면 드롭다운이 배치번호 대신 클래스 이름을 찍는다. 자기 번호가 아니면 버린다.
+    /// </summary>
+    private int _batchLoadSequence;
+
     private async Task LoadBatchesAsync()
     {
+        var sequence = ++_batchLoadSequence;
+
         Batches.Clear();
         SelectedBatch = null;
 
@@ -371,6 +391,12 @@ public partial class PosSaleViewModel : ViewModelBase
         }
 
         var allBatches = await _inventoryRepository.GetBatchesForProductAsync(SelectedProduct.ProductId, _facilityId);
+
+        if (sequence != _batchLoadSequence)
+        {
+            // 그새 다른 조회가 시작됐다. 그쪽이 목록을 채운다.
+            return;
+        }
 
         foreach (var batch in allBatches)
         {

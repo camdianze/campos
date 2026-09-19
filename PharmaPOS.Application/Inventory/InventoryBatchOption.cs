@@ -20,4 +20,10 @@ public class InventoryBatchOption
 
     /// <summary>계산에 그대로 넘길 수 있게 묶어 둔 것.</summary>
     public BoxUnitStock Stock => new(CurrentQuantity, BoxQuantity, UnitQuantity);
+
+    /// <summary>
+    /// 화면이 이 객체를 글자로 찍어야 할 때(콤보의 선택 항목이 목록에 없을 때 등)
+    /// 클래스 이름 대신 배치번호가 나온다. 정상 경로는 DisplayMemberPath가 맡는다.
+    /// </summary>
+    public override string ToString() => BatchNumber;
 }
