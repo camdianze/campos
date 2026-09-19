@@ -101,7 +101,25 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Product"  Binding="{Binding ProductName}" Width="*"/>
                         <DataGridTextColumn Header="Batch"    Binding="{Binding BatchNumber}" Width="90"/>
-                        <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}"    Width="50"/>
+                        <!-- 수량은 장바구니에서 바로 고친다. 확인 버튼을 따로 두지 않는 이유:
+                             "바꿨는데 아직 확인 안 한 줄"이 남은 채로 판매를 확정하면 어느 수량이
+                             팔리는지 애매해진다. Enter나 다른 곳 클릭이 곧 적용이고, 재고 검사에서
+                             막히면 칸의 글자가 원래 수량으로 돌아간다(코드 비하인드). -->
+                        <DataGridTemplateColumn Header="Qty" Width="56">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Quantity, Mode=OneWay}"
+                                             Tag="{Binding}"
+                                             Padding="4,2" Margin="0" MinHeight="0" Height="26"
+                                             VerticalContentAlignment="Center"
+                                             HorizontalContentAlignment="Right"
+                                             BorderBrush="{StaticResource BorderBrushSoft}"
+                                             ToolTip="Type a quantity and press Enter. 0 removes the line."
+                                             KeyDown="OnCartQuantityKeyDown"
+                                             LostKeyboardFocus="OnCartQuantityLostFocus"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <!-- Qty가 박스 개수인지 낱개 개수인지는 이 컬럼으로만 구분된다. -->
                         <DataGridTextColumn Header="Unit"     Binding="{Binding SaleUnitLabel}" Width="55"/>
                         <DataGridTextColumn Header="Price"    Binding="{Binding UnitPrice}"   Width="80"/>

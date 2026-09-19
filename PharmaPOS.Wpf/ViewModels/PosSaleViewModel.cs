@@ -492,53 +492,11 @@ public partial class PosSaleViewModel : ViewModelBase
 
         // 이미 장바구니에 담긴 같은 배치의 줄들을 먼저 빼고 남는 재고를 기준으로 판단한다.
         // 배치의 현재 수량만 보면, 이미 담아 둔 만큼을 두 번 팔 수 있게 된다.
-        var remaining = RemainingStockForSelectedBatch();
+        var remaining = RemainingStock(SelectedBatch.Stock, SelectedBatch.InventoryId, product.UnitsPerBox, exclude: null);
 
-        if (isBoxSale)
+        if (!CanTakeFromStock(remaining, quantity, isBoxSale, product.UnitsPerBox))
         {
-            if (!BoxUnitMath.TryTakeBoxes(remaining, quantity, product.UnitsPerBox, out _))
-            {
-                // 총량이 충분해도 이미 헐어 놓은 낱개뿐이면 박스로는 팔 수 없다.
-                Message = remaining.TotalUnits >= quantity * product.UnitsPerBox
-                    ? $"Only {remaining.BoxQuantity} unopened box(es) left in this batch."
-                    : "Stock-out quantity cannot exceed current inventory quantity.";
-                return;
-            }
-        }
-        else
-        {
-            if (remaining.TotalUnits < quantity)
-            {
-                Message = "Stock-out quantity cannot exceed current inventory quantity.";
-                return;
-            }
-
-            // 헐어 놓은 낱개가 모자라면 박스를 헐어야 한다. 실제로 여는 건 판매 확정
-            // 시점이지만, 약사에게 묻는 건 지금이어야 한다 — 결제까지 가서 물으면
-            // 이미 되돌리기 어렵다.
-            var boxesToOpen = BoxUnitMath.BoxesToOpen(remaining, quantity, product.UnitsPerBox);
-
-            if (boxesToOpen > 0)
-            {
-                var openIt = AppDialog.Confirm(
-                    "Open a Box",
-                    $"Only {remaining.UnitQuantity} loose unit(s) left in this batch.\n" +
-                    $"Open {boxesToOpen} box(es) of {product.UnitsPerBox} to sell {quantity}?",
-                    confirmText: "Open",
-                    cancelText: "Cancel");
-
-                if (!openIt)
-                {
-                    Message = "Sale cancelled — no box was opened.";
-                    return;
-                }
-            }
-
-            if (!BoxUnitMath.TryTakeUnits(remaining, quantity, product.UnitsPerBox, out _))
-            {
-                Message = "Stock-out quantity cannot exceed current inventory quantity.";
-                return;
-            }
+            return;
         }
 
         // 이미 장바구니에 같은 상품+배치가 있으면, 새 항목을 추가하는 대신 수량을 합산한다.
@@ -552,11 +510,7 @@ public partial class PosSaleViewModel : ViewModelBase
         if (existingLine is not null)
         {
             existingLine.Quantity += quantity;
-            // ObservableCollection은 항목 내부 속성 변경까지는 자동 통지하지 않으므로,
-            // DataGrid 등의 화면 갱신을 위해 컬렉션에서 제거 후 다시 추가한다.
-            var index = Cart.IndexOf(existingLine);
-            Cart.RemoveAt(index);
-            Cart.Insert(index, existingLine);
+            RefreshCartLine(existingLine);
         }
         else
         {
@@ -593,16 +547,17 @@ public partial class PosSaleViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 선택한 배치의 재고에서 이미 장바구니에 담긴 같은 배치의 줄들을 뺀 나머지.
+    /// 배치의 재고에서 이미 장바구니에 담긴 같은 배치의 줄들을 뺀 나머지.
     /// 박스를 헐어야 하는지도 이 나머지를 기준으로 판단해야, 담아 둔 낱개까지
     /// 다시 쓸 수 있는 것처럼 계산되지 않는다.
+    ///
+    /// exclude는 지금 수량을 고치고 있는 줄이다. 그 줄의 옛 수량까지 빼 버리면
+    /// 5를 6으로 고칠 때 재고가 11개 있어야 하는 것처럼 계산된다.
     /// </summary>
-    private BoxUnitStock RemainingStockForSelectedBatch()
+    private BoxUnitStock RemainingStock(
+        BoxUnitStock stock, string inventoryId, int unitsPerBox, SaleLineItem? exclude)
     {
-        var stock = SelectedBatch!.Stock;
-        var unitsPerBox = SelectedProduct!.UnitsPerBox;
-
-        foreach (var line in Cart.Where(c => c.InventoryId == SelectedBatch.InventoryId))
+        foreach (var line in Cart.Where(c => c.InventoryId == inventoryId && !ReferenceEquals(c, exclude)))
         {
             var taken = line.IsBoxSale
                 ? BoxUnitMath.TryTakeBoxes(stock, line.Quantity, unitsPerBox, out var next)
@@ -615,6 +570,141 @@ public partial class PosSaleViewModel : ViewModelBase
         }
 
         return stock;
+    }
+
+    /// <summary>
+    /// 남은 재고에서 quantity만큼 팔 수 있는지. 못 팔면 Message에 이유를 적고 false.
+    /// 담을 때와 장바구니에서 수량을 고칠 때가 같은 규칙이어야 한다 — 담을 때는 막히던
+    /// 수량이 고치기로는 들어가면 재고 검사는 있으나 마나다.
+    /// </summary>
+    private bool CanTakeFromStock(BoxUnitStock remaining, int quantity, bool isBoxSale, int unitsPerBox)
+    {
+        if (isBoxSale)
+        {
+            if (!BoxUnitMath.TryTakeBoxes(remaining, quantity, unitsPerBox, out _))
+            {
+                // 총량이 충분해도 이미 헐어 놓은 낱개뿐이면 박스로는 팔 수 없다.
+                Message = remaining.TotalUnits >= quantity * unitsPerBox
+                    ? $"Only {remaining.BoxQuantity} unopened box(es) left in this batch."
+                    : "Stock-out quantity cannot exceed current inventory quantity.";
+                return false;
+            }
+
+            return true;
+        }
+
+        if (remaining.TotalUnits < quantity)
+        {
+            Message = "Stock-out quantity cannot exceed current inventory quantity.";
+            return false;
+        }
+
+        // 헐어 놓은 낱개가 모자라면 박스를 헐어야 한다. 실제로 여는 건 판매 확정
+        // 시점이지만, 약사에게 묻는 건 지금이어야 한다 — 결제까지 가서 물으면
+        // 이미 되돌리기 어렵다.
+        var boxesToOpen = BoxUnitMath.BoxesToOpen(remaining, quantity, unitsPerBox);
+
+        if (boxesToOpen > 0)
+        {
+            var openIt = AppDialog.Confirm(
+                "Open a Box",
+                $"Only {remaining.UnitQuantity} loose unit(s) left in this batch.\n" +
+                $"Open {boxesToOpen} box(es) of {unitsPerBox} to sell {quantity}?",
+                confirmText: "Open",
+                cancelText: "Cancel");
+
+            if (!openIt)
+            {
+                Message = "Sale cancelled — no box was opened.";
+                return false;
+            }
+        }
+
+        if (!BoxUnitMath.TryTakeUnits(remaining, quantity, unitsPerBox, out _))
+        {
+            Message = "Stock-out quantity cannot exceed current inventory quantity.";
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 장바구니 줄의 수량을 고친다. 0이면 그 줄을 뺀다(Remove와 같다).
+    /// 재고 검사는 담을 때와 같은 규칙으로 하고, 통과하지 못하면 수량을 그대로 두고
+    /// false를 돌려준다 — 화면은 그때 칸의 글자를 원래 수량으로 되돌린다.
+    /// 재고는 담을 때 봤던 값이 아니라 지금 값을 다시 읽는다. 담고 나서 다른 창에서
+    /// 팔렸을 수 있고, 어차피 확정 시점에 한 번 더 검사되지만 여기서 미리 걸러야
+    /// 결제까지 가서 거절당하지 않는다.
+    /// </summary>
+    public async Task<bool> ChangeCartQuantityAsync(SaleLineItem line, int quantity)
+    {
+        Message = string.Empty;
+
+        if (quantity == line.Quantity)
+        {
+            return true;
+        }
+
+        if (quantity < 0)
+        {
+            Message = "Quantity cannot be negative.";
+            return false;
+        }
+
+        if (quantity == 0)
+        {
+            ExecuteRemoveFromCart(line);
+            return true;
+        }
+
+        InventoryBatchOption? batch;
+
+        try
+        {
+            var batches = await _inventoryRepository.GetBatchesForProductAsync(line.ProductId, _facilityId);
+            batch = batches.FirstOrDefault(b => b.InventoryId == line.InventoryId);
+        }
+        catch (Exception)
+        {
+            Message = "Stock could not be checked. Please try again.";
+            return false;
+        }
+
+        if (batch is null)
+        {
+            Message = "This batch is no longer in stock.";
+            return false;
+        }
+
+        var remaining = RemainingStock(batch.Stock, line.InventoryId, line.UnitsPerBox, exclude: line);
+
+        if (!CanTakeFromStock(remaining, quantity, line.IsBoxSale, line.UnitsPerBox))
+        {
+            return false;
+        }
+
+        line.Quantity = quantity;
+        RefreshCartLine(line);
+        RaiseTotalsChanged();
+        return true;
+    }
+
+    /// <summary>
+    /// ObservableCollection은 항목 내부 속성 변경까지는 자동 통지하지 않으므로,
+    /// DataGrid 등의 화면 갱신을 위해 컬렉션에서 제거 후 같은 자리에 다시 넣는다.
+    /// </summary>
+    private void RefreshCartLine(SaleLineItem line)
+    {
+        var index = Cart.IndexOf(line);
+
+        if (index < 0)
+        {
+            return;
+        }
+
+        Cart.RemoveAt(index);
+        Cart.Insert(index, line);
     }
 
     private void ExecuteRemoveFromCart(SaleLineItem? item)

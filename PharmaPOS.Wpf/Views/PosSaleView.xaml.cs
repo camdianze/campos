@@ -2,6 +2,7 @@
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using PharmaPOS.Application.Inventory;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
 
@@ -72,6 +73,86 @@ public partial class PosSaleView : UserControl
         // 한 번에 들어가는 경로에서는 중간에 "Open a Box" 같은 창이 떴다 닫힐 수 있고,
         // 그러면 포커스가 검색창으로 돌아오지 않는다.
         SearchBox.Focus();
+    }
+
+    // ── 장바구니 수량 편집 ────────────────────────────────────────────────
+    //
+    // Enter 또는 칸을 떠나는 순간이 적용이다. Esc는 원래 수량으로 되돌린다.
+    // 적용이 재고 검사에서 막히면 ViewModel이 수량을 바꾸지 않으므로 칸의 글자만
+    // 되돌리면 된다. 적용에 성공하면 ViewModel이 그 줄을 다시 그리는데, 그때 이 TextBox는
+    // 없어지므로 LostFocus가 한 번 더 와도 "바뀐 게 없다"로 끝난다.
+
+    private bool _isApplyingCartQuantity;
+
+    private async void OnCartQuantityKeyDown(object sender, KeyEventArgs e)
+    {
+        if (sender is not TextBox box || box.Tag is not SaleLineItem line)
+        {
+            return;
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            box.Text = line.Quantity.ToString();
+            e.Handled = true;
+            SearchBox.Focus();
+            return;
+        }
+
+        if (e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await ApplyCartQuantityAsync(box, line);
+
+        // 다음 스캔을 곧바로 받으려면 커서가 검색창에 있어야 한다.
+        SearchBox.Focus();
+    }
+
+    private async void OnCartQuantityLostFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (sender is TextBox box && box.Tag is SaleLineItem line)
+        {
+            await ApplyCartQuantityAsync(box, line);
+        }
+    }
+
+    private async Task ApplyCartQuantityAsync(TextBox box, SaleLineItem line)
+    {
+        if (_isApplyingCartQuantity || DataContext is not PosSaleViewModel viewModel)
+        {
+            return;
+        }
+
+        var text = box.Text.Trim();
+
+        if (text == line.Quantity.ToString())
+        {
+            return;
+        }
+
+        _isApplyingCartQuantity = true;
+
+        try
+        {
+            if (!int.TryParse(text, out var quantity))
+            {
+                viewModel.Message = "Quantity must be a whole number.";
+                box.Text = line.Quantity.ToString();
+                return;
+            }
+
+            if (!await viewModel.ChangeCartQuantityAsync(line, quantity))
+            {
+                box.Text = line.Quantity.ToString();
+            }
+        }
+        finally
+        {
+            _isApplyingCartQuantity = false;
+        }
     }
 
     private void OnSaleCompleted()
