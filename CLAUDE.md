@@ -152,7 +152,7 @@ The export takes a date range, and it applies to **sales history only** — `Exp
 
 - The file is parsed to `ImportSourceRow` in the WPF layer ([ImportFileReader](PharmaPOS.Wpf/Services/ImportFileReader.cs)); every rule lives in Application, so CSV and Excel behave identically and the rules are unit-tested.
 - Nothing is written until the user confirms a preview. `Plan…` computes what would happen, `Apply…` performs exactly that plan — never recompute between the two.
-- **`quantity` in the file is loose units, not boxes** (unlike the Stock-IN screen, where quantity means boxes). Counting a shelf can produce a box and a half; the import splits units into boxes + loose via `BoxUnitMath.Split`.
+- **`quantity` in the file is the number of boxes**, the same meaning as on the Stock-IN screen; for a product without a box/loose split (`units_per_box` 1) it is simply the piece count. It used to mean loose units, and a pharmacy that had set up loose sale found its `10` land as 10 tablets instead of 10 boxes. Counting a shelf can still produce a box and a half, so the optional `loose_quantity` column (empty = 0) carries the loose units; the two are added and re-split via `BoxUnitMath.Split`, so `loose_quantity` above a box folds into boxes instead of being refused.
 - Products are saved through `ProductService` and batches through `IStockInRepository` with `TransactionType.StockIn` — the import has no private write path, and initial stock is ordinary stock-in in the ledger.
 - Re-importing the same file is blocked by a SHA-256 of the file contents recorded in `Import_History`, keyed `(import_type, file_hash)` so the same file can be used for step 1 and then step 2.
 

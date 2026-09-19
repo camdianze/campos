@@ -266,7 +266,7 @@ public class BackupExportViewModel : ViewModelBase
         }
 
         preview.AppendLine();
-        preview.AppendLine("Quantity is counted in single units, not boxes.");
+        preview.AppendLine("quantity is the number of boxes, as on the Stock-IN screen. Use loose_quantity for loose units.");
         preview.AppendLine("Rows listed above are skipped. Continue?");
 
         if (!AppDialog.Confirm("Import Inventory", preview.ToString(), "Import", "Cancel"))

@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Import;
+﻿namespace PharmaPOS.Application.Import;
 
 /// <summary>
 /// 임포트 파일의 컬럼 정의.
@@ -40,7 +40,11 @@ public static class InitialImportColumns
 
     public static readonly string[] BatchNumber = ["batchnumber"];
     public static readonly string[] ExpiryDate = ["expirydate"];
-    public static readonly string[] Quantity = ["quantity"];
+    /// <summary>박스 개수. 박스 구분이 없는 상품이면 그대로 낱개 수다.</summary>
+    public static readonly string[] Quantity = ["quantity", "boxes", "boxquantity"];
+
+    /// <summary>박스 밖의 낱개. 선택 컬럼이며 비면 0. 반 박스가 남은 실사에서만 쓴다.</summary>
+    public static readonly string[] LooseQuantity = ["loosequantity", "looseunits", "unitquantity"];
 
     /// <summary>expiry_date에 이 값이 들어오면 "유효기간 모름"으로 본다.</summary>
     public const string NoExpiryMarker = "N";
@@ -49,7 +53,7 @@ public static class InitialImportColumns
     public static readonly IReadOnlyList<string> ProductHeaderLine =
     [
         "product_name", "unit", "barcode", "cost_price", "selling_price", "safety_stock",
-        "units_per_box", "loose_unit_price", "batch_number", "expiry_date", "quantity"
+        "units_per_box", "loose_unit_price", "batch_number", "expiry_date", "quantity", "loose_quantity"
     ];
 
     /// <summary>

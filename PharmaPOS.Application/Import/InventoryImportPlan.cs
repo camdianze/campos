@@ -1,3 +1,4 @@
+﻿using PharmaPOS.Application.Inventory;
 using PharmaPOS.Domain.Entities;
 
 // 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
@@ -22,10 +23,16 @@ public sealed class InventoryImportLine
     /// <summary>Unix ms. <see cref="InventoryEntity.NoExpiryDate"/>(0)이면 유효기간 모름.</summary>
     public required long ExpiryDate { get; init; }
 
-    /// <summary>낱개 기준 수량.</summary>
-    public required int QuantityInUnits { get; init; }
+    /// <summary>안 뜯은 박스 수. 박스 구분이 없는 상품이면 0이고 전량이 <see cref="UnitQuantity"/>다.</summary>
+    public required int BoxQuantity { get; init; }
+
+    /// <summary>박스 밖의 낱개 수.</summary>
+    public required int UnitQuantity { get; init; }
 
     public required int UnitsPerBox { get; init; }
+
+    /// <summary>원장에 적는 낱개 총량.</summary>
+    public int QuantityInUnits => BoxUnitMath.ToTotalUnits(BoxQuantity, UnitQuantity, UnitsPerBox);
 
     public bool HasNoExpiry => ExpiryDate == InventoryEntity.NoExpiryDate;
 }

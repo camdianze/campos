@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
@@ -693,12 +693,9 @@ public class InitialImportService : IInitialImportService
                 continue;
             }
 
-            var quantityText = row.Get(InitialImportColumns.Quantity);
-
-            if (!int.TryParse(quantityText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var quantity)
-                || quantity <= 0)
+            if (!TryParseStockCount(row, product.UnitsPerBox, out var stock, out var quantityError))
             {
-                issues.Add(new ImportIssue(row.LineNumber, "quantity must be a whole number greater than zero."));
+                issues.Add(new ImportIssue(row.LineNumber, quantityError!));
                 continue;
             }
 
@@ -709,7 +706,8 @@ public class InitialImportService : IInitialImportService
                 ProductName = product.ProductName,
                 BatchNumber = row.Get(InitialImportColumns.BatchNumber),
                 ExpiryDate = expiryDate,
-                QuantityInUnits = quantity,
+                BoxQuantity = stock.BoxQuantity,
+                UnitQuantity = stock.UnitQuantity,
                 UnitsPerBox = product.UnitsPerBox
             });
         }
@@ -721,6 +719,51 @@ public class InitialImportService : IInitialImportService
             UnmatchedRows = unmatched,
             Issues = issues
         };
+    }
+
+    /// <summary>
+    /// 수량 칸을 읽는다. <c>quantity</c>는 입고 화면과 같은 뜻, 즉 <b>박스 개수</b>다 —
+    /// 박스 구분이 없는 상품(박스당 1개)이면 그대로 낱개 수가 된다. 낱개로 읽던 시절에는
+    /// 박스/낱개를 설정한 상품의 "10"이 10박스가 아니라 낱개 10개로 올라가, 재고가
+    /// 박스당 개수만큼 줄어든 채 조용히 시작됐다.
+    ///
+    /// 실사에서 반 박스가 남는 경우를 위해 선택 컬럼 <c>loose_quantity</c>가 있다. 비면 0.
+    /// 박스당 개수를 넘는 낱개를 적어도 막지 않고 박스로 접어 올린다 — 45개를 30개들이
+    /// 1박스 + 15개로 세는 것과 같은 재고이고, 총량이 진실이기 때문이다.
+    /// </summary>
+    private static bool TryParseStockCount(
+        ImportSourceRow row, int unitsPerBox, out BoxUnitStock stock, out string? error)
+    {
+        stock = default;
+        error = null;
+
+        if (!int.TryParse(row.Get(InitialImportColumns.Quantity),
+                NumberStyles.Integer, CultureInfo.InvariantCulture, out var boxes) || boxes < 0)
+        {
+            error = "quantity must be a whole number of boxes (0 or more).";
+            return false;
+        }
+
+        var looseText = row.Get(InitialImportColumns.LooseQuantity);
+        var loose = 0;
+
+        if (looseText.Length > 0
+            && (!int.TryParse(looseText, NumberStyles.Integer, CultureInfo.InvariantCulture, out loose) || loose < 0))
+        {
+            error = "loose_quantity must be a whole number of loose units (0 or more).";
+            return false;
+        }
+
+        var totalUnits = BoxUnitMath.ToTotalUnits(boxes, loose, unitsPerBox);
+
+        if (totalUnits <= 0)
+        {
+            error = "quantity must be greater than zero (boxes, or loose_quantity for loose units).";
+            return false;
+        }
+
+        stock = BoxUnitMath.Split(totalUnits, unitsPerBox);
+        return true;
     }
 
     /// <summary>
@@ -788,11 +831,6 @@ public class InitialImportService : IInitialImportService
 
         foreach (var line in plan.BatchesToCreate)
         {
-            // 파일의 수량은 낱개 총량이다. 재고에는 "안 뜯은 박스 + 헐어 놓은 낱개"로 나눠 올린다 —
-            // 박스 우선으로 나누는 이유는 실사에서 60개(박스당 30)면 보통 두 통이 온전히 있는 것이고,
-            // 전부 낱개로 넣으면 박스 판매가 막히기 때문이다.
-            var stock = BoxUnitMath.Split(line.QuantityInUnits, line.UnitsPerBox);
-
             var transaction = new StockTransaction
             {
                 TransactionId = Guid.NewGuid().ToString(),
@@ -810,7 +848,7 @@ public class InitialImportService : IInitialImportService
 
             try
             {
-                await _stockInRepository.SaveStockInAsync(transaction, stock.BoxQuantity, stock.UnitQuantity);
+                await _stockInRepository.SaveStockInAsync(transaction, line.BoxQuantity, line.UnitQuantity);
                 success++;
             }
             catch (Exception)

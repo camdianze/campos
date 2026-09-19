@@ -97,7 +97,7 @@
                                 Margin="0,0,0,4"
                                 Command="{Binding ImportInventoryCommand}"/>
                         <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
-                                   Text="Adds stock batch by batch, recorded as stock-in. Quantity is counted in single units. Put N in expiry_date when the expiry date is unknown."/>
+                                   Text="Adds stock batch by batch, recorded as stock-in. quantity is the number of boxes (loose units go in loose_quantity). Put N in expiry_date when the expiry date is unknown."/>
 
                         <Button Content="&#x2462;  Import Photos"
                                 Style="{StaticResource PrimaryBtn}"

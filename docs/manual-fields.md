@@ -930,7 +930,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ### 25-0. 초기 재고 조사 시트 — `docs/templates/initial-stock-survey.xlsx` / `.csv`
 
-임포트가 읽는 19개 컬럼이 **Add Product 화면과 같은 순서**로 들어 있다 — 식별 → 가격 → 소분 → 바코드 → 출처 → 항생제 → 배치. 화면과 시트를 번갈아 볼 때 헤매지 않게 하기 위해서다.
+임포트가 읽는 20개 컬럼이 **Add Product 화면과 같은 순서**로 들어 있다 — 식별 → 가격 → 소분 → 바코드 → 출처 → 항생제 → 배치. 화면과 시트를 번갈아 볼 때 헤매지 않게 하기 위해서다.
 
 | 형식 | 용도 | 드롭다운 |
 |---|---|---|
@@ -957,7 +957,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 버튼 두 개(각각 아래에 설명문이 붙는다):
 - `①  Import Products` — `Adds new products. For products that already exist, only the columns filled in the file are updated — empty columns are left as they are.`
-- `②  Import Inventory` — `Adds stock batch by batch, recorded as stock-in. Quantity is counted in single units. Put N in expiry_date when the expiry date is unknown.`
+- `②  Import Inventory` — `Adds stock batch by batch, recorded as stock-in. quantity is the number of boxes (loose units go in loose_quantity). Put N in expiry_date when the expiry date is unknown.`
 
 **`③  Import Photos`** — 파일이 아니라 **폴더**를 고른다. 시트에 컬럼을 늘리지 않는다.
 
@@ -968,7 +968,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - ①②와 달리 **같은 폴더를 다시 넣어도 막지 않는다.** 사진은 덮어쓰기라 쌓이지 않는다.
 
 맨 아래 `File columns` 안내 상자:
-- 필수/기본: `product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity`
+- 필수/기본: `product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity, loose_quantity`
 - 선택: `generic_name, strength, dosage_form, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
 - `dosage_form is the form of the medicine (Tablet, Syrup, Injection, Ointment…), while unit is how one piece is counted (Tablet, Bottle, Tube). A file with only product_name and dosage_form fills the form in for products that already exist.`
 
@@ -1025,7 +1025,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 2. `①` 또는 `②` 클릭 → 파일 존재 확인 → **SHA-256 해시로 같은 파일을 이미 넣었는지 확인**. 넣었으면 `Import Blocked` / `This file has already been imported.`로 **여기서 끊는다**(진행 선택지 없음). 단계(상품/재고)가 다르면 같은 파일이라도 통과한다.
 3. 파일을 읽어 **무엇이 들어갈지 계획만 세우고 미리보기 대화상자**를 띄운다 (고정폭 글씨).
    - 1단계: `Rows in file` / `New products` / `Products to update` / `Unchanged` / `Duplicate rows skipped` / `Rows with errors` + 오류 목록(최대 15줄) + `Existing products keep any value the file leaves empty.` + `Rows listed above are skipped. Continue?`
-   - 2단계: `Rows in file` / `Batches to add` / `Product not found` / `Without expiry date` / `Rows with errors` + 목록 + `Quantity is counted in single units, not boxes.` + `Rows listed above are skipped. Continue?`
+   - 2단계: `Rows in file` / `Batches to add` / `Product not found` / `Without expiry date` / `Rows with errors` + 목록 + `quantity is the number of boxes, as on the Stock-IN screen. Use loose_quantity for loose units.` + `Rows listed above are skipped. Continue?`
    - 버튼 `Import` / `Cancel`. 취소하면 `Import cancelled.`
 4. `Import`를 누르면 **방금 보여준 계획을 그대로** 반영한다(다시 계산하지 않는다).
 5. 결과 대화상자: `Imported : {n} products|batches` / `Failed : {m}` + 실패 목록. 하단 메시지는 `Import complete — {n} products added.` 또는 `Import complete — Success: n, Failed: m.`
@@ -1128,7 +1128,8 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 | 조정 패널 · `Physical Count` | 낱개 전량 (박스 구분이 없는 상품) |
 | POS Sale · `Quantity (boxes)` | 박스 개수 |
 | POS Sale · `Quantity` | 낱개 개수 |
-| Import/Export · 파일의 `quantity` 열 | **낱개** (박스가 아니다 — 입고 화면과 반대) |
+| Import/Export · 파일의 `quantity` 열 | **박스 개수** (입고 화면과 같다. 박스 구분이 없는 상품이면 낱개 수) |
+| Import/Export · 파일의 `loose_quantity` 열 | 박스 밖의 낱개 (선택, 비면 0) |
 | Inventory Status 표의 `STOCK`, 판매 이력의 `Qty` | 언제나 **낱개** |
 
 ---

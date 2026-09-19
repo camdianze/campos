@@ -147,7 +147,8 @@ public class InitialImportServiceTests
         string expiryDate = "",
         string quantity = "",
         string dosageForm = "",
-        string genericName = "")
+        string genericName = "",
+        string looseQuantity = "")
     {
         return new ImportSourceRow
         {
@@ -165,6 +166,7 @@ public class InitialImportServiceTests
                 [InitialImportColumns.BatchNumber[0]] = batchNumber,
                 [InitialImportColumns.ExpiryDate[0]] = expiryDate,
                 [InitialImportColumns.Quantity[0]] = quantity,
+                [InitialImportColumns.LooseQuantity[0]] = looseQuantity,
                 [InitialImportColumns.DosageForm[0]] = dosageForm,
                 [InitialImportColumns.GenericName[0]] = genericName
             }
@@ -186,11 +188,11 @@ public class InitialImportServiceTests
     private static ImportSourceRow FullRow(
         int lineNumber, string productName, string batchNumber = "B1",
         string expiryDate = "2099-12-31", string quantity = "10",
-        string unitsPerBox = "", string looseUnitPrice = "")
+        string unitsPerBox = "", string looseUnitPrice = "", string looseQuantity = "")
         => Row(lineNumber, productName, unit: "Tablet", costPrice: "500", sellingPrice: "1000",
             safetyStock: "5", unitsPerBox: unitsPerBox, looseUnitPrice: looseUnitPrice,
             batchNumber: batchNumber, expiryDate: expiryDate, quantity: quantity,
-            dosageForm: "Tablet", genericName: GenericOf(productName));
+            dosageForm: "Tablet", genericName: GenericOf(productName), looseQuantity: looseQuantity);
 
     /// <summary>이미 저장돼 있는 상품. 저장 규칙을 만족하는 상태라 제형과 성분명이 있다.</summary>
     private static Product ExistingProduct(string name, int unitsPerBox = 1) => new()
@@ -635,18 +637,21 @@ public class InitialImportServiceTests
     }
 
     [Theory]
-    [InlineData("0")]
-    [InlineData("-3")]
-    [InlineData("abc")]
-    [InlineData("")]
-    public async Task PlanInventory_RejectsNonPositiveQuantity(string quantity)
+    [InlineData("0", "")]
+    [InlineData("0", "0")]
+    [InlineData("-3", "")]
+    [InlineData("abc", "")]
+    [InlineData("", "")]
+    [InlineData("1", "-1")]
+    [InlineData("1", "abc")]
+    public async Task PlanInventory_RejectsNonPositiveQuantity(string quantity, string looseQuantity)
     {
         var harness = new Harness();
         harness.Products.Products.Add(ExistingProduct("Amoxicillin"));
 
         var plan = await harness.Build().PlanInventoryAsync(new[]
         {
-            FullRow(2, "Amoxicillin", quantity: quantity)
+            FullRow(2, "Amoxicillin", quantity: quantity, looseQuantity: looseQuantity)
         });
 
         Assert.Empty(plan.BatchesToCreate);
@@ -654,26 +659,87 @@ public class InitialImportServiceTests
     }
 
     /// <summary>
-    /// 파일의 수량은 낱개다. 박스 상품이면 저장할 때 박스 + 낱개로 나눠 올린다.
-    /// 원장(Quantity)은 언제나 낱개 총량이어야 한다.
+    /// 파일의 quantity는 입고 화면과 같이 박스 개수다. 낱개로 읽으면 박스/낱개를 설정한
+    /// 상품의 "10"이 10박스가 아니라 낱개 10개가 되어 재고가 30배 적게 시작된다 —
+    /// 실제로 그렇게 됐던 버그다. 원장(Quantity)은 언제나 낱개 총량이어야 한다.
     /// </summary>
     [Fact]
-    public async Task ApplyInventory_SplitsUnitsIntoBoxesAndLooseUnits()
+    public async Task ApplyInventory_ReadsQuantityAsBoxes()
     {
         var harness = new Harness();
         harness.Products.Products.Add(ExistingProduct("Amoxicillin", unitsPerBox: 30));
 
         var service = harness.Build();
-        var plan = await service.PlanInventoryAsync(new[] { FullRow(2, "Amoxicillin", quantity: "65") });
+        var plan = await service.PlanInventoryAsync(new[] { FullRow(2, "Amoxicillin", quantity: "10") });
 
         var result = await service.ApplyInventoryAsync(plan, "hash-2", "stock.csv", FacilityId, UserId);
 
         Assert.Equal(1, result.SuccessCount);
 
         var (transaction, boxQuantity, unitQuantity) = Assert.Single(harness.StockIn.Saved);
+        Assert.Equal(300, transaction.Quantity);
+        Assert.Equal(10, boxQuantity);
+        Assert.Equal(0, unitQuantity);
+    }
+
+    /// <summary>반 박스가 남은 실사: loose_quantity가 박스 밖의 낱개를 나른다.</summary>
+    [Fact]
+    public async Task ApplyInventory_AddsLooseQuantityAsLooseUnits()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(ExistingProduct("Amoxicillin", unitsPerBox: 30));
+
+        var service = harness.Build();
+        var plan = await service.PlanInventoryAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", quantity: "2", looseQuantity: "5")
+        });
+
+        await service.ApplyInventoryAsync(plan, "hash-2", "stock.csv", FacilityId, UserId);
+
+        var (transaction, boxQuantity, unitQuantity) = Assert.Single(harness.StockIn.Saved);
         Assert.Equal(65, transaction.Quantity);
         Assert.Equal(2, boxQuantity);
         Assert.Equal(5, unitQuantity);
+    }
+
+    /// <summary>박스당 개수를 넘는 낱개는 거절하지 않고 박스로 접는다. 총량이 진실이다.</summary>
+    [Fact]
+    public async Task ApplyInventory_FoldsOverflowingLooseUnitsIntoBoxes()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(ExistingProduct("Amoxicillin", unitsPerBox: 30));
+
+        var service = harness.Build();
+        var plan = await service.PlanInventoryAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", quantity: "0", looseQuantity: "45")
+        });
+
+        await service.ApplyInventoryAsync(plan, "hash-2", "stock.csv", FacilityId, UserId);
+
+        var (transaction, boxQuantity, unitQuantity) = Assert.Single(harness.StockIn.Saved);
+        Assert.Equal(45, transaction.Quantity);
+        Assert.Equal(1, boxQuantity);
+        Assert.Equal(15, unitQuantity);
+    }
+
+    /// <summary>박스 구분이 없는 상품은 quantity가 그대로 낱개 수이고, 입고 화면처럼 전량 낱개로 올라간다.</summary>
+    [Fact]
+    public async Task ApplyInventory_UnboxedProduct_StoresQuantityAsUnits()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(ExistingProduct("Amoxicillin"));
+
+        var service = harness.Build();
+        var plan = await service.PlanInventoryAsync(new[] { FullRow(2, "Amoxicillin", quantity: "10") });
+
+        await service.ApplyInventoryAsync(plan, "hash-2", "stock.csv", FacilityId, UserId);
+
+        var (transaction, boxQuantity, unitQuantity) = Assert.Single(harness.StockIn.Saved);
+        Assert.Equal(10, transaction.Quantity);
+        Assert.Equal(0, boxQuantity);
+        Assert.Equal(10, unitQuantity);
     }
 
     /// <summary>초기 재고도 입고다. 별도 거래 유형을 만들지 않는다.</summary>
