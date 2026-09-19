@@ -569,7 +569,7 @@ public class InitialImportService : IInitialImportService
         value.Trim().ToLowerInvariant() is "true" or "1" or "y" or "yes";
 
     public async Task<ImportApplyResult> ApplyProductsAsync(
-        ProductImportPlan plan, string fileHash, string? fileName, string facilityId)
+        ProductImportPlan plan, string fileHash, string? fileName, string facilityId, string userId)
     {
         var failures = new List<ImportIssue>();
         var success = 0;
@@ -587,7 +587,7 @@ public class InitialImportService : IInitialImportService
                 // 판매가가 원가보다 낮아도 그대로 넣는다. 약국이 실제로 그 값에 팔던 상품이고,
                 // 수백 건짜리 파일에서 행마다 확인을 물을 수는 없다.
                 result = await _productService.SaveProductAsync(
-                    line.Product, isNew, acknowledgeLowerSellingPriceWarning: true);
+                    line.Product, isNew, userId, acknowledgeLowerSellingPriceWarning: true);
             }
             catch (Exception)
             {

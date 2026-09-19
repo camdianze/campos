@@ -28,6 +28,8 @@ public class ProductRequiredFieldTests
             => Task.FromResult(false);
         public Task InsertAsync(Product product) { Saved.Add(product); return Task.CompletedTask; }
         public Task UpdateAsync(Product product) { Saved.Add(product); return Task.CompletedTask; }
+        public Task<bool> UpdateWithUnitsPerBoxChangeAsync(Product product, int previousUnitsPerBox, string userId)
+            => Task.FromResult(true);
         public Task DeactivateAsync(string productId) => Task.CompletedTask;
         public Task<ProductPhoto?> GetPhotoAsync(string productId) => Task.FromResult<ProductPhoto?>(null);
         public Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt) => Task.CompletedTask;
@@ -57,7 +59,7 @@ public class ProductRequiredFieldTests
     };
 
     private static async Task<ProductSaveResult> SaveAsync(Product product) =>
-        await CreateService().SaveProductAsync(product, isNewProduct: true);
+        await CreateService().SaveProductAsync(product, isNewProduct: true, userId: "user-1");
 
     [Fact]
     public async Task CompleteMedicine_Saves()
@@ -166,7 +168,7 @@ public class ProductRequiredFieldTests
         var product = Medicine();
         product.Barcode = "  8806433062927 ";
 
-        var result = await service.SaveProductAsync(product, isNewProduct: true);
+        var result = await service.SaveProductAsync(product, isNewProduct: true, userId: "user-1");
 
         Assert.True(result.IsSuccess, result.Message);
         Assert.Equal("8806433062927", Assert.Single(repository.Saved).Barcode);
@@ -180,7 +182,7 @@ public class ProductRequiredFieldTests
         var product = Medicine();
         product.Barcode = "   ";
 
-        var result = await service.SaveProductAsync(product, isNewProduct: true);
+        var result = await service.SaveProductAsync(product, isNewProduct: true, userId: "user-1");
 
         Assert.True(result.IsSuccess, result.Message);
         Assert.Null(Assert.Single(repository.Saved).Barcode);

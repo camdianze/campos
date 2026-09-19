@@ -203,6 +203,9 @@
 
                     <CheckBox Content="Sell loose units"
                               IsChecked="{Binding SellsLooseUnits}"/>
+                    <!-- 재고는 파는 단위의 개수다. 켜는 순간 지금까지의 10개는 10박스가 되므로 그 사실을 미리 말해 둔다. -->
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
+                               Text="Stock on hand is counted as boxes: 10 in stock becomes 10 boxes when this is switched on."/>
 
                     <Border Visibility="{Binding SellsLooseUnits, Converter={StaticResource BoolToVis}}"
                             Background="{StaticResource SubtleSurfaceBrush}" CornerRadius="8"

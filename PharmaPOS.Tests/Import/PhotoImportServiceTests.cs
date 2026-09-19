@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Import;
+﻿using PharmaPOS.Application.Import;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
@@ -79,6 +79,8 @@ public class PhotoImportServiceTests
             => Task.FromResult(false);
         public Task InsertAsync(Product product) => Task.CompletedTask;
         public Task UpdateAsync(Product product) => Task.CompletedTask;
+        public Task<bool> UpdateWithUnitsPerBoxChangeAsync(Product product, int previousUnitsPerBox, string userId)
+            => Task.FromResult(true);
         public Task DeactivateAsync(string productId) => Task.CompletedTask;
         public Task<ProductPhoto?> GetPhotoAsync(string productId) => Task.FromResult<ProductPhoto?>(null);
         public Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt) => Task.CompletedTask;

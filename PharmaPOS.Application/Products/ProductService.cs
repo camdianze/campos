@@ -23,6 +23,7 @@ public class ProductService : IProductService
     public async Task<ProductSaveResult> SaveProductAsync(
         Domain.Entities.Product product,
         bool isNewProduct,
+        string userId,
         bool acknowledgeLowerSellingPriceWarning = false)
     {
         // 필수값 검증 (Screen §4.3절 순서 그대로)
@@ -161,7 +162,27 @@ public class ProductService : IProductService
             }
             else
             {
-                await _productRepository.UpdateAsync(product);
+                // 박스당 개수가 바뀌면 재고도 따라가야 한다. 이 앱에서 재고의 개수는 언제나
+                // "파는 단위"의 개수다 — 박스 구분이 없던 상품의 10은 열 개의 통이고, 낱개 판매를
+                // 켜서 통 하나가 30정이 되면 그 10은 10박스(300정)이지 낱개 10정이 아니다.
+                // 재고를 그대로 두면 있던 재고가 박스당 개수만큼 줄어든 채로 보인다.
+                var previous = await _productRepository.GetByIdAsync(product.ProductId);
+
+                if (previous is not null && previous.UnitsPerBox != product.UnitsPerBox)
+                {
+                    var recounted = await _productRepository.UpdateWithUnitsPerBoxChangeAsync(
+                        product, previous.UnitsPerBox, userId);
+
+                    if (!recounted)
+                    {
+                        return ProductSaveResult.Failure(
+                            "Loose units are still in stock. Sell them or adjust them to 0 before switching loose sale off.");
+                    }
+                }
+                else
+                {
+                    await _productRepository.UpdateAsync(product);
+                }
             }
         }
         catch (Exception)

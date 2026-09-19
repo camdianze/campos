@@ -41,6 +41,17 @@ public interface IProductRepository
     Task UpdateAsync(Product product);
 
     /// <summary>
+    /// 박스당 개수가 바뀐 상품을 갱신하면서, 그 상품의 모든 배치 재고를 같은 트랜잭션 안에서
+    /// 다시 센다. 재고의 <b>개수</b>는 그대로 두고 그 개수가 가리키는 것을 바꾼다 — 박스 구분이
+    /// 없던 상품의 10개는 낱개 판매를 켜는 순간 10박스가 되고, 낱개 총량은 10 × 박스당 개수가 된다.
+    /// 배치마다 조정(Adjustment) 원장 행을 남겨 stock_before/after 사슬이 끊기지 않게 한다.
+    ///
+    /// 낱개 판매를 끄는데(새 값 1) 헐어 놓은 낱개가 남은 배치가 있으면 아무것도 쓰지 않고
+    /// false를 돌려준다 — 그 낱개는 박스로 셀 수 없어 조용히 사라질 것이기 때문이다.
+    /// </summary>
+    Task<bool> UpdateWithUnitsPerBoxChangeAsync(Product product, int previousUnitsPerBox, string userId);
+
+    /// <summary>
     /// 상품을 비활성화한다 (물리 삭제 아님, status = Inactive로 변경).
     /// </summary>
     Task DeactivateAsync(string productId);

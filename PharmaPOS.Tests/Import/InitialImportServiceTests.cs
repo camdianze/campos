@@ -57,6 +57,8 @@ public class InitialImportServiceTests
             return Task.CompletedTask;
         }
 
+        public Task<bool> UpdateWithUnitsPerBoxChangeAsync(Product product, int previousUnitsPerBox, string userId)
+            => Task.FromResult(true);
         public Task DeactivateAsync(string productId) => Task.CompletedTask;
 
         /// <summary>사진은 상품 저장 경로와 갈라져 있다. 임포트는 사진을 건드리지 않는다.</summary>
@@ -514,7 +516,7 @@ public class InitialImportServiceTests
             Row(2, productName: "Amoxicillin", sellingPrice: "1500")
         });
 
-        var result = await service.ApplyProductsAsync(plan, "hash-1", "stock.csv", FacilityId);
+        var result = await service.ApplyProductsAsync(plan, "hash-1", "stock.csv", FacilityId, UserId);
 
         Assert.Equal(1, result.SuccessCount);
 
@@ -530,7 +532,7 @@ public class InitialImportServiceTests
         var service = harness.Build();
 
         var plan = await service.PlanProductsAsync(new[] { FullRow(2, "Amoxicillin"), FullRow(3, "Ibuprofen") });
-        var result = await service.ApplyProductsAsync(plan, "hash-1", "stock.csv", FacilityId);
+        var result = await service.ApplyProductsAsync(plan, "hash-1", "stock.csv", FacilityId, UserId);
 
         Assert.Equal(2, result.SuccessCount);
         Assert.Equal(0, result.FailureCount);
@@ -549,7 +551,7 @@ public class InitialImportServiceTests
         var service = harness.Build();
 
         var plan = await service.PlanProductsAsync(new[] { FullRow(2, "Amoxicillin") });
-        await service.ApplyProductsAsync(plan, "hash-1", "stock.csv", FacilityId);
+        await service.ApplyProductsAsync(plan, "hash-1", "stock.csv", FacilityId, UserId);
 
         Assert.True(await service.WasAlreadyImportedAsync(ImportType.Products, "hash-1"));
         Assert.False(await service.WasAlreadyImportedAsync(ImportType.Inventory, "hash-1"));

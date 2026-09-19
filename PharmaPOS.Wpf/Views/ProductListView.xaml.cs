@@ -120,7 +120,8 @@ public partial class ProductListView : UserControl
         var editViewModel = new ProductEditViewModel(
             productService,
             App.Services.GetRequiredService<IProductPhotoService>(),
-            existingProduct);
+            existingProduct,
+            App.CurrentShellViewModel?.CurrentUser.UserId ?? string.Empty);
 
         var editView = new ProductEditView();
         editView.AttachViewModel(editViewModel);

@@ -1,4 +1,4 @@
-using PharmaPOS.Domain.Enums;
+﻿using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.Application.Import;
 
@@ -22,7 +22,7 @@ public interface IInitialImportService
 
     /// <summary>계산된 상품을 저장하고 임포트 이력을 남긴다.</summary>
     Task<ImportApplyResult> ApplyProductsAsync(
-        ProductImportPlan plan, string fileHash, string? fileName, string facilityId);
+        ProductImportPlan plan, string fileHash, string? fileName, string facilityId, string userId);
 
     /// <summary>
     /// 파일 행들을 읽어 만들 배치를 계산한다. 상품은 이미 등록돼 있어야 하며,

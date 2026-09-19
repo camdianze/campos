@@ -25,6 +25,8 @@ public class ProductPricePrecisionTests
             => Task.FromResult(false);
         public Task InsertAsync(Product product) { Saved.Add(product); return Task.CompletedTask; }
         public Task UpdateAsync(Product product) { Saved.Add(product); return Task.CompletedTask; }
+        public Task<bool> UpdateWithUnitsPerBoxChangeAsync(Product product, int previousUnitsPerBox, string userId)
+            => Task.FromResult(true);
         public Task DeactivateAsync(string productId) => Task.CompletedTask;
         public Task<ProductPhoto?> GetPhotoAsync(string productId) => Task.FromResult<ProductPhoto?>(null);
         public Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt) => Task.CompletedTask;
@@ -65,7 +67,7 @@ public class ProductPricePrecisionTests
     {
         var (service, repository) = CreateService();
 
-        var result = await service.SaveProductAsync(CreateProduct(unitSellingPrice), isNewProduct: true);
+        var result = await service.SaveProductAsync(CreateProduct(unitSellingPrice), isNewProduct: true, userId: "user-1");
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Loose unit price can have at most 2 decimal places.", result.Message);
@@ -81,7 +83,7 @@ public class ProductPricePrecisionTests
     {
         var (service, _) = CreateService();
 
-        var result = await service.SaveProductAsync(CreateProduct(unitSellingPrice), isNewProduct: true);
+        var result = await service.SaveProductAsync(CreateProduct(unitSellingPrice), isNewProduct: true, userId: "user-1");
 
         Assert.True(result.IsSuccess, result.Message);
     }
@@ -92,7 +94,7 @@ public class ProductPricePrecisionTests
     {
         var (service, _) = CreateService();
 
-        var result = await service.SaveProductAsync(CreateProduct(null), isNewProduct: true);
+        var result = await service.SaveProductAsync(CreateProduct(null), isNewProduct: true, userId: "user-1");
 
         Assert.True(result.IsSuccess, result.Message);
     }

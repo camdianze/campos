@@ -14,10 +14,13 @@ public interface IProductService
     /// isNewProduct로 신규/수정을 명시적으로 구분한다.
     /// acknowledgeLowerSellingPriceWarning이 false인 상태에서 판매가가 매입가보다
     /// 낮으면, 저장하지 않고 NeedsConfirmation 결과를 반환한다.
+    ///
+    /// userId는 수정으로 박스당 개수가 바뀔 때 재고를 다시 세는 조정 원장 행에 적힌다.
     /// </summary>
     Task<ProductSaveResult> SaveProductAsync(
         Product product,
         bool isNewProduct,
+        string userId,
         bool acknowledgeLowerSellingPriceWarning = false);
 
     /// <summary>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.DataAccess.Database;
 using PharmaPOS.Domain.Entities;
@@ -192,12 +193,7 @@ public class ProductRepository : IProductRepository
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task UpdateAsync(Product product)
-    {
-        using var connection = _connectionFactory.CreateOpenConnection();
-
-        using var command = connection.CreateCommand();
-        command.CommandText = """
+    private const string UpdateSql = """
             UPDATE Product_Master
             SET barcode = $barcode,
                 internal_barcode = $internalBarcode,
@@ -219,8 +215,150 @@ public class ProductRepository : IProductRepository
                 dosage_form = $dosageForm
             WHERE product_id = $productId;
             """;
+
+    public async Task UpdateAsync(Product product)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = UpdateSql;
         AddProductParameters(command, product);
         await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task<bool> UpdateWithUnitsPerBoxChangeAsync(
+        Product product, int previousUnitsPerBox, string userId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        using var dbTransaction = connection.BeginTransaction();
+
+        try
+        {
+            var batches = new List<(string InventoryId, string FacilityId, string BatchNumber,
+                long ExpiryDate, int Current, int Boxes, int Units)>();
+
+            using (var readCommand = connection.CreateCommand())
+            {
+                readCommand.Transaction = dbTransaction;
+                readCommand.CommandText = """
+                    SELECT inventory_id, facility_id, batch_number, expiry_date,
+                           current_quantity, box_quantity, unit_quantity
+                    FROM Inventory
+                    WHERE product_id = $productId;
+                    """;
+                readCommand.Parameters.AddWithValue("$productId", product.ProductId);
+
+                using var reader = await readCommand.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    batches.Add((reader.GetString(0), reader.GetString(1), reader.GetString(2),
+                        reader.GetInt64(3), reader.GetInt32(4), reader.GetInt32(5), reader.GetInt32(6)));
+                }
+            }
+
+            var wasBoxed = previousUnitsPerBox > 1;
+            var isBoxed = product.UnitsPerBox > 1;
+
+            // 낱개 판매를 끄면 헐어 놓은 낱개는 셀 자리가 없다. 버리느니 거절한다.
+            if (wasBoxed && !isBoxed && batches.Any(b => b.Units > 0))
+            {
+                dbTransaction.Rollback();
+                return false;
+            }
+
+            using (var updateProduct = connection.CreateCommand())
+            {
+                updateProduct.Transaction = dbTransaction;
+                updateProduct.CommandText = UpdateSql;
+                AddProductParameters(updateProduct, product);
+                await updateProduct.ExecuteNonQueryAsync();
+            }
+
+            var changedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            foreach (var batch in batches)
+            {
+                // 박스 구분이 없던 상품은 전량이 unit_quantity에 있고, 그 하나하나가 "통"이었다.
+                // 박스 상품이면 박스는 박스대로 남고 낱개 총량만 새 박스당 개수로 다시 계산한다.
+                var boxes = wasBoxed ? batch.Boxes : batch.Current;
+                var units = wasBoxed ? batch.Units : 0;
+                var stock = isBoxed
+                    ? new BoxUnitStock(BoxUnitMath.ToTotalUnits(boxes, units, product.UnitsPerBox), boxes, units)
+                    : BoxUnitMath.Split(boxes, 1);
+
+                if (stock.TotalUnits == batch.Current && stock.BoxQuantity == batch.Boxes
+                    && stock.UnitQuantity == batch.Units)
+                {
+                    continue;
+                }
+
+                using (var updateInventory = connection.CreateCommand())
+                {
+                    updateInventory.Transaction = dbTransaction;
+                    updateInventory.CommandText = """
+                        UPDATE Inventory
+                        SET current_quantity = $current,
+                            box_quantity = $boxes,
+                            unit_quantity = $units,
+                            updated_at = $updatedAt
+                        WHERE inventory_id = $inventoryId;
+                        """;
+                    updateInventory.Parameters.AddWithValue("$current", stock.TotalUnits);
+                    updateInventory.Parameters.AddWithValue("$boxes", stock.BoxQuantity);
+                    updateInventory.Parameters.AddWithValue("$units", stock.UnitQuantity);
+                    updateInventory.Parameters.AddWithValue("$updatedAt", changedAt);
+                    updateInventory.Parameters.AddWithValue("$inventoryId", batch.InventoryId);
+                    await updateInventory.ExecuteNonQueryAsync();
+                }
+
+                // 원장에 남기지 않으면 이 배치의 stock_after와 다음 행의 stock_before가
+                // 어긋나 "원장 없이 재고가 움직인" 것으로 읽힌다. 실제로 움직인 것이 아니라
+                // 세는 단위가 바뀐 것이므로 이유에 그렇게 적는다.
+                var transactionId = Guid.NewGuid().ToString();
+
+                using (var insertLedger = connection.CreateCommand())
+                {
+                    insertLedger.Transaction = dbTransaction;
+                    insertLedger.CommandText = """
+                        INSERT INTO Stock_Transaction
+                            (transaction_id, facility_id, product_id, user_id, transaction_type,
+                             batch_number, expiry_date, quantity,
+                             selling_price_at_transaction, payment_method, total_amount, reason,
+                             transaction_time)
+                        VALUES
+                            ($transactionId, $facilityId, $productId, $userId, $transactionType,
+                             $batchNumber, $expiryDate, $quantity,
+                             NULL, NULL, NULL, $reason,
+                             $transactionTime);
+                        """;
+                    insertLedger.Parameters.AddWithValue("$transactionId", transactionId);
+                    insertLedger.Parameters.AddWithValue("$facilityId", batch.FacilityId);
+                    insertLedger.Parameters.AddWithValue("$productId", product.ProductId);
+                    insertLedger.Parameters.AddWithValue("$userId", userId);
+                    insertLedger.Parameters.AddWithValue("$transactionType", TransactionType.Adjustment.ToString());
+                    insertLedger.Parameters.AddWithValue("$batchNumber", batch.BatchNumber);
+                    insertLedger.Parameters.AddWithValue("$expiryDate", batch.ExpiryDate);
+                    insertLedger.Parameters.AddWithValue("$quantity", stock.TotalUnits - batch.Current);
+                    insertLedger.Parameters.AddWithValue("$reason",
+                        $"Units per box changed {previousUnitsPerBox} → {product.UnitsPerBox}: "
+                        + $"{stock.BoxQuantity} box(es) + {stock.UnitQuantity} loose = {stock.TotalUnits} units");
+                    insertLedger.Parameters.AddWithValue("$transactionTime", changedAt);
+                    await insertLedger.ExecuteNonQueryAsync();
+                }
+
+                await StockLedgerTrace.RecordAsync(
+                    connection, dbTransaction, transactionId, batch.Current, stock.TotalUnits);
+            }
+
+            dbTransaction.Commit();
+            return true;
+        }
+        catch
+        {
+            dbTransaction.Rollback();
+            throw;
+        }
     }
 
     public async Task DeactivateAsync(string productId)

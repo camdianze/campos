@@ -333,13 +333,17 @@ public class ProductEditViewModel : ViewModelBase
     /// </summary>
     public event Action<string>? ConfirmationRequested;
 
+    private readonly string _userId;
+
     public ProductEditViewModel(
         IProductService productService,
         IProductPhotoService photoService,
-        Product? existingProduct)
+        Product? existingProduct,
+        string userId)
     {
         _productService = productService;
         _photoService = photoService;
+        _userId = userId;
 
         IsNewProduct = existingProduct is null;
 
@@ -461,7 +465,7 @@ public class ProductEditViewModel : ViewModelBase
             CreatedAt = 0 // 신규 등록 시 서비스가 채운다. 수정 시에는 DB의 기존 값이 UPDATE 대상에서 그대로 유지된다.
         };
 
-        var result = await _productService.SaveProductAsync(product, IsNewProduct, acknowledgeWarning);
+        var result = await _productService.SaveProductAsync(product, IsNewProduct, _userId, acknowledgeWarning);
 
         if (result.IsSuccess)
         {

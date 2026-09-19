@@ -222,7 +222,7 @@ public class BackupExportViewModel : ViewModelBase
         }
 
         var result = await _initialImportService.ApplyProductsAsync(
-            plan, file.Hash, Path.GetFileName(ImportFilePath), _facilityId);
+            plan, file.Hash, Path.GetFileName(ImportFilePath), _facilityId, _userId);
 
         ShowApplyResult("Import Products", result, "products");
     }

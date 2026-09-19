@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Products;
+﻿using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -69,6 +69,8 @@ public class ProductPhotoServiceTests
             => Task.FromResult(false);
         public Task InsertAsync(Product product) => Task.CompletedTask;
         public Task UpdateAsync(Product product) => Task.CompletedTask;
+        public Task<bool> UpdateWithUnitsPerBoxChangeAsync(Product product, int previousUnitsPerBox, string userId)
+            => Task.FromResult(true);
         public Task DeactivateAsync(string productId) => Task.CompletedTask;
     }
 
