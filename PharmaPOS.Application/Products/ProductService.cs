@@ -100,6 +100,14 @@ public class ProductService : IProductService
                 "Selling price is lower than cost price. Continue?");
         }
 
+        // 바코드는 앞뒤 공백 없이 저장한다. 스캐너가 찍은 값과 글자 단위로 같아야
+        // 판매 화면이 장바구니까지 한 번에 가는데, 붙여넣기나 시트에서 공백 하나가
+        // 따라오면 검색은 되고 담기는 안 되는 상태가 된다 — 계산대에서 원인을 알 수 없다.
+        product.Barcode = string.IsNullOrWhiteSpace(product.Barcode) ? null : product.Barcode.Trim();
+        product.InternalBarcode = string.IsNullOrWhiteSpace(product.InternalBarcode)
+            ? null
+            : product.InternalBarcode.Trim();
+
         // barcode 중복 확인 (자기 자신은 제외)
         if (!string.IsNullOrWhiteSpace(product.Barcode))
         {

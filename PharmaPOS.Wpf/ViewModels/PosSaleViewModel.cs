@@ -282,11 +282,15 @@ public partial class PosSaleViewModel : ViewModelBase
         // 바코드는 유일 인덱스가 걸려 있어 정확히 맞은 값이 두 상품을 가리킬 수 없다.
         // 그래서 결과가 여럿이어도(이름에 같은 숫자가 들어간 상품 등) 망설일 이유가 없다.
         // 이름으로 찾은 경우는 종전 그대로다 — 사람이 고른다.
-        if (IsExactBarcodeMatch(results[0], lookupTerm))
+        // 첫 결과만 보지 않는다. 검색은 이름·성분명까지 훑으므로, 바코드가 정확히
+        // 맞는 상품이 목록의 둘째 줄에 올 수도 있다.
+        var scanned = results.FirstOrDefault(p => IsExactBarcodeMatch(p, lookupTerm));
+
+        if (scanned is not null)
         {
             // 배치를 다 읽은 뒤에 담아야 한다. 선택만 해 두고 바로 담으면
             // 배치가 아직 비어 있어 "Please select a batch number."로 튕긴다.
-            await SelectProductAndLoadBatchesAsync(results[0]);
+            await SelectProductAndLoadBatchesAsync(scanned);
 
             ExecuteAddToCart();
 
@@ -317,8 +321,10 @@ public partial class PosSaleViewModel : ViewModelBase
     /// 낱개용 접미사(-EA)는 부르는 쪽에서 이미 떼어 낸 값이 들어온다.
     /// </summary>
     private static bool IsExactBarcodeMatch(Product product, string lookupTerm) =>
-        string.Equals(product.Barcode, lookupTerm, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(product.InternalBarcode, lookupTerm, StringComparison.OrdinalIgnoreCase);
+        // 저장 쪽도 이제 공백을 지우지만, 이 수정 전에 저장된 상품은 그대로 남아 있다.
+        // 그 값에 공백이 붙어 있어도 스캔은 통해야 하므로 비교할 때도 한 번 더 지운다.
+        string.Equals(product.Barcode?.Trim(), lookupTerm, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(product.InternalBarcode?.Trim(), lookupTerm, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// 상품을 고르고 배치까지 읽어 온다. 목록 클릭 경로와 달리 기다릴 수 있다.

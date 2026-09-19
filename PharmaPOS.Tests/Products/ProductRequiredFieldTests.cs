@@ -1,4 +1,4 @@
-using PharmaPOS.Application.Products;
+﻿using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -151,5 +151,38 @@ public class ProductRequiredFieldTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Selling price must be greater than zero.", result.Message);
+    }
+
+    /// <summary>
+    /// 바코드는 앞뒤 공백 없이 저장돼야 한다. 붙여넣기나 시트에서 공백이 따라오면
+    /// 검색은 되는데 스캔 즉시 담기는 안 되는 상태가 된다 — 내부 바코드는 앱이 만들어
+    /// 늘 깨끗하고 유통사 바코드만 그렇게 되니, "외부 바코드만 안 된다"로 보인다.
+    /// </summary>
+    [Fact]
+    public async Task Barcode_IsStoredWithoutSurroundingWhitespace()
+    {
+        var repository = new FakeProductRepository();
+        var service = new ProductService(repository, new FakeBarcodeSequenceRepository());
+        var product = Medicine();
+        product.Barcode = "  8806433062927 ";
+
+        var result = await service.SaveProductAsync(product, isNewProduct: true);
+
+        Assert.True(result.IsSuccess, result.Message);
+        Assert.Equal("8806433062927", Assert.Single(repository.Saved).Barcode);
+    }
+
+    [Fact]
+    public async Task WhitespaceOnlyBarcode_IsStoredAsNull()
+    {
+        var repository = new FakeProductRepository();
+        var service = new ProductService(repository, new FakeBarcodeSequenceRepository());
+        var product = Medicine();
+        product.Barcode = "   ";
+
+        var result = await service.SaveProductAsync(product, isNewProduct: true);
+
+        Assert.True(result.IsSuccess, result.Message);
+        Assert.Null(Assert.Single(repository.Saved).Barcode);
     }
 }
