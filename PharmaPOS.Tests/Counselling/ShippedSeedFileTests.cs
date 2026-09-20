@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.DataAccess.Database;
 using PharmaPOS.DataAccess.Repositories;
@@ -72,6 +72,22 @@ public class ShippedSeedFileTests : IDisposable
     private Task<Domain.Entities.AwareClassification?> FindByAtcAsync(string atcCode)
         => _awareRepository.FindByAtcCodeAsync(AntibioticNameNormalizer.NormalizeAtcCode(atcCode));
 
+    /// <summary>
+    /// 그룹별 행 수. 리포지터리에는 전체 개수만 있어서 여기서는 직접 센다 —
+    /// 그룹별 개수는 앱이 쓰는 값이 아니라 시드가 원문과 같은지 보는 값이다.
+    /// </summary>
+    private async Task<int> CountOfGroupAsync(AwareGroup group)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT COUNT(*) FROM Aware_Classification WHERE aware_group = $group;";
+        // 저장되는 값은 열거형 이름이 아니라 AwareGroupCodes의 코드다 (NOT_RECOMMENDED 등).
+        command.Parameters.AddWithValue("$group", AwareGroupCodes.ToCode(group));
+
+        return Convert.ToInt32(await command.ExecuteScalarAsync());
+    }
+
     // ── 적재 ─────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -88,6 +104,47 @@ public class ShippedSeedFileTests : IDisposable
         Assert.Equal(0, result.SkippedCount);
         Assert.Equal("WHO AWaRe 2025", result.SourceVersion);
         Assert.Equal(result.LoadedCount, await _awareRepository.CountAsync());
+    }
+
+    /// <summary>
+    /// WHO 2025 원문(PDF)의 행 수와 그룹별 개수를 그대로 고정한다.
+    ///
+    /// 이 숫자가 있는 이유: 한 번 <b>WHO에 없는 항생제 두 행이 시드에 들어간 적이 있다</b>.
+    /// 포털을 훑다 잘못 읽은 것인데, 파일은 멀쩡히 읽히고 테스트도 전부 통과했으며
+    /// 그 성분을 파는 약국에서 없는 분류가 조용히 붙었을 뿐이었다. 개수를 박아 두면
+    /// 행을 더하거나 빼는 순간 이 검사가 먼저 깨지므로, 고칠 때 근거를 대게 된다.
+    ///
+    /// 개정판으로 교체할 때는 이 숫자도 함께 고치는 것이 정상이다 —
+    /// 고치면서 새 원문의 개수를 세어 보게 하는 것이 목적이다.
+    /// </summary>
+    [Fact]
+    public async Task ShippedSeed_HasExactlyTheRowsWhoPublished()
+    {
+        var result = await LoadSeedAsync();
+
+        Assert.Equal(384, result.LoadedCount);
+
+        Assert.Equal(93, await CountOfGroupAsync(AwareGroup.Access));
+        Assert.Equal(145, await CountOfGroupAsync(AwareGroup.Watch));
+        Assert.Equal(30, await CountOfGroupAsync(AwareGroup.Reserve));
+        Assert.Equal(116, await CountOfGroupAsync(AwareGroup.NotRecommended));
+    }
+
+    /// <summary>
+    /// WHO 목록에 없는 이름은 시드에도 없어야 한다.
+    ///
+    /// Capreomycin은 실재하는 항결핵제지만 AWaRe 분류 대상이 아니고,
+    /// Sulfamethizole/trimethoprim은 WHO의 sulfonamide 복합제 7건에 들어 있지 않다
+    /// (Sulfamethizole 단독은 있다). 둘 다 시드에 있었던 적이 있어 이름으로 못 박는다.
+    /// </summary>
+    [Theory]
+    [InlineData("Capreomycin")]
+    [InlineData("Sulfamethizole/trimethoprim")]
+    public async Task ShippedSeed_DoesNotCarryEntriesWhoNeverClassified(string name)
+    {
+        await LoadSeedAsync();
+
+        Assert.Null(await FindByNameAsync(name));
     }
 
     /// <summary>

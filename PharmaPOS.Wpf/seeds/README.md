@@ -1,8 +1,10 @@
-# AWaRe 시드 데이터
+﻿# AWaRe 시드 데이터
 
 `aware_2025.csv`는 WHO AWaRe 분류표를 담는 참조 데이터 파일이다.
-동봉본은 **실제 WHO 2025 목록 386행**이다 (ACCESS 95 / WATCH 145 / RESERVE 30,
-합계 270개 분류 항생제 + NOT_RECOMMENDED 116개 복합제).
+동봉본은 **실제 WHO 2025 목록 384행**이다 (ACCESS 93 / WATCH 145 / RESERVE 30,
+합계 268개 분류 항생제 + NOT_RECOMMENDED 116개 복합제).
+이 개수는 `ShippedSeed_HasExactlyTheRowsWhoPublished`가 고정한다 — 개정판으로 교체할 때
+그 숫자도 함께 고치게 되고, 고치려면 새 원문을 세어 보게 된다.
 
 출처: WHO, *The selection and use of essential medicines, 2025: WHO AWaRe
 classification of antibiotics for evaluation and monitoring of use* (2025-09-05)
@@ -109,9 +111,51 @@ ATC 접두사(J01 등)로 전신 여부를 자동 판별하지 않는 이유는 
 `aware.essentialmeds.org/list`의 376건과 행 단위로 대조했다.
 
 - 이름이 맞는 항목끼리 **등급 불일치 0건**.
-- WHO에 있는데 시드에 없던 **Capreomycin(ACCESS)**, **Sulfamethizole/trimethoprim(ACCESS)** 2건을 추가했다(id 385, 386). 등급·EML 여부는 포털 값 그대로. Sulfamethizole/trimethoprim은 고유 ATC가 확인되지 않아 비워 뒀다 — 복합제 116행과 같은 처리이며 이름으로 매칭된다.
+- WHO에 있는데 시드에 없다고 보고 **Capreomycin(ACCESS)**, **Sulfamethizole/trimethoprim(ACCESS)** 2건을 추가했다(id 385, 386). **→ 2026-09-20 대조에서 둘 다 WHO 목록에 없는 것으로 확인되어 제거했다. 아래 절을 볼 것.**
 - `ceftazidime/tobramicin` 오타를 `tobramycin`으로 고쳤다(id 164).
 - 시드에만 있는 NR 복합제 7건은 그대로 뒀다. WHO 포털에 없어도 NR로 잡히는 것이 옳은 방향이다.
 
 시드의 `-proxetil` `-pivoxil` `-fosamil` `-medocaril` 접미는 WHO 원본에는 없다. 지우지 않고 정규화기(`AntibioticNameNormalizer`, RuleVersion 3)가 벗기게 했다 — 상품 쪽 "Cefuroxime Axetil"과 시드 쪽 "Cefuroxime"이 같은 이름이 돼야 하므로, 양쪽에 같은 규칙이 걸리는 쪽이 맞다.
 
+## 2026-09-20 WHO 원문(PDF) 대조
+
+출처를 포털 화면이 아니라 **간행물 PDF**(`The selection and use of essential medicines, 2025`)로
+바꿔 384행 전체를 행 단위로 다시 맞췄다. 결과:
+
+| 검사 | 결과 |
+|---|---|
+| 이름이 같은 항목의 **등급** | **불일치 0건** |
+| 이름이 같은 항목의 **ATC 코드** | **불일치 0건** |
+| 경로로 갈리는 성분 25행(IV/ORAL) | **등급·ATC 모두 일치** |
+| `on_eml` 플래그 50건 | **WHO EML 2025 목록과 정확히 일치** |
+| 그룹별 개수 | ACCESS 93 / WATCH 145 / RESERVE 30 / NOT_RECOMMENDED 116 — **원문과 일치** |
+
+**고친 것 — WHO에 없는 2행 제거(id 385, 386).**
+직전 대조(2026-09-19)에서 포털을 훑다 넣은 행인데, 원문에는 둘 다 없다.
+
+- **Capreomycin(J04AB30)** — 실재하는 항결핵 주사제지만 AWaRe 분류 대상이 아니다.
+  AWaRe가 다루는 것은 J01 계열과 일부 A07AA·P01AB·J04AB(리팜피신류)이고, 다른
+  항결핵제는 들어 있지 않다. ACCESS로 둔 채 남겨 두면 2차 주사제에 "가장 안전한 등급"
+  안내가 붙는다 — 틀린 방향으로 틀린 것이라 더 나쁘다.
+- **Sulfamethizole/trimethoprim** — 원문의 sulfonamide/trimethoprim 복합제는 7건이고
+  (sulfadiazine/tetroxoprim, sulfadiazine/trimethoprim, sulfadimidine/trimethoprim,
+  sulfamerazine/trimethoprim, sulfamethoxazole/trimethoprim, sulfametrole/trimethoprim,
+  sulfamoxole/trimethoprim) 여기에 없다. Sulfamethizole **단독**은 J01EB02 ACCESS로 있고
+  시드에도 그대로 있다.
+
+두 이름은 `ShippedSeed_DoesNotCarryEntriesWhoNeverClassified`가 이름으로 막는다.
+개수 검사만 두면 다른 행을 빼고 이것을 도로 넣어도 통과하기 때문이다.
+
+**남겨 둔 차이 1 — `ceftazidime/tobramycin`(id 164).** 원문 PDF는 `tobramicin`으로
+적혀 있다(WHO 쪽 오타). 시드는 올바른 철자를 쓴다. 매칭 대상은 WHO 표기가 아니라
+약국이 입력하는 성분명이고, 어떤 제품도 `tobramicin`으로 적지 않는다.
+
+**남겨 둔 차이 2 — 경로 표기.** WHO는 `Vancomycin_IV` / `Vancomycin_oral`처럼 이름에
+경로를 붙이지만, 시드는 이름을 `Vancomycin` 하나로 두고 `route` 열로 갈라 둔다.
+성분명으로 매칭하는 구조라 이름에 `_IV`가 붙으면 어떤 제품과도 맞지 않는다.
+25행 전부 등급·ATC가 원문과 같은 것을 확인했다.
+
+**이 대조에서 얻은 교훈:** 앞선 대조는 포털 HTML을 긁어 비교했는데, 그때 없던 항목이
+"빠진 것"으로 보여 2행이 들어갔다. **출처는 간행물 PDF로 고정한다.** 그리고 행을
+더하는 방향의 수정은 빼는 방향보다 조용하다 — 없는 분류가 붙어도 아무 화면에도
+표시가 나지 않으므로, 근거 없이는 더하지 말 것.
