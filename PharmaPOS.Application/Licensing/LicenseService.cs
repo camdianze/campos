@@ -34,12 +34,50 @@ public class LicenseService : ILicenseService
     private const string PublicKeyBase64 =
         "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfaQ8ngaQCwVbt7v7R+oNxz14RCeMYyd1UH0AJaZULQl7LGl1XUiK+jslChMDEo+wdvc/dsuo4u+uZvQXqwVVwg==";
 
+    /// <summary>
+    /// 검증에 쓸 공개키. 운영에서는 위 상수이고, 테스트만 시험용 키로 바꿔 넣는다.
+    /// 시험용 키를 끼울 자리가 없으면 만료 판정을 테스트로 고정할 수 없다 —
+    /// 운영 개인키가 저장소에 없어서 테스트가 코드를 만들 수 없기 때문이다.
+    /// 그리고 이 규칙은 조용히 사라진 전력이 있다: 저장된 코드를 다시 보지 않아
+    /// 기한이 지나도 앱이 계속 열렸다.
+    /// </summary>
+    private readonly string _publicKeyBase64;
+
     public LicenseService(ILicenseActivationStore activationStore)
+        : this(activationStore, PublicKeyBase64)
     {
-        _activationStore = activationStore;
     }
 
-    public bool IsActivated() => _activationStore.IsActivated();
+    internal LicenseService(ILicenseActivationStore activationStore, string publicKeyBase64)
+    {
+        _activationStore = activationStore;
+        _publicKeyBase64 = publicKeyBase64;
+    }
+
+    /// <summary>
+    /// 저장된 코드를 읽어 상태를 만든다. 서명과 기한을 그때그때 다시 본다 —
+    /// 파일이 열리는지만 보던 예전 방식에서는 기한이 지나도 앱이 계속 열렸다.
+    /// </summary>
+    public LicenseStatus GetStatus()
+    {
+        var storedCode = _activationStore.ReadActivatedCode();
+
+        if (storedCode is null || !TryVerify(storedCode, out var payload, out _))
+        {
+            return LicenseStatus.NotActivated();
+        }
+
+        if (payload!.IsPerpetual)
+        {
+            return LicenseStatus.Active(payload.SerialNumber, expiresOn: null);
+        }
+
+        var expiresOn = ToLocalDate(payload.ExpiresAt);
+
+        return DateTimeOffset.UtcNow.ToUnixTimeSeconds() > payload.ExpiresAt
+            ? LicenseStatus.Expired(payload.SerialNumber, expiresOn)
+            : LicenseStatus.Active(payload.SerialNumber, expiresOn);
+    }
 
     public LicenseActivationResult Activate(string licenseCode)
     {
@@ -71,9 +109,22 @@ public class LicenseService : ILicenseService
 
             if (nowUnixSeconds > payload.ExpiresAt)
             {
-                var expiredOn = DateTimeOffset.FromUnixTimeSeconds(payload.ExpiresAt).ToLocalTime();
+                var expiredOn = ToLocalDate(payload.ExpiresAt);
                 return LicenseActivationResult.Failure(
                     $"This license expired on {expiredOn:yyyy-MM-dd}. Please contact your supplier.");
+            }
+
+            // 연장하려다 짧은 코드를 넣는 경우를 막는다. 덮어쓰고 나면 되돌릴 수 없고,
+            // 약국은 기한이 늘어난 줄 알고 있다가 예정보다 일찍 잠긴다.
+            var current = GetStatus();
+
+            if (current.CanRun && !current.IsPerpetual
+                && current.ExpiresOn is { } currentExpiry
+                && ToLocalDate(payload.ExpiresAt) < currentExpiry)
+            {
+                return LicenseActivationResult.Failure(
+                    $"This code expires earlier ({ToLocalDate(payload.ExpiresAt):yyyy-MM-dd}) "
+                    + $"than the license already on this PC ({currentExpiry:yyyy-MM-dd}).");
             }
         }
 
@@ -90,12 +141,34 @@ public class LicenseService : ILicenseService
         return LicenseActivationResult.Success();
     }
 
-    private static bool IsSignatureValid(LicensePayload payload, byte[] signature)
+    /// <summary>만료 시각을 현지 날짜로. 화면에 적는 날짜는 전부 이 값을 쓴다.</summary>
+    private static DateTime ToLocalDate(uint expiresAt) =>
+        DateTimeOffset.FromUnixTimeSeconds(expiresAt).ToLocalTime().Date;
+
+    /// <summary>코드를 풀고 포맷과 서명까지 확인한다. 기한은 부르는 쪽이 본다.</summary>
+    private bool TryVerify(string licenseCode, out LicensePayload? payload, out byte[]? signature)
+    {
+        payload = null;
+        signature = null;
+
+        if (!LicenseCodeCodec.TryDecode(licenseCode, out var decoded, out var decodedSignature)
+            || decoded.Version != LicensePayload.CurrentVersion
+            || !IsSignatureValid(decoded, decodedSignature))
+        {
+            return false;
+        }
+
+        payload = decoded;
+        signature = decodedSignature;
+        return true;
+    }
+
+    private bool IsSignatureValid(LicensePayload payload, byte[] signature)
     {
         try
         {
             using var ecdsa = ECDsa.Create();
-            ecdsa.ImportSubjectPublicKeyInfo(Convert.FromBase64String(PublicKeyBase64), out _);
+            ecdsa.ImportSubjectPublicKeyInfo(Convert.FromBase64String(_publicKeyBase64), out _);
 
             return ecdsa.VerifyData(
                 LicenseCodeCodec.GetSignableBytes(payload),

@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Licensing;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.Services;
@@ -15,6 +16,18 @@ public class MainShellViewModel : ViewModelBase
     private int _alertCount;
 
     public User CurrentUser { get; }
+    private readonly LicenseStatus _licenseStatus;
+
+    /// <summary>만료가 30일 안으로 다가왔을 때만 상단 바에 자리를 준다.</summary>
+    public bool ShowLicenseWarning { get; }
+
+    public string LicenseWarningText { get; } = string.Empty;
+
+    /// <summary>배지에 마우스를 올렸을 때. 정확한 만료일과 연장 방법을 적는다.</summary>
+    public string LicenseWarningTooltip =>
+        $"{_licenseStatus.Summary}\nAdministrators can enter a renewal code "
+        + "in Admin Dashboard → License.";
+
     public string WelcomeMessage { get; }
     public string RoleDescription { get; }
     public bool IsAdministrator { get; }
@@ -34,10 +47,12 @@ public class MainShellViewModel : ViewModelBase
     public event Action? LogoutRequested;
 
     public MainShellViewModel(
-        User loggedInUser, IAlertService alertService, UiLanguageService uiLanguage)
+        User loggedInUser, IAlertService alertService, UiLanguageService uiLanguage,
+        LicenseStatus licenseStatus)
     {
         _alertService = alertService;
         _uiLanguage = uiLanguage;
+        _licenseStatus = licenseStatus;
 
         // 언어가 바뀌면 카드 글자를 다시 읽어 간다.
         // 셸 ViewModel은 로그인마다 하나라 오래 살지만, 그래도 같은 방식으로 맞춘다.
@@ -46,6 +61,18 @@ public class MainShellViewModel : ViewModelBase
 
         CurrentUser = loggedInUser;
         WelcomeMessage = $"Welcome, {loggedInUser.Username}";
+
+        // 만료가 가까우면 상단 바에 남은 날을 띄운다. 기한이 지나면 앱이 아예 열리지
+        // 않으므로, 그 전에 볼 기회가 있어야 방문 일정을 잡을 수 있다.
+        // 영구 라이선스이거나 아직 한참 남았으면 자리 자체가 없다.
+        ShowLicenseWarning = licenseStatus.ShouldWarn;
+        LicenseWarningText = licenseStatus.DaysRemaining switch
+        {
+            null => string.Empty,
+            <= 0 => "License expires today",
+            1 => "License expires tomorrow",
+            { } days => $"License expires in {days} days"
+        };
 
         RoleDescription = loggedInUser.Role switch
         {

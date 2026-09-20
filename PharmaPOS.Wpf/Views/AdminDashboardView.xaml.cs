@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+using PharmaPOS.Application.Licensing;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +20,7 @@ namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
 public partial class AdminDashboardView : UserControl
 {
     private ReceiptSettingsViewModel? _receiptSettingsViewModel;
+    private LicenseSectionViewModel? _licenseSectionViewModel;
 
     public AdminDashboardView()
     {
@@ -41,6 +44,47 @@ public partial class AdminDashboardView : UserControl
         DataContext = viewModel;
 
         AttachReceiptSettings();
+        AttachLicenseSection();
+    }
+
+    /// <summary>
+    /// 라이선스 구역도 자기 ViewModel을 쓴다. 영수증 설정과 같은 이유다 —
+    /// 지표 화면과 설정 화면이 한 클래스에 섞이지 않게.
+    /// </summary>
+    private void AttachLicenseSection()
+    {
+        _licenseSectionViewModel = new LicenseSectionViewModel(
+            App.Services.GetRequiredService<ILicenseService>());
+
+        LicenseSection.DataContext = _licenseSectionViewModel;
+    }
+
+    /// <summary>
+    /// 라이선스 화면과 같은 통로. 코드가 124자라 손으로 치는 것은 무리이므로
+    /// USB에 담아 온 텍스트 파일에서 읽어 넣는다.
+    /// </summary>
+    private void OnLoadLicenseFileClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Select license file",
+            Filter = "License file (*.txt;*.lic)|*.txt;*.lic|All files (*.*)|*.*",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog() != true || _licenseSectionViewModel is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _licenseSectionViewModel.LicenseCode = File.ReadAllText(dialog.FileName).Trim();
+        }
+        catch (Exception)
+        {
+            _licenseSectionViewModel.LicenseCode = string.Empty;
+        }
     }
 
     /// <summary>

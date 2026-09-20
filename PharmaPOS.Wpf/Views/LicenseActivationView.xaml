@@ -19,11 +19,12 @@
         <Grid Grid.Column="1" Background="White">
             <StackPanel Width="342" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                <TextBlock Text="Activate CamPOS"
+                <TextBlock Text="{Binding Title}"
                            Style="{StaticResource PageTitle}" FontSize="28"
                            Margin="0,0,0,6"/>
 
-                <TextBlock Text="Enter the license code that came with your copy. This is a one-time step and works without an internet connection."
+                <!-- 기한이 지나 다시 열린 경우에는 그 사실과 만료일이 여기 들어간다. -->
+                <TextBlock Text="{Binding Introduction}"
                            Style="{StaticResource Caption}"
                            Margin="0,0,0,28"/>
 

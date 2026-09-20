@@ -789,9 +789,32 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ## 20. Administrator Dashboard — [AdminDashboardView.xaml](../PharmaPOS.Wpf/Views/AdminDashboardView.xaml)
 
-입력 칸 없음. 지표 카드 6개(`Daily Sales` / `Transactions` / `Inventory Value` / `Active Products` / `Low Stock` / `Expiry Alert`)와 이동 버튼 6개.
+지표 카드 6개(`Daily Sales` / `Transactions` / `Inventory Value` / `Active Products` / `Low Stock` / `Expiry Alert`)와 이동 버튼 6개, 그 아래 접히는 구역 둘(`🧾 Receipt Settings`, `🔑 License`).
 
 `📦  Product Management` / `👥  User Management` / `📊  Inventory Overview` / `🛒  Sales History` / `📈  Reports` / `📁  Import / Export` / `← Back`
+
+금액 카드(`Daily Sales`, `Inventory Value`)는 **소수점 두 자리로 반올림**해 보여준다. 낱개 원가가 "박스 원가 ÷ 박스당 개수"라 나누어떨어지지 않아, 그대로 두면 `256317.690433333`처럼 나온다.
+
+### 20-0. 라이선스 — `🔑 License` 구역
+
+접힌 머리에 **현재 상태 한 줄**이 늘 보인다 (`312 days left · expires 2027-07-30` / `Expired on 2026-09-01` / `Activated · no expiry date`). 만료 30일 안이거나 이미 지났으면 **주황 굵은 글씨**가 된다.
+
+| 컨트롤 | 설명 |
+|---|---|
+| `Renewal Code` | 124자라 여러 줄 입력. 줄바꿈·공백은 무시된다 |
+| `Load from file…` | USB의 `.txt` / `.lic`에서 읽어 넣는다 |
+| `Apply Code` | 검증 후 `license.dat`을 새 코드로 덮어쓴다. 성공하면 오른쪽 `Serial` / `Expires` / `Days left`가 바로 갱신된다 |
+| 오른쪽 상자 | `Serial`(발급 대장 조회번호) / `Expires` / `Days left` |
+
+- **만료 전에 미리 연장할 수 있다.** 이게 이 구역의 존재 이유다 — 기한이 지나면 앱이 아예 안 열리고, 그때는 계산대 앞에서 영업이 멈춘 뒤다.
+- 거절되는 경우: 이미 만료된 코드(`This license expired on …`), **지금 것보다 기한이 짧은 코드**(`This code expires earlier (…) than the license already on this PC (…)`), 서명이 안 맞는 코드(`This license code is not valid.`).
+- 연장해도 DB는 손대지 않는다. 같은 데이터를 그대로 계속 쓴다.
+
+### 20-0-1. 만료됐을 때
+
+시작하면 로그인 대신 **활성화 화면**이 뜨고, 제목이 `Renew CamPOS`로 바뀌며 `This license expired on {날짜}. Enter a renewal code to continue. Your data is untouched…`가 적힌다. 코드를 넣으면 평소 흐름(로그인 또는 초기 설정)으로 이어진다.
+
+만료 **30일 전부터** 메인 화면 상단 바(알림 벨 왼쪽)에 주황 배지가 뜬다: `License expires in 12 days` / `…tomorrow` / `…today`. 마우스를 올리면 정확한 날짜와 `Administrators can enter a renewal code in Admin Dashboard → License.`가 나온다. 영구 라이선스면 배지 자체가 없다.
 
 ---
 

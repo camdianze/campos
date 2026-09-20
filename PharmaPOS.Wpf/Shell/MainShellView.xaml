@@ -337,6 +337,18 @@
                 </Popup>
             </Grid>
 
+            <!-- 라이선스 만료 임박 배지. 30일 안으로 들어왔을 때만 나타난다.
+                 기한이 지나면 앱이 아예 열리지 않으므로 그 전에 볼 기회가 있어야 한다.
+                 알림 벨 왼쪽에 두어, 벨을 누르려다 눈에 걸리게 한다. -->
+            <Border Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Background="#FFF4E5" BorderBrush="#F5A623" BorderThickness="1"
+                    CornerRadius="12" Padding="10,4" Margin="0,0,12,0"
+                    ToolTip="{Binding LicenseWarningTooltip}"
+                    Visibility="{Binding ShowLicenseWarning, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding LicenseWarningText}"
+                           FontSize="11" FontWeight="SemiBold" Foreground="#8A5200"/>
+            </Border>
+
             <!-- 언어 토글. 알림 벨 오른쪽. 크메르어가 있는 화면마다 같은 컨트롤을 둔다. -->
             <ctl:LanguageToggle Grid.Column="5" VerticalAlignment="Center" Margin="16,0,0,0"/>
         </Grid>

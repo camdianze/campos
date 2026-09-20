@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PharmaPOS.Application.Licensing;
 using System.Windows.Controls;
 using PharmaPOS.Application.Authentication;
 using PharmaPOS.Application.Inventory;
@@ -38,7 +39,10 @@ public partial class LoginView : UserControl
     {
         var alertService = App.Services.GetRequiredService<IAlertService>();
         var uiLanguage = App.Services.GetRequiredService<UiLanguageService>();
-        var shellViewModel = new MainShellViewModel(loggedInUser, alertService, uiLanguage);
+        // 라이선스 상태는 로그인 시점에 한 번 읽는다. 배지가 필요한지 여기서 정해진다.
+        var licenseStatus = App.Services.GetRequiredService<ILicenseService>().GetStatus();
+        var shellViewModel = new MainShellViewModel(
+            loggedInUser, alertService, uiLanguage, licenseStatus);
         App.CurrentShellViewModel = shellViewModel;
 
         var shellView = new MainShellView { DataContext = shellViewModel };

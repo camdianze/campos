@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using PharmaPOS.Application.Licensing;
@@ -25,23 +25,28 @@ public class DpapiLicenseActivationStore : ILicenseActivationStore
         _licenseFilePath = licenseFilePath;
     }
 
-    public bool IsActivated()
+    public string? ReadActivatedCode()
     {
         if (!File.Exists(_licenseFilePath))
-            return false;
+            return null;
 
         try
         {
             var encryptedBytes = File.ReadAllBytes(_licenseFilePath);
             var plainBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
 
-            return Encoding.UTF8.GetString(plainBytes).Length > 0;
+            // 저장 형식은 "{코드}|{활성화 시각}"이다. 시각은 문의가 왔을 때 확인용이라
+            // 검증에는 쓰지 않는다 — PC 시계를 되돌려 늘릴 수 있는 값이기도 하다.
+            var record = Encoding.UTF8.GetString(plainBytes);
+            var code = record.Split('|')[0].Trim();
+
+            return code.Length > 0 ? code : null;
         }
         catch (Exception)
         {
             // 파일이 깨졌거나, 다른 PC/계정에서 복사해 온 파일이라 복호화가 안 되는 경우.
             // 활성화되지 않은 것으로 보고 코드를 다시 묻는다.
-            return false;
+            return null;
         }
     }
 

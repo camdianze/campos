@@ -1,8 +1,9 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using PharmaPOS.Application.Licensing;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
 
@@ -15,12 +16,17 @@ public partial class LicenseActivationView : UserControl
     /// <summary>활성화 성공. 구독자가 다음 화면으로 바꿔준다.</summary>
     public event Action? ActivationSucceeded;
 
-    public LicenseActivationView()
+    /// <param name="status">
+    /// 이 화면이 뜬 이유. 기한이 지나서 다시 열린 경우에는 그 사실을 화면에 적어야 한다 —
+    /// 어제까지 쓰던 앱이 코드를 묻는데 이유가 없으면 고장으로 읽힌다.
+    /// </param>
+    public LicenseActivationView(LicenseStatus? status = null)
     {
         InitializeComponent();
 
         var viewModel = App.Services.GetRequiredService<LicenseActivationViewModel>();
         viewModel.ActivationSucceeded += () => ActivationSucceeded?.Invoke();
+        viewModel.ApplyStatus(status);
 
         DataContext = viewModel;
 

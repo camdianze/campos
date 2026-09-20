@@ -69,18 +69,22 @@ public partial class App : Application
         var mainWindow = new MainWindow();
 
         // 시작 화면은 세 단계로 갈린다.
-        //   활성화 안 됨  → 라이선스 코드 입력
-        //   활성화 됨 + 초기 설정 전 → 시설/관리자 설정
-        //   활성화 됨 + 설정 완료    → 로그인
+        //   활성화 안 됨 또는 기한 지남 → 라이선스 코드 입력
+        //   쓸 수 있음 + 초기 설정 전   → 시설/관리자 설정
+        //   쓸 수 있음 + 설정 완료      → 로그인
+        //
+        // 저장된 코드를 매번 다시 검증한다. 예전에는 license.dat이 열리는지만 봤고,
+        // 그래서 기한이 지난 코드로도 앱이 계속 열렸다.
         var licenseService = Services.GetRequiredService<ILicenseService>();
+        var licenseStatus = licenseService.GetStatus();
 
-        if (licenseService.IsActivated())
+        if (licenseStatus.CanRun)
         {
             mainWindow.Content = await BuildPostActivationScreenAsync();
         }
         else
         {
-            var licenseView = new LicenseActivationView();
+            var licenseView = new LicenseActivationView(licenseStatus);
 
             licenseView.ActivationSucceeded += async () =>
             {
