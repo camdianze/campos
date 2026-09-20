@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Win32;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Reports;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using Lightweight_Digital_Inventory_Management___POS_System.Views;
@@ -27,6 +28,7 @@ public class ReportsViewModel : ViewModelBase
 {
     private readonly IReportService _reportService;
     private readonly ICounsellingSettingsService _counsellingSettingsService;
+    private readonly IReceiptSettingsService _receiptSettingsService;
     private readonly string _facilityId;
 
     /// <summary>
@@ -63,6 +65,11 @@ public class ReportsViewModel : ViewModelBase
     private decimal _calendarTotal;
 
     private int _calendarTransactionCount;
+
+    // 통화 설정. 리포트 금액은 달러로 저장돼 있고, 리엘은 화면에서만 환산한다.
+    private decimal _exchangeRate;
+    private int _rielRounding = 100;
+    private bool _showRiel;
 
     public ObservableCollection<ProductSalesRow> Products { get; } = new();
     public ObservableCollection<AntibioticSalesRow> Antibiotics { get; } = new();
@@ -126,6 +133,7 @@ public class ReportsViewModel : ViewModelBase
                 OnPropertyChanged(nameof(TrendMaxDisplay));
                 OnPropertyChanged(nameof(HasSalesTrendData));
                 OnPropertyChanged(nameof(SalesTrendMaxDisplay));
+                OnPropertyChanged(nameof(SalesAmountInRiel));
             }
         }
     }
@@ -209,6 +217,57 @@ public class ReportsViewModel : ViewModelBase
 
     public bool HasSalesTrendData => _salesTrendMax > 0;
 
+    // ── 리엘 환산 ────────────────────────────────────────────────────────────
+    //
+    // 합계 금액에만 붙인다. 표의 줄마다 붙이면 칸이 빽빽해지는 데 비해, 약국이
+    // 리엘로 감을 잡고 싶은 것은 "이번 달에 얼마 벌었나" 한 줄이다.
+    //
+    // **환율 표기를 반드시 함께 낸다.** 판매 시점의 환율은 저장되지 않아 지난달
+    // 매출도 오늘 환율로 환산된다. 환율이 오르면 과거 매출액이 저절로 올라가 보이는데
+    // 그만큼 더 판 것이 아니다. 어느 환율로 계산한 값인지 적혀 있어야 참고값으로
+    // 읽히고, 없으면 그냥 틀린 숫자가 된다.
+
+    public bool IsRielShown => _showRiel && _exchangeRate > 0;
+
+    /// <summary>고른 기간 매출의 리엘 환산.</summary>
+    public string SalesAmountInRiel =>
+        IsRielShown && Report is not null
+            ? RielConverter.Format(Report.Current.Amount, _exchangeRate, _rielRounding)
+            : string.Empty;
+
+    /// <summary>달력이 보여주는 달 합계의 리엘 환산.</summary>
+    public string CalendarTotalInRiel =>
+        IsRielShown && (_calendarTotal != 0 || _calendarTransactionCount > 0)
+            ? RielConverter.Format(_calendarTotal, _exchangeRate, _rielRounding)
+            : string.Empty;
+
+    /// <summary>어느 환율로 환산한 값인지. 이게 없으면 위 숫자를 믿을 수 없다.</summary>
+    public string ExchangeRateNote => IsRielShown
+        ? $"1 USD = {_exchangeRate.ToString("N0", CultureInfo.InvariantCulture)} {RielConverter.RielSymbol}"
+        : string.Empty;
+
+    /// <summary>화면을 열 때 한 번 읽는다. 못 읽으면 리엘 줄 없이 종전대로 나온다.</summary>
+    private async Task LoadCurrencySettingsAsync()
+    {
+        try
+        {
+            var settings = await _receiptSettingsService.GetAsync();
+
+            _exchangeRate = settings.ExchangeRate;
+            _rielRounding = settings.RielRounding;
+            _showRiel = settings.ShowRiel;
+        }
+        catch (Exception)
+        {
+            _showRiel = false;
+        }
+
+        OnPropertyChanged(nameof(IsRielShown));
+        OnPropertyChanged(nameof(ExchangeRateNote));
+        OnPropertyChanged(nameof(SalesAmountInRiel));
+        OnPropertyChanged(nameof(CalendarTotalInRiel));
+    }
+
     // ── 매출 달력 ────────────────────────────────────────────────────────────
     //
     // 왼쪽 아래 자리를 12개월 그래프와 나눠 쓴다. 같은 주제(약국 전체의 시간별 매출)를
@@ -262,10 +321,12 @@ public class ReportsViewModel : ViewModelBase
     public ReportsViewModel(
         IReportService reportService,
         ICounsellingSettingsService counsellingSettingsService,
+        IReceiptSettingsService receiptSettingsService,
         string facilityId)
     {
         _reportService = reportService;
         _counsellingSettingsService = counsellingSettingsService;
+        _receiptSettingsService = receiptSettingsService;
         _facilityId = facilityId;
 
         RefreshCommand = new RelayCommand(async _ => await LoadAsync());
@@ -287,6 +348,9 @@ public class ReportsViewModel : ViewModelBase
         _dateTo = today;
         _calendarMonth = _dateFrom.Value;
 
+        // 환율은 리포트와 별개로 읽는다. 금액은 달러로 저장돼 있고 리엘은 화면 환산이라,
+        // 리포트 조회가 통화 설정을 기다릴 이유가 없다.
+        _ = LoadCurrencySettingsAsync();
         _ = LoadAsync();
     }
 
@@ -331,6 +395,7 @@ public class ReportsViewModel : ViewModelBase
         {
             Message = result.Message!;
             OnPropertyChanged(nameof(CalendarTotalLabel));
+        OnPropertyChanged(nameof(CalendarTotalInRiel));
             return;
         }
 
@@ -358,6 +423,7 @@ public class ReportsViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(CalendarTotalLabel));
+        OnPropertyChanged(nameof(CalendarTotalInRiel));
     }
 
     /// <summary>

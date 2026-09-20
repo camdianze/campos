@@ -114,6 +114,7 @@ public partial class MainShellView : UserControl
         var reportsViewModel = new ReportsViewModel(
             reportService,
             App.Services.GetRequiredService<ICounsellingSettingsService>(),
+            App.Services.GetRequiredService<IReceiptSettingsService>(),
             shellViewModel.CurrentUser.FacilityId);
 
         var reportsView = new ReportsView();
@@ -174,7 +175,10 @@ public partial class MainShellView : UserControl
         if (DataContext is not MainShellViewModel shellViewModel) return;
 
         var dashboardService = App.Services.GetRequiredService<IAdminDashboardService>();
-        var dashboardViewModel = new AdminDashboardViewModel(dashboardService, shellViewModel.CurrentUser.FacilityId);
+        var dashboardViewModel = new AdminDashboardViewModel(
+            dashboardService,
+            App.Services.GetRequiredService<IReceiptSettingsService>(),
+            shellViewModel.CurrentUser.FacilityId);
 
         var dashboardView = new AdminDashboardView();
         dashboardView.AttachViewModel(dashboardViewModel);

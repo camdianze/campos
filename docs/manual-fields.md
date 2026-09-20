@@ -795,6 +795,8 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 지표 카드 6개(`Daily Sales` / `Transactions` / `Inventory Value` / `Active Products` / `Low Stock` / `Expiry Alert`)와 이동 버튼 6개, 그 아래 접히는 구역 둘(`🧾 Receipt Settings`, `🔑 License`).
 
+`Daily Sales` 아래에도 리엘 환산액과 환율이 함께 나온다(리포트와 같은 규칙).
+
 `📦  Product Management` / `👥  User Management` / `📊  Inventory Overview` / `🛒  Sales History` / `📈  Reports` / `📁  Import / Export` / `← Back`
 
 금액 카드(`Daily Sales`, `Inventory Value`)는 **소수점 두 자리로 반올림**해 보여준다. 낱개 원가가 "박스 원가 ÷ 박스당 개수"라 나누어떨어지지 않아, 그대로 두면 `256317.690433333`처럼 나온다.
@@ -831,6 +833,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - **어느 값이든 영수증 번호는 판매마다 발급된다.** 재출력·환불 대조가 종이와 무관하게 되어야 하기 때문이다. `Never`로 두고 나중에 Sales History의 `Reprint Receipt`를 누르면 그때 처음 종이가 나온다.
 - `Reprint Receipt`는 이 설정을 보지 않는다 — 사람이 직접 누른 것이라 언제나 인쇄한다.
 - 설정을 못 읽는 상황(파일 손상 등)에서는 `Always`로 간다. 설정 하나 때문에 영수증이 조용히 사라지는 쪽이 더 나쁘다.
+- **환율을 바꾸는 곳이 여기다.** `Exchange rate (1 USD in KHR)` — 어디서도 자동으로 받아오지 않으므로 시세가 움직이면 직접 고쳐야 한다. 저장하면 영수증·계산대·리포트가 모두 새 값을 쓰지만, 설정은 **10분 캐시**라 이미 열어 둔 POS 화면은 나갔다 들어와야 반영된다. 1 미만은 거부된다. **과거 판매는 달러로 저장돼 있어 소급되지 않는다** — 환율을 바꾸면 지난 기록의 리엘 환산값도 새 환율로 다시 계산된다.
 - **단위 이름(`Box` / `Each` / `{n} units`)은 인쇄 언어를 크메르어로 두어도 영어로 찍힌다.** 영수증은 제형이 무엇이든 한 단어로 적는데 거기 들어맞는 크메르어가 없다 — `គ្រាប់`는 "알"이라 시럽 병에는 틀리고, `ឯកតា`는 계량 단위를 가리키는 기술 용어다. 둘 다 원어민 검수를 거치지 않았고, 영어 Box/Each는 캄보디아 약국에서 통하면서 틀린 말을 하지 않는다. 단위 줄 자체가 필요 없으면 `receipt.show.unit`으로 끈다.
 - 참고: `km-KH.json`의 `reviewed_by`에는 **원어민이 실제로 본 줄**이 적혀 있다(복약지도문의 `important` 3줄). 나머지는 제품 소유자 승인이므로, 문구가 중요한 자리에서는 미검수로 취급할 것.
 
@@ -927,6 +930,8 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 ### 24-2. 요약 카드 4개
 
 `Sales Amount` / `Transactions` / `Units Sold` / `ACCESS Share` — 각각 아래에 직전 기간 대비 증감이 붙는다. `ACCESS Share`의 부제는 `{n} printed / {m} antibiotic sales`.
+
+`Sales Amount` 아래에는 **리엘 환산액과 `1 USD = 4,100 ៛`**이 함께 나온다(환율이 설정돼 있고 `currency.showRiel`이 켜져 있을 때). **환율 표기가 같이 있는 이유:** 판매 시점의 환율은 저장되지 않고 달러 금액만 남는다. 그래서 지난달 매출도 **오늘 환율로** 환산되고, 환율이 오르면 과거 매출액이 저절로 올라가 보인다. 어느 환율로 계산한 값인지 적혀 있어야 참고값으로 읽힌다. 상품 순위 표의 줄별 금액과 내보내기 CSV는 **달러 그대로**다.
 
 ### 24-3. 정렬 컨트롤
 

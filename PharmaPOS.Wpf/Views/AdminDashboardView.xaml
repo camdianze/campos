@@ -81,6 +81,12 @@
                     <StackPanel>
                         <TextBlock Text="Daily Sales" Style="{StaticResource MetricLabel}"/>
                         <TextBlock Text="{Binding Metrics.DailySalesAmountDisplay}" Style="{StaticResource MetricValue}"/>
+                        <!-- 오늘 매출의 리엘 환산. 오늘 판 것이라 환율 차이가 생기지 않지만,
+                             어느 환율로 계산했는지는 리포트와 같은 이유로 함께 적는다. -->
+                        <TextBlock Text="{Binding DailySalesInRiel}"
+                                   FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{StaticResource MutedTextBrush}"/>
+                        <TextBlock Text="{Binding ExchangeRateNote}" Style="{StaticResource Caption}"/>
                     </StackPanel>
                 </Border>
 

@@ -210,6 +210,7 @@ public partial class AdminDashboardView : UserControl
         var reportsViewModel = new ReportsViewModel(
             reportService,
             App.Services.GetRequiredService<ICounsellingSettingsService>(),
+            App.Services.GetRequiredService<IReceiptSettingsService>(),
             App.CurrentShellViewModel!.CurrentUser.FacilityId);
 
         var reportsView = new ReportsView();

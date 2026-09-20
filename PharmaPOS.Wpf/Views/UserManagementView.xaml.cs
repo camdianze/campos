@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using PharmaPOS.Application.Authentication;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Domain.Entities;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
@@ -113,7 +114,10 @@ public partial class UserManagementView : UserControl
         }
 
         var dashboardService = App.Services.GetRequiredService<IAdminDashboardService>();
-        var dashboardViewModel = new AdminDashboardViewModel(dashboardService, App.CurrentShellViewModel!.CurrentUser.FacilityId);
+        var dashboardViewModel = new AdminDashboardViewModel(
+            dashboardService,
+            App.Services.GetRequiredService<IReceiptSettingsService>(),
+            App.CurrentShellViewModel!.CurrentUser.FacilityId);
 
         var dashboardView = new AdminDashboardView();
         dashboardView.AttachViewModel(dashboardViewModel);

@@ -1,4 +1,5 @@
 ﻿using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Receipts;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -9,10 +10,16 @@ namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 public class AdminDashboardViewModel : ViewModelBase
 {
     private readonly IAdminDashboardService _dashboardService;
+    private readonly IReceiptSettingsService _receiptSettingsService;
     private readonly string _facilityId;
 
     private DashboardMetrics? _metrics;
     private string _message = string.Empty;
+
+    // 통화 설정. 카드의 금액은 달러이고 리엘은 화면 환산이다.
+    private decimal _exchangeRate;
+    private int _rielRounding = 100;
+    private bool _showRiel;
 
     public DashboardMetrics? Metrics
     {
@@ -24,6 +31,43 @@ public class AdminDashboardViewModel : ViewModelBase
     {
         get => _message;
         set => SetProperty(ref _message, value);
+    }
+
+    public bool IsRielShown => _showRiel && _exchangeRate > 0;
+
+    /// <summary>오늘 매출의 리엘 환산.</summary>
+    public string DailySalesInRiel =>
+        IsRielShown && Metrics is not null
+            ? RielConverter.Format(Metrics.DailySalesAmount, _exchangeRate, _rielRounding)
+            : string.Empty;
+
+    /// <summary>
+    /// 어느 환율로 환산했는지. 오늘 매출이라 환율이 바뀔 틈은 없지만, 리포트와 같은
+    /// 자리에 같은 모양으로 적어 두는 편이 읽는 사람에게 일관된다.
+    /// </summary>
+    public string ExchangeRateNote => IsRielShown
+        ? $"1 USD = {_exchangeRate.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)} "
+          + RielConverter.RielSymbol
+        : string.Empty;
+
+    private async Task LoadCurrencySettingsAsync()
+    {
+        try
+        {
+            var settings = await _receiptSettingsService.GetAsync();
+
+            _exchangeRate = settings.ExchangeRate;
+            _rielRounding = settings.RielRounding;
+            _showRiel = settings.ShowRiel;
+        }
+        catch (Exception)
+        {
+            _showRiel = false;
+        }
+
+        OnPropertyChanged(nameof(IsRielShown));
+        OnPropertyChanged(nameof(DailySalesInRiel));
+        OnPropertyChanged(nameof(ExchangeRateNote));
     }
 
     public RelayCommand ProductManagementCommand { get; }
@@ -42,9 +86,13 @@ public class AdminDashboardViewModel : ViewModelBase
     public event Action? NavigateToBackupExport;
     public event Action? NavigateBack;
 
-    public AdminDashboardViewModel(IAdminDashboardService dashboardService, string facilityId)
+    public AdminDashboardViewModel(
+        IAdminDashboardService dashboardService,
+        IReceiptSettingsService receiptSettingsService,
+        string facilityId)
     {
         _dashboardService = dashboardService;
+        _receiptSettingsService = receiptSettingsService;
         _facilityId = facilityId;
 
         ProductManagementCommand = new RelayCommand(_ => NavigateToProductManagement?.Invoke());
@@ -57,6 +105,7 @@ public class AdminDashboardViewModel : ViewModelBase
 
         BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());
 
+        _ = LoadCurrencySettingsAsync();
         _ = ReloadAsync();
     }
 
@@ -65,6 +114,7 @@ public class AdminDashboardViewModel : ViewModelBase
         try
         {
             Metrics = await _dashboardService.GetDashboardMetricsAsync(_facilityId);
+            OnPropertyChanged(nameof(DailySalesInRiel));
         }
         catch (Exception)
         {

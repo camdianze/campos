@@ -101,6 +101,15 @@
                 <StackPanel>
                     <TextBlock Text="Sales Amount" Style="{StaticResource SummaryLabel}"/>
                     <TextBlock Text="{Binding Report.Current.Amount}" Style="{StaticResource SummaryValue}"/>
+                    <!-- 리엘 환산. 환율 표기를 반드시 함께 낸다 — 판매 시점의 환율은
+                         저장되지 않아 지난달 매출도 오늘 환율로 환산되기 때문이다.
+                         환율이 오르면 과거 매출이 저절로 올라가 보이는데, 어느 환율로
+                         계산한 값인지 적혀 있어야 참고값으로 읽힌다. -->
+                    <TextBlock Text="{Binding SalesAmountInRiel}"
+                               FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource MutedTextBrush}"/>
+                    <TextBlock Text="{Binding ExchangeRateNote}"
+                               Style="{StaticResource Caption}" Margin="0,0,0,2"/>
                     <!-- 화살표만 방향색을 입히고 "vs 이전값"은 흐린 글씨로 둔다.
                          줄 전체가 붉으면 비교 대상 숫자까지 경고처럼 읽힌다. -->
                     <TextBlock Style="{StaticResource SummaryChange}">
@@ -396,6 +405,9 @@
                             <TextBlock Text="{Binding CalendarTotalLabel}"
                                        Style="{StaticResource Caption}"
                                        VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            <TextBlock Text="{Binding CalendarTotalInRiel}"
+                                       Style="{StaticResource Caption}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
