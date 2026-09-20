@@ -4,8 +4,8 @@
   "script": "Khmer",
   "render_mode": "raster",
   "review_status": "approved",
-  "reviewed_by": "Native Khmer speaker (important.1/3/4, 2026-09-17); remaining lines accepted by product owner",
-  "content_version": "1.7.0",
+  "reviewed_by": "Native Khmer speaker (important.1/3/4, 2026-09-17); remaining lines accepted by product owner. Units deliberately left untranslated (see notes.units).",
+  "content_version": "1.8.0",
   "strings": {
     "sheet.subtitle": "ការណែនាំប្រើថ្នាំអង់ទីប៊ីយោទិច",
     "label.dose": "កម្រិតថ្នាំ",
@@ -38,9 +38,6 @@
     "receipt.lbl.fxRate": "1 ដុល្លារ = {rate} រៀល",
     "receipt.lbl.cashTendered": "ប្រាក់ទទួល",
     "receipt.lbl.changeDue": "ប្រាក់អាប់",
-    "receipt.unit.box": "ប្រអប់",
-    "receipt.unit.each": "ឯកតា",
-    "receipt.lbl.pieces": "{count} ឯកតា",
     "receipt.brand.tagline": "ប្រព័ន្ធគ្រប់គ្រងស្តុកឱសថស្ថាន",
     "ui.products": "ឱសថ",
     "ui.products.hint": "បញ្ជីឱសថ និងការទទួលស្តុក",
@@ -56,8 +53,6 @@
     "ui.pos.back": "ត្រឡប់ក្រោយ",
     "ui.pos.total": "សរុប",
     "ui.pos.quantity": "ចំនួន",
-    "ui.pos.box": "ប្រអប់",
-    "ui.pos.each": "គ្រាប់",
     "ui.common.back": "ត្រឡប់ក្រោយ",
     "ui.common.add": "បន្ថែម",
     "ui.common.edit": "កែសម្រួល",
@@ -103,5 +98,8 @@
     "ui.nav.reports_locked": "🔒  របាយការណ៍",
     "ui.nav.history": "📊  ប្រវត្តិ",
     "ui.nav.counselling": "🧫  ការណែនាំប្រើថ្នាំ"
+  },
+  "notes": {
+    "units": "Unit names are printed in English on purpose. A receipt carries one word for every dosage form, and no single Khmer word fits: kroap means a tablet and is wrong on a bottle of syrup, while ekatak is the technical word for a unit of measure and reads like machinery. Neither was checked by a native speaker. English Box/Each is understood in Cambodian pharmacies and says nothing false. Removing these keys is what selects it - a missing key falls back to ReceiptStrings, and the km_en layout prints the English once rather than twice."
   }
 }

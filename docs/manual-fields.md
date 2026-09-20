@@ -827,6 +827,8 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - **어느 값이든 영수증 번호는 판매마다 발급된다.** 재출력·환불 대조가 종이와 무관하게 되어야 하기 때문이다. `Never`로 두고 나중에 Sales History의 `Reprint Receipt`를 누르면 그때 처음 종이가 나온다.
 - `Reprint Receipt`는 이 설정을 보지 않는다 — 사람이 직접 누른 것이라 언제나 인쇄한다.
 - 설정을 못 읽는 상황(파일 손상 등)에서는 `Always`로 간다. 설정 하나 때문에 영수증이 조용히 사라지는 쪽이 더 나쁘다.
+- **단위 이름(`Box` / `Each` / `{n} units`)은 인쇄 언어를 크메르어로 두어도 영어로 찍힌다.** 영수증은 제형이 무엇이든 한 단어로 적는데 거기 들어맞는 크메르어가 없다 — `គ្រាប់`는 "알"이라 시럽 병에는 틀리고, `ឯកតា`는 계량 단위를 가리키는 기술 용어다. 둘 다 원어민 검수를 거치지 않았고, 영어 Box/Each는 캄보디아 약국에서 통하면서 틀린 말을 하지 않는다. 단위 줄 자체가 필요 없으면 `receipt.show.unit`으로 끈다.
+- 참고: `km-KH.json`의 `reviewed_by`에는 **원어민이 실제로 본 줄**이 적혀 있다(복약지도문의 `important` 3줄). 나머지는 제품 소유자 승인이므로, 문구가 중요한 자리에서는 미검수로 취급할 것.
 
 
 ## 21. User Management — [UserManagementView.xaml](../PharmaPOS.Wpf/Views/UserManagementView.xaml)

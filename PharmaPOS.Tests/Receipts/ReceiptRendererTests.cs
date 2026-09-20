@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Receipts;
@@ -104,6 +104,66 @@ public class ReceiptRendererTests
 
     private static string Text(ReceiptDocument document) =>
         string.Join("\n", document.Lines);
+
+    /// <summary>단위 키만 빼 둔 로케일. 동봉본이 실제로 이 상태다.</summary>
+    private static CounsellingLocale KhmerWithoutUnitNames()
+    {
+        var approved = ApprovedKhmer();
+        var strings = new Dictionary<string, string>();
+
+        foreach (var key in new[]
+        {
+            ReceiptStringKeys.LabelReceiptNo, ReceiptStringKeys.LabelDate,
+            ReceiptStringKeys.LabelServedBy, ReceiptStringKeys.LabelPayment,
+            ReceiptStringKeys.ColumnItem, ReceiptStringKeys.ColumnQty,
+            ReceiptStringKeys.ColumnPrice, ReceiptStringKeys.ColumnAmount,
+            ReceiptStringKeys.LabelTotalQty, ReceiptStringKeys.LabelTotal,
+            ReceiptStringKeys.LabelInRiel, ReceiptStringKeys.LabelFxRate
+        })
+        {
+            strings[key] = approved.GetString(key)!;
+        }
+
+        return new CounsellingLocale(
+            localeCode: "km-KH", languageName: "ភាសាខ្មែរ",
+            script: "Khmer",
+            renderMode: LocaleRenderMode.Raster, reviewStatus: "approved",
+            reviewedBy: "test", contentVersion: "1.8.0", strings: strings);
+    }
+
+    /// <summary>
+    /// 단위 이름은 영어로 찍는다. 제형이 무엇이든 한 단어로 적는 자리라 들어맞는
+    /// 크메르어가 없다 — 사정은 로케일 파일의 notes.units에 적어 두었다.
+    /// 나머지 줄은 그대로 크메르어여야 한다. 단위 하나 때문에 영수증 전체가
+    /// 영어로 떨어지면 안 된다.
+    /// </summary>
+    [Fact]
+    public void UnitNames_PrintInEnglish_WhileTheRestStaysKhmer()
+    {
+        var text = Text(Render(Settings(), ReceiptPrintLanguage.KhmerAndEnglish, KhmerWithoutUnitNames()));
+
+        Assert.Contains("Box", text);
+        Assert.Contains("Each", text);
+        Assert.Contains("units", text);
+        Assert.DoesNotContain("ប្រអប់", text);
+        Assert.DoesNotContain("អេកតា", text);
+
+        // 영수증 자체는 여전히 크메르어다.
+        Assert.Contains("សរុប", text);
+    }
+
+    /// <summary>
+    /// km_en에서 본문이 이미 영어면 영어를 한 번 더 붙이지 않는다.
+    /// "Each / Each"가 찍히면 종이를 보고서야 알게 된다.
+    /// </summary>
+    [Fact]
+    public void UnitNames_AreNotPrintedTwiceInBilingualMode()
+    {
+        var text = Text(Render(Settings(), ReceiptPrintLanguage.KhmerAndEnglish, KhmerWithoutUnitNames()));
+
+        Assert.DoesNotContain("Each / Each", text);
+        Assert.DoesNotContain("Box / Box", text);
+    }
 
     // ── 언어 ──────────────────────────────────────────────────────────────
 

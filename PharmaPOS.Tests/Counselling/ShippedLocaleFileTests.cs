@@ -1,4 +1,5 @@
 ﻿using PharmaPOS.Application.Counselling;
+using PharmaPOS.Application.Receipts;
 
 namespace PharmaPOS.Tests.Counselling;
 
@@ -35,6 +36,30 @@ public class ShippedLocaleFileTests
         // 검수를 마친 동봉본이다. 그래서 GetString이 실제 값을 돌려준다.
         Assert.True(locale.IsApproved);
         Assert.Equal("កម្រិតថ្នាំ", locale.GetString(CounsellingStringKeys.LabelDose));
+    }
+
+    /// <summary>
+    /// 단위는 영어로 둔다. 동봉본에 그 키가 <b>없어야</b> 영어가 나간다.
+    ///
+    /// 영수증은 제형이 무엇이든 한 단어로 적는데, 그 자리에 맞는 크메르어가 없다.
+    /// គ្រាប់는 "알"이라 시럽 병에는 틀린 말이고, ឯកតា는 계량 단위를 가리키는
+    /// 기술 용어라 손님이 읽을 종이에 어울리지 않는다. 둘 다 원어민 검수를 거치지
+    /// 않았다. 영어 Box/Each는 캄보디아 약국에서 통하고, 무엇보다 틀린 말을 하지 않는다.
+    ///
+    /// 검사로 두는 이유: 키를 도로 넣어도 빌드는 멀쩡하고 화면도 멀쩡하다.
+    /// 종이에 크메르어가 찍히고 나서야 알게 된다.
+    /// </summary>
+    [Theory]
+    [InlineData(ReceiptStringKeys.UnitBox)]
+    [InlineData(ReceiptStringKeys.UnitEach)]
+    [InlineData(ReceiptStringKeys.LabelPieces)]
+    public async Task ShippedKhmerLocale_LeavesUnitNamesToEnglish(string key)
+    {
+        var provider = new FileCounsellingLocaleProvider(new[] { FindLocalesDirectory() });
+
+        var locale = await provider.GetLocaleAsync("km-KH");
+
+        Assert.Null(locale.GetString(key));
     }
 
     /// <summary>
