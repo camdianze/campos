@@ -124,3 +124,27 @@ public class ReportQueryResult
     public static ReportQueryResult Success(ReportData data) => new(true, null, data);
     public static ReportQueryResult Failure(string message) => new(false, message, null);
 }
+
+/// <summary>
+/// 달력 한 달치 조회 결과. 리포트 본체와 따로인 이유는 달력이 고른 기간과 독립적으로
+/// 달을 넘길 수 있기 때문이다 — ◀ ▶를 누를 때마다 리포트 전체를 다시 돌릴 이유가 없다.
+/// </summary>
+public class DailySalesQueryResult
+{
+    private DailySalesQueryResult(bool isSuccess, string? message, IReadOnlyList<DailySalesPoint> days)
+    {
+        IsSuccess = isSuccess;
+        Message = message;
+        Days = days;
+    }
+
+    public bool IsSuccess { get; }
+    public string? Message { get; }
+    public IReadOnlyList<DailySalesPoint> Days { get; }
+
+    public static DailySalesQueryResult Success(IReadOnlyList<DailySalesPoint> days) =>
+        new(true, null, days);
+
+    public static DailySalesQueryResult Failure(string message) =>
+        new(false, message, Array.Empty<DailySalesPoint>());
+}

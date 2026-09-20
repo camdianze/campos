@@ -53,6 +53,17 @@ public class ReportsViewModel : ViewModelBase
     /// <summary>가장 높은 달의 순매출. 위와 같은 역할이다.</summary>
     private decimal _salesTrendMax;
 
+    /// <summary>달력이 지금 보여주는 달의 1일. 고른 기간과는 별개로 ◀ ▶로 움직인다.</summary>
+    private DateTime _calendarMonth;
+
+    /// <summary>달력이 아니라 12개월 그래프를 보고 있는지. 왼쪽 아래 패널은 둘 중 하나다.</summary>
+    private bool _isCalendarVisible;
+
+    /// <summary>달력의 그 달 합계. 칸을 다 더한 값이라 세로로 훑지 않아도 된다.</summary>
+    private decimal _calendarTotal;
+
+    private int _calendarTransactionCount;
+
     public ObservableCollection<ProductSalesRow> Products { get; } = new();
     public ObservableCollection<AntibioticSalesRow> Antibiotics { get; } = new();
 
@@ -64,6 +75,12 @@ public class ReportsViewModel : ViewModelBase
 
     /// <summary>최근 12개월 순매출 추이의 막대들. 항생제 추이와 같은 창을 쓴다.</summary>
     public ObservableCollection<SalesTrendBar> SalesTrendBars { get; } = new();
+
+    /// <summary>
+    /// 매출 달력의 칸들. 앞뒤의 빈 자리까지 들어 있어 7의 배수다 —
+    /// 그래야 1일이 제 요일 자리에 선다.
+    /// </summary>
+    public ObservableCollection<SalesCalendarCell> CalendarCells { get; } = new();
 
     public ProductSortOption SelectedSort
     {
@@ -192,6 +209,48 @@ public class ReportsViewModel : ViewModelBase
 
     public bool HasSalesTrendData => _salesTrendMax > 0;
 
+    // ── 매출 달력 ────────────────────────────────────────────────────────────
+    //
+    // 왼쪽 아래 자리를 12개월 그래프와 나눠 쓴다. 같은 주제(약국 전체의 시간별 매출)를
+    // 다른 배율로 본 것이라, 둘을 따로 놓기보다 한 자리에서 바꿔 보는 편이 맞다.
+    // 오른쪽의 항생제 그래프와 가로축을 맞춰 둔 구조도 그대로 남는다.
+
+    /// <summary>달력을 보고 있는지. false면 12개월 그래프다.</summary>
+    public bool IsCalendarVisible
+    {
+        get => _isCalendarVisible;
+        private set
+        {
+            if (SetProperty(ref _isCalendarVisible, value))
+            {
+                OnPropertyChanged(nameof(IsTrendVisible));
+            }
+        }
+    }
+
+    public bool IsTrendVisible => !_isCalendarVisible;
+
+    public string CalendarMonthLabel =>
+        _calendarMonth.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
+
+    public string CalendarTotalLabel =>
+        _calendarTransactionCount == 0 && _calendarTotal == 0
+            ? "no sales this month"
+            : $"{_calendarTotal.ToString("N2", CultureInfo.InvariantCulture)} · "
+              + $"{_calendarTransactionCount.ToString("N0", CultureInfo.InvariantCulture)} transactions";
+
+    /// <summary>다음 달 단추. 아직 오지 않은 달로는 넘어갈 수 없다.</summary>
+    public bool CanGoToNextMonth =>
+        _calendarMonth < new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    public RelayCommand ShowCalendarCommand { get; }
+    public RelayCommand ShowTrendCommand { get; }
+    public RelayCommand PreviousMonthCommand { get; }
+    public RelayCommand NextMonthCommand { get; }
+
+    /// <summary>날짜 칸을 누르면 그 하루를 기간으로 삼고 리포트를 다시 돌린다.</summary>
+    public RelayCommand SelectDayCommand { get; }
+
     public RelayCommand RefreshCommand { get; }
     public RelayCommand ThisMonthCommand { get; }
     public RelayCommand LastMonthCommand { get; }
@@ -215,12 +274,108 @@ public class ReportsViewModel : ViewModelBase
         ExportCommand = new RelayCommand(_ => ExecuteExport());
         BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());
 
+        ShowCalendarCommand = new RelayCommand(async _ => await ShowCalendarAsync());
+        ShowTrendCommand = new RelayCommand(_ => IsCalendarVisible = false);
+        PreviousMonthCommand = new RelayCommand(async _ => await MoveCalendarAsync(-1));
+        NextMonthCommand = new RelayCommand(
+            async _ => await MoveCalendarAsync(1), _ => CanGoToNextMonth);
+        SelectDayCommand = new RelayCommand(async cell => await SelectDayAsync(cell as SalesCalendarCell));
+
         // 처음 열면 이번 달 1일부터 오늘까지.
         var today = DateTime.Today;
         _dateFrom = new DateTime(today.Year, today.Month, 1);
         _dateTo = today;
+        _calendarMonth = _dateFrom.Value;
 
         _ = LoadAsync();
+    }
+
+    /// <summary>
+    /// 달력으로 바꾼다. 처음 열 때는 고른 기간이 끝나는 달을 보여준다 —
+    /// 지난달 리포트를 보다 달력을 켰는데 이번 달이 나오면 방금 보던 것과 어긋난다.
+    /// </summary>
+    private async Task ShowCalendarAsync()
+    {
+        IsCalendarVisible = true;
+
+        if (CalendarCells.Count == 0)
+        {
+            var end = DateTo ?? DateTime.Today;
+            _calendarMonth = new DateTime(end.Year, end.Month, 1);
+            await LoadCalendarAsync();
+        }
+    }
+
+    private async Task MoveCalendarAsync(int monthOffset)
+    {
+        _calendarMonth = _calendarMonth.AddMonths(monthOffset);
+        await LoadCalendarAsync();
+    }
+
+    /// <summary>
+    /// 달력 한 달을 읽어 칸을 짓는다. 리포트 본체는 건드리지 않는다 —
+    /// 달만 넘기는데 표와 그래프까지 다시 조회할 이유가 없다.
+    /// </summary>
+    private async Task LoadCalendarAsync()
+    {
+        OnPropertyChanged(nameof(CalendarMonthLabel));
+        NextMonthCommand.RaiseCanExecuteChanged();
+
+        var result = await _reportService.GetDailySalesAsync(_facilityId, _calendarMonth);
+
+        CalendarCells.Clear();
+        _calendarTotal = 0;
+        _calendarTransactionCount = 0;
+
+        if (!result.IsSuccess)
+        {
+            Message = result.Message!;
+            OnPropertyChanged(nameof(CalendarTotalLabel));
+            return;
+        }
+
+        var today = DateTime.Today;
+
+        // 1일 앞의 빈 칸. 이 앱의 달력은 월요일에서 시작한다.
+        var leading = ((int)_calendarMonth.DayOfWeek + 6) % 7;
+
+        for (var i = 0; i < leading; i++)
+        {
+            CalendarCells.Add(SalesCalendarCell.Filler());
+        }
+
+        foreach (var day in result.Days)
+        {
+            CalendarCells.Add(SalesCalendarCell.For(day, today));
+            _calendarTotal += day.Amount;
+            _calendarTransactionCount += day.TransactionCount;
+        }
+
+        // 마지막 주를 7칸으로 채운다. 비워 두면 마지막 줄만 칸 너비가 달라진다.
+        while (CalendarCells.Count % 7 != 0)
+        {
+            CalendarCells.Add(SalesCalendarCell.Filler());
+        }
+
+        OnPropertyChanged(nameof(CalendarTotalLabel));
+    }
+
+    /// <summary>
+    /// 그 하루를 기간으로 삼는다. 따로 팝업을 띄우지 않는 이유: 매출 카드·상품 순위·
+    /// 항생제 표가 모두 그 날 기준으로 바뀌므로, 팝업 하나보다 보이는 것이 많다.
+    /// 줄 단위 내역은 판매 이력 화면이 이미 하는 일이라 여기서 되풀이하지 않는다.
+    /// </summary>
+    private async Task SelectDayAsync(SalesCalendarCell? cell)
+    {
+        if (cell?.Date is not { } date)
+        {
+            return;
+        }
+
+        DateFrom = date;
+        DateTo = date;
+
+        await LoadAsync();
     }
 
     /// <summary>달 단위 프리셋. 달 전체를 고르면 비교 대상이 자동으로 전월이 된다.</summary>
@@ -281,6 +436,20 @@ public class ReportsViewModel : ViewModelBase
 
         BuildTrendBars(data.AntibioticTrend);
         BuildSalesTrendBars(data.SalesTrend);
+
+        // 달력을 켜 둔 채 기간을 바꿨으면 달력도 그 달로 따라간다. 화면에 보이는 달과
+        // 리포트가 말하는 달이 다르면 어느 쪽 숫자인지 알 수 없다.
+        if (IsCalendarVisible)
+        {
+            var end = data.Range.To;
+            var month = new DateTime(end.Year, end.Month, 1);
+
+            if (month != _calendarMonth || CalendarCells.Count == 0)
+            {
+                _calendarMonth = month;
+                await LoadCalendarAsync();
+            }
+        }
 
         Report = data;
         OnPropertyChanged(nameof(HasAntibioticData));

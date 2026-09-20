@@ -79,7 +79,7 @@
                 <Border Style="{StaticResource MetricCard}">
                     <StackPanel>
                         <TextBlock Text="Daily Sales" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding Metrics.DailySalesAmount}" Style="{StaticResource MetricValue}"/>
+                        <TextBlock Text="{Binding Metrics.DailySalesAmountDisplay}" Style="{StaticResource MetricValue}"/>
                     </StackPanel>
                 </Border>
 
@@ -93,7 +93,7 @@
                 <Border Style="{StaticResource MetricCard}">
                     <StackPanel>
                         <TextBlock Text="Inventory Value" Style="{StaticResource MetricLabel}"/>
-                        <TextBlock Text="{Binding Metrics.TotalInventoryValue}" Style="{StaticResource MetricValue}"/>
+                        <TextBlock Text="{Binding Metrics.TotalInventoryValueDisplay}" Style="{StaticResource MetricValue}"/>
                     </StackPanel>
                 </Border>
 

@@ -365,17 +365,178 @@
             <!-- ── 매출 추이 ───────────────────────────────────────────────── -->
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="18,14" Margin="0,0,8,0">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                        <TextBlock Text="Sales, Last 12 Months"
-                                   Style="{StaticResource SectionTitle}" Margin="0"/>
-                        <!-- 고른 기간과 다른 구간이라는 사실을 적어 둔다. 이게 없으면
-                             위 카드의 금액과 그래프의 합이 왜 다른지 알 수 없다. -->
-                        <TextBlock Text="{Binding TrendPeriodLabel}"
-                                   Style="{StaticResource Caption}"
-                                   VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <!-- 이 자리를 12개월 그래프와 달력이 나눠 쓴다. 같은 주제(약국 전체의
+                         시간별 매출)를 다른 배율로 본 것이라, 따로 놓기보다 바꿔 보는 편이 맞다. -->
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal"
+                                    Visibility="{Binding IsTrendVisible, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Sales, Last 12 Months"
+                                       Style="{StaticResource SectionTitle}" Margin="0"/>
+                            <!-- 고른 기간과 다른 구간이라는 사실을 적어 둔다. 이게 없으면
+                                 위 카드의 금액과 그래프의 합이 왜 다른지 알 수 없다. -->
+                            <TextBlock Text="{Binding TrendPeriodLabel}"
+                                       Style="{StaticResource Caption}"
+                                       VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal"
+                                    Visibility="{Binding IsCalendarVisible, Converter={StaticResource BoolToVis}}">
+                            <Button Content="◀" Style="{StaticResource SecondaryBtn}"
+                                    Padding="8,0" MinWidth="0" Height="26" FontSize="11"
+                                    Command="{Binding PreviousMonthCommand}"/>
+                            <TextBlock Text="{Binding CalendarMonthLabel}"
+                                       Style="{StaticResource SectionTitle}" Margin="8,0"
+                                       MinWidth="120" TextAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                            <!-- 아직 오지 않은 달로는 넘어가지 않는다 (CanGoToNextMonth). -->
+                            <Button Content="▶" Style="{StaticResource SecondaryBtn}"
+                                    Padding="8,0" MinWidth="0" Height="26" FontSize="11"
+                                    Command="{Binding NextMonthCommand}"/>
+                            <!-- 칸을 다 더한 값. 세로로 훑지 않아도 그 달이 얼마였는지 알 수 있다. -->
+                            <TextBlock Text="{Binding CalendarTotalLabel}"
+                                       Style="{StaticResource Caption}"
+                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="12 months" Height="26" Padding="10,0" FontSize="11"
+                                    Command="{Binding ShowTrendCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SecondaryBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTrendVisible}" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Content="Calendar" Height="26" Padding="10,0" FontSize="11" Margin="6,0,0,0"
+                                    Command="{Binding ShowCalendarCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SecondaryBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsCalendarVisible}" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── 달력 ──────────────────────────────────────────────
+                         날짜를 누르면 팝업이 아니라 기간 자체가 그 하루로 바뀐다.
+                         그러면 위 카드·상품 순위·항생제 표가 전부 그 날 기준이 되어
+                         팝업 하나보다 보이는 것이 많고, 줄 단위 내역은 판매 이력 화면이
+                         이미 맡고 있어 여기서 되풀이할 필요가 없다. -->
+                    <StackPanel Visibility="{Binding IsCalendarVisible, Converter={StaticResource BoolToVis}}">
+                        <UniformGrid Columns="7" Margin="0,0,0,4">
+                            <TextBlock Text="Mon" Style="{StaticResource Caption}" TextAlignment="Center"/>
+                            <TextBlock Text="Tue" Style="{StaticResource Caption}" TextAlignment="Center"/>
+                            <TextBlock Text="Wed" Style="{StaticResource Caption}" TextAlignment="Center"/>
+                            <TextBlock Text="Thu" Style="{StaticResource Caption}" TextAlignment="Center"/>
+                            <TextBlock Text="Fri" Style="{StaticResource Caption}" TextAlignment="Center"/>
+                            <TextBlock Text="Sat" Style="{StaticResource Caption}" TextAlignment="Center"/>
+                            <TextBlock Text="Sun" Style="{StaticResource Caption}" TextAlignment="Center"/>
+                        </UniformGrid>
+
+                        <ItemsControl ItemsSource="{Binding CalendarCells}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="7"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <!-- 빈 자리는 테두리도 그리지 않는다. 달이 시작하기 전의
+                                         칸에 테두리가 있으면 판매가 0인 날처럼 읽힌다. -->
+                                    <Button Height="46" Margin="1"
+                                            HorizontalContentAlignment="Stretch"
+                                            VerticalContentAlignment="Stretch"
+                                            ToolTip="{Binding Tooltip}"
+                                            Command="{Binding DataContext.SelectDayCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="White"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Setter Property="Cursor" Value="Hand"/>
+                                                <Setter Property="Padding" Value="5,3"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    Padding="{TemplateBinding Padding}"
+                                                                    CornerRadius="5">
+                                                                <ContentPresenter/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSunday}" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource SubtleSurfaceBrush}"/>
+                                                    </DataTrigger>
+                                                    <!-- 오늘은 테두리로만 표시한다. 칠해 버리면
+                                                         매출이 많은 날처럼 보인다. -->
+                                                    <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                        <Setter Property="BorderThickness" Value="2"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsFiller}" Value="True">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="IsHitTestVisible" Value="False"/>
+                                                        <Setter Property="Cursor" Value="Arrow"/>
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+
+                                        <Grid>
+                                            <TextBlock Text="{Binding DayLabel}" FontSize="10"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            <!-- 금액은 반올림해서 넣는다. 칸이 좁아 소수점까지
+                                                 넣으면 줄이 넘친다. 정확한 값은 툴팁과,
+                                                 그 날을 눌렀을 때의 요약 카드에 있다. -->
+                                            <TextBlock Text="{Binding AmountLabel}" FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextBrush}"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
 
-                    <Grid Visibility="{Binding HasSalesTrendData, Converter={StaticResource BoolToVis}}">
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsTrendVisible}" Value="True"/>
+                                            <Condition Binding="{Binding HasSalesTrendData}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -438,9 +599,13 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasSalesTrendData}" Value="False">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsTrendVisible}" Value="True"/>
+                                            <Condition Binding="{Binding HasSalesTrendData}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
                                         <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
+                                    </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </TextBlock.Style>

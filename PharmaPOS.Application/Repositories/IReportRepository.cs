@@ -47,4 +47,13 @@ public interface IReportRepository
     /// </summary>
     Task<IReadOnlyList<SalesTrendPoint>> GetSalesTrendAsync(
         string facilityId, DateTime endMonth, int months);
+
+    /// <summary>
+    /// 한 달을 날짜별로 쪼갠 순매출. 달력 한 칸이 하루다.
+    /// 판매가 없던 날도 0으로 채워 그 달의 1일부터 말일까지 빠짐없이 돌려준다.
+    ///
+    /// 월별 추이와 같은 규칙이어야 한다(순매출, 건수는 판매 행만, 로컬 자정 경계).
+    /// 달력은 요약 카드 바로 아래에 놓여서, 규칙이 갈리면 칸의 합과 카드가 어긋난다.
+    /// </summary>
+    Task<IReadOnlyList<DailySalesPoint>> GetDailySalesAsync(string facilityId, DateTime month);
 }

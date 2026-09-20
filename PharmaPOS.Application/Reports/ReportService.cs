@@ -17,6 +17,19 @@ public class ReportService : IReportService
         _reportRepository = reportRepository;
     }
 
+    public async Task<DailySalesQueryResult> GetDailySalesAsync(string facilityId, DateTime month)
+    {
+        try
+        {
+            return DailySalesQueryResult.Success(
+                await _reportRepository.GetDailySalesAsync(facilityId, month));
+        }
+        catch (Exception)
+        {
+            return DailySalesQueryResult.Failure("The calendar could not be loaded.");
+        }
+    }
+
     public async Task<ReportQueryResult> GetReportAsync(string facilityId, DateTime? from, DateTime? to)
     {
         if (from is not null && to is not null && from.Value.Date > to.Value.Date)

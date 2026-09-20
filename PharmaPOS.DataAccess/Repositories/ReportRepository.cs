@@ -284,6 +284,68 @@ public class ReportRepository : IReportRepository
         return points;
     }
 
+    public async Task<IReadOnlyList<DailySalesPoint>> GetDailySalesAsync(
+        string facilityId, DateTime month)
+    {
+        var firstDay = new DateTime(month.Year, month.Month, 1);
+        var dayCount = DateTime.DaysInMonth(month.Year, month.Month);
+
+        // 끝은 말일의 자정 직전이다. 다음 달 1일까지 넣으면 그 하루가 딸려 들어온다.
+        var fromUtc = new DateTimeOffset(firstDay).ToUnixTimeMilliseconds();
+        var toUtc = new DateTimeOffset(firstDay.AddMonths(1).AddMilliseconds(-1)).ToUnixTimeMilliseconds();
+
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+
+        // GetSalesTrendAsync와 글자 그대로 같은 규칙이다. 묶는 단위만 달에서 날로 바뀐다 —
+        // 환불 행은 금액이 음수라 함께 더하면 순매출이 되고, 건수는 판매 행만 센다.
+        // 'localtime'이 붙는 이유도 같다: 이 앱의 날짜 경계가 전부 현지 자정이라,
+        // UTC로 묶으면 자정 근처 판매가 옆 날짜 칸으로 넘어간다.
+        command.CommandText = """
+            SELECT
+                strftime('%Y-%m-%d', transaction_time / 1000, 'unixepoch', 'localtime') AS bucket,
+                COALESCE(SUM(total_amount), 0) AS amount,
+                COUNT(DISTINCT CASE WHEN transaction_type = 'StockOut'
+                                    THEN transaction_time || '|' || user_id END) AS transactions
+            FROM Stock_Transaction
+            WHERE facility_id = $facilityId
+              AND transaction_type IN ('StockOut', 'Refund')
+              AND transaction_time BETWEEN $from AND $to
+            GROUP BY bucket;
+            """;
+        command.Parameters.AddWithValue("$facilityId", facilityId);
+        command.Parameters.AddWithValue("$from", fromUtc);
+        command.Parameters.AddWithValue("$to", toUtc);
+
+        var totals = new Dictionary<string, (decimal Amount, int Transactions)>();
+
+        using (var reader = await command.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                totals[reader.GetString(0)] = ((decimal)reader.GetDouble(1), reader.GetInt32(2));
+            }
+        }
+
+        var points = new List<DailySalesPoint>(dayCount);
+
+        for (var offset = 0; offset < dayCount; offset++)
+        {
+            var date = firstDay.AddDays(offset);
+            totals.TryGetValue(date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), out var total);
+
+            points.Add(new DailySalesPoint
+            {
+                Date = date,
+                Amount = total.Amount,
+                TransactionCount = total.Transactions
+            });
+        }
+
+        return points;
+    }
+
     public async Task<IReadOnlyList<SalesTrendPoint>> GetSalesTrendAsync(
         string facilityId, DateTime endMonth, int months)
     {
