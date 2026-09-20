@@ -15,7 +15,15 @@ public partial class PosSaleViewModel
 {
     private PaymentMethod? _selectedPaymentMethod;
     private string _cashTendered = string.Empty;
+    private string _cashTenderedRiel = string.Empty;
     private string _notes = string.Empty;
+
+    // 통화 설정(환율·반올림 단위·리엘 표시 여부). 화면을 열 때 한 번 읽는다 —
+    // 판매마다 다시 읽으면 계산대가 느려지고, 환율이 판매 도중 바뀌면 받은 돈과
+    // 거스름돈이 서로 다른 환율로 계산된다.
+    private decimal _exchangeRate;
+    private int _rielRounding = 100;
+    private bool _showRiel;
 
     public PaymentMethod? SelectedPaymentMethod
     {
@@ -45,10 +53,59 @@ public partial class PosSaleViewModel
         {
             if (SetProperty(ref _cashTendered, value))
             {
-                OnPropertyChanged(nameof(ChangeDue));
+                RaiseTenderChanged();
             }
         }
     }
+
+    /// <summary>
+    /// 손님이 리엘로 낸 금액. 달러 칸과 함께 쓴다 — 캄보디아에서는 두 통화를 섞어
+    /// 내는 것이 보통이라, 둘 중 하나만 받으면 직원이 암산을 해야 한다.
+    /// </summary>
+    public string CashTenderedRiel
+    {
+        get => _cashTenderedRiel;
+        set
+        {
+            if (SetProperty(ref _cashTenderedRiel, value))
+            {
+                RaiseTenderChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 리엘 칸과 환산 표시를 보여줄지. 환율이 없으면 환산할 방법이 없고,
+    /// 리엘을 쓰지 않기로 한 약국(currency.showRiel = false)에는 방해만 된다.
+    /// 영수증이 리엘 줄을 낼지 정하는 규칙과 같은 값을 쓴다.
+    /// </summary>
+    public bool IsRielAccepted => _showRiel && _exchangeRate > 0;
+
+    /// <summary>화면을 열 때 통화 설정을 읽는다. 못 읽으면 리엘 칸 없이 종전대로 동작한다.</summary>
+    public async Task LoadCurrencySettingsAsync()
+    {
+        try
+        {
+            var settings = await _receiptSettingsService.GetAsync();
+
+            _exchangeRate = settings.ExchangeRate;
+            _rielRounding = settings.RielRounding;
+            _showRiel = settings.ShowRiel;
+        }
+        catch (Exception)
+        {
+            _showRiel = false;
+        }
+
+        OnPropertyChanged(nameof(IsRielAccepted));
+        OnPropertyChanged(nameof(ExchangeRateHint));
+        RaiseTotalsChanged();
+    }
+
+    public string ExchangeRateHint => IsRielAccepted
+        ? $"1 USD = {_exchangeRate.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)} "
+          + RielConverter.RielSymbol
+        : string.Empty;
 
     public string Notes
     {
@@ -59,17 +116,74 @@ public partial class PosSaleViewModel
     /// <summary>Sale Cart 내 상품별 금액 합계 (Screen §4.4절).</summary>
     public decimal TotalAmount => Cart.Sum(item => item.LineTotal);
 
-    /// <summary>Cash Tendered − Total Amount (Screen §4.4절). 계산 불가하면 null.</summary>
-    public decimal? ChangeDue
+    /// <summary>합계의 리엘 환산액. 손님이 리엘로 낼 때 얼마를 받아야 하는지다.</summary>
+    public string TotalInRielDisplay => IsRielAccepted
+        ? RielConverter.Format(TotalAmount, _exchangeRate, _rielRounding)
+        : string.Empty;
+
+    /// <summary>
+    /// 지금까지 받은 현금. 달러 칸과 리엘 칸이 모두 비어 있으면 null이다.
+    /// 계산은 Application의 <see cref="MixedCashTender"/>가 한다 — 환율과 반올림이
+    /// 섞인 돈 계산이라 테스트가 걸리는 자리에 있어야 한다.
+    /// </summary>
+    private MixedCashTender? CurrentTender
     {
         get
         {
-            if (!decimal.TryParse(CashTendered, out var tendered))
+            var hasUsd = decimal.TryParse(CashTendered, out var usd);
+            var hasRiel = long.TryParse(CashTenderedRiel, out var riel);
+
+            if (!hasUsd && !hasRiel)
             {
                 return null;
             }
 
-            return tendered - TotalAmount;
+            return MixedCashTender.Calculate(
+                TotalAmount,
+                hasUsd ? usd : 0m,
+                hasRiel ? riel : 0L,
+                _exchangeRate,
+                _rielRounding);
+        }
+    }
+
+    /// <summary>Cash Tendered − Total Amount (Screen §4.4절). 계산 불가하면 null.</summary>
+    public decimal? ChangeDue => CurrentTender?.ChangeUsd;
+
+    /// <summary>
+    /// 실제로 건네줄 거스름돈. 달러 동전이 돌지 않아 센트 단위 거스름은 리엘로만
+    /// 줄 수 있으므로, 계산대가 보는 값은 이쪽이다.
+    /// </summary>
+    public string ChangeDueRielDisplay
+    {
+        get
+        {
+            if (!IsRielAccepted || CurrentTender is not { } tender || !tender.IsEnough)
+            {
+                return string.Empty;
+            }
+
+            return RielConverter.Format(tender.ChangeRiel);
+        }
+    }
+
+    /// <summary>
+    /// 두 칸을 합쳐 얼마를 받았는지. 달러와 리엘을 섞어 받으면 직원이 합을 암산하게
+    /// 되는데, 그 암산이 틀리면 그날 시재가 맞지 않는다.
+    /// </summary>
+    public string TenderedSummary
+    {
+        get
+        {
+            if (CurrentTender is not { } tender || tender.RielTendered == 0)
+            {
+                return string.Empty;
+            }
+
+            var total = tender.TotalTenderedUsd.ToString(
+                "N2", System.Globalization.CultureInfo.InvariantCulture);
+
+            return $"received $= {total}";
         }
     }
 
@@ -98,7 +212,15 @@ public partial class PosSaleViewModel
     private void RaiseTotalsChanged()
     {
         OnPropertyChanged(nameof(TotalAmount));
+        OnPropertyChanged(nameof(TotalInRielDisplay));
+        RaiseTenderChanged();
+    }
+
+    private void RaiseTenderChanged()
+    {
         OnPropertyChanged(nameof(ChangeDue));
+        OnPropertyChanged(nameof(ChangeDueRielDisplay));
+        OnPropertyChanged(nameof(TenderedSummary));
     }
 
     private async Task ExecuteConfirmSaleAsync(bool acknowledgeWarning)
@@ -106,21 +228,48 @@ public partial class PosSaleViewModel
         Message = string.Empty;
 
         decimal? cashTenderedValue = null;
+
         if (IsCashPayment)
         {
-            if (string.IsNullOrWhiteSpace(CashTendered))
+            // 둘 중 한 칸만 채워도 된다. 달러만 받는 판매도, 리엘만 받는 판매도 흔하다.
+            if (string.IsNullOrWhiteSpace(CashTendered) && string.IsNullOrWhiteSpace(CashTenderedRiel))
             {
                 Message = "Please enter the cash tendered.";
                 return;
             }
 
-            if (!decimal.TryParse(CashTendered, out var parsed))
+            if (!string.IsNullOrWhiteSpace(CashTendered) && !decimal.TryParse(CashTendered, out _))
+            {
+                Message = "Cash tendered in USD must be a number.";
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(CashTenderedRiel) && !long.TryParse(CashTenderedRiel, out _))
+            {
+                Message = "Cash tendered in riel must be a whole number.";
+                return;
+            }
+
+            if (CurrentTender is not { } tender)
             {
                 Message = "Please enter the cash tendered.";
                 return;
             }
 
-            cashTenderedValue = parsed;
+            // 모자란 채로 확정되면 판매는 기록되는데 돈은 덜 받은 상태가 된다.
+            // 원장에는 흔적이 남지 않으므로 여기서 막는다.
+            if (!tender.IsEnough)
+            {
+                var shortfall = tender.ShortfallUsd.ToString(
+                    "N2", System.Globalization.CultureInfo.InvariantCulture);
+
+                Message = $"Cash tendered is ${shortfall} short of the total.";
+                return;
+            }
+
+            // 원장과 영수증에는 두 통화를 합친 달러 금액이 들어간다. 판매 한 건의
+            // 받은 돈은 한 값이어야 하고, 이 앱의 금액은 전부 달러 기준이다.
+            cashTenderedValue = tender.TotalTenderedUsd;
         }
 
         var result = await _saleService.ConfirmSaleAsync(
@@ -150,9 +299,7 @@ public partial class PosSaleViewModel
         var totalAmount = TotalAmount;
         var changeDue = ChangeDue;
         var paymentMethod = SelectedPaymentMethod?.ToString();
-        decimal? cashTenderedSnapshot = IsCashPayment && decimal.TryParse(CashTendered, out var tendered)
-            ? tendered
-            : null;
+        decimal? cashTenderedSnapshot = IsCashPayment ? CurrentTender?.TotalTenderedUsd : null;
 
         // 영수증 번호는 (거래 시각, 사용자)로 판매를 식별한다. 판매 내역에서 재출력할 때
         // 같은 번호가 다시 나오게 하려면 방금 저장된 그 시각을 그대로 써야 한다.
@@ -306,6 +453,7 @@ public partial class PosSaleViewModel
         UnitPrice = string.Empty;
         SelectedPaymentMethod = null;
         CashTendered = string.Empty;
+        CashTenderedRiel = string.Empty;
         Notes = string.Empty;
         RaiseTotalsChanged();
     }

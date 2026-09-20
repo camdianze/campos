@@ -233,6 +233,10 @@ public partial class PosSaleViewModel : ViewModelBase
         RemoveFromCartCommand = new RelayCommand(item => ExecuteRemoveFromCart(item as SaleLineItem));
 
         InitializePaymentCommands();
+
+        // 환율·반올림 단위를 미리 읽어 둔다. 계산대가 리엘을 받을 수 있는지가
+        // 이 값으로 정해지므로, 첫 판매 전에 화면이 준비돼 있어야 한다.
+        _ = LoadCurrencySettingsAsync();
     }
 
     /// <summary>

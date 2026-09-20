@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using PharmaPOS.Application.Inventory;
 
@@ -245,9 +245,22 @@ public static class ReceiptRenderer
                 lines, text, ReceiptStringKeys.LabelCashTendered,
                 "$" + Money(request.CashTendered.Value), width);
 
+            var changeDue = request.ChangeDue ?? 0m;
+
             AppendLabelledValue(
                 lines, text, ReceiptStringKeys.LabelChangeDue,
-                "$" + Money(request.ChangeDue ?? 0m), width);
+                "$" + Money(changeDue), width);
+
+            // 거스름돈은 리엘로 건넨다 — 달러 동전이 돌지 않아 센트 단위로는 줄 수 없다.
+            // 손님이 실제로 받아 가는 금액이 종이에 없으면 대조할 수 없다.
+            // 합계의 환산과 같은 반올림 단위를 쓴다.
+            if (settings.ShowRiel && settings.ExchangeRate > 0 && changeDue > 0)
+            {
+                AppendRightAligned(
+                    lines,
+                    RielConverter.Format(changeDue, settings.ExchangeRate, settings.RielRounding),
+                    width);
+            }
         }
     }
 

@@ -571,10 +571,10 @@
 | 4 | `Quantity` 또는 `Quantity (boxes)` | TextBox | ✔ | **`1`** | 박스로 팔 때만 라벨에 `(boxes)`가 붙는다 |
 | 5 | `Selling Price` | TextBox | ✔ | **상품 마스터 값이 자동으로 채워진다** (판매 단위가 바뀌면 그 단위 가격으로 다시 잡힌다) | **Administrator만 수정 가능. FacilityStaff에게는 읽기 전용** |
 | 6 | `Payment Method` | ComboBox | ✔ | **선택 없음** | `Cash` / `MobilePayment` / `Insurance` / `Credit` / `Other` |
-| 7 | `Cash Tendered` | TextBox | Cash일 때 ✔ | 빈 칸 | **`Cash`를 골랐을 때만 나타난다.** 값을 칠 때마다 아래 `Change`가 갱신된다 |
+| 7 | `Cash Tendered` | TextBox **2개** (USD / KHR ៛) | Cash일 때 ✔ | 빈 칸 | **`Cash`를 골랐을 때만 나타난다.** 달러와 리엘을 섞어 받는 것이 보통이라 칸이 둘이고, **한 칸만 채워도 된다.** 리엘 칸은 환율이 설정돼 있을 때만 나타난다. 리엘을 넣으면 아래에 `received $= 4.93`으로 합이 나온다 |
 | 8 | `Notes` | TextBox | — | 빈 칸 | ⚠️ **저장되지 않는다.** `Stock_Transaction`에 컬럼이 없다 |
-| 9 | `Total` | (읽기 전용) | | 장바구니 합계 | |
-| 10 | `Change` | (읽기 전용) | | 받은 돈 − 합계. Cash일 때만 표시 | |
+| 9 | `Total` | (읽기 전용) | | 장바구니 합계 | 아래에 **리엘 환산액**과 `1 USD = 4,100 ៛`이 함께 나온다 (환율이 설정돼 있을 때) |
+| 10 | `Change` | (읽기 전용) | | 받은 돈 − 합계. Cash일 때만 표시 | 아래에 **리엘로 건넬 금액**이 굵게 나온다 — 달러 동전이 돌지 않아 센트 단위 거스름은 리엘로만 줄 수 있다. `currency.rounding`(100/500) 단위로 반올림된 값이고, 영수증에도 같은 값이 찍힌다 |
 
 ### 14-4. 저장 흐름
 
@@ -588,6 +588,10 @@
 **판매 확정 — `✓ Confirm Sale`**
 1. Cash면 받은 돈 빈 칸/숫자 검사 → `ConfirmSaleAsync`.
 2. 서비스 검증: 장바구니 비었는지 → 결제수단 선택 → (Cash) 받은 돈 ≥ 합계 → 각 줄 판매가 > 0.
+   - (Cash) 두 칸이 **모두 비면** `Please enter the cash tendered.`, 숫자가 아니면 `Cash tendered in USD must be a number.` / `Cash tendered in riel must be a whole number.`
+   - **달러와 리엘을 합쳐도 모자라면** `Cash tendered is $6.00 short of the total.`로 막힌다. 그냥 두면 판매는 다 기록되는데 돈만 덜 받은 상태가 되고, 원장에는 흔적이 남지 않는다.
+   - 원장과 영수증에 들어가는 `Cash Tendered`는 **두 통화를 합친 달러 금액**이다. 판매 한 건의 받은 돈은 한 값이어야 하고, 이 앱의 금액은 전부 달러 기준이다.
+   - 환율이 설정돼 있지 않으면 리엘 칸 자체가 없고, 종전처럼 달러만으로 동작한다.
 3. **원가보다 싸게 파는 줄이 있으면** 확인 대화상자 `Confirm` / `Selling price is lower than cost price. Continue?` (Yes/No).
 4. DB 트랜잭션 안에서 재고를 다시 확인하고 차감한다. 모자라면 `Some products do not have enough stock.`
 5. 성공하면 **화면을 먼저 초기화**하고 `Sale completed successfully.`

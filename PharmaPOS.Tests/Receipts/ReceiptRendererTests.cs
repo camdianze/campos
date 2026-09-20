@@ -102,6 +102,33 @@ public class ReceiptRendererTests
         });
     }
 
+    /// <summary>
+    /// 거스름돈은 리엘로 건넨다 — 달러 동전이 돌지 않아 센트 단위로는 줄 수 없다.
+    /// 손님이 실제로 받아 가는 금액이 종이에 없으면 나중에 대조할 수가 없다.
+    /// </summary>
+    [Fact]
+    public void ChangeDue_AlsoPrintsInRiel()
+    {
+        var lines = Lines();
+
+        var document = ReceiptRenderer.Render(new ReceiptRenderRequest
+        {
+            Settings = Settings(),
+            Text = new ReceiptText(ReceiptPrintLanguage.English, ApprovedKhmer()),
+            Lines = lines,
+            TotalAmount = lines.Sum(l => l.LineTotal),
+            CashTendered = 5m,
+            ChangeDue = 1m,
+            TransactionTime = 1_755_000_000_000,
+            ReceiptNumber = "INV-20260821-0147",
+            StaffName = "Sophea C.",
+            PaymentMethod = "Cash"
+        });
+
+        // 1 USD × 4,100 = 4,100 (100 단위 반올림)
+        Assert.Contains("4,100 " + RielConverter.RielSymbol, Text(document));
+    }
+
     private static string Text(ReceiptDocument document) =>
         string.Join("\n", document.Lines);
 

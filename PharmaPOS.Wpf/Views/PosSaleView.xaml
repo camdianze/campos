@@ -202,10 +202,42 @@
                               SelectedItem="{Binding SelectedPaymentMethod}"
                               Height="34" Margin="0,0,0,8"/>
 
+                    <!-- 받은 돈. 달러와 리엘을 섞어 내는 것이 보통이라 칸을 둘 둔다.
+                         한 칸만 채워도 된다 — 달러만 받는 판매도, 리엘만 받는 판매도 흔하다.
+                         리엘 칸은 환율이 설정돼 있을 때만 나타난다. -->
                     <StackPanel Visibility="{Binding IsCashPayment, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="{svc:Loc ui.pos.cash_tendered, Cash Tendered}" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding CashTendered, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource FieldInput}" Margin="0,0,0,8"/>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding CashTendered, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInput}" Margin="0"/>
+                            <TextBlock Grid.Column="1" Text="USD" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" FontSize="12"
+                                       Foreground="{StaticResource MutedTextBrush}"/>
+                        </Grid>
+
+                        <StackPanel Visibility="{Binding IsRielAccepted, Converter={StaticResource BoolToVis}}">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding CashTenderedRiel, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FieldInput}" Margin="0"/>
+                                <TextBlock Grid.Column="1" Text="KHR ៛" VerticalAlignment="Center"
+                                           Margin="8,0,0,0" FontSize="12"
+                                           Foreground="{StaticResource MutedTextBrush}"/>
+                            </Grid>
+                            <!-- 두 칸을 합치면 얼마인지. 암산이 틀리면 그날 시재가 맞지 않는다. -->
+                            <TextBlock Text="{Binding TenderedSummary}"
+                                       Style="{StaticResource Caption}" Margin="0,0,0,4"/>
+                        </StackPanel>
                     </StackPanel>
 
                     <TextBlock Text="{svc:Loc ui.pos.notes, Notes}" Style="{StaticResource FieldLabel}"/>
@@ -224,6 +256,15 @@
                                    HorizontalAlignment="Right"/>
                     </Grid>
 
+                    <!-- 합계의 리엘 환산. 손님이 리엘로 낼 때 얼마를 받아야 하는지다. -->
+                    <TextBlock Text="{Binding TotalInRielDisplay}"
+                               FontSize="13" HorizontalAlignment="Right"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               Margin="0,0,0,2"/>
+                    <TextBlock Text="{Binding ExchangeRateHint}"
+                               Style="{StaticResource Caption}" HorizontalAlignment="Right"
+                               Margin="0,0,0,6"/>
+
                     <StackPanel Visibility="{Binding IsCashPayment, Converter={StaticResource BoolToVis}}"
                                 Margin="0,0,0,12">
                         <Grid>
@@ -234,6 +275,14 @@
                                        Foreground="#38A169"
                                        HorizontalAlignment="Right"/>
                         </Grid>
+
+                        <!-- 실제로 건네줄 금액. 달러 동전이 돌지 않아 센트 단위 거스름은
+                             리엘로만 줄 수 있으므로, 계산대가 보는 값은 이쪽이다.
+                             currency.rounding 단위로 반올림돼 있다. -->
+                        <TextBlock Text="{Binding ChangeDueRielDisplay}"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="#38A169"
+                                   HorizontalAlignment="Right"/>
                     </StackPanel>
 
                     <!-- 버튼 -->
