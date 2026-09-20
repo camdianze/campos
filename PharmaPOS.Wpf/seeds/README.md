@@ -9,6 +9,12 @@
 출처: WHO, *The selection and use of essential medicines, 2025: WHO AWaRe
 classification of antibiotics for evaluation and monitoring of use* (2025-09-05)
 
+**원문은 [docs/reference/who-aware-2025.pdf](../../docs/reference/who-aware-2025.pdf)에
+함께 두었다.** 대조할 때마다 같은 판본을 보기 위해서다 — 직전 대조는 포털 화면을
+긁어서 했고, 거기서 없는 항목 2건이 "빠진 것"으로 보여 시드에 들어갔다.
+`docs/`는 게시물(exe)에 실리지 않으므로 제품에는 포함되지 않는다.
+라이선스는 CC BY-NC-SA 3.0 IGO이고, 이 사본은 시드를 검증하기 위한 사내 참고본이다.
+
 분류값은 코드에 하드코딩하지 않는다. 개정판이 나오면 이 파일만 교체한다.
 **값을 추정해서 채우지 말 것.**
 
