@@ -143,6 +143,7 @@ The screen (reached from the admin dashboard) is split by direction of data flow
 
 **Import** ([InitialImportService](PharmaPOS.Application/Import/InitialImportService.cs)) takes one CSV/XLSX file and is run twice: step 1 products, step 2 their batches.
 
+- **`cost_price` may be empty.** It defaults to 0, the same rule the product screen follows and the one the survey sheet already prints (`Empty = 0`); an explicit `0` is accepted too, since a pharmacy that kept paper records often has no purchase price for a product, and 0 only means the sold-below-cost warning stays quiet. The importer used to demand it, so a file filled in exactly as the sheet instructed was refused — `selling_price` is the one that must still be above zero, because zero there means giving stock away. `TryReadPrice(allowZero:)` is the single place that difference lives.
 - Existing products are **updated, not skipped**: only the columns the file fills are written, so a row carrying just a product name (the second batch row of the same product) changes nothing. That also means the import can never blank a value — clearing a field is done in the product screen.
 - Column names accept both spellings (`safety_stock`/`safety_stock_level`, `loose_unit_price`/`unit_selling_price`), so an exported products file can be edited and imported straight back.
 

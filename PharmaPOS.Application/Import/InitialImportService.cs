@@ -179,14 +179,11 @@ public class InitialImportService : IInitialImportService
             return null;
         }
 
-        if (!TryReadPrice(row, InitialImportColumns.CostPrice, out var costPrice, out error))
+        // 원가는 비워도 된다. 상품 화면과 같은 규칙이고, 조사 시트도 "Empty = 0"으로
+        // 안내한다 — 요구하면 시트가 시키는 대로 채운 파일이 통째로 막힌다.
+        // 모르는 원가를 0으로 두면 "원가보다 싸게 판다" 경고만 뜨지 않을 뿐이다.
+        if (!TryReadPrice(row, InitialImportColumns.CostPrice, out var costPrice, out error, allowZero: true))
         {
-            return null;
-        }
-
-        if (costPrice is null)
-        {
-            error = "cost_price is empty. It is required for a new product.";
             return null;
         }
 
@@ -218,7 +215,7 @@ public class InitialImportService : IInitialImportService
             ProductName = productName,
             Unit = unit,
             Barcode = NullIfEmpty(barcode),
-            CostPrice = costPrice.Value,
+            CostPrice = costPrice ?? 0m,
             SellingPrice = sellingPrice.Value,
             SafetyStockLevel = safetyStock ?? 0,
             UnitsPerBox = looseSale?.UnitsPerBox ?? 1,
@@ -287,7 +284,7 @@ public class InitialImportService : IInitialImportService
         ApplyText(row.Get(InitialImportColumns.CountryOfOrigin), merged.CountryOfOrigin,
             value => merged.CountryOfOrigin = value, ref changed);
 
-        if (!TryReadPrice(row, InitialImportColumns.CostPrice, out var costPrice, out error))
+        if (!TryReadPrice(row, InitialImportColumns.CostPrice, out var costPrice, out error, allowZero: true))
         {
             return null;
         }
@@ -385,8 +382,16 @@ public class InitialImportService : IInitialImportService
     }
 
     /// <summary>빈 칸이면 null(= 적지 않음), 값이 있으면 검사해서 돌려준다.</summary>
+    /// <summary>
+    /// 가격 칸을 읽는다. 비어 있으면 null을 돌려주고, 그 뜻은 부르는 쪽이 정한다.
+    ///
+    /// allowZero는 원가에만 쓴다. 판매가가 0이면 공짜로 파는 것이라 실수일 가능성이
+    /// 높지만, 원가 0은 "모른다"는 뜻으로 정상적인 값이다 — 종이로 관리하던 약국은
+    /// 매입가 기록이 없는 상품이 흔하다.
+    /// </summary>
     private static bool TryReadPrice(
-        ImportSourceRow row, string[] column, out decimal? price, out string? error)
+        ImportSourceRow row, string[] column, out decimal? price, out string? error,
+        bool allowZero = false)
     {
         price = null;
         error = null;
@@ -398,9 +403,11 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        if (!TryParseDecimal(text, out var parsed) || parsed <= 0)
+        if (!TryParseDecimal(text, out var parsed) || parsed < 0 || (!allowZero && parsed == 0))
         {
-            error = $"{column[0]} must be a number greater than zero.";
+            error = allowZero
+                ? $"{column[0]} must be a number of zero or more."
+                : $"{column[0]} must be a number greater than zero.";
             return false;
         }
 

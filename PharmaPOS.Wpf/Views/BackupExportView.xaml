@@ -112,10 +112,16 @@
                                 CornerRadius="8" Padding="12,10">
                             <StackPanel>
                                 <TextBlock Text="File columns" Style="{StaticResource FieldLabel}"/>
+                                <!-- 무엇이 필수인지 정확히 적는다. 전에는 읽는 컬럼을 한 줄에
+                                     늘어놓고 다음 줄에만 "Optional:"을 붙여서, cost_price처럼
+                                     사실은 비워도 되는 칸이 필수처럼 읽혔다. 시트는 비우라고
+                                     안내하는데 화면은 요구하는 것처럼 보이면 아무도 믿지 않는다. -->
                                 <TextBlock Style="{StaticResource PanelHint}"
-                                           Text="product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity"/>
+                                           Text="Required for a new product: product_name, dosage_form, unit, selling_price. generic_name too, unless dosage_form is Other (bandages, masks…)."/>
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
-                                           Text="Optional: generic_name, strength, dosage_form, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back."/>
+                                           Text="Optional: barcode, cost_price, safety_stock, units_per_box, loose_unit_price, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back."/>
+                                <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
+                                           Text="Step 2 reads: batch_number, expiry_date, quantity, loose_quantity."/>
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
                                            Text="dosage_form is the form of the medicine (Tablet, Syrup, Injection, Ointment…), while unit is how one piece is counted (Tablet, Bottle, Tube). A file with only product_name and dosage_form fills the form in for products that already exist."/>
                             </StackPanel>

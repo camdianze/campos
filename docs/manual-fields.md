@@ -1019,8 +1019,11 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - ①②와 달리 **같은 폴더를 다시 넣어도 막지 않는다.** 사진은 덮어쓰기라 쌓이지 않는다.
 
 맨 아래 `File columns` 안내 상자:
-- 필수/기본: `product_name, unit, barcode, cost_price, selling_price, safety_stock, units_per_box, loose_unit_price, batch_number, expiry_date, quantity, loose_quantity`
-- 선택: `generic_name, strength, dosage_form, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
+- 신규 상품 필수: `Required for a new product: product_name, dosage_form, unit, selling_price. generic_name too, unless dosage_form is Other (bandages, masks…).`
+- 선택: `Optional: barcode, cost_price, safety_stock, units_per_box, loose_unit_price, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
+- 2단계: `Step 2 reads: batch_number, expiry_date, quantity, loose_quantity.`
+
+**`cost_price`는 비워도 된다.** 상품 화면과 같은 규칙이고, 조사 시트도 `Empty = 0`으로 안내한다 — 비우면 0으로 들어가고, 그때는 "원가보다 싸게 판다" 경고만 뜨지 않는다. `0`을 직접 적는 것도 정상이다(종이로 관리하던 약국은 매입가 기록이 없는 상품이 흔하다). **판매가는 다르다** — 0이면 공짜로 파는 것이라 그 행이 거부된다.
 - `dosage_form is the form of the medicine (Tablet, Syrup, Injection, Ointment…), while unit is how one piece is counted (Tablet, Bottle, Tube). A file with only product_name and dosage_form fills the form in for products that already exist.`
 
 **`dosage_form` 값** — 고정 목록이지만 파일은 손으로 채우므로 관대하게 읽는다. 대소문자·구분자·복수형·흔한 줄임말을 받아 준다 (`tablets`, `tab`, `caps`, `inj`, `vial`, `sachet`, `Eye drops`, `OINTMENT` …). 그래도 못 읽으면 **그 행이 오류로 빠지고** 허용 값 목록이 메시지에 함께 나온다. 실제 저장 값은 `Tablet` / `Capsule` / `Syrup` / `Suspension` / `Powder` / `Injection` / `Infusion` / `Ointment` / `Cream` / `Drops` / `Suppository` / `Inhaler` / `Other`.

@@ -447,6 +447,75 @@ public class InitialImportServiceTests
         Assert.Equal("J01CA04", product.AtcCode);
     }
 
+    /// <summary>
+    /// 원가는 비워도 된다. 상품 화면이 선택으로 두고 있고, 조사 시트도 "Empty = 0"으로
+    /// 안내한다 — 요구하면 시트가 시킨 대로 채운 파일이 통째로 막힌다.
+    /// 종이로 관리하던 약국에는 매입가 기록이 없는 상품이 흔하다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_AcceptsANewProductWithoutACostPrice()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicillin", unit: "Tablet", sellingPrice: "1000",
+                dosageForm: "Tablet", genericName: "Amoxicillin")
+        });
+
+        Assert.Empty(plan.Issues);
+        var product = Assert.Single(plan.ProductsToCreate).Product;
+        Assert.Equal(0m, product.CostPrice);
+    }
+
+    /// <summary>원가 0을 직접 적는 것도 정상이다. "모른다"를 적는 방법이다.</summary>
+    [Fact]
+    public async Task PlanProducts_AcceptsAnExplicitZeroCostPrice()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicillin", unit: "Tablet", costPrice: "0", sellingPrice: "1000",
+                dosageForm: "Tablet", genericName: "Amoxicillin")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(0m, Assert.Single(plan.ProductsToCreate).Product.CostPrice);
+    }
+
+    /// <summary>판매가는 다르다. 0이면 공짜로 파는 것이라 실수일 가능성이 높다.</summary>
+    [Fact]
+    public async Task PlanProducts_StillRefusesAZeroSellingPrice()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicillin", unit: "Tablet", costPrice: "500", sellingPrice: "0",
+                dosageForm: "Tablet", genericName: "Amoxicillin")
+        });
+
+        Assert.Empty(plan.ProductsToCreate);
+        Assert.Single(plan.Issues);
+    }
+
+    /// <summary>음수 원가는 값이 아니다.</summary>
+    [Fact]
+    public async Task PlanProducts_RefusesANegativeCostPrice()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicillin", unit: "Tablet", costPrice: "-1", sellingPrice: "1000",
+                dosageForm: "Tablet", genericName: "Amoxicillin")
+        });
+
+        Assert.Empty(plan.ProductsToCreate);
+        Assert.Single(plan.Issues);
+    }
+
     [Fact]
     public async Task PlanProducts_LeavesBarcodeEmptyWhenNotGiven()
     {
