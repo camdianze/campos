@@ -80,6 +80,8 @@ Hand-rolled and imperative. A single `MainWindow` has its `Content` swapped:
 
 The logged-in user is threaded manually as `FacilityId` / `UserId` / `Role` constructor parameters — there is no ambient session or current-user service. Preserve this when adding screens.
 
+The app styles controls with **custom `ControlTemplate`s in App.xaml**, and a template only renders the parts it names. The ComboBox template draws `SelectionBoxItem` through a `ContentPresenter`, which is empty whenever `IsEditable="True"` — WPF puts the text in a `PART_EditableTextBox` instead, so a template without one shows nothing at all while the bound `Text` still holds the value. The product screen's Unit field was in exactly that state: the value was stored, read back and bound, and the field looked blank, which read as "the import did not set the unit". The template now carries `PART_EditableTextBox` and an `IsEditable` trigger that swaps it for the presenter. Check the same thing before adding another editable ComboBox.
+
 MVVM base is minimal and local: `ViewModelBase` (`SetProperty`) and `RelayCommand` in [ViewModels/Base/](PharmaPOS.Wpf/ViewModels/Base/). No MVVM toolkit, no source generators.
 
 ### Result objects, not exceptions

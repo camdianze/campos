@@ -306,12 +306,29 @@
                                 </ToggleButton.Template>
                             </ToggleButton>
 
-                            <ContentPresenter IsHitTestVisible="False"
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
                                               Content="{TemplateBinding SelectionBoxItem}"
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                               ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
                                               Margin="12,0,34,0"
                                               VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                            <!-- IsEditable="True"인 ComboBox는 WPF가 템플릿에서 이 이름의
+                                 TextBox를 찾아 글자를 그린다. 없으면 SelectionBoxItem이 늘
+                                 비어서 값이 있어도 화면에 아무것도 나오지 않는다 — 실제로
+                                 상품 화면의 Unit 칸이 그 상태였다. 오른쪽 34px은 화살표
+                                 자리로 비워 두어, 글자 위를 누르면 편집이고 화살표를 누르면
+                                 목록이 열리게 한다. -->
+                            <TextBox x:Name="PART_EditableTextBox"
+                                     Visibility="Collapsed"
+                                     Margin="12,0,34,0" Padding="0"
+                                     VerticalContentAlignment="Center"
+                                     Background="Transparent" BorderThickness="0"
+                                     Foreground="{TemplateBinding Foreground}"
+                                     FontSize="{TemplateBinding FontSize}"
+                                     Cursor="IBeam"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"/>
 
                             <Popup x:Name="PART_Popup"
                                    Placement="Bottom" AllowsTransparency="True" Focusable="False"
@@ -331,6 +348,12 @@
                             </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
+                            <!-- 편집 가능한 ComboBox는 글자를 TextBox가 그린다.
+                                 ContentPresenter를 함께 두면 빈 칸이 겹쳐 보인다. -->
+                            <Trigger Property="IsEditable" Value="True">
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="ContentSite" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrushStrong}"/>
                             </Trigger>
