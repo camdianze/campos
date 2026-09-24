@@ -820,6 +820,98 @@ public class InitialImportServiceTests
     }
 
     /// <summary>배치번호는 비어 있어도 된다. 배치 없이 관리하던 약국이 흔하다.</summary>
+    // ── 이름이 같은 상품의 재고 ──────────────────────────────────────────────
+    //
+    // 1단계가 제조사로 상품을 가르게 되면서 2단계도 같이 갈라야 한다. 이름만 보고
+    // 먼저 등록된 것을 집으면 한쪽 제조사의 재고가 통째로 다른 쪽에 쌓이는데,
+    // 화면에는 정상으로 보이고 선반을 세어 보기 전에는 알 수 없다.
+
+    [Fact]
+    public async Task PlanInventory_SendsStockToTheMakerTheRowNames()
+    {
+        var harness = new Harness();
+
+        var first = ExistingProduct("Amoxicillin");
+        first.Manufacturer = "Maker A";
+        var second = ExistingProduct("Amoxicillin");
+        second.ProductId = "id-2";
+        second.Manufacturer = "Maker B";
+        harness.Products.Products.Add(first);
+        harness.Products.Products.Add(second);
+
+        var plan = await harness.Build().PlanInventoryAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", quantity: "10", manufacturer: "Maker B")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal("id-2", Assert.Single(plan.BatchesToCreate).ProductId);
+    }
+
+    /// <summary>
+    /// 이름이 같은 상품이 둘인데 행에 제조사가 없으면 어느 쪽 선반인지 알 수 없다.
+    /// 짐작해서 넣으면 한쪽은 있지도 않은 재고를 갖고, 다른 쪽은 팔 수 없게 된다.
+    /// </summary>
+    [Fact]
+    public async Task PlanInventory_AsksWhichMakerWhenTheNameIsAmbiguous()
+    {
+        var harness = new Harness();
+
+        var first = ExistingProduct("Amoxicillin");
+        first.Manufacturer = "Maker A";
+        var second = ExistingProduct("Amoxicillin");
+        second.ProductId = "id-2";
+        second.Manufacturer = "Maker B";
+        harness.Products.Products.Add(first);
+        harness.Products.Products.Add(second);
+
+        var plan = await harness.Build().PlanInventoryAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", quantity: "10")
+        });
+
+        Assert.Empty(plan.BatchesToCreate);
+        Assert.Contains("manufacturer", Assert.Single(plan.Issues).Reason);
+    }
+
+    /// <summary>등록되지 않은 제조사의 재고는 상품부터 등록해야 한다.</summary>
+    [Fact]
+    public async Task PlanInventory_ReportsAnUnregisteredMakerByName()
+    {
+        var harness = new Harness();
+
+        var existing = ExistingProduct("Amoxicillin");
+        existing.Manufacturer = "Maker A";
+        harness.Products.Products.Add(existing);
+
+        var plan = await harness.Build().PlanInventoryAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", quantity: "10", manufacturer: "Maker B")
+        });
+
+        Assert.Empty(plan.BatchesToCreate);
+        Assert.Contains("Maker B", Assert.Single(plan.UnmatchedRows).Reason);
+    }
+
+    /// <summary>상품이 하나뿐이면 제조사를 안 적어도 종전대로 찾는다.</summary>
+    [Fact]
+    public async Task PlanInventory_StillMatchesByNameWhenThereIsOnlyOne()
+    {
+        var harness = new Harness();
+
+        var existing = ExistingProduct("Amoxicillin");
+        existing.Manufacturer = "Maker A";
+        harness.Products.Products.Add(existing);
+
+        var plan = await harness.Build().PlanInventoryAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", quantity: "10")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Single(plan.BatchesToCreate);
+    }
+
     [Fact]
     public async Task PlanInventory_AllowsEmptyBatchNumber()
     {

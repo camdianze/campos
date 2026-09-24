@@ -759,14 +759,13 @@ public class InitialImportService : IInitialImportService
             return new InventoryImportPlan { FileError = "Existing products could not be loaded. Please try again." };
         }
 
-        var productsByName = new Dictionary<string, Product>(InitialImportColumns.ProductNameComparer);
-
-        foreach (var product in existingProducts)
-        {
-            // 이름이 겹치면 먼저 등록된 것을 쓴다. 어차피 Products 임포트가 이름 중복을 막는다.
-            productsByName.TryAdd(
-                InitialImportColumns.NormalizeProductName(product.ProductName), product);
-        }
+        // 1단계와 같은 사전·같은 규칙이다. 이름이 같고 만든 곳이 다른 상품이 있을 수 있으므로,
+        // 먼저 등록된 것을 집어 오면 한쪽 제조사의 재고가 통째로 다른 쪽에 쌓인다.
+        // 재고가 잘못 올라가면 화면에는 정상으로 보이고, 세어 보기 전에는 알 수 없다.
+        var productsByName = existingProducts
+            .GroupBy(p => InitialImportColumns.NormalizeProductName(p.ProductName),
+                     InitialImportColumns.ProductNameComparer)
+            .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
         var batches = new List<InventoryImportLine>();
         var unmatched = new List<ImportIssue>();
@@ -793,10 +792,22 @@ public class InitialImportService : IInitialImportService
                 continue;
             }
 
-            if (!productsByName.TryGetValue(productName, out var product))
+            var manufacturer = InitialImportColumns.NormalizeProductName(
+                row.Get(InitialImportColumns.Manufacturer));
+
+            if (!TryMatchExisting(productsByName, productName, manufacturer, out var product, out var matchError))
+            {
+                issues.Add(new ImportIssue(row.LineNumber, matchError!));
+                continue;
+            }
+
+            if (product is null)
             {
                 unmatched.Add(new ImportIssue(
-                    row.LineNumber, $"'{productName}' is not registered. Import products first."));
+                    row.LineNumber,
+                    manufacturer.Length > 0
+                        ? $"'{productName}' from {manufacturer} is not registered. Import products first."
+                        : $"'{productName}' is not registered. Import products first."));
                 continue;
             }
 
