@@ -555,21 +555,70 @@ public class InitialImportServiceTests
         Assert.Equal(50m, product.UnitSellingPrice);
     }
 
-    /// <summary>한쪽만 채워져 있으면 짐작하지 않고 그 행을 건너뛴다.</summary>
-    [Theory]
-    [InlineData("30", "")]
-    [InlineData("", "50")]
-    public async Task PlanProducts_RejectsHalfFilledLooseSaleColumns(string unitsPerBox, string loosePrice)
+    /// <summary>
+    /// 소분 판매를 세우는 것은 units_per_box다. 그것만 있으면 낱개 판매가 켜지고,
+    /// 낱개가는 "박스가 ÷ 박스당 개수"로 계산한다 — 상품 화면이 원래 그렇게 동작한다.
+    /// 임포트만 둘 다 요구해서 시트에 박스당 개수만 적은 행이 통째로 막혔었다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_AcceptsUnitsPerBoxWithoutALoosePrice()
     {
         var harness = new Harness();
 
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
-            FullRow(2, "Amoxicillin", unitsPerBox: unitsPerBox, looseUnitPrice: loosePrice)
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "")
+        });
+
+        Assert.Empty(plan.Issues);
+
+        var product = Assert.Single(plan.ProductsToCreate).Product;
+
+        Assert.Equal(30, product.UnitsPerBox);
+        Assert.True(product.IsBoxedProduct);      // 낱개 판매 체크가 켜진 상태
+        Assert.Null(product.UnitSellingPrice);    // 박스가에서 계산한다
+    }
+
+    /// <summary>
+    /// 낱개가만 적은 것은 세울 방법이 없다. 박스 하나에 몇 개가 들었는지 모르면
+    /// 헐 수가 없고, 그대로 저장하면 낱개가는 버려진다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_RejectsALoosePriceWithoutUnitsPerBox()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "", looseUnitPrice: "50")
         });
 
         Assert.Empty(plan.ProductsToCreate);
-        Assert.Equal(2, Assert.Single(plan.Issues).LineNumber);
+        Assert.Contains("units_per_box", Assert.Single(plan.Issues).Reason);
+    }
+
+    /// <summary>
+    /// 박스당 개수만 고치러 온 행이 저장돼 있던 낱개가를 지워서는 안 된다.
+    /// 임포트는 값을 비울 수 없다 — 지우는 것은 상품 화면에서 한다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_KeepsTheStoredLoosePriceWhenTheColumnIsEmpty()
+    {
+        var harness = new Harness();
+
+        var existing = ExistingProduct("Amoxicillin", unitsPerBox: 20);
+        existing.UnitSellingPrice = 700m;
+        harness.Products.Products.Add(existing);
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "")
+        });
+
+        var updated = Assert.Single(plan.ProductsToUpdate).Product;
+
+        Assert.Equal(30, updated.UnitsPerBox);
+        Assert.Equal(700m, updated.UnitSellingPrice);
     }
 
     /// <summary>이미 등록된 상품은 새로 만들지 않고 제자리에서 고친다.</summary>

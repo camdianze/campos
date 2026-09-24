@@ -322,12 +322,22 @@ public class InitialImportService : IInitialImportService
             return null;
         }
 
-        if (looseSale is not null
-            && (looseSale.UnitsPerBox != merged.UnitsPerBox || looseSale.LooseUnitPrice != merged.UnitSellingPrice))
+        if (looseSale is not null)
         {
-            merged.UnitsPerBox = looseSale.UnitsPerBox;
-            merged.UnitSellingPrice = looseSale.LooseUnitPrice;
-            changed = true;
+            if (looseSale.UnitsPerBox != merged.UnitsPerBox)
+            {
+                merged.UnitsPerBox = looseSale.UnitsPerBox;
+                changed = true;
+            }
+
+            // 낱개가는 파일이 실제로 적었을 때만 덮어쓴다. 비어 있다고 지워 버리면
+            // 박스당 개수만 고치러 온 행이 저장돼 있던 낱개가를 날린다 — 임포트는
+            // 값을 비울 수 없다는 규칙이 여기에도 걸린다.
+            if (looseSale.LooseUnitPrice is { } loosePrice && loosePrice != merged.UnitSellingPrice)
+            {
+                merged.UnitSellingPrice = loosePrice;
+                changed = true;
+            }
         }
 
         if (!TryReadStatus(row, out var status, out error))
@@ -524,8 +534,12 @@ public class InitialImportService : IInitialImportService
         return true;
     }
 
-    /// <summary>소분 판매 설정. 두 칸이 다 비면 null(= 적지 않음)이다.</summary>
-    private sealed record LooseSaleSetting(int UnitsPerBox, decimal LooseUnitPrice);
+    /// <summary>
+    /// 소분 판매 설정. 두 칸이 다 비면 null(= 적지 않음)이다.
+    /// LooseUnitPrice가 null이면 "박스가 ÷ 박스당 개수"로 계산한다 — 상품 화면에서
+    /// 낱개가를 비워 두었을 때와 같다.
+    /// </summary>
+    private sealed record LooseSaleSetting(int UnitsPerBox, decimal? LooseUnitPrice);
 
     private static bool TryReadLooseSale(ImportSourceRow row, out LooseSaleSetting? looseSale, out string? error)
     {
@@ -543,13 +557,19 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        // 소분 판매는 "박스당 개수"와 "낱개가"가 함께 있어야 성립한다. 하나만 있으면
-        // 어느 쪽이 빠진 것인지 알 수 없으므로 짐작하지 않고 그 행을 건너뛴다.
-        if (hasUnitsPerBox != hasLoosePrice)
+        // 소분 판매를 세우는 것은 units_per_box다. 그 값이 박스 하나를 몇 개로 헐 수
+        // 있는지 정하고, 낱개 바코드(-EA)와 낱개 재고가 거기서 나온다.
+        //
+        // 낱개가는 없어도 된다 — 비어 있으면 "박스가 ÷ 박스당 개수"로 계산한다.
+        // 상품 화면이 원래 그렇게 동작하는데 임포트만 둘 다 요구해서, 시트에 박스당
+        // 개수만 적은 행이 통째로 막혔다.
+        //
+        // 반대로 낱개가만 적은 것은 세울 방법이 없다. 박스 하나에 몇 개가 들었는지
+        // 모르면 헐 수가 없고, 그 상태로 저장하면 낱개가는 버려진다.
+        if (!hasUnitsPerBox)
         {
-            error = hasUnitsPerBox
-                ? "units_per_box is set but loose_unit_price is empty. Fill both or leave both empty."
-                : "loose_unit_price is set but units_per_box is empty. Fill both or leave both empty.";
+            error = "loose_unit_price is set but units_per_box is empty. "
+                  + "Add how many pieces are in one box — loose sale needs it.";
             return false;
         }
 
@@ -560,10 +580,17 @@ public class InitialImportService : IInitialImportService
             return false;
         }
 
-        if (!TryParseDecimal(loosePriceText, out var loosePrice) || loosePrice <= 0)
+        decimal? loosePrice = null;
+
+        if (hasLoosePrice)
         {
-            error = "loose_unit_price must be a number greater than zero.";
-            return false;
+            if (!TryParseDecimal(loosePriceText, out var parsed) || parsed <= 0)
+            {
+                error = "loose_unit_price must be a number greater than zero.";
+                return false;
+            }
+
+            loosePrice = parsed;
         }
 
         looseSale = new LooseSaleSetting(unitsPerBox, loosePrice);

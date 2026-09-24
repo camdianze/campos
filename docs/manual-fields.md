@@ -1023,6 +1023,8 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - 선택: `Optional: barcode, cost_price, safety_stock, units_per_box, loose_unit_price, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
 - 2단계: `Step 2 reads: batch_number, expiry_date, quantity, loose_quantity.`
 
+**`units_per_box`만 적어도 낱개 판매가 켜진다.** `loose_unit_price`는 비워도 되고, 비우면 **박스가 ÷ 박스당 개수**로 낱개가를 계산한다(상품 화면과 같은 규칙). 박스 상품이 되면 **내부 바코드와 낱개 바코드(`-EA`)가 자동 생성**된다 — 제조사 바코드가 있어도 만든다. 반대로 `loose_unit_price`만 적으면 거부된다: 박스에 몇 개가 들었는지 모르면 헐 수가 없다. `units_per_box`는 **2 이상**이어야 한다(1은 박스 구분 없음). 그리고 `loose_unit_price`를 비운 행이 **저장돼 있던 낱개가를 지우지는 않는다** — 임포트는 값을 비울 수 없다.
+
 **`cost_price`는 비워도 된다.** 상품 화면과 같은 규칙이고, 조사 시트도 `Empty = 0`으로 안내한다 — 비우면 0으로 들어가고, 그때는 "원가보다 싸게 판다" 경고만 뜨지 않는다. `0`을 직접 적는 것도 정상이다(종이로 관리하던 약국은 매입가 기록이 없는 상품이 흔하다). **판매가는 다르다** — 0이면 공짜로 파는 것이라 그 행이 거부된다.
 - `dosage_form is the form of the medicine (Tablet, Syrup, Injection, Ointment…), while unit is how one piece is counted (Tablet, Bottle, Tube). A file with only product_name and dosage_form fills the form in for products that already exist.`
 
