@@ -83,14 +83,18 @@ public class InitialImportService : IInitialImportService
 
         // 이미 등록된 상품. 상태(Active/Inactive)는 보지 않는다 — 비활성 상품과 같은 이름으로
         // 하나 더 만들면 목록에 같은 이름이 둘이 되고, 어느 쪽이 파는 것인지 알 수 없게 된다.
-        var existingByName = new Dictionary<string, Product>(InitialImportColumns.ProductNameComparer);
+        //
+        // 같은 이름을 제조사로 가른다. 약국에는 이름이 같고 만든 곳이 다른 상품이 흔한데,
+        // 이름만으로 묶으면 뒤에 온 쪽이 앞의 상품을 덮어쓰고 한 상품으로 합쳐진다.
+        var existingByName = existingProducts
+            .GroupBy(p => InitialImportColumns.NormalizeProductName(p.ProductName),
+                     InitialImportColumns.ProductNameComparer)
+            .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
-        foreach (var product in existingProducts)
-        {
-            existingByName.TryAdd(InitialImportColumns.NormalizeProductName(product.ProductName), product);
-        }
-
-        var seenNames = new HashSet<string>(InitialImportColumns.ProductNameComparer);
+        // 파일 안에서 이미 읽은 상품. 이름마다 그 이름으로 나온 제조사들을 들고 있다 —
+        // 배치가 여럿인 상품은 2행부터 상품 정보가 비어 있고, 그 행은 제조사도 비어 있다.
+        // 그런 행을 "제조사 없는 새 상품"으로 만들지 않으려면 이름만으로도 알아봐야 한다.
+        var seenNames = new Dictionary<string, HashSet<string>>(InitialImportColumns.ProductNameComparer);
         var toCreate = new List<ProductImportLine>();
         var toUpdate = new List<ProductImportLine>();
         var unchanged = new List<string>();
@@ -117,14 +121,33 @@ public class InitialImportService : IInitialImportService
                 continue;
             }
 
+            var manufacturer = InitialImportColumns.NormalizeProductName(
+                row.Get(InitialImportColumns.Manufacturer));
+
             // 같은 상품에 배치가 여러 개면 2행부터는 상품 정보가 비어 있다. 첫 행만 읽는다.
-            if (!seenNames.Add(productName))
+            // 제조사가 적혀 있으면 이름이 같아도 다른 상품이므로 건너뛰지 않는다.
+            if (seenNames.TryGetValue(productName, out var seenManufacturers)
+                && (manufacturer.Length == 0 || !seenManufacturers.Add(manufacturer)))
             {
                 duplicateRowCount++;
                 continue;
             }
 
-            if (existingByName.TryGetValue(productName, out var existing))
+            if (seenManufacturers is null)
+            {
+                seenNames[productName] = new HashSet<string>(InitialImportColumns.ProductNameComparer)
+                {
+                    manufacturer
+                };
+            }
+
+            if (!TryMatchExisting(existingByName, productName, manufacturer, out var existing, out var matchError))
+            {
+                issues.Add(new ImportIssue(row.LineNumber, matchError!));
+                continue;
+            }
+
+            if (existing is not null)
             {
                 var merged = MergeProduct(existing, row, out var hasChanges, out var mergeError);
 
@@ -142,6 +165,9 @@ public class InitialImportService : IInitialImportService
                 }
 
                 toUpdate.Add(new ProductImportLine { LineNumber = row.LineNumber, Product = merged });
+
+                // 같은 상품을 두 번 고치지 않도록, 고른 것을 목록에서 뺀다.
+                existingByName[productName].Remove(existing);
                 continue;
             }
 
@@ -165,6 +191,65 @@ public class InitialImportService : IInitialImportService
             UnchangedNames = unchanged,
             Issues = issues
         };
+    }
+
+    /// <summary>
+    /// 행이 가리키는 기존 상품을 찾는다. 없으면 existing이 null이고(= 새 상품),
+    /// 어느 것인지 정할 수 없으면 false와 사유를 돌려준다.
+    ///
+    /// 규칙은 이렇다:
+    ///   - 제조사가 적혀 있고 그 제조사의 상품이 있으면 그것.
+    ///   - 제조사가 적혀 있는데 그 제조사가 없으면 <b>새 상품</b>이다. 이름이 같아도
+    ///     만든 곳이 다르면 다른 물건이고, 함부로 합치면 되돌릴 수 없다.
+    ///     다만 등록된 쪽의 제조사가 비어 있고 그 이름의 상품이 하나뿐이면, 그 상품에
+    ///     제조사를 채워 넣는 것으로 본다 — 제조사 없이 먼저 등록해 둔 흔한 경우다.
+    ///   - 제조사를 안 적었으면 이름만으로 찾는다. 그 이름이 하나뿐이면 그것이고,
+    ///     여럿이면 어느 쪽인지 알 수 없으므로 <b>묻는다</b>. 짐작해서 고르면 엉뚱한
+    ///     상품의 값이 바뀌고, 화면에는 아무 표시도 나지 않는다.
+    /// </summary>
+    private static bool TryMatchExisting(
+        IReadOnlyDictionary<string, List<Product>> existingByName,
+        string productName,
+        string manufacturer,
+        out Product? existing,
+        out string? error)
+    {
+        existing = null;
+        error = null;
+
+        if (!existingByName.TryGetValue(productName, out var candidates) || candidates.Count == 0)
+        {
+            return true;
+        }
+
+        if (manufacturer.Length > 0)
+        {
+            existing = candidates.FirstOrDefault(p => InitialImportColumns.ProductNameComparer.Equals(
+                InitialImportColumns.NormalizeProductName(p.Manufacturer ?? string.Empty), manufacturer));
+
+            if (existing is not null)
+            {
+                return true;
+            }
+
+            // 제조사 없이 먼저 등록해 둔 상품 하나뿐이면 그것에 제조사를 채우는 것으로 본다.
+            if (candidates.Count == 1 && string.IsNullOrWhiteSpace(candidates[0].Manufacturer))
+            {
+                existing = candidates[0];
+            }
+
+            return true;
+        }
+
+        if (candidates.Count == 1)
+        {
+            existing = candidates[0];
+            return true;
+        }
+
+        error = $"'{productName}' matches {candidates.Count} products. "
+              + "Fill in manufacturer to say which one this row is.";
+        return false;
     }
 
     /// <summary>한 행을 새 상품으로 바꾼다. 값이 잘못됐으면 null과 사유를 돌려준다.</summary>

@@ -150,7 +150,8 @@ public class InitialImportServiceTests
         string quantity = "",
         string dosageForm = "",
         string genericName = "",
-        string looseQuantity = "")
+        string looseQuantity = "",
+        string manufacturer = "")
     {
         return new ImportSourceRow
         {
@@ -169,6 +170,7 @@ public class InitialImportServiceTests
                 [InitialImportColumns.ExpiryDate[0]] = expiryDate,
                 [InitialImportColumns.Quantity[0]] = quantity,
                 [InitialImportColumns.LooseQuantity[0]] = looseQuantity,
+                [InitialImportColumns.Manufacturer[0]] = manufacturer,
                 [InitialImportColumns.DosageForm[0]] = dosageForm,
                 [InitialImportColumns.GenericName[0]] = genericName
             }
@@ -190,11 +192,13 @@ public class InitialImportServiceTests
     private static ImportSourceRow FullRow(
         int lineNumber, string productName, string batchNumber = "B1",
         string expiryDate = "2099-12-31", string quantity = "10",
-        string unitsPerBox = "", string looseUnitPrice = "", string looseQuantity = "")
+        string unitsPerBox = "", string looseUnitPrice = "", string looseQuantity = "",
+        string manufacturer = "")
         => Row(lineNumber, productName, unit: "Tablet", costPrice: "500", sellingPrice: "1000",
             safetyStock: "5", unitsPerBox: unitsPerBox, looseUnitPrice: looseUnitPrice,
             batchNumber: batchNumber, expiryDate: expiryDate, quantity: quantity,
-            dosageForm: "Tablet", genericName: GenericOf(productName), looseQuantity: looseQuantity);
+            dosageForm: "Tablet", genericName: GenericOf(productName), looseQuantity: looseQuantity,
+            manufacturer: manufacturer);
 
     /// <summary>이미 저장돼 있는 상품. 저장 규칙을 만족하는 상태라 제형과 성분명이 있다.</summary>
     private static Product ExistingProduct(string name, int unitsPerBox = 1) => new()
@@ -619,6 +623,128 @@ public class InitialImportServiceTests
 
         Assert.Equal(30, updated.UnitsPerBox);
         Assert.Equal(700m, updated.UnitSellingPrice);
+    }
+
+    // ── 이름이 같고 만든 곳이 다른 상품 ──────────────────────────────────────
+    //
+    // 약국에는 흔하다. 이름만으로 묶으면 뒤에 온 쪽이 앞의 상품을 덮어쓰고 한 상품으로
+    // 합쳐지는데, 재고도 가격도 섞인 뒤에는 되돌릴 방법이 없다.
+
+    [Fact]
+    public async Task PlanProducts_TreatsTheSameNameFromAnotherMakerAsADifferentProduct()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", manufacturer: "Maker A"),
+            FullRow(3, "Amoxicillin", manufacturer: "Maker B")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(0, plan.DuplicateRowCount);
+        Assert.Equal(2, plan.CreateCount);
+    }
+
+    /// <summary>같은 이름 같은 제조사는 여전히 같은 상품이다.</summary>
+    [Fact]
+    public async Task PlanProducts_StillSkipsTheSecondRowOfTheSameMaker()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", manufacturer: "Maker A"),
+            FullRow(3, "Amoxicillin", manufacturer: "Maker A")
+        });
+
+        Assert.Equal(1, plan.CreateCount);
+        Assert.Equal(1, plan.DuplicateRowCount);
+    }
+
+    /// <summary>
+    /// 배치가 여럿인 상품은 2행부터 상품 정보가 비어 있고, 제조사 칸도 비어 있다.
+    /// 그 행을 "제조사 없는 새 상품"으로 만들면 조사 시트대로 채운 파일이 상품을
+    /// 두 배로 만든다. 제조사가 비어 있으면 이름만으로 알아본다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_TreatsAContinuationRowWithNoMakerAsTheSameProduct()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", manufacturer: "Maker A"),
+            Row(3, "Amoxicillin", batchNumber: "B2", expiryDate: "2099-12-31", quantity: "5")
+        });
+
+        Assert.Equal(1, plan.CreateCount);
+        Assert.Equal(1, plan.DuplicateRowCount);
+    }
+
+    /// <summary>등록된 상품과 이름은 같고 제조사가 다르면 고치지 않고 새로 만든다.</summary>
+    [Fact]
+    public async Task PlanProducts_CreatesANewProductWhenTheStoredOneHasAnotherMaker()
+    {
+        var harness = new Harness();
+
+        var existing = ExistingProduct("Amoxicillin");
+        existing.Manufacturer = "Maker A";
+        harness.Products.Products.Add(existing);
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", manufacturer: "Maker B")
+        });
+
+        Assert.Equal(1, plan.CreateCount);
+        Assert.Equal(0, plan.UpdateCount);
+    }
+
+    /// <summary>
+    /// 제조사 없이 먼저 등록해 둔 상품이 하나뿐이면, 제조사를 적은 행은 그 상품에
+    /// 제조사를 채우는 것으로 본다. 여기서 새로 만들면 같은 물건이 둘이 된다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_FillsInTheMakerOfAProductThatHadNone()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(ExistingProduct("Amoxicillin"));
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", manufacturer: "Maker A")
+        });
+
+        Assert.Equal(0, plan.CreateCount);
+        Assert.Equal("Maker A", Assert.Single(plan.ProductsToUpdate).Product.Manufacturer);
+    }
+
+    /// <summary>
+    /// 이름이 같은 상품이 둘 이상 등록돼 있는데 행에 제조사가 없으면 어느 쪽인지 알 수 없다.
+    /// 짐작해서 고르면 엉뚱한 상품의 값이 바뀌고 화면에는 아무 표시도 나지 않는다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_AsksWhichOneWhenTheNameIsAmbiguous()
+    {
+        var harness = new Harness();
+
+        var first = ExistingProduct("Amoxicillin");
+        first.Manufacturer = "Maker A";
+        var second = ExistingProduct("Amoxicillin");
+        second.ProductId = "id-2";
+        second.Manufacturer = "Maker B";
+        harness.Products.Products.Add(first);
+        harness.Products.Products.Add(second);
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin")
+        });
+
+        Assert.Empty(plan.ProductsToCreate);
+        Assert.Empty(plan.ProductsToUpdate);
+        Assert.Contains("manufacturer", Assert.Single(plan.Issues).Reason);
     }
 
     /// <summary>이미 등록된 상품은 새로 만들지 않고 제자리에서 고친다.</summary>
