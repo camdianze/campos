@@ -70,6 +70,40 @@ public static class InitialImportColumns
     public static readonly IReadOnlyList<string[]> RequiredForInventory = [ProductName, Quantity];
 
     /// <summary>
+    /// 임포트가 읽을 줄 아는 모든 컬럼 이름(정규화된 형태).
+    /// 파일에 이 목록에 없는 머리글이 있으면 그 칸은 통째로 무시된다.
+    /// </summary>
+    private static readonly string[][] AllColumns =
+    [
+        ProductName, Unit, Barcode, CostPrice, SellingPrice, SafetyStock,
+        UnitsPerBox, LooseUnitPrice, GenericName, Strength, DosageForm,
+        AtcCode, IsCombination, Manufacturer, CountryOfOrigin, Status,
+        BatchNumber, ExpiryDate, Quantity, LooseQuantity
+    ];
+
+    /// <summary>
+    /// 파일에 있지만 임포트가 못 알아본 머리글. 그 칸의 값은 전부 버려진다.
+    ///
+    /// 조용히 버리면 찾을 방법이 없다 — manufacturer를 "maker"로 적어 두면 제조사가
+    /// 전부 빈 값이 되고, 이름이 같은 상품이 한 상품으로 합쳐진다. 그런데 화면에는
+    /// 오류도 경고도 뜨지 않고, 합쳐진 뒤에는 되돌릴 방법도 없다.
+    /// </summary>
+    public static IReadOnlyList<string> FindUnknownHeaders(IReadOnlyList<ImportSourceRow> rows)
+    {
+        if (rows.Count == 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        var known = new HashSet<string>(AllColumns.SelectMany(c => c), StringComparer.Ordinal);
+
+        return rows[0].Values.Keys
+            .Where(header => header.Length > 0 && !known.Contains(header))
+            .OrderBy(header => header, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>
     /// 헤더 이름에서 대소문자와 구분자를 없앤다.
     /// "ProductName" / "product_name" / "Product Name"은 같은 컬럼을 가리킨다.
     /// 앞에 붙는 BOM도 여기서 같이 털어낸다.

@@ -91,10 +91,14 @@ public class InitialImportService : IInitialImportService
                      InitialImportColumns.ProductNameComparer)
             .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
-        // 파일 안에서 이미 읽은 상품. 이름마다 그 이름으로 나온 제조사들을 들고 있다 —
-        // 배치가 여럿인 상품은 2행부터 상품 정보가 비어 있고, 그 행은 제조사도 비어 있다.
-        // 그런 행을 "제조사 없는 새 상품"으로 만들지 않으려면 이름만으로도 알아봐야 한다.
-        var seenNames = new Dictionary<string, HashSet<string>>(InitialImportColumns.ProductNameComparer);
+        var existingByBarcode = BuildBarcodeIndex(existingProducts);
+
+        // 파일 안에서 이미 읽은 상품. 식별자는 RowIdentity가 정한다.
+        var seenIdentities = new HashSet<string>(StringComparer.Ordinal);
+
+        // 이름만 적힌 이어지는 행을 알아보기 위한 목록. 배치가 여럿인 상품은 2행부터
+        // 상품 정보가 통째로 비어 있어서, 그 행에는 식별자가 없다.
+        var seenNames = new HashSet<string>(InitialImportColumns.ProductNameComparer);
         var toCreate = new List<ProductImportLine>();
         var toUpdate = new List<ProductImportLine>();
         var unchanged = new List<string>();
@@ -123,25 +127,21 @@ public class InitialImportService : IInitialImportService
 
             var manufacturer = InitialImportColumns.NormalizeProductName(
                 row.Get(InitialImportColumns.Manufacturer));
+            var barcode = row.Get(InitialImportColumns.Barcode).Trim();
+
+            var identity = RowIdentity(productName, manufacturer, barcode);
 
             // 같은 상품에 배치가 여러 개면 2행부터는 상품 정보가 비어 있다. 첫 행만 읽는다.
-            // 제조사가 적혀 있으면 이름이 같아도 다른 상품이므로 건너뛰지 않는다.
-            if (seenNames.TryGetValue(productName, out var seenManufacturers)
-                && (manufacturer.Length == 0 || !seenManufacturers.Add(manufacturer)))
+            if (identity is null ? !seenNames.Add(productName) : !seenIdentities.Add(identity))
             {
                 duplicateRowCount++;
                 continue;
             }
 
-            if (seenManufacturers is null)
-            {
-                seenNames[productName] = new HashSet<string>(InitialImportColumns.ProductNameComparer)
-                {
-                    manufacturer
-                };
-            }
+            seenNames.Add(productName);
 
-            if (!TryMatchExisting(existingByName, productName, manufacturer, out var existing, out var matchError))
+            if (!TryMatchExisting(existingByName, existingByBarcode, productName, manufacturer, barcode,
+                                  out var existing, out var matchError))
             {
                 issues.Add(new ImportIssue(row.LineNumber, matchError!));
                 continue;
@@ -167,7 +167,15 @@ public class InitialImportService : IInitialImportService
                 toUpdate.Add(new ProductImportLine { LineNumber = row.LineNumber, Product = merged });
 
                 // 같은 상품을 두 번 고치지 않도록, 고른 것을 목록에서 뺀다.
-                existingByName[productName].Remove(existing);
+                // 바코드로 찾았으면 그 상품의 이름이 행의 이름과 다를 수 있으므로,
+                // 행이 아니라 상품의 이름으로 찾는다 — 행 이름으로 찾으면 그 열쇠가
+                // 사전에 없어 임포트 전체가 예외로 죽는다.
+                var storedName = InitialImportColumns.NormalizeProductName(existing.ProductName);
+
+                if (existingByName.TryGetValue(storedName, out var storedGroup))
+                {
+                    storedGroup.Remove(existing);
+                }
                 continue;
             }
 
@@ -209,15 +217,38 @@ public class InitialImportService : IInitialImportService
     /// </summary>
     private static bool TryMatchExisting(
         IReadOnlyDictionary<string, List<Product>> existingByName,
+        IReadOnlyDictionary<string, Product> existingByBarcode,
         string productName,
         string manufacturer,
+        string barcode,
         out Product? existing,
         out string? error)
     {
         existing = null;
         error = null;
 
+        // 바코드가 있으면 그것이 답이다. 상품마다 유일한 값이고, 사람이 적는 이름이나
+        // 제조사 철자와 달리 흔들리지 않는다.
+        if (barcode.Length > 0 && existingByBarcode.TryGetValue(barcode, out var byBarcode))
+        {
+            existing = byBarcode;
+            return true;
+        }
+
         if (!existingByName.TryGetValue(productName, out var candidates) || candidates.Count == 0)
+        {
+            return true;
+        }
+
+        // 바코드가 다르면 다른 상품이다. 이름과 제조사가 같아도 그렇다 —
+        // 여기서 합치면 앞 상품의 바코드가 뒤 행의 것으로 덮어써진다.
+        candidates = candidates
+            .Where(p => barcode.Length == 0
+                        || string.IsNullOrWhiteSpace(p.Barcode)
+                        || string.Equals(p.Barcode.Trim(), barcode, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (candidates.Count == 0)
         {
             return true;
         }
@@ -250,6 +281,49 @@ public class InitialImportService : IInitialImportService
         error = $"'{productName}' matches {candidates.Count} products. "
               + "Fill in manufacturer to say which one this row is.";
         return false;
+    }
+
+    /// <summary>
+    /// 파일 안에서 한 행이 가리키는 상품의 식별자. 이어지는 행(상품 정보가 통째로 빈
+    /// 배치 행)이면 null이다.
+    ///
+    /// 바코드가 먼저다 — 상품마다 유일하고, 사람이 적는 철자에 흔들리지 않는다.
+    /// 바코드가 없으면 이름과 제조사로 본다.
+    /// </summary>
+    private static string? RowIdentity(string productName, string manufacturer, string barcode)
+    {
+        if (barcode.Length > 0)
+        {
+            return "barcode:" + barcode.ToLowerInvariant();
+        }
+
+        if (manufacturer.Length > 0)
+        {
+            return "name:" + productName.ToLowerInvariant() + "|" + manufacturer.ToLowerInvariant();
+        }
+
+        return null;
+    }
+
+    /// <summary>바코드로 상품을 찾는 색인. 제조사 바코드와 내부 바코드를 함께 넣는다.</summary>
+    private static Dictionary<string, Product> BuildBarcodeIndex(IReadOnlyList<Product> products)
+    {
+        var index = new Dictionary<string, Product>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var product in products)
+        {
+            if (!string.IsNullOrWhiteSpace(product.Barcode))
+            {
+                index.TryAdd(product.Barcode.Trim(), product);
+            }
+
+            if (!string.IsNullOrWhiteSpace(product.InternalBarcode))
+            {
+                index.TryAdd(product.InternalBarcode.Trim(), product);
+            }
+        }
+
+        return index;
     }
 
     /// <summary>한 행을 새 상품으로 바꾼다. 값이 잘못됐으면 null과 사유를 돌려준다.</summary>
@@ -776,6 +850,8 @@ public class InitialImportService : IInitialImportService
                      InitialImportColumns.ProductNameComparer)
             .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
+        var productsByBarcode = BuildBarcodeIndex(existingProducts);
+
         var batches = new List<InventoryImportLine>();
         var unmatched = new List<ImportIssue>();
         var issues = new List<ImportIssue>();
@@ -804,7 +880,9 @@ public class InitialImportService : IInitialImportService
             var manufacturer = InitialImportColumns.NormalizeProductName(
                 row.Get(InitialImportColumns.Manufacturer));
 
-            if (!TryMatchExisting(productsByName, productName, manufacturer, out var product, out var matchError))
+            if (!TryMatchExisting(productsByName, productsByBarcode, productName, manufacturer,
+                                  row.Get(InitialImportColumns.Barcode).Trim(),
+                                  out var product, out var matchError))
             {
                 issues.Add(new ImportIssue(row.LineNumber, matchError!));
                 continue;

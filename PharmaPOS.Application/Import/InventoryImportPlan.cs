@@ -42,6 +42,12 @@ public sealed class InventoryImportLine
 /// </summary>
 public sealed class InventoryImportPlan
 {
+    /// <summary>
+    /// 파일에 있지만 임포트가 못 알아본 머리글. 그 칸은 통째로 무시된다.
+    /// 값이 조용히 버려지는 유일한 자리라, 미리보기에 반드시 내보낸다.
+    /// </summary>
+    public IReadOnlyList<string> UnknownHeaders { get; init; } = Array.Empty<string>();
+
     public string? FileError { get; init; }
 
     public int TotalRows { get; init; }

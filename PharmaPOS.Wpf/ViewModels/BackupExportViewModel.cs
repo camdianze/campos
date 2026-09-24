@@ -202,6 +202,7 @@ public class BackupExportViewModel : ViewModelBase
         preview.AppendLine($"Duplicate rows skipped: {plan.DuplicateRowCount}");
         preview.AppendLine($"Rows with errors      : {plan.ErrorRowCount}");
         AppendIssues(preview, "Errors", plan.Issues);
+        AppendUnknownHeaders(preview, plan.UnknownHeaders);
 
         if (!plan.HasWork)
         {
@@ -256,6 +257,7 @@ public class BackupExportViewModel : ViewModelBase
         preview.AppendLine($"Rows with errors      : {plan.ErrorRowCount}");
         AppendIssues(preview, "Product not found", plan.UnmatchedRows);
         AppendIssues(preview, "Errors", plan.Issues);
+        AppendUnknownHeaders(preview, plan.UnknownHeaders);
 
         if (!plan.HasWork)
         {
@@ -366,6 +368,30 @@ public class BackupExportViewModel : ViewModelBase
     /// <summary>고른 파일이 Excel인지. 읽기 실패 안내를 형식에 맞게 내기 위한 것이다.</summary>
     private static bool IsExcel(string filePath) =>
         Path.GetExtension(filePath).Equals(".xlsx", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 못 알아본 머리글을 미리보기에 적는다. 그 칸의 값은 통째로 버려지는데,
+    /// 알려 주지 않으면 찾을 방법이 없다 — manufacturer를 "maker"로 적어 두면
+    /// 제조사가 전부 빈 값이 되고, 이름이 같은 상품이 한 상품으로 합쳐진다.
+    /// 그러고도 화면에는 오류가 없고, 합쳐진 뒤에는 되돌릴 수 없다.
+    /// </summary>
+    private static void AppendUnknownHeaders(StringBuilder builder, IReadOnlyList<string> headers)
+    {
+        if (headers.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("Columns this import does not know (their values are ignored):");
+
+        foreach (var header in headers)
+        {
+            builder.AppendLine($"  {header}");
+        }
+
+        builder.AppendLine("Check the spelling against the column list on the screen.");
+    }
 
     private void ShowApplyResult(string title, ImportApplyResult result, string unitLabel)
     {

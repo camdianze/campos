@@ -664,6 +664,96 @@ public class InitialImportServiceTests
         Assert.Equal(1, plan.UpdateCount);
     }
 
+    // ── 바코드가 먼저다 ─────────────────────────────────────────────────────
+    //
+    // 바코드는 상품마다 유일하고, 사람이 적는 이름·제조사 철자와 달리 흔들리지 않는다.
+    // 합쳐 버리면 앞 상품의 바코드가 뒤 행의 것으로 덮어써지기까지 한다.
+
+    [Fact]
+    public async Task PlanProducts_TreatsADifferentBarcodeAsADifferentProduct()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicilline", unit: "Tablet", sellingPrice: "1000", dosageForm: "Tablet",
+                genericName: "Amoxicillin", manufacturer: "Maker A", barcode: "8801111111111"),
+            Row(3, "Amoxicilline", unit: "Tablet", sellingPrice: "1000", dosageForm: "Tablet",
+                genericName: "Amoxicillin", manufacturer: "Maker A", barcode: "8802222222222")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(0, plan.DuplicateRowCount);
+        Assert.Equal(2, plan.CreateCount);
+    }
+
+    /// <summary>같은 바코드는 같은 상품이다. 이름을 다르게 적었어도 그렇다.</summary>
+    [Fact]
+    public async Task PlanProducts_MatchesTheStoredProductByBarcodeWhateverTheNameSays()
+    {
+        var harness = new Harness();
+
+        var existing = ExistingProduct("Amoxicilline");
+        existing.Barcode = "8801111111111";
+        harness.Products.Products.Add(existing);
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicilline 500", unit: "Tablet", sellingPrice: "2000", dosageForm: "Tablet",
+                genericName: "Amoxicillin", manufacturer: "Maker A", barcode: "8801111111111")
+        });
+
+        Assert.Equal(0, plan.CreateCount);
+        Assert.Equal(1, plan.UpdateCount);
+    }
+
+    /// <summary>
+    /// 등록된 상품이 다른 바코드를 갖고 있으면 이름과 제조사가 같아도 다른 상품이다.
+    /// 합치면 그 상품의 바코드가 이 행의 것으로 덮어써진다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_DoesNotOverwriteTheBarcodeOfANamesake()
+    {
+        var harness = new Harness();
+
+        var existing = ExistingProduct("Amoxicilline");
+        existing.Barcode = "8801111111111";
+        harness.Products.Products.Add(existing);
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicilline", unit: "Tablet", sellingPrice: "1000", dosageForm: "Tablet",
+                genericName: "Amoxicillin", manufacturer: "Maker A", barcode: "8802222222222")
+        });
+
+        Assert.Equal(1, plan.CreateCount);
+        Assert.Equal(0, plan.UpdateCount);
+    }
+
+    /// <summary>재고도 바코드를 먼저 본다. 이름이 같아도 바코드가 가리키는 선반에 넣는다.</summary>
+    [Fact]
+    public async Task PlanInventory_SendsStockToTheProductTheBarcodeNames()
+    {
+        var harness = new Harness();
+
+        var first = ExistingProduct("Amoxicilline");
+        first.Barcode = "8801111111111";
+        var second = ExistingProduct("Amoxicilline");
+        second.ProductId = "id-2";
+        second.Barcode = "8802222222222";
+        harness.Products.Products.Add(first);
+        harness.Products.Products.Add(second);
+
+        var plan = await harness.Build().PlanInventoryAsync(new[]
+        {
+            Row(2, "Amoxicilline", barcode: "8802222222222", batchNumber: "52096",
+                expiryDate: "2099-12-31", quantity: "487")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal("id-2", Assert.Single(plan.BatchesToCreate).ProductId);
+    }
+
     // ── 이름이 같고 만든 곳이 다른 상품 ──────────────────────────────────────
     //
     // 약국에는 흔하다. 이름만으로 묶으면 뒤에 온 쪽이 앞의 상품을 덮어쓰고 한 상품으로

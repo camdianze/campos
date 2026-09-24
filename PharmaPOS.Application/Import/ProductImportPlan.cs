@@ -1,4 +1,4 @@
-using PharmaPOS.Domain.Entities;
+﻿using PharmaPOS.Domain.Entities;
 
 namespace PharmaPOS.Application.Import;
 
@@ -19,6 +19,12 @@ public sealed class ProductImportLine
 /// </summary>
 public sealed class ProductImportPlan
 {
+    /// <summary>
+    /// 파일에 있지만 임포트가 못 알아본 머리글. 그 칸은 통째로 무시된다.
+    /// 값이 조용히 버려지는 유일한 자리라, 미리보기에 반드시 내보낸다.
+    /// </summary>
+    public IReadOnlyList<string> UnknownHeaders { get; init; } = Array.Empty<string>();
+
     /// <summary>파일이 통째로 잘못된 경우의 사유(필수 컬럼 없음 등). 이 값이 있으면 진행할 수 없다.</summary>
     public string? FileError { get; init; }
 
