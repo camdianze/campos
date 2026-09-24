@@ -11,6 +11,14 @@ namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 public class ProductInventoryGroup
 {
     public string ProductName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 만든 곳. 이름이 같은 상품이 둘 이상일 때만 화면에 낸다 —
+    /// 늘 붙이면 이름 옆이 시끄럽고, 없으면 두 줄을 구분할 방법이 없다.
+    /// </summary>
+    public string? Manufacturer { get; set; }
+
+    public bool ShowManufacturer { get; set; }
     public int TotalQuantity { get; set; }
 
     /// <summary>제품에 설정된 기준 재고. 화면에 "15 / 20"처럼 합계와 나란히 보여준다.</summary>
@@ -686,9 +694,20 @@ public class InventoryStatusViewModel : ViewModelBase
         foreach (var item in results)
             Items.Add(item);
 
-        // 약품별 그룹핑
+        // 상품별 그룹핑. 묶는 열쇠는 이름이 아니라 product_id다.
+        //
+        // 이름으로 묶으면 이름이 같고 만든 곳이 다른 두 상품이 한 줄로 합쳐진다.
+        // 수량만 합쳐지는 것이 아니라 — 아래에서 판매가·안전재고·박스당 개수를
+        // batches.First()로 꺼내므로 — 한쪽 상품의 값이 다른 쪽 것으로 표시된다.
+        // 재고는 DB에 제대로 갈려 있는데 화면만 합쳐 보여 주던 자리다.
+        var namesInUse = results
+            .GroupBy(i => i.ProductName, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Select(i => i.ProductId).Distinct().Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         GroupedItems.Clear();
-        foreach (var group in results.GroupBy(i => i.ProductName))
+        foreach (var group in results.GroupBy(i => i.ProductId))
         {
             var batches = group.ToList();
             var totalQty = batches.Sum(b => b.CurrentQuantity);
@@ -712,7 +731,9 @@ public class InventoryStatusViewModel : ViewModelBase
 
             var pg = new ProductInventoryGroup
             {
-                ProductName = group.Key,
+                ProductName = batches[0].ProductName,
+                Manufacturer = batches[0].Manufacturer,
+                ShowManufacturer = namesInUse.Contains(batches[0].ProductName),
                 TotalQuantity = totalQty,
                 SafetyStockLevel = safetyStockLevel,
                 // 재고 수량이 낱개 기준이므로 단가도 낱개로 맞춰 보여준다.

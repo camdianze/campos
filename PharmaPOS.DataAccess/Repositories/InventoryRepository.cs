@@ -77,7 +77,8 @@ public class InventoryRepository : IInventoryRepository
             SELECT i.inventory_id, i.product_id, p.product_name, p.generic_name,
                    p.barcode, p.internal_barcode, i.batch_number, i.expiry_date,
                    i.current_quantity, p.selling_price, p.safety_stock_level, i.updated_at,
-                   i.box_quantity, i.unit_quantity, p.units_per_box, p.unit_selling_price
+                   i.box_quantity, i.unit_quantity, p.units_per_box, p.unit_selling_price,
+                   p.manufacturer
             FROM Inventory i
             JOIN Product_Master p ON p.product_id = i.product_id
             WHERE {string.Join(" AND ", whereClauses)}
@@ -106,7 +107,8 @@ public class InventoryRepository : IInventoryRepository
                 BoxQuantity = reader.GetInt32(12),
                 UnitQuantity = reader.GetInt32(13),
                 UnitsPerBox = reader.GetInt32(14),
-                UnitSellingPrice = reader.IsDBNull(15) ? null : (decimal)reader.GetDouble(15)
+                UnitSellingPrice = reader.IsDBNull(15) ? null : (decimal)reader.GetDouble(15),
+                Manufacturer = reader.IsDBNull(16) ? null : reader.GetString(16)
             });
         }
 

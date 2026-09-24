@@ -10,6 +10,11 @@ public class InventoryStatusItem
     public required string ProductId { get; set; }
     public required string ProductName { get; set; }
     public string? GenericName { get; set; }
+    /// <summary>
+    /// 만든 곳. 이름이 같고 제조사가 다른 상품이 흔해서, 화면에서 둘을 구분하는 값이다.
+    /// </summary>
+    public string? Manufacturer { get; set; }
+
     public string? Barcode { get; set; }
     public string? InternalBarcode { get; set; }
     public required string BatchNumber { get; set; }

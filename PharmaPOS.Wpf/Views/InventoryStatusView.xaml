@@ -323,21 +323,30 @@
                         </Grid.ColumnDefinitions>
 
                         <Border Grid.Column="0" Style="{StaticResource FirstCell}">
-                            <TextBlock Text="{Binding ProductName}"
-                                       FontSize="14" FontWeight="SemiBold"
-                                       TextTrimming="CharacterEllipsis"
-                                       VerticalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsLowStock}" Value="True">
-                                                <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ProductName}"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLowStock}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <!-- 이름이 같은 상품이 둘 이상일 때만 제조사를 덧붙인다.
+                                     늘 붙이면 목록이 시끄럽고, 없으면 두 줄을 구분할 수 없다. -->
+                                <TextBlock Text="{Binding Manufacturer}"
+                                           FontSize="11"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           TextTrimming="CharacterEllipsis"
+                                           Visibility="{Binding ShowManufacturer, Converter={StaticResource BoolToVis}}"/>
+                            </StackPanel>
                         </Border>
 
                         <!-- 현재고 / 기준 재고. 박스 상품이면 아래에 박스·낱개 내역이 붙는다.
