@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.DataAccess.Database;
@@ -80,6 +80,7 @@ public class UnitsPerBoxChangeTests : IDisposable
         GenericName = "Amoxicillin",
         DosageForm = DosageForm.Capsule,
         Unit = "Capsule",
+        Manufacturer = "Maker A",
         UnitsPerBox = unitsPerBox,
         UnitSellingPrice = unitsPerBox > 1 ? 0.20m : null,
         CostPrice = 3.00m,

@@ -112,7 +112,7 @@
 
                     <TextBlock Text="SOURCE" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
 
-                    <TextBlock Text="Manufacturer" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="Manufacturer *" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding Manufacturer, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
 

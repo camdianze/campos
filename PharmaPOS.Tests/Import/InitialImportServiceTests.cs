@@ -193,8 +193,8 @@ public class InitialImportServiceTests
         int lineNumber, string productName, string batchNumber = "B1",
         string expiryDate = "2099-12-31", string quantity = "10",
         string unitsPerBox = "", string looseUnitPrice = "", string looseQuantity = "",
-        string manufacturer = "")
-        => Row(lineNumber, productName, unit: "Tablet", costPrice: "500", sellingPrice: "1000",
+        string manufacturer = "Maker A", string sellingPriceOverride = "1000")
+        => Row(lineNumber, productName, unit: "Tablet", costPrice: "500", sellingPrice: sellingPriceOverride,
             safetyStock: "5", unitsPerBox: unitsPerBox, looseUnitPrice: looseUnitPrice,
             batchNumber: batchNumber, expiryDate: expiryDate, quantity: quantity,
             dosageForm: "Tablet", genericName: GenericOf(productName), looseQuantity: looseQuantity,
@@ -206,6 +206,7 @@ public class InitialImportServiceTests
         ProductId = "id-" + name,
         ProductName = name,
         GenericName = GenericOf(name),
+        Manufacturer = "Maker A",
         DosageForm = DosageForm.Tablet,
         Unit = "Tablet",
         CostPrice = 500,
@@ -305,7 +306,7 @@ public class InitialImportServiceTests
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
             Row(2, productName: "Amoxicillin", unit: "Tablet", costPrice: "500",
-                sellingPrice: "1000", safetyStock: "5", dosageForm: text)
+                sellingPrice: "1000", safetyStock: "5", dosageForm: text, manufacturer: "Maker A")
         });
 
         Assert.Empty(plan.Issues);
@@ -324,7 +325,7 @@ public class InitialImportServiceTests
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
             Row(2, productName: "Amoxicillin", unit: "Tablet", costPrice: "500",
-                sellingPrice: "1000", safetyStock: "5", dosageForm: "정제")
+                sellingPrice: "1000", safetyStock: "5", dosageForm: "정제", manufacturer: "Maker A")
         });
 
         Assert.Equal(1, plan.ErrorRowCount);
@@ -437,7 +438,8 @@ public class InitialImportServiceTests
                 ["unitsellingprice"] = "50",
                 ["genericname"] = "Amoxicillin",
                 ["dosageform"] = "Capsule",
-                ["atccode"] = "J01CA04"
+                ["atccode"] = "J01CA04",
+                ["manufacturer"] = "Maker A"
             }
         };
 
@@ -464,7 +466,7 @@ public class InitialImportServiceTests
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
             Row(2, "Amoxicillin", unit: "Tablet", sellingPrice: "1000",
-                dosageForm: "Tablet", genericName: "Amoxicillin")
+                dosageForm: "Tablet", genericName: "Amoxicillin", manufacturer: "Maker A")
         });
 
         Assert.Empty(plan.Issues);
@@ -481,7 +483,7 @@ public class InitialImportServiceTests
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
             Row(2, "Amoxicillin", unit: "Tablet", costPrice: "0", sellingPrice: "1000",
-                dosageForm: "Tablet", genericName: "Amoxicillin")
+                dosageForm: "Tablet", genericName: "Amoxicillin", manufacturer: "Maker A")
         });
 
         Assert.Empty(plan.Issues);
@@ -497,7 +499,7 @@ public class InitialImportServiceTests
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
             Row(2, "Amoxicillin", unit: "Tablet", costPrice: "500", sellingPrice: "0",
-                dosageForm: "Tablet", genericName: "Amoxicillin")
+                dosageForm: "Tablet", genericName: "Amoxicillin", manufacturer: "Maker A")
         });
 
         Assert.Empty(plan.ProductsToCreate);
@@ -513,7 +515,7 @@ public class InitialImportServiceTests
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
             Row(2, "Amoxicillin", unit: "Tablet", costPrice: "-1", sellingPrice: "1000",
-                dosageForm: "Tablet", genericName: "Amoxicillin")
+                dosageForm: "Tablet", genericName: "Amoxicillin", manufacturer: "Maker A")
         });
 
         Assert.Empty(plan.ProductsToCreate);
@@ -625,6 +627,43 @@ public class InitialImportServiceTests
         Assert.Equal(700m, updated.UnitSellingPrice);
     }
 
+    /// <summary>
+    /// 신규 상품에는 제조사가 있어야 한다. 비워 두고 등록하면 같은 이름의 다른 회사
+    /// 제품이 나중에 들어올 때 둘을 구분할 방법이 없다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_RefusesANewProductWithoutAManufacturer()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", manufacturer: "")
+        });
+
+        Assert.Empty(plan.ProductsToCreate);
+        Assert.Contains("manufacturer", Assert.Single(plan.Issues).Reason);
+    }
+
+    /// <summary>
+    /// 기존 상품을 고치는 행에는 제조사가 없어도 된다. 배치를 적으러 온 2번째 행이
+    /// 그렇게 생겼고, 거기까지 요구하면 시트대로 채운 파일이 통째로 막힌다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_DoesNotRequireAManufacturerToUpdateAnExistingProduct()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(ExistingProduct("Amoxicillin"));
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", manufacturer: "", sellingPriceOverride: "2000")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(1, plan.UpdateCount);
+    }
+
     // ── 이름이 같고 만든 곳이 다른 상품 ──────────────────────────────────────
     //
     // 약국에는 흔하다. 이름만으로 묶으면 뒤에 온 쪽이 앞의 상품을 덮어쓰고 한 상품으로
@@ -709,7 +748,10 @@ public class InitialImportServiceTests
     public async Task PlanProducts_FillsInTheMakerOfAProductThatHadNone()
     {
         var harness = new Harness();
-        harness.Products.Products.Add(ExistingProduct("Amoxicillin"));
+
+        var legacy = ExistingProduct("Amoxicillin");
+        legacy.Manufacturer = null;     // 제조사가 필수가 되기 전에 등록된 상품
+        harness.Products.Products.Add(legacy);
 
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
@@ -739,7 +781,7 @@ public class InitialImportServiceTests
 
         var plan = await harness.Build().PlanProductsAsync(new[]
         {
-            FullRow(2, "Amoxicillin")
+            FullRow(2, "Amoxicillin", manufacturer: "")
         });
 
         Assert.Empty(plan.ProductsToCreate);
@@ -867,7 +909,7 @@ public class InitialImportServiceTests
 
         var plan = await harness.Build().PlanInventoryAsync(new[]
         {
-            FullRow(2, "Amoxicillin", quantity: "10")
+            FullRow(2, "Amoxicillin", quantity: "10", manufacturer: "")
         });
 
         Assert.Empty(plan.BatchesToCreate);

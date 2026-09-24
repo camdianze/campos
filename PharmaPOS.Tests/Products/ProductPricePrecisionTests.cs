@@ -51,6 +51,7 @@ public class ProductPricePrecisionTests
         GenericName = "Amoxicillin",
         DosageForm = DosageForm.Capsule,
         Unit = "Capsule",
+        Manufacturer = "Maker A",
         UnitsPerBox = 100,
         CostPrice = 3.00m,
         SellingPrice = 4.53m,

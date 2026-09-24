@@ -255,12 +255,21 @@ public class InitialImportService : IInitialImportService
     /// <summary>한 행을 새 상품으로 바꾼다. 값이 잘못됐으면 null과 사유를 돌려준다.</summary>
     private static Product? BuildProduct(ImportSourceRow row, string productName, out string? error)
     {
-        // 아래 세 값은 신규 상품에만 요구한다. 기존 상품을 고치는 행에는 없어도 된다.
+        // 아래 값들은 신규 상품에만 요구한다. 기존 상품을 고치는 행에는 없어도 된다.
         var unit = row.Get(InitialImportColumns.Unit);
 
         if (unit.Length == 0)
         {
             error = "unit is empty. It is required for a new product.";
+            return null;
+        }
+
+        // 제조사가 상품을 가른다. 비워 둔 채 등록하면 같은 이름의 다른 회사 제품이
+        // 나중에 들어올 때 둘을 구분할 방법이 없다.
+        if (row.Get(InitialImportColumns.Manufacturer).Length == 0)
+        {
+            error = "manufacturer is empty. It is required for a new product — "
+                  + "it is what tells two makers' versions of the same name apart.";
             return null;
         }
 

@@ -990,7 +990,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 `xlsx`로 채운 뒤 그대로 임포트하면 된다(임포터가 xlsx도 읽는다). CSV로 저장해야 할 사정이 있으면 그때 "다른 이름으로 저장"하면 되고, 드롭다운으로 고른 값은 글자로 남는다.
 
-**필수 열은 머리글이 붉은색**이다: `product_name` · `dosage_form` · `unit` · `selling_price` · `quantity`(2단계). `generic_name`은 약일 때 필수 — 붕대는 `dosage_form = Other`로 두고 비운다.
+**필수 열은 머리글이 붉은색**이다: `product_name` · `manufacturer` · `dosage_form` · `unit` · `selling_price` · `quantity`(2단계). `generic_name`은 약일 때 필수 — 붕대는 `dosage_form = Other`로 두고 비운다.
 
 `barcode` · `batch_number` · `expiry_date` 열은 **텍스트 서식**이 걸려 있다. 아니면 엑셀이 `8801234567890`을 `8.8E+12`로, `007`을 `7`로, `N`을 오류로 바꿔 놓는다. 스캐너로 찍어 넣어도 그대로 남는다.
 
@@ -1019,9 +1019,11 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - ①②와 달리 **같은 폴더를 다시 넣어도 막지 않는다.** 사진은 덮어쓰기라 쌓이지 않는다.
 
 맨 아래 `File columns` 안내 상자:
-- 신규 상품 필수: `Required for a new product: product_name, dosage_form, unit, selling_price. generic_name too, unless dosage_form is Other (bandages, masks…).`
-- 선택: `Optional: barcode, cost_price, safety_stock, units_per_box, loose_unit_price, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back.`
+- 신규 상품 필수: `Required for a new product: product_name, manufacturer, dosage_form, unit, selling_price. generic_name too, unless dosage_form is Other (bandages, masks…). manufacturer is what tells two makers' versions of one name apart.`
+- 선택: `Optional: barcode, cost_price, safety_stock, units_per_box, loose_unit_price, strength, atc_code, is_combination, country_of_origin, status. An exported products file can be edited and imported straight back.`
 - 2단계: `Step 2 reads: batch_number, expiry_date, quantity, loose_quantity.`
+
+**`manufacturer`는 신규 상품에 필수다.** 상품 구분이 `product_name` + `manufacturer`이기 때문이다. **기존 상품을 고치는 행은 비워도 된다** — 배치를 적으러 온 2번째 행이 그렇게 생겼다.
 
 **상품 구분은 `product_name` + `manufacturer`다.** 이름이 같아도 제조사가 다르면 **다른 상품**으로 등록된다. 제조사 칸이 **빈 행은 이름만으로** 기존 상품을 찾는다 — 배치가 여럿인 상품의 2번째 행이 그렇게 생겼기 때문이다. 제조사 없이 먼저 등록해 둔 상품이 하나뿐이면, 제조사를 적은 행은 **그 상품에 제조사를 채운다**(새로 만들지 않는다). 이름이 같은 상품이 둘 이상인데 행에 제조사가 없으면 그 행은 거부된다: `'…' matches 2 products. Fill in manufacturer to say which one this row is.`
 

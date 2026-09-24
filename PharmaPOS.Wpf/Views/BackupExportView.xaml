@@ -117,9 +117,9 @@
                                      사실은 비워도 되는 칸이 필수처럼 읽혔다. 시트는 비우라고
                                      안내하는데 화면은 요구하는 것처럼 보이면 아무도 믿지 않는다. -->
                                 <TextBlock Style="{StaticResource PanelHint}"
-                                           Text="Required for a new product: product_name, dosage_form, unit, selling_price. generic_name too, unless dosage_form is Other (bandages, masks…)."/>
+                                           Text="Required for a new product: product_name, manufacturer, dosage_form, unit, selling_price. generic_name too, unless dosage_form is Other (bandages, masks…). manufacturer is what tells two makers' versions of one name apart."/>
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
-                                           Text="Optional: barcode, cost_price, safety_stock, units_per_box, loose_unit_price, strength, atc_code, is_combination, manufacturer, country_of_origin, status. An exported products file can be edited and imported straight back."/>
+                                           Text="Optional: barcode, cost_price, safety_stock, units_per_box, loose_unit_price, strength, atc_code, is_combination, country_of_origin, status. An exported products file can be edited and imported straight back."/>
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
                                            Text="Step 2 reads: batch_number, expiry_date, quantity, loose_quantity."/>
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"

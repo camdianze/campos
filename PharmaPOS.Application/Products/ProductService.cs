@@ -47,6 +47,14 @@ public class ProductService : IProductService
                 "Please enter the generic name. For items that are not medicines, choose dosage form 'Other'.");
         }
 
+        // 제조사는 상품을 가르는 값이라 필수다. 약국에는 이름이 같고 만든 곳이 다른
+        // 상품이 흔한데, 제조사가 비어 있으면 임포트가 둘을 한 상품으로 본다.
+        // 그렇게 합쳐지면 재고도 가격도 섞이고 되돌릴 방법이 없다.
+        if (string.IsNullOrWhiteSpace(product.Manufacturer))
+        {
+            return ProductSaveResult.Failure("Please enter the manufacturer.");
+        }
+
         if (string.IsNullOrWhiteSpace(product.Unit))
         {
             return ProductSaveResult.Failure("Please enter the unit.");

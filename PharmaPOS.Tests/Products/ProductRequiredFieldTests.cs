@@ -51,6 +51,7 @@ public class ProductRequiredFieldTests
         GenericName = "Amoxicillin",
         DosageForm = DosageForm.Capsule,
         Unit = "Capsule",
+        Manufacturer = "Maker A",
         UnitsPerBox = 1,
         CostPrice = 3.00m,
         SellingPrice = 4.53m,
@@ -66,6 +67,22 @@ public class ProductRequiredFieldTests
     {
         var result = await SaveAsync(Medicine());
         Assert.True(result.IsSuccess, result.Message);
+    }
+
+    /// <summary>
+    /// 제조사는 상품을 가르는 값이라 필수다. 약국에는 이름이 같고 만든 곳이 다른
+    /// 상품이 흔한데, 비어 있으면 임포트가 둘을 한 상품으로 보고 재고와 가격을 섞는다.
+    /// </summary>
+    [Fact]
+    public async Task MissingManufacturer_IsRefused()
+    {
+        var product = Medicine();
+        product.Manufacturer = "   ";
+
+        var result = await SaveAsync(product);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Please enter the manufacturer.", result.Message);
     }
 
     [Fact]
