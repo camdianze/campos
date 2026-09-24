@@ -1,6 +1,8 @@
-using System.IO;
+﻿using System.IO;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml.Linq;
 using ClosedXML.Excel;
 using PharmaPOS.Application.Import;
 
@@ -76,7 +78,108 @@ public static class ImportFileReader
         return rows;
     }
 
+    /// <summary>
+    /// Excel 파일을 읽는다. 그대로 읽히지 않으면 한 번만 손질해서 다시 시도한다.
+    ///
+    /// 손질이 필요한 이유: 일부 엑셀·LibreOffice가 저장한 파일은 스타일 안에
+    /// <c>mc:AlternateContent</c>를 넣는데, 읽기 라이브러리가 그것을 글꼴로 잘못 읽어
+    /// <c>InvalidCastException</c>으로 죽는다. 라이브러리를 최신(0.105.1)으로 올려도
+    /// 고쳐지지 않는다 — 확인해 봤다.
+    ///
+    /// 약국이 자기 엑셀로 저장한 파일이 열리지 않는 것은 그쪽 잘못이 아니고,
+    /// "CSV로 저장해서 다시 해 보세요"는 조사 시트를 xlsx로 나눠 준 쪽이 할 말이 아니다.
+    /// </summary>
     private static IReadOnlyList<ImportSourceRow> ReadExcel(string filePath)
+    {
+        try
+        {
+            return ReadExcelRows(filePath);
+        }
+        catch (Exception original)
+        {
+            string? cleaned = null;
+
+            try
+            {
+                cleaned = CreateCopyWithoutAlternateContent(filePath);
+                return ReadExcelRows(cleaned);
+            }
+            catch (Exception)
+            {
+                // 손질해도 안 되면 처음 이유를 그대로 올린다 — 손질 과정의 오류를
+                // 보여 주면 진짜 원인에서 멀어진다.
+                throw original;
+            }
+            finally
+            {
+                if (cleaned is not null)
+                {
+                    try { File.Delete(cleaned); } catch (IOException) { }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// AlternateContent를 Fallback 내용으로 펴 놓은 복사본을 임시 폴더에 만든다.
+    /// OOXML 표준이 정한 처리 방식 그대로다 — Choice를 이해하지 못하는 소비자는
+    /// Fallback을 쓴다. 원본은 건드리지 않는다.
+    /// </summary>
+    private static string CreateCopyWithoutAlternateContent(string filePath)
+    {
+        XNamespace mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+
+        var copyPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".xlsx");
+        File.Copy(filePath, copyPath, overwrite: true);
+
+        using var archive = ZipFile.Open(copyPath, ZipArchiveMode.Update);
+
+        foreach (var entry in archive.Entries
+                     .Where(e => e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                     .ToList())
+        {
+            XDocument document;
+
+            using (var input = entry.Open())
+            {
+                try
+                {
+                    document = XDocument.Load(input);
+                }
+                catch (System.Xml.XmlException)
+                {
+                    // 읽을 수 없는 조각은 그대로 둔다. 여기서 멈추면 고칠 수 있는
+                    // 나머지까지 손대지 못한다.
+                    continue;
+                }
+            }
+
+            var replaced = false;
+
+            foreach (var alternate in document.Descendants(mc + "AlternateContent").ToList())
+            {
+                var fallback = alternate.Element(mc + "Fallback");
+
+                alternate.ReplaceWith(
+                    (fallback?.Elements().ToList() ?? new List<XElement>()).Cast<object>().ToArray());
+
+                replaced = true;
+            }
+
+            if (!replaced)
+            {
+                continue;
+            }
+
+            using var output = entry.Open();
+            output.SetLength(0);
+            document.Save(output);
+        }
+
+        return copyPath;
+    }
+
+    private static IReadOnlyList<ImportSourceRow> ReadExcelRows(string filePath)
     {
         using var workbook = new XLWorkbook(filePath);
         var worksheet = workbook.Worksheet(1);

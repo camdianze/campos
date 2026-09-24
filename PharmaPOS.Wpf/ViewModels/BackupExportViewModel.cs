@@ -330,7 +330,12 @@ public class BackupExportViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Message = $"Import error: {ex.Message}";
+            // 라이브러리 예외 문구를 그대로 보여 주면 약국은 무엇을 해야 할지 알 수 없다.
+            // Excel이 열리지 않는 경우에는 당장 할 수 있는 일을 알려 준다.
+            Message = IsExcel(ImportFilePath)
+                ? "This Excel file could not be read. Open it in Excel and save a copy as CSV, "
+                  + "then import that file."
+                : $"Import error: {ex.Message}";
             return null;
         }
 
@@ -357,6 +362,10 @@ public class BackupExportViewModel : ViewModelBase
             builder.AppendLine($"  … and {issues.Count - MaxIssueLinesInDialog} more");
         }
     }
+
+    /// <summary>고른 파일이 Excel인지. 읽기 실패 안내를 형식에 맞게 내기 위한 것이다.</summary>
+    private static bool IsExcel(string filePath) =>
+        Path.GetExtension(filePath).Equals(".xlsx", StringComparison.OrdinalIgnoreCase);
 
     private void ShowApplyResult(string title, ImportApplyResult result, string unitLabel)
     {
