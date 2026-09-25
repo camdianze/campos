@@ -266,12 +266,14 @@
 | 3 | `Strength` | `500 mg` 등 |
 | 4 | `Dosage Form` | 제형. `Tablet` / `Syrup` / `Injection` … 비어 있을 수 있다 |
 | 5 | `Unit` | **낱개를 세는 단위.** 제형이 아니다 — 0-1번 항목 참고 |
-| 6 | `Barcode` | 제조사 바코드 |
-| 7 | `Internal Barcode` | |
-| 8 | `Cost Price` | |
+| 6 | `Manufacturer` | 만든 곳. **이름이 같고 제조사가 다른 상품은 별개 상품**이라, 목록에서 둘을 가르는 칸이다 |
+| 7 | `Barcode` | 제조사 바코드 |
+| 8 | `Internal Barcode` | |
 | 9 | `Selling Price` | |
 | 10 | `Safety Stock` | |
 | 11 | `Status` | `Active` / `Inactive` |
+
+> **원가(`Cost Price`)는 목록에 없다.** 계산대에서 쓰는 값이 아니고, 목록에 띄워 두면 손님 쪽으로 돌린 화면에도 함께 나간다. 값은 상품을 열면 `PRICE AND STOCK`에 그대로 있고, 내보내기 파일에도 그대로 들어간다.
 
 표는 읽기 전용, 한 줄만 선택 가능.
 

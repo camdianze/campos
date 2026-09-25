@@ -154,14 +154,15 @@
                 <DataGridTextColumn Header="Strength"         Binding="{Binding Product.Strength}"        Width="80"/>
                 <DataGridTextColumn Header="Form"             Binding="{Binding Product.DosageForm}"      Width="90"/>
                 <DataGridTextColumn Header="Unit"             Binding="{Binding Product.Unit}"            Width="70"/>
+                <!-- 제조사는 상품을 가르는 값이라 목록에 있어야 한다. 이름이 같고 만든 곳이
+                     다른 상품이 흔해서, 이 칸이 없으면 목록에서 같은 줄이 둘로 보인다.
+                     원가는 자리를 내주고 뺐다 — 계산대에서 쓰는 값이 아니고, 상품을 열면
+                     그대로 있다. 목록에 원가를 띄워 두면 손님 쪽으로 돌린 화면에도 함께 나간다. -->
+                <DataGridTextColumn Header="Manufacturer"     Binding="{Binding Product.Manufacturer}"    Width="130"/>
                 <DataGridTextColumn Header="Barcode"          Binding="{Binding Product.Barcode}"         Width="118"/>
                 <DataGridTextColumn Header="Internal"         Binding="{Binding Product.InternalBarcode}" Width="115"/>
 
                 <!-- 가격은 소수점 두 자리로 고정한다. 10.4와 27.61이 섞이면 자리가 어긋난다. -->
-                <DataGridTextColumn Header="Cost"    Binding="{Binding Product.CostPrice, StringFormat={}{0:N2}}"
-                                    Width="78"
-                                    ElementStyle="{StaticResource NumericCell}"
-                                    HeaderStyle="{StaticResource NumericHeader}"/>
                 <DataGridTextColumn Header="Selling" Binding="{Binding Product.SellingPrice, StringFormat={}{0:N2}}"
                                     Width="82"
                                     ElementStyle="{StaticResource NumericCell}"
