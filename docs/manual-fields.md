@@ -380,7 +380,7 @@
 | 14 | PRICE AND STOCK | `Selling Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다. 아래 안내문이 **소분 판매 여부에 따라 바뀐다**: 켜짐 → `Cost price and selling price above are for one box.` / 꺼짐 → `Cost price and selling price above are for one {단위}.` |
 | 15 | PRICE AND STOCK | `Cost Price` | TextBox | — | 빈 칸 (= 0) | 음수 불가 |
 
-> **`Selling Price` 칸 바로 옆에 `$` / `៛` 버튼이 있다.** 누르면 세 가격칸의 입력 단위가 바뀌고, 각 칸 아래에 반대 통화가 함께 표시된다. **저장되는 값은 언제나 달러**이고, 리엘로 적으면 환율로 되돌려 저장한다. 손대지 않은 가격은 통화를 오가도 값이 바뀌지 않는다. 환율이 설정돼 있지 않으면 버튼이 나타나지 않는다.
+> **`PRICE AND STOCK` 머리 오른쪽에 `$` / `៛` 버튼이 있다.** 누르면 세 가격칸의 입력 단위가 바뀌고, 각 칸 아래에 반대 통화가 함께 표시된다. **저장되는 값은 언제나 달러**이고, 리엘로 적으면 환율로 되돌려 저장한다. 손대지 않은 가격은 통화를 오가도 값이 바뀌지 않는다. 환율이 설정돼 있지 않으면 버튼이 나타나지 않는다.
 | 16 | PRICE AND STOCK | `Safety Stock Level` | TextBox | — | 빈 칸 (= 0) | 음수 불가 |
 | 17 | PRICE AND STOCK | `Status` | ComboBox | — | **`Active`** | `Active` / `Inactive` |
 | 18 | LOOSE UNITS | `Sell loose units` | CheckBox | — | **꺼짐** (기존 상품은 박스당 개수가 2 이상이면 켜진 상태로 열린다) | 켜면 아래 3칸이 나타난다. **오른쪽 단 맨 아래**에 있다 |

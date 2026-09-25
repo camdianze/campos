@@ -176,45 +176,18 @@
                               Style="{StaticResource FieldCombo}"/>
 
                     <!-- 캄보디아는 달러와 리엘을 함께 쓴다. 적는 단위를 고를 수 있게 하고,
-                         반대 통화는 칸 아래에 늘 함께 적는다. 저장되는 값은 언제나 달러다. -->
-                    <TextBlock Text="PRICE AND STOCK" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
+                         반대 통화는 칸 아래에 늘 함께 적는다. 저장되는 값은 언제나 달러다.
 
-                    <TextBlock Text="Selling Price *" Style="{StaticResource FieldLabel}"/>
+                         통화 버튼은 구역 머리에 둔다. 세 가격칸이 함께 바뀌므로 한 칸 옆이
+                         아니라 구역 전체를 다스리는 자리가 맞다. 대신 눈에 들어오게 키웠다 —
+                         작으면 있는 줄 모르고 지나간다. -->
+                    <Grid Margin="0,10,0,8">
+                        <TextBlock Text="PRICE AND STOCK" Style="{StaticResource SectionHeader}"
+                                   Margin="0" VerticalAlignment="Center"/>
 
-                    <!-- 통화 버튼은 판매가 칸 바로 옆에 둔다. 구역 머리에 두면 가격을 치는
-                         동안 눈에 들어오지 않는다. 누르면 세 가격칸이 함께 바뀐다 —
-                         한 상품의 가격이 칸마다 다른 통화로 적혀 있으면 읽을 수가 없다. -->
-                    <Grid Margin="0,0,0,2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBox Grid.Column="0"
-                                 Text="{Binding SellingPrice, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0"/>
-
-                        <!-- 환율이 없으면 버튼 없이 "$"만 적는다. 고를 것이 없는 자리에
-                             버튼을 두면 눌러도 아무 일이 없다. -->
-                        <TextBlock Grid.Column="1" Text="{Binding CurrencySuffix}"
-                                   VerticalAlignment="Center" Margin="8,0,0,0" FontSize="13"
-                                   Foreground="{StaticResource MutedTextBrush}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsRielAvailable}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                                     Visibility="{Binding IsRielAvailable, Converter={StaticResource BoolToVis}}">
-                            <Button Content="$" Height="28" Padding="11,0" FontSize="12"
+                            <Button Content="$" Height="34" MinWidth="52" FontSize="16" FontWeight="SemiBold"
                                     Command="{Binding ShowUsdCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SecondaryBtn}">
@@ -227,7 +200,8 @@
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <Button Content="៛" Height="28" Padding="11,0" FontSize="12" Margin="4,0,0,0"
+                            <Button Content="៛" Height="34" MinWidth="52" FontSize="16" FontWeight="SemiBold"
+                                    Margin="6,0,0,0"
                                     Command="{Binding ShowRielCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SecondaryBtn}">
@@ -242,8 +216,24 @@
                             </Button>
                         </StackPanel>
                     </Grid>
+
+                    <TextBlock Text="{Binding ExchangeRateNote}" Style="{StaticResource Caption}"
+                               Margin="0,0,0,8"/>
+
+                    <TextBlock Text="Selling Price *" Style="{StaticResource FieldLabel}"/>
+                    <Grid Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding SellingPrice, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding CurrencySuffix}"
+                                   VerticalAlignment="Center" Margin="8,0,0,0" FontSize="13"
+                                   Foreground="{StaticResource MutedTextBrush}"/>
+                    </Grid>
                     <TextBlock Text="{Binding SellingPriceInOtherCurrency}" Style="{StaticResource Hint}"/>
-                    <TextBlock Text="{Binding ExchangeRateNote}" Style="{StaticResource Hint}"/>
                     <TextBlock Text="{Binding BoxPriceHint}" Style="{StaticResource Hint}"/>
 
                     <!-- 원가는 선택이다. 비우면 0으로 저장되고, 원가보다 싸게 판다는 경고만 뜨지 않는다. -->
