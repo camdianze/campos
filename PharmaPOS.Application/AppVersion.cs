@@ -9,7 +9,7 @@
 /// </summary>
 public static class AppVersion
 {
-    public const string Number = "1.20";
+    public const string Number = "1.21";
 
     /// <summary>화면에 그대로 찍는 표기.</summary>
     public const string Display = "CamPOS v." + Number;
