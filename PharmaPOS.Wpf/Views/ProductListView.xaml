@@ -163,7 +163,7 @@
                 <DataGridTextColumn Header="Internal"         Binding="{Binding Product.InternalBarcode}" Width="115"/>
 
                 <!-- 가격은 소수점 두 자리로 고정한다. 10.4와 27.61이 섞이면 자리가 어긋난다. -->
-                <DataGridTextColumn Header="Selling" Binding="{Binding Product.SellingPrice, StringFormat={}{0:N2}}"
+                <DataGridTextColumn Header="Price"   Binding="{Binding Product.SellingPrice, StringFormat={}{0:N2}}"
                                     Width="82"
                                     ElementStyle="{StaticResource NumericCell}"
                                     HeaderStyle="{StaticResource NumericHeader}"/>

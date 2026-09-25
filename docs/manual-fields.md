@@ -269,7 +269,7 @@
 | 6 | `Manufacturer` | 만든 곳. **이름이 같고 제조사가 다른 상품은 별개 상품**이라, 목록에서 둘을 가르는 칸이다 |
 | 7 | `Barcode` | 제조사 바코드 |
 | 8 | `Internal Barcode` | |
-| 9 | `Selling Price` | |
+| 9 | `Price` | 판매가. 원가가 목록에 없으니 가격은 이것 하나뿐이라 그냥 `Price`다 |
 | 10 | `Safety Stock` | |
 | 11 | `Status` | `Active` / `Inactive` |
 
