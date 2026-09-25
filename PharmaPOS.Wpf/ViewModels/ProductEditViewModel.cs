@@ -2,6 +2,8 @@
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PharmaPOS.Application.Products;
+using System.Globalization;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
@@ -109,6 +111,7 @@ public class ProductEditViewModel : ViewModelBase
             if (SetProperty(ref _unitSellingPrice, value))
             {
                 OnPropertyChanged(nameof(UnitPriceHint));
+                OnPropertyChanged(nameof(UnitSellingPriceInOtherCurrency));
             }
         }
     }
@@ -176,6 +179,173 @@ public class ProductEditViewModel : ViewModelBase
         OnPropertyChanged(nameof(UnitPriceHint));
         OnPropertyChanged(nameof(BoxPriceHint));
         OnPropertyChanged(nameof(UnitsPerBoxLabel));
+    }
+
+    // ── 통화 ────────────────────────────────────────────────────────────────
+    //
+    // 캄보디아는 달러와 리엘을 함께 쓴다. 약국이 "20,000리엘짜리"로 알고 있는 상품을
+    // 달러로 환산해서 적게 하면 그 자리에서 암산이 필요하고, 그 암산이 값이 된다.
+    //
+    // 저장되는 값은 언제나 달러다(이 앱의 모든 금액이 그렇다). 리엘은 적고 보는
+    // 단위일 뿐이고, 저장할 때 환율로 되돌린다.
+
+    /// <summary>리엘 칸을 보여줄지. 환율이 없으면 환산할 방법이 없다.</summary>
+    public bool IsRielAvailable => _showRiel && _exchangeRate > 0;
+
+    /// <summary>지금 입력 단위가 리엘인지.</summary>
+    public bool IsRielInput
+    {
+        get => _isRielInput;
+        private set
+        {
+            if (SetProperty(ref _isRielInput, value))
+            {
+                OnPropertyChanged(nameof(IsUsdInput));
+                OnPropertyChanged(nameof(CurrencySuffix));
+                RaisePriceHintsChanged();
+            }
+        }
+    }
+
+    public bool IsUsdInput => !_isRielInput;
+
+    /// <summary>입력칸 옆에 붙는 단위 표시.</summary>
+    public string CurrencySuffix => _isRielInput ? RielConverter.RielSymbol : "$";
+
+    public string ExchangeRateNote => IsRielAvailable
+        ? $"1 USD = {_exchangeRate.ToString("N0", CultureInfo.InvariantCulture)} {RielConverter.RielSymbol}"
+        : string.Empty;
+
+    public RelayCommand ShowUsdCommand { get; private set; } = null!;
+    public RelayCommand ShowRielCommand { get; private set; } = null!;
+
+    /// <summary>화면을 열 때 환율을 읽는다. 못 읽으면 달러만 쓰던 종전대로 동작한다.</summary>
+    public async Task LoadCurrencySettingsAsync()
+    {
+        try
+        {
+            var settings = await _receiptSettingsService.GetAsync();
+
+            _exchangeRate = settings.ExchangeRate;
+            _rielRounding = settings.RielRounding;
+            _showRiel = settings.ShowRiel;
+        }
+        catch (Exception)
+        {
+            _showRiel = false;
+        }
+
+        OnPropertyChanged(nameof(IsRielAvailable));
+        OnPropertyChanged(nameof(ExchangeRateNote));
+        RaisePriceHintsChanged();
+    }
+
+    private void SwitchCurrency(bool toRiel)
+    {
+        if (!IsRielAvailable || toRiel == _isRielInput)
+        {
+            return;
+        }
+
+        SellingPrice = ConvertForDisplay(nameof(SellingPrice), SellingPrice, toRiel);
+        CostPrice = ConvertForDisplay(nameof(CostPrice), CostPrice, toRiel);
+        UnitSellingPrice = ConvertForDisplay(nameof(UnitSellingPrice), UnitSellingPrice, toRiel);
+
+        IsRielInput = toRiel;
+    }
+
+    /// <summary>
+    /// 한 칸의 글자를 반대 통화로 바꾼다.
+    ///
+    /// 손대지 않고 돌아온 경우에는 환산하지 않고 원래 글자를 그대로 되돌린다.
+    /// 환산은 양쪽 모두 반올림이 걸려서, 왕복할 때마다 4.53 → 18,600 → 4.54처럼
+    /// 값이 조금씩 밀린다. 사람이 고치지 않은 가격이 화면을 오갔다는 이유로
+    /// 달라지면 안 된다.
+    /// </summary>
+    private string ConvertForDisplay(string field, string current, bool toRiel)
+    {
+        if (_priceBeforeSwitch.TryGetValue(field, out var remembered))
+        {
+            var untouched = toRiel ? remembered.Usd : remembered.Riel;
+
+            if (string.Equals(current.Trim(), untouched, StringComparison.Ordinal))
+            {
+                return toRiel ? remembered.Riel : remembered.Usd;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(current) || !decimal.TryParse(current, out var value))
+        {
+            _priceBeforeSwitch.Remove(field);
+            return current;
+        }
+
+        string usd, riel;
+
+        if (toRiel)
+        {
+            usd = current.Trim();
+            riel = RielConverter.ToRiel(value, _exchangeRate, _rielRounding)
+                .ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            riel = current.Trim();
+            usd = decimal.Round(value / _exchangeRate, 2, MidpointRounding.AwayFromZero)
+                .ToString(CultureInfo.InvariantCulture);
+        }
+
+        _priceBeforeSwitch[field] = (usd, riel);
+        return toRiel ? riel : usd;
+    }
+
+    /// <summary>저장할 값. 리엘로 적혀 있으면 달러로 되돌린다.</summary>
+    private string ToStoredPrice(string field, string text)
+    {
+        if (!_isRielInput || string.IsNullOrWhiteSpace(text))
+        {
+            return text;
+        }
+
+        if (_priceBeforeSwitch.TryGetValue(field, out var remembered)
+            && string.Equals(text.Trim(), remembered.Riel, StringComparison.Ordinal))
+        {
+            // 화면에서 손대지 않은 값이다. 환산해서 되돌리면 원래 달러 금액이 밀린다.
+            return remembered.Usd;
+        }
+
+        if (!decimal.TryParse(text, out var riel))
+        {
+            return text;
+        }
+
+        return decimal.Round(riel / _exchangeRate, 2, MidpointRounding.AwayFromZero)
+            .ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>입력칸 아래에 반대 통화를 적는다. 두 값이 동시에 보여야 한다.</summary>
+    private string OtherCurrencyOf(string text)
+    {
+        if (!IsRielAvailable || string.IsNullOrWhiteSpace(text) || !decimal.TryParse(text, out var value))
+        {
+            return string.Empty;
+        }
+
+        return _isRielInput
+            ? "= $" + decimal.Round(value / _exchangeRate, 2, MidpointRounding.AwayFromZero)
+                .ToString("N2", CultureInfo.InvariantCulture)
+            : "= " + RielConverter.Format(value, _exchangeRate, _rielRounding);
+    }
+
+    public string SellingPriceInOtherCurrency => OtherCurrencyOf(SellingPrice);
+    public string CostPriceInOtherCurrency => OtherCurrencyOf(CostPrice);
+    public string UnitSellingPriceInOtherCurrency => OtherCurrencyOf(UnitSellingPrice);
+
+    private void RaisePriceHintsChanged()
+    {
+        OnPropertyChanged(nameof(SellingPriceInOtherCurrency));
+        OnPropertyChanged(nameof(CostPriceInOtherCurrency));
+        OnPropertyChanged(nameof(UnitSellingPriceInOtherCurrency));
     }
 
     /// <summary>"Sachets Per Box"처럼 제형 이름을 넣어 준다.</summary>
@@ -255,7 +425,13 @@ public class ProductEditViewModel : ViewModelBase
     public string CostPrice
     {
         get => _costPrice;
-        set => SetProperty(ref _costPrice, value);
+        set
+        {
+            if (SetProperty(ref _costPrice, value))
+            {
+                OnPropertyChanged(nameof(CostPriceInOtherCurrency));
+            }
+        }
     }
 
     public string SellingPrice
@@ -265,6 +441,7 @@ public class ProductEditViewModel : ViewModelBase
         {
             if (SetProperty(ref _sellingPrice, value))
             {
+                OnPropertyChanged(nameof(SellingPriceInOtherCurrency));
                 // 박스가를 고치면 아래에 보여주는 낱개 환산가도 따라 바뀌어야 한다.
                 OnPropertyChanged(nameof(UnitPriceHint));
             }
@@ -334,15 +511,28 @@ public class ProductEditViewModel : ViewModelBase
     public event Action<string>? ConfirmationRequested;
 
     private readonly string _userId;
+    private readonly IReceiptSettingsService _receiptSettingsService;
+
+    // 통화 설정. 가격을 리엘로 보고 적을 수 있게 하려면 환율이 있어야 한다.
+    private decimal _exchangeRate;
+    private int _rielRounding = 100;
+    private bool _showRiel;
+    private bool _isRielInput;
+
+    // 달러로 적혀 있던 원래 글자. 리엘로 바꿨다가 손대지 않고 돌아오면 이 값을 그대로
+    // 되돌린다 — 매번 환산해서 되돌리면 4.53이 4.54가 되는 식으로 조금씩 밀린다.
+    private readonly Dictionary<string, (string Usd, string Riel)> _priceBeforeSwitch = new();
 
     public ProductEditViewModel(
         IProductService productService,
         IProductPhotoService photoService,
+        IReceiptSettingsService receiptSettingsService,
         Product? existingProduct,
         string userId)
     {
         _productService = productService;
         _photoService = photoService;
+        _receiptSettingsService = receiptSettingsService;
         _userId = userId;
 
         IsNewProduct = existingProduct is null;
@@ -372,11 +562,16 @@ public class ProductEditViewModel : ViewModelBase
             _unitSellingPrice = existingProduct.UnitSellingPrice?.ToString() ?? string.Empty;
         }
 
+        ShowUsdCommand = new RelayCommand(_ => SwitchCurrency(toRiel: false));
+        ShowRielCommand = new RelayCommand(_ => SwitchCurrency(toRiel: true));
+
         SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync(acknowledgeWarning: false));
         CancelCommand = new RelayCommand(_ => NavigateBackToList?.Invoke());
 
         SetPhotoCommand = new RelayCommand(async _ => await ExecuteSetPhotoAsync(), _ => CanEditPhoto);
         RemovePhotoCommand = new RelayCommand(async _ => await ExecuteRemovePhotoAsync(), _ => CanEditPhoto && HasPhoto);
+
+        _ = LoadCurrencySettingsAsync();
     }
 
     /// <summary>
@@ -394,14 +589,19 @@ public class ProductEditViewModel : ViewModelBase
         // 가격/재고 숫자 파싱. Screen §4.3절 필수값 검증은 서비스가 담당하지만,
         // 애초에 숫자로 변환이 안 되는 입력(문자 등)은 화면 단에서 먼저 걸러준다.
         // 원가는 선택이라 비워 두면 0이다. 숫자가 아닌 글자가 들어온 경우만 막는다.
+        // 리엘로 적혀 있으면 달러로 되돌린다. 저장되는 금액은 언제나 달러다.
+        var costPriceText = ToStoredPrice(nameof(CostPrice), CostPrice);
+        var sellingPriceText = ToStoredPrice(nameof(SellingPrice), SellingPrice);
+        var unitSellingPriceText = ToStoredPrice(nameof(UnitSellingPrice), UnitSellingPrice);
+
         var costPrice = 0m;
-        if (!string.IsNullOrWhiteSpace(CostPrice) && !decimal.TryParse(CostPrice, out costPrice))
+        if (!string.IsNullOrWhiteSpace(costPriceText) && !decimal.TryParse(costPriceText, out costPrice))
         {
             Message = "Cost price must be a number.";
             return;
         }
 
-        if (!decimal.TryParse(SellingPrice, out var sellingPrice))
+        if (!decimal.TryParse(sellingPriceText, out var sellingPrice))
         {
             Message = "Selling price must be greater than zero.";
             return;
@@ -429,9 +629,9 @@ public class ProductEditViewModel : ViewModelBase
 
             // 비워 두는 것과 잘못 적은 것은 다르게 다뤄야 한다. 비었으면 "박스가에서 계산"이고,
             // 숫자가 아니면 입력 실수라 조용히 넘어가면 안 된다.
-            if (!string.IsNullOrWhiteSpace(UnitSellingPrice))
+            if (!string.IsNullOrWhiteSpace(unitSellingPriceText))
             {
-                if (!decimal.TryParse(UnitSellingPrice, out var parsedUnitPrice))
+                if (!decimal.TryParse(unitSellingPriceText, out var parsedUnitPrice))
                 {
                     Message = "Loose unit price must be a number.";
                     return;

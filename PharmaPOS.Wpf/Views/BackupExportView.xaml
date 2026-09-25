@@ -123,6 +123,8 @@
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
                                            Text="Step 2 reads: batch_number, expiry_date, quantity, loose_quantity."/>
                                 <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
+                                           Text="Prices are in dollars unless the cell says otherwise. Write 1000៛ or 1000 KHR to give a price in riel and it is converted at the rate in Receipt Settings."/>
+                                <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
                                            Text="dosage_form is the form of the medicine (Tablet, Syrup, Injection, Ointment…), while unit is how one piece is counted (Tablet, Bottle, Tube). A file with only product_name and dosage_form fills the form in for products that already exist."/>
                             </StackPanel>
                         </Border>

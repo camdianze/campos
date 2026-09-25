@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -33,16 +34,37 @@ public class InitialImportService : IInitialImportService
     private readonly IStockInRepository _stockInRepository;
     private readonly IImportHistoryRepository _importHistoryRepository;
 
+    private readonly IReceiptSettingsService _receiptSettingsService;
+
     public InitialImportService(
         IProductRepository productRepository,
         IProductService productService,
         IStockInRepository stockInRepository,
-        IImportHistoryRepository importHistoryRepository)
+        IImportHistoryRepository importHistoryRepository,
+        IReceiptSettingsService receiptSettingsService)
     {
         _productRepository = productRepository;
         _productService = productService;
         _stockInRepository = stockInRepository;
         _importHistoryRepository = importHistoryRepository;
+        _receiptSettingsService = receiptSettingsService;
+    }
+
+    /// <summary>
+    /// 파일의 금액을 달러로 읽기 위한 환율. 설정을 못 읽으면 0이고, 그때 리엘로 적힌
+    /// 칸은 환산할 방법이 없으므로 그 행이 오류로 빠진다 — 4,000을 4,000달러로
+    /// 저장하는 것보다 낫다.
+    /// </summary>
+    private async Task<decimal> ReadExchangeRateAsync()
+    {
+        try
+        {
+            return (await _receiptSettingsService.GetAsync()).ExchangeRate;
+        }
+        catch (Exception)
+        {
+            return 0m;
+        }
     }
 
     public async Task<bool> WasAlreadyImportedAsync(ImportType importType, string fileHash)
@@ -92,6 +114,7 @@ public class InitialImportService : IInitialImportService
             .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
         var existingByBarcode = BuildBarcodeIndex(existingProducts);
+        var exchangeRate = await ReadExchangeRateAsync();
 
         // 파일 안에서 이미 읽은 상품. 식별자는 RowIdentity가 정한다.
         var seenIdentities = new HashSet<string>(StringComparer.Ordinal);
@@ -149,7 +172,7 @@ public class InitialImportService : IInitialImportService
 
             if (existing is not null)
             {
-                var merged = MergeProduct(existing, row, out var hasChanges, out var mergeError);
+                var merged = MergeProduct(existing, row, exchangeRate, out var hasChanges, out var mergeError);
 
                 if (merged is null)
                 {
@@ -179,7 +202,7 @@ public class InitialImportService : IInitialImportService
                 continue;
             }
 
-            var product = BuildProduct(row, productName, out var error);
+            var product = BuildProduct(row, productName, exchangeRate, out var error);
 
             if (product is null)
             {
@@ -327,7 +350,8 @@ public class InitialImportService : IInitialImportService
     }
 
     /// <summary>한 행을 새 상품으로 바꾼다. 값이 잘못됐으면 null과 사유를 돌려준다.</summary>
-    private static Product? BuildProduct(ImportSourceRow row, string productName, out string? error)
+    private static Product? BuildProduct(
+        ImportSourceRow row, string productName, decimal exchangeRate, out string? error)
     {
         // 아래 값들은 신규 상품에만 요구한다. 기존 상품을 고치는 행에는 없어도 된다.
         var unit = row.Get(InitialImportColumns.Unit);
@@ -350,12 +374,12 @@ public class InitialImportService : IInitialImportService
         // 원가는 비워도 된다. 상품 화면과 같은 규칙이고, 조사 시트도 "Empty = 0"으로
         // 안내한다 — 요구하면 시트가 시키는 대로 채운 파일이 통째로 막힌다.
         // 모르는 원가를 0으로 두면 "원가보다 싸게 판다" 경고만 뜨지 않을 뿐이다.
-        if (!TryReadPrice(row, InitialImportColumns.CostPrice, out var costPrice, out error, allowZero: true))
+        if (!TryReadPrice(row, InitialImportColumns.CostPrice, exchangeRate, out var costPrice, out error, allowZero: true))
         {
             return null;
         }
 
-        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, out var sellingPrice, out error))
+        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, exchangeRate, out var sellingPrice, out error))
         {
             return null;
         }
@@ -367,7 +391,7 @@ public class InitialImportService : IInitialImportService
         }
 
         if (!TryReadSafetyStock(row, out var safetyStock, out error)
-            || !TryReadLooseSale(row, out var looseSale, out error)
+            || !TryReadLooseSale(row, exchangeRate, out var looseSale, out error)
             || !TryReadStatus(row, out var status, out error)
             || !TryReadDosageForm(row, out var dosageForm, out error))
         {
@@ -407,7 +431,8 @@ public class InitialImportService : IInitialImportService
     /// </summary>
     /// <param name="hasChanges">실제로 바뀐 값이 있는지. 없으면 저장할 이유가 없다.</param>
     private static Product? MergeProduct(
-        Product existing, ImportSourceRow row, out bool hasChanges, out string? error)
+        Product existing, ImportSourceRow row, decimal exchangeRate,
+        out bool hasChanges, out string? error)
     {
         hasChanges = false;
 
@@ -452,7 +477,7 @@ public class InitialImportService : IInitialImportService
         ApplyText(row.Get(InitialImportColumns.CountryOfOrigin), merged.CountryOfOrigin,
             value => merged.CountryOfOrigin = value, ref changed);
 
-        if (!TryReadPrice(row, InitialImportColumns.CostPrice, out var costPrice, out error, allowZero: true))
+        if (!TryReadPrice(row, InitialImportColumns.CostPrice, exchangeRate, out var costPrice, out error, allowZero: true))
         {
             return null;
         }
@@ -463,7 +488,7 @@ public class InitialImportService : IInitialImportService
             changed = true;
         }
 
-        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, out var sellingPrice, out error))
+        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, exchangeRate, out var sellingPrice, out error))
         {
             return null;
         }
@@ -485,7 +510,7 @@ public class InitialImportService : IInitialImportService
             changed = true;
         }
 
-        if (!TryReadLooseSale(row, out var looseSale, out error))
+        if (!TryReadLooseSale(row, exchangeRate, out var looseSale, out error))
         {
             return null;
         }
@@ -568,8 +593,8 @@ public class InitialImportService : IInitialImportService
     /// 매입가 기록이 없는 상품이 흔하다.
     /// </summary>
     private static bool TryReadPrice(
-        ImportSourceRow row, string[] column, out decimal? price, out string? error,
-        bool allowZero = false)
+        ImportSourceRow row, string[] column, decimal exchangeRate,
+        out decimal? price, out string? error, bool allowZero = false)
     {
         price = null;
         error = null;
@@ -581,7 +606,13 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        if (!TryParseDecimal(text, out var parsed) || parsed < 0 || (!allowZero && parsed == 0))
+        if (!TryReadMoney(text, exchangeRate, out var parsed, out var moneyError))
+        {
+            error = $"{column[0]}: {moneyError}";
+            return false;
+        }
+
+        if (parsed < 0 || (!allowZero && parsed == 0))
         {
             error = allowZero
                 ? $"{column[0]} must be a number of zero or more."
@@ -592,6 +623,89 @@ public class InitialImportService : IInitialImportService
         price = parsed;
         return true;
     }
+
+    /// <summary>
+    /// 금액 칸 하나를 달러로 읽는다. 칸에 리엘 표시가 붙어 있으면 환율로 환산한다.
+    ///
+    /// 캄보디아 약국은 달러와 리엘을 함께 쓰고, 낱개가는 "1000리엘"처럼 리엘로 정해 둔
+    /// 경우가 흔하다. 그것을 달러로 고쳐 적게 하면 시트를 채우는 사람이 매 줄 암산을
+    /// 해야 하고, 그 암산이 곧 상품의 가격이 된다.
+    ///
+    /// 표시가 없으면 달러다 — 지금까지 만든 파일이 그대로 동작해야 한다.
+    /// 인식하는 표시: ៛ R KHR riel (앞뒤 어느 쪽이든), 그리고 달러 쪽 $ USD.
+    /// </summary>
+    private static bool TryReadMoney(string text, decimal exchangeRate, out decimal usd, out string? error)
+    {
+        usd = 0m;
+        error = null;
+
+        var trimmed = text.Trim();
+        var isRiel = false;
+
+        foreach (var marker in RielMarkers)
+        {
+            if (trimmed.StartsWith(marker, StringComparison.OrdinalIgnoreCase))
+            {
+                trimmed = trimmed[marker.Length..].Trim();
+                isRiel = true;
+                break;
+            }
+
+            if (trimmed.EndsWith(marker, StringComparison.OrdinalIgnoreCase))
+            {
+                trimmed = trimmed[..^marker.Length].Trim();
+                isRiel = true;
+                break;
+            }
+        }
+
+        if (!isRiel)
+        {
+            foreach (var marker in UsdMarkers)
+            {
+                if (trimmed.StartsWith(marker, StringComparison.OrdinalIgnoreCase))
+                {
+                    trimmed = trimmed[marker.Length..].Trim();
+                    break;
+                }
+
+                if (trimmed.EndsWith(marker, StringComparison.OrdinalIgnoreCase))
+                {
+                    trimmed = trimmed[..^marker.Length].Trim();
+                    break;
+                }
+            }
+        }
+
+        if (!TryParseDecimal(trimmed, out var value))
+        {
+            error = "must be a number. Add ៛ (or KHR) after it to give the price in riel.";
+            return false;
+        }
+
+        if (!isRiel)
+        {
+            usd = value;
+            return true;
+        }
+
+        // 리엘로 적혀 있는데 환율이 없으면 환산할 방법이 없다. 4,000을 4,000달러로
+        // 저장하느니 그 행을 세워 두는 편이 낫다.
+        if (exchangeRate <= 0)
+        {
+            error = "is in riel, but no exchange rate is set. "
+                  + "Set it in Admin Dashboard → Receipt Settings first.";
+            return false;
+        }
+
+        usd = decimal.Round(value / exchangeRate, 2, MidpointRounding.AwayFromZero);
+        return true;
+    }
+
+    /// <summary>리엘로 적었다는 표시. 키보드로 ៛를 치기 어려워 글자 표기도 받는다.</summary>
+    private static readonly string[] RielMarkers = ["៛", "KHR", "riels", "riel", "R"];
+
+    private static readonly string[] UsdMarkers = ["$", "USD"];
 
     private static bool TryReadSafetyStock(ImportSourceRow row, out int? safetyStock, out string? error)
     {
@@ -709,7 +823,8 @@ public class InitialImportService : IInitialImportService
     /// </summary>
     private sealed record LooseSaleSetting(int UnitsPerBox, decimal? LooseUnitPrice);
 
-    private static bool TryReadLooseSale(ImportSourceRow row, out LooseSaleSetting? looseSale, out string? error)
+    private static bool TryReadLooseSale(
+        ImportSourceRow row, decimal exchangeRate, out LooseSaleSetting? looseSale, out string? error)
     {
         looseSale = null;
         error = null;
@@ -752,7 +867,13 @@ public class InitialImportService : IInitialImportService
 
         if (hasLoosePrice)
         {
-            if (!TryParseDecimal(loosePriceText, out var parsed) || parsed <= 0)
+            if (!TryReadMoney(loosePriceText, exchangeRate, out var parsed, out var moneyError))
+            {
+                error = $"loose_unit_price: {moneyError}";
+                return false;
+            }
+
+            if (parsed <= 0)
             {
                 error = "loose_unit_price must be a number greater than zero.";
                 return false;
@@ -851,6 +972,7 @@ public class InitialImportService : IInitialImportService
             .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
         var productsByBarcode = BuildBarcodeIndex(existingProducts);
+        var exchangeRate = await ReadExchangeRateAsync();
 
         var batches = new List<InventoryImportLine>();
         var unmatched = new List<ImportIssue>();

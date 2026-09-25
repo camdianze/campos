@@ -6,6 +6,7 @@ using System.Windows.Input;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using Lightweight_Digital_Inventory_Management___POS_System.Shell;
@@ -120,6 +121,7 @@ public partial class ProductListView : UserControl
         var editViewModel = new ProductEditViewModel(
             productService,
             App.Services.GetRequiredService<IProductPhotoService>(),
+            App.Services.GetRequiredService<IReceiptSettingsService>(),
             existingProduct,
             App.CurrentShellViewModel?.CurrentUser.UserId ?? string.Empty);
 

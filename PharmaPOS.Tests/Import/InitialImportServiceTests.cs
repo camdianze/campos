@@ -1,5 +1,6 @@
 ﻿using PharmaPOS.Application.Import;
 using PharmaPOS.Application.Products;
+using PharmaPOS.Application.Receipts;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
@@ -121,17 +122,34 @@ public class InitialImportServiceTests
         }
     }
 
+    /// <summary>
+    /// 통화 설정. 파일에 리엘로 적힌 금액을 달러로 읽을 때 환율이 필요하다.
+    /// 기본 4,000은 시험에서 나눗셈이 딱 떨어지게 하려는 값이다.
+    /// </summary>
+    private sealed class FakeReceiptSettingsService : IReceiptSettingsService
+    {
+        public decimal ExchangeRate { get; set; } = 4000m;
+
+        public Task<ReceiptSettings> GetAsync() =>
+            Task.FromResult(new ReceiptSettings { ExchangeRate = ExchangeRate });
+
+        public Task<ReceiptSettingsSaveResult> SaveAsync(ReceiptSettings settings, UserRole role, string userId) =>
+            throw new NotSupportedException();
+    }
+
     private sealed class Harness
     {
         public FakeProductRepository Products { get; } = new();
         public FakeStockInRepository StockIn { get; } = new();
         public FakeImportHistoryRepository History { get; } = new();
+        public FakeReceiptSettingsService Currency { get; } = new();
 
         public InitialImportService Build() => new(
             Products,
             new ProductService(Products, new FakeBarcodeSequenceRepository()),
             StockIn,
-            History);
+            History,
+            Currency);
     }
 
     /// <summary>파일 한 행. 값을 비워 두면 그 칸이 빈 셀이다.</summary>
@@ -662,6 +680,95 @@ public class InitialImportServiceTests
 
         Assert.Empty(plan.Issues);
         Assert.Equal(1, plan.UpdateCount);
+    }
+
+    // ── 리엘로 적은 금액 ────────────────────────────────────────────────────
+    //
+    // 캄보디아 약국은 낱개가를 "1000리엘"처럼 리엘로 정해 둔 경우가 흔하다. 시트에
+    // 달러로 고쳐 적게 하면 채우는 사람이 매 줄 암산을 해야 하고, 그 암산이 곧 가격이 된다.
+
+    [Theory]
+    [InlineData("1000៛")]
+    [InlineData("1000 KHR")]
+    [InlineData("1000R")]
+    [InlineData("៛1000")]
+    [InlineData("1000 riel")]
+    public async Task PlanProducts_ReadsALoosePriceWrittenInRiel(string cell)
+    {
+        var harness = new Harness();   // 1 USD = 4,000 ៛
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: cell)
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
+    }
+
+    /// <summary>표시가 없으면 달러다. 지금까지 만든 파일이 그대로 동작해야 한다.</summary>
+    [Fact]
+    public async Task PlanProducts_TreatsABarePriceAsDollars()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "0.25")
+        });
+
+        Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
+    }
+
+    /// <summary>판매가·원가도 같은 규칙이다.</summary>
+    [Fact]
+    public async Task PlanProducts_ReadsSellingAndCostPricesInRiel()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, "Amoxicillin", unit: "Tablet", costPrice: "12000៛", sellingPrice: "18000៛",
+                dosageForm: "Tablet", genericName: "Amoxicillin", manufacturer: "Maker A")
+        });
+
+        var product = Assert.Single(plan.ProductsToCreate).Product;
+
+        Assert.Equal(3.00m, product.CostPrice);
+        Assert.Equal(4.50m, product.SellingPrice);
+    }
+
+    /// <summary>
+    /// 리엘로 적혀 있는데 환율이 없으면 환산할 방법이 없다. 4,000을 4,000달러로
+    /// 저장하면 그 상품은 아무도 살 수 없는 가격이 되고, 화면에는 오류가 없다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_RefusesRielWhenNoExchangeRateIsSet()
+    {
+        var harness = new Harness();
+        harness.Currency.ExchangeRate = 0m;
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "1000៛")
+        });
+
+        Assert.Empty(plan.ProductsToCreate);
+        Assert.Contains("exchange rate", Assert.Single(plan.Issues).Reason);
+    }
+
+    /// <summary>$ 표시도 받는다. 시트에 통화를 밝혀 적는 사람이 있다.</summary>
+    [Fact]
+    public async Task PlanProducts_AcceptsADollarSign()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "$0.25")
+        });
+
+        Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
     }
 
     // ── 바코드가 먼저다 ─────────────────────────────────────────────────────

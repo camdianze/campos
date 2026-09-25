@@ -379,6 +379,8 @@
 | 13 | IDENTIFICATION | `Category` | ComboBox | — | **빈 항목** | **(빈 항목 = 아직 정하지 않음)** / `Medicine` / `NonMedicine` |
 | 14 | PRICE AND STOCK | `Selling Price *` | TextBox | ✔ | 빈 칸 | 0보다 커야 한다. 아래 안내문이 **소분 판매 여부에 따라 바뀐다**: 켜짐 → `Cost price and selling price above are for one box.` / 꺼짐 → `Cost price and selling price above are for one {단위}.` |
 | 15 | PRICE AND STOCK | `Cost Price` | TextBox | — | 빈 칸 (= 0) | 음수 불가 |
+
+> **`PRICE AND STOCK` 머리에 `$` / `៛` 버튼이 있다.** 누르면 세 가격칸의 입력 단위가 바뀌고, 각 칸 아래에 반대 통화가 함께 표시된다. **저장되는 값은 언제나 달러**이고, 리엘로 적으면 환율로 되돌려 저장한다. 손대지 않은 가격은 통화를 오가도 값이 바뀌지 않는다. 환율이 설정돼 있지 않으면 버튼이 나타나지 않는다.
 | 16 | PRICE AND STOCK | `Safety Stock Level` | TextBox | — | 빈 칸 (= 0) | 음수 불가 |
 | 17 | PRICE AND STOCK | `Status` | ComboBox | — | **`Active`** | `Active` / `Inactive` |
 | 18 | LOOSE UNITS | `Sell loose units` | CheckBox | — | **꺼짐** (기존 상품은 박스당 개수가 2 이상이면 켜진 상태로 열린다) | 켜면 아래 3칸이 나타난다. **오른쪽 단 맨 아래**에 있다 |
@@ -1028,6 +1030,8 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 **`manufacturer`는 신규 상품에 필수다.** 상품 구분이 `product_name` + `manufacturer`이기 때문이다. **기존 상품을 고치는 행은 비워도 된다** — 배치를 적으러 온 2번째 행이 그렇게 생겼다.
 
 **재고 화면은 상품 단위로 묶는다.** 이름이 같아도 상품이 다르면 **줄이 따로** 나오고, 그때만 이름 아래에 제조사가 작게 붙는다.
+
+**가격은 리엘로 적어도 된다.** `1000៛` · `1000 KHR` · `1000R` · `៛1000` 모두 같은 뜻이고, 영수증 설정의 환율로 환산돼 들어간다. 표시가 없으면 달러다. 낱개가처럼 리엘로 정해 둔 가격을 그대로 적을 수 있다. 환율이 설정돼 있지 않으면 그 행은 오류로 빠진다.
 
 **바코드가 가장 먼저다.** `barcode`가 적혀 있으면 그 값이 상품을 가린다 — 이름이 달라도 같은 바코드면 같은 상품이고, **바코드가 다르면 이름·제조사가 같아도 다른 상품**이다. 제조사 바코드와 내부 바코드(`INT-…`) 둘 다 본다.
 
