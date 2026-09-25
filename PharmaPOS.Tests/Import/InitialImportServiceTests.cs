@@ -682,6 +682,83 @@ public class InitialImportServiceTests
         Assert.Equal(1, plan.UpdateCount);
     }
 
+    // ── 손으로 채운 시트의 흔한 표기 ────────────────────────────────────────
+    //
+    // 종이 서식을 옮겨 적는 사람은 "없음"을 빈칸이 아니라 0이나 -로 적는다.
+    // 그 뜻을 읽지 못하고 행을 세우면, 제대로 채운 파일이 오류 목록으로 돌아온다.
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("-")]
+    public async Task PlanProducts_ReadsUnitsPerBoxOfNoneAsNotSoldLoose(string cell)
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: cell, looseUnitPrice: "")
+        });
+
+        Assert.Empty(plan.Issues);
+
+        var product = Assert.Single(plan.ProductsToCreate).Product;
+
+        Assert.Equal(1, product.UnitsPerBox);
+        Assert.False(product.IsBoxedProduct);
+    }
+
+    /// <summary>
+    /// 낱개가는 적었는데 박스당 개수가 0이면 모순이다. 그때는 무엇이 빠졌는지 말해 준다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_StillRefusesALoosePriceWithNoBoxSize()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "0", looseUnitPrice: "0.25")
+        });
+
+        Assert.Empty(plan.ProductsToCreate);
+        Assert.Contains("units_per_box", Assert.Single(plan.Issues).Reason);
+    }
+
+    /// <summary>줄표는 "없음"이다. 필수 칸이면 빈칸일 때와 같은 사유가 나와야 한다.</summary>
+    [Fact]
+    public async Task PlanProducts_TreatsADashInThePriceAsEmpty()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", sellingPriceOverride: "-")
+        });
+
+        Assert.Empty(plan.ProductsToCreate);
+
+        // "숫자가 아니다"가 아니라 "비어 있다"로 잡혀야 고칠 곳을 안다.
+        Assert.Contains("empty", Assert.Single(plan.Issues).Reason);
+    }
+
+    /// <summary>오류 문구의 컬럼 이름은 파일 머리글과 같아야 찾을 수 있다.</summary>
+    [Fact]
+    public async Task PlanProducts_NamesTheColumnTheWayTheFileSpellsIt()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", sellingPriceOverride: "abc")
+        });
+
+        var reason = Assert.Single(plan.Issues).Reason;
+
+        Assert.Contains("selling_price", reason);
+        Assert.DoesNotContain("sellingprice ", reason);
+    }
+
     // ── 리엘로 적은 금액 ────────────────────────────────────────────────────
     //
     // 캄보디아 약국은 낱개가를 "1000리엘"처럼 리엘로 정해 둔 경우가 흔하다. 시트에

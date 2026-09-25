@@ -599,7 +599,8 @@ public class InitialImportService : IInitialImportService
         price = null;
         error = null;
 
-        var text = row.Get(column);
+        var name = InitialImportColumns.DisplayNameOf(column);
+        var text = NullIfDash(row.Get(column));
 
         if (text.Length == 0)
         {
@@ -608,20 +609,39 @@ public class InitialImportService : IInitialImportService
 
         if (!TryReadMoney(text, exchangeRate, out var parsed, out var moneyError))
         {
-            error = $"{column[0]}: {moneyError}";
+            error = $"{name} {moneyError}";
             return false;
         }
 
         if (parsed < 0 || (!allowZero && parsed == 0))
         {
             error = allowZero
-                ? $"{column[0]} must be a number of zero or more."
-                : $"{column[0]} must be a number greater than zero.";
+                ? $"{name} must be a number of zero or more."
+                : $"{name} must be a number greater than zero.";
             return false;
         }
 
         price = parsed;
         return true;
+    }
+
+    /// <summary>
+    /// 종이 서식에서 "없음"을 뜻하는 줄표는 빈칸으로 읽는다.
+    /// 손으로 채운 시트에는 빈칸 대신 -를 긋는 사람이 많고, 그 뜻은 "이 값은 없다"다.
+    /// 숫자가 아니라고 그 행을 세우면 무엇을 고쳐야 할지도 알기 어렵다.
+    /// </summary>
+    private static string NullIfDash(string text)
+    {
+        var trimmed = text.Trim();
+
+        if (trimmed is "-" or "\u2013" or "\u2014")
+        {
+            return string.Empty;
+        }
+
+        return string.Equals(trimmed, "n/a", StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : trimmed;
     }
 
     /// <summary>
@@ -679,7 +699,9 @@ public class InitialImportService : IInitialImportService
 
         if (!TryParseDecimal(trimmed, out var value))
         {
-            error = "must be a number. Add ៛ (or KHR) after it to give the price in riel.";
+            // 오류 문구에 ៛를 쓰지 않는다. 대화상자 글꼴이 그 글자를 못 그리면 네모가 뜨고,
+            // 읽는 사람은 무엇을 적으라는 것인지 알 수 없다. KHR은 어느 글꼴에나 있다.
+            error = "must be a number. Write it as 1000 KHR to give the price in riel.";
             return false;
         }
 
@@ -712,7 +734,7 @@ public class InitialImportService : IInitialImportService
         safetyStock = null;
         error = null;
 
-        var text = row.Get(InitialImportColumns.SafetyStock);
+        var text = NullIfDash(row.Get(InitialImportColumns.SafetyStock));
 
         if (text.Length == 0)
         {
@@ -829,8 +851,8 @@ public class InitialImportService : IInitialImportService
         looseSale = null;
         error = null;
 
-        var unitsPerBoxText = row.Get(InitialImportColumns.UnitsPerBox);
-        var loosePriceText = row.Get(InitialImportColumns.LooseUnitPrice);
+        var unitsPerBoxText = NullIfDash(row.Get(InitialImportColumns.UnitsPerBox));
+        var loosePriceText = NullIfDash(row.Get(InitialImportColumns.LooseUnitPrice));
 
         var hasUnitsPerBox = unitsPerBoxText.Length > 0;
         var hasLoosePrice = loosePriceText.Length > 0;
@@ -856,11 +878,26 @@ public class InitialImportService : IInitialImportService
             return false;
         }
 
-        if (!int.TryParse(unitsPerBoxText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var unitsPerBox)
-            || unitsPerBox <= 1)
+        if (!int.TryParse(unitsPerBoxText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var unitsPerBox))
         {
-            error = "units_per_box must be a whole number greater than 1.";
+            error = "units_per_box must be a whole number.";
             return false;
+        }
+
+        // 0이나 1은 "낱개로 팔지 않는다"는 뜻이다. 빈칸과 같게 읽는다 —
+        // 시트에 그 칸이 있으니 소분하지 않는 상품에 0을 적는 사람이 많고,
+        // 그것을 오류로 세우면 정상으로 채운 파일이 줄줄이 막힌다.
+        if (unitsPerBox <= 1)
+        {
+            if (hasLoosePrice)
+            {
+                error = "loose_unit_price is set but units_per_box is "
+                      + unitsPerBoxText + ". Put how many pieces are in one box (2 or more).";
+                return false;
+            }
+
+            looseSale = null;
+            return true;
         }
 
         decimal? loosePrice = null;
@@ -869,7 +906,7 @@ public class InitialImportService : IInitialImportService
         {
             if (!TryReadMoney(loosePriceText, exchangeRate, out var parsed, out var moneyError))
             {
-                error = $"loose_unit_price: {moneyError}";
+                error = $"loose_unit_price {moneyError}";
                 return false;
             }
 

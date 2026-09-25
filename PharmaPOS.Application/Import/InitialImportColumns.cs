@@ -70,6 +70,32 @@ public static class InitialImportColumns
     public static readonly IReadOnlyList<string[]> RequiredForInventory = [ProductName, Quantity];
 
     /// <summary>
+    /// 오류 문구에 쓸 이름. 내부에서 비교하는 이름은 구분자를 지운 형태라
+    /// ("sellingprice") 그대로 보여 주면 파일의 머리글과 달라 찾을 수가 없다.
+    /// </summary>
+    private static readonly Dictionary<string, string> DisplayNames = new(StringComparer.Ordinal)
+    {
+        ["productname"] = "product_name",
+        ["sellingprice"] = "selling_price",
+        ["costprice"] = "cost_price",
+        ["safetystock"] = "safety_stock",
+        ["unitsperbox"] = "units_per_box",
+        ["looseunitprice"] = "loose_unit_price",
+        ["genericname"] = "generic_name",
+        ["dosageform"] = "dosage_form",
+        ["atccode"] = "atc_code",
+        ["iscombination"] = "is_combination",
+        ["countryoforigin"] = "country_of_origin",
+        ["batchnumber"] = "batch_number",
+        ["expirydate"] = "expiry_date",
+        ["loosequantity"] = "loose_quantity"
+    };
+
+    /// <summary>파일 머리글에 적혀 있는 그대로의 이름.</summary>
+    public static string DisplayNameOf(string[] column) =>
+        DisplayNames.TryGetValue(column[0], out var name) ? name : column[0];
+
+    /// <summary>
     /// 임포트가 읽을 줄 아는 모든 컬럼 이름(정규화된 형태).
     /// 파일에 이 목록에 없는 머리글이 있으면 그 칸은 통째로 무시된다.
     /// </summary>
