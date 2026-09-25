@@ -291,7 +291,7 @@ public class ProductEditViewModel : ViewModelBase
         else
         {
             riel = current.Trim();
-            usd = decimal.Round(value / _exchangeRate, 2, MidpointRounding.AwayFromZero)
+            usd = decimal.Round(value / _exchangeRate, ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
                 .ToString(CultureInfo.InvariantCulture);
         }
 
@@ -319,7 +319,7 @@ public class ProductEditViewModel : ViewModelBase
             return text;
         }
 
-        return decimal.Round(riel / _exchangeRate, 2, MidpointRounding.AwayFromZero)
+        return decimal.Round(riel / _exchangeRate, ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
             .ToString(CultureInfo.InvariantCulture);
     }
 
@@ -332,8 +332,8 @@ public class ProductEditViewModel : ViewModelBase
         }
 
         return _isRielInput
-            ? "= $" + decimal.Round(value / _exchangeRate, 2, MidpointRounding.AwayFromZero)
-                .ToString("N2", CultureInfo.InvariantCulture)
+            ? "= $" + decimal.Round(value / _exchangeRate, ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
+                .ToString("0.00##", CultureInfo.InvariantCulture)
             : "= " + RielConverter.Format(value, _exchangeRate, _rielRounding);
     }
 

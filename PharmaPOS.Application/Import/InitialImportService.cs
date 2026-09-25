@@ -720,7 +720,10 @@ public class InitialImportService : IInitialImportService
             return false;
         }
 
-        usd = decimal.Round(value / exchangeRate, 2, MidpointRounding.AwayFromZero);
+        // 네 자리까지 남긴다. 두 자리로 접으면 500리엘(=$0.125)이 $0.13이 되고,
+        // 계산대에서 다시 리엘로 바꾸면 520리엘이 되어 원래 정한 가격과 달라진다.
+        usd = decimal.Round(value / exchangeRate, ProductService.LooseUnitPriceDecimals,
+            MidpointRounding.AwayFromZero);
         return true;
     }
 

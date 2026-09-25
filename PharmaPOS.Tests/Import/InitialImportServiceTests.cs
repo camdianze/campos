@@ -783,6 +783,24 @@ public class InitialImportServiceTests
         Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
     }
 
+    /// <summary>
+    /// 500리엘짜리 알약은 $0.125다. 두 자리로 접으면 $0.13이 되고, 계산대에서 다시
+    /// 리엘로 바꾸면 520리엘이 되어 약국이 정한 가격과 달라진다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_KeepsARielPriceThatDoesNotFitInCents()
+    {
+        var harness = new Harness();   // 1 USD = 4,000 ៛
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "500 KHR")
+        });
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(0.125m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
+    }
+
     /// <summary>표시가 없으면 달러다. 지금까지 만든 파일이 그대로 동작해야 한다.</summary>
     [Fact]
     public async Task PlanProducts_TreatsABarePriceAsDollars()

@@ -61,9 +61,8 @@ public class ProductPricePrecisionTests
     };
 
     [Theory]
-    [InlineData(0.045)]      // 박스가를 낱개 수로 나눈 값이 그대로 들어온 경우
-    [InlineData(0.4533)]
-    [InlineData(1.001)]
+    [InlineData(0.45333)]    // 박스가를 낱개 수로 나눈 나머지가 그대로 들어온 경우
+    [InlineData(1.00001)]
     public async Task SaveProductAsync_RejectsMoreThanTwoDecimals(decimal unitSellingPrice)
     {
         var (service, repository) = CreateService();
@@ -71,7 +70,7 @@ public class ProductPricePrecisionTests
         var result = await service.SaveProductAsync(CreateProduct(unitSellingPrice), isNewProduct: true, userId: "user-1");
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Loose unit price can have at most 2 decimal places.", result.Message);
+        Assert.Equal("Loose unit price can have at most 4 decimal places.", result.Message);
         Assert.Empty(repository.Saved);
     }
 
@@ -80,6 +79,8 @@ public class ProductPricePrecisionTests
     [InlineData(1.5)]
     [InlineData(12)]
     [InlineData(0.50)]       // 끝자리 0은 세 자리가 아니다
+    [InlineData(0.125)]      // 500리엘짜리 알약. 센트로는 적을 수 없다
+    [InlineData(0.0025)]     // 10리엘짜리
     public async Task SaveProductAsync_AcceptsTwoDecimalsOrFewer(decimal unitSellingPrice)
     {
         var (service, _) = CreateService();

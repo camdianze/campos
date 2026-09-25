@@ -280,7 +280,7 @@
                             <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource Field}"/>
 
-                            <TextBlock Text="Loose Unit Price (max 2 decimals)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="Loose Unit Price (max 4 decimals)" Style="{StaticResource FieldLabel}"/>
                             <Grid Margin="0,0,0,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>

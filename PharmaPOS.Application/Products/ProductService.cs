@@ -10,6 +10,12 @@ namespace PharmaPOS.Application.Products;
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
+    /// <summary>
+    /// 낱개가가 가질 수 있는 소수 자릿수. 리엘로 정해진 가격을 달러로 담기 위한 값이다 —
+    /// 1리엘은 환율 4,000에서 $0.00025이므로 네 자리가 있어야 적을 수 있다.
+    /// </summary>
+    public const int LooseUnitPriceDecimals = 4;
+
     private readonly IInternalBarcodeSequenceRepository _barcodeSequenceRepository;
 
     public ProductService(
@@ -86,13 +92,21 @@ public class ProductService : IProductService
             return ProductSaveResult.Failure("Loose unit price must be greater than zero.");
         }
 
-        // 낱개가는 실제로 주고받는 돈이라 소수점 두 자리를 넘길 수 없다.
-        // 여기서 막지 않으면 0.4533 같은 값이 그대로 저장되고, 영수증·판매 이력에는
-        // 통화 단위로 낼 수 없는 금액이 찍힌다.
+        // 낱개가는 네 자리까지 받는다.
+        //
+        // 두 자리였던 적이 있는데, 그 규칙은 값이 달러로 정해진다고 본 것이었다.
+        // 여기서는 낱개가가 리엘로 정해진다 — 500리엘짜리 알약은 $0.125이고, 이것은
+        // 미국 센트로 적을 수 없는 값이지 잘못된 값이 아니다. 두 자리로 막으면
+        // 그런 상품이 통째로 등록되지 못한다.
+        //
+        // 그렇다고 자리수를 열어 두지는 않는다. 낱개가는 박스가를 개수로 나눠 얻는
+        // 일이 잦고(4.53 ÷ 30 = 0.151), 그 나머지를 그대로 담으면 화면마다 다른
+        // 자리에서 끊긴 숫자가 나온다. 네 자리면 1리엘 단위까지 적을 수 있다.
         if (product.UnitSellingPrice is { } looseUnitPrice
-            && decimal.Round(looseUnitPrice, 2) != looseUnitPrice)
+            && decimal.Round(looseUnitPrice, LooseUnitPriceDecimals) != looseUnitPrice)
         {
-            return ProductSaveResult.Failure("Loose unit price can have at most 2 decimal places.");
+            return ProductSaveResult.Failure(
+                $"Loose unit price can have at most {LooseUnitPriceDecimals} decimal places.");
         }
 
         // 낱개가는 헐어서 파는 상품에만 의미가 있다. 낱개 판매를 끈 상품에 값만 남아 있으면
