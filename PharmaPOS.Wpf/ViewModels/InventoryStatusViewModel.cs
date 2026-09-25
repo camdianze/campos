@@ -72,11 +72,11 @@ public class InventoryStatusViewModel : ViewModelBase
     public ObservableCollection<ProductInventoryGroup> GroupedItems { get; } = new();
 
     /// <summary>
-    /// 제목 옆에 적는 요약. 지금 보이는 상품 수와 그 상품들의 재고 총량이다 —
-    /// 검색·필터를 걸면 함께 줄어든다.
+    /// 제목 옆에 적는 요약. 지금 보이는 상품 수와 배치 수다 — 검색·필터를 걸면
+    /// 함께 줄어든다.
     ///
-    /// 총량이 상품 수보다 쓸모가 있다: "저재고만" 필터를 걸었을 때 몇 품목이
-    /// 몇 개 남았는지가 발주할 때 보는 숫자다. 재고는 어디서나 낱개 기준이다.
+    /// 재고 총량은 넣지 않는다. 알약·병·붕대의 개수를 한 숫자로 더하면 단위가 없는
+    /// 값이 되고, 그것으로 판단할 수 있는 것이 없다. 수량은 상품 줄마다 있다.
     /// </summary>
     public string CountSummary
     {
@@ -84,12 +84,11 @@ public class InventoryStatusViewModel : ViewModelBase
         {
             var products = GroupedItems.Count;
             var batches = GroupedItems.Sum(g => g.Batches.Count);
-            var quantity = GroupedItems.Sum(g => g.TotalQuantity);
 
             var productText = products == 1 ? "1 product" : $"{products:N0} products";
             var batchText = batches == 1 ? "1 batch" : $"{batches:N0} batches";
 
-            return $"{productText} · {batchText} · {quantity:N0} in stock";
+            return $"{productText} · {batchText}";
         }
     }
 
