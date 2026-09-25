@@ -68,6 +68,15 @@ public class ProductListViewModel : ViewModelBase
 
     public ObservableCollection<ProductRow> Products { get; } = new();
 
+    /// <summary>
+    /// 제목 옆에 적는 개수. 지금 <b>보이는</b> 줄 수다 — 검색·필터를 걸면 함께 줄어든다.
+    /// 전체 개수를 고정으로 적으면 필터를 건 목록이 몇 건인지 따로 셀 방법이 없고,
+    /// 화면에 30줄이 보이는데 머리에는 300이 적혀 있어 어느 쪽이 맞는지 알 수 없다.
+    /// </summary>
+    public string CountSummary => Products.Count == 1
+        ? "1 product"
+        : $"{Products.Count:N0} products";
+
     public string SearchTerm
     {
         get => _searchTerm;
@@ -381,6 +390,8 @@ public class ProductListViewModel : ViewModelBase
                 AwareGroup = await ResolveAwareGroupAsync(product)
             });
         }
+
+        OnPropertyChanged(nameof(CountSummary));
 
         Message = results.Count == 0 ? "No products found." : string.Empty;
     }

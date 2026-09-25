@@ -44,10 +44,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Products"
-                   Style="{StaticResource PageTitle}"
-                   Margin="0,0,0,20"/>
+        <!-- 제목 옆에 지금 보이는 개수를 적는다. 검색·필터를 걸면 함께 줄어든다. -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Products" Style="{StaticResource PageTitle}" Margin="0"/>
+            <TextBlock Text="{Binding CountSummary}"
+                       FontSize="14" VerticalAlignment="Center" Margin="12,4,0,0"
+                       Foreground="{StaticResource MutedTextBrush}"/>
+        </StackPanel>
         <!-- 언어 토글. 메인 화면과 같은 자리(우측 상단). 영어로 잠깐 보려고
              메인으로 나갔다 들어오는 왕복을 없애기 위해 화면마다 둔다. -->
         <ctl:LanguageToggle Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>

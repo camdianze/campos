@@ -71,6 +71,28 @@ public class InventoryStatusViewModel : ViewModelBase
     public ObservableCollection<InventoryStatusItem> Items { get; } = new();
     public ObservableCollection<ProductInventoryGroup> GroupedItems { get; } = new();
 
+    /// <summary>
+    /// 제목 옆에 적는 요약. 지금 보이는 상품 수와 그 상품들의 재고 총량이다 —
+    /// 검색·필터를 걸면 함께 줄어든다.
+    ///
+    /// 총량이 상품 수보다 쓸모가 있다: "저재고만" 필터를 걸었을 때 몇 품목이
+    /// 몇 개 남았는지가 발주할 때 보는 숫자다. 재고는 어디서나 낱개 기준이다.
+    /// </summary>
+    public string CountSummary
+    {
+        get
+        {
+            var products = GroupedItems.Count;
+            var batches = GroupedItems.Sum(g => g.Batches.Count);
+            var quantity = GroupedItems.Sum(g => g.TotalQuantity);
+
+            var productText = products == 1 ? "1 product" : $"{products:N0} products";
+            var batchText = batches == 1 ? "1 batch" : $"{batches:N0} batches";
+
+            return $"{productText} · {batchText} · {quantity:N0} in stock";
+        }
+    }
+
     public string SearchTerm
     {
         get => _searchTerm;
@@ -754,6 +776,8 @@ public class InventoryStatusViewModel : ViewModelBase
 
             GroupedItems.Add(pg);
         }
+
+        OnPropertyChanged(nameof(CountSummary));
 
         Message = results.Count == 0 ? "No inventory records found." : string.Empty;
     }

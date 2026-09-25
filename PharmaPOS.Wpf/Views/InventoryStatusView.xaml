@@ -189,10 +189,12 @@
         </Grid.RowDefinitions>
 
         <!-- 제목 -->
-        <TextBlock Grid.Row="0"
-                   Text="Inventory Status"
-                   Style="{StaticResource PageTitle}"
-                   Margin="0,0,0,20"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Inventory Status" Style="{StaticResource PageTitle}" Margin="0"/>
+            <TextBlock Text="{Binding CountSummary}"
+                       FontSize="14" VerticalAlignment="Center" Margin="12,4,0,0"
+                       Foreground="{StaticResource MutedTextBrush}"/>
+        </StackPanel>
         <!-- 언어 토글. 메인 화면과 같은 자리(우측 상단). 영어로 잠깐 보려고
              메인으로 나갔다 들어오는 왕복을 없애기 위해 화면마다 둔다. -->
         <ctl:LanguageToggle Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
