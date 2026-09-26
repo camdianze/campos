@@ -579,12 +579,16 @@ public class InitialImportServiceTests
     }
 
     /// <summary>
-    /// 소분 판매를 세우는 것은 units_per_box다. 그것만 있으면 낱개 판매가 켜지고,
-    /// 낱개가는 "박스가 ÷ 박스당 개수"로 계산한다 — 상품 화면이 원래 그렇게 동작한다.
-    /// 임포트만 둘 다 요구해서 시트에 박스당 개수만 적은 행이 통째로 막혔었다.
+    /// units_per_box는 <b>박스 구성</b>만 정한다. 한 박스에 30정이 들었다는 것은
+    /// 맞는 정보이고 재고를 박스로 세는 데 쓰이므로, 그 행을 거절하지 않는다.
+    ///
+    /// 다만 <b>낱개 판매는 켜지지 않는다.</b> 낱개로 팔려면 낱개가 얼마인지 정해져
+    /// 있어야 하고 그걸 정하는 것은 약국이다. 전에는 여기서 낱개 판매가 켜지고
+    /// 가격은 박스가를 나눠 지어냈는데, 박스에 30정이 들었어도 박스째로만 파는
+    /// 상품이 흔하다 — 그런 상품까지 낱개 판매로 잡혀 있었다.
     /// </summary>
     [Fact]
-    public async Task PlanProducts_AcceptsUnitsPerBoxWithoutALoosePrice()
+    public async Task PlanProducts_TakesUnitsPerBoxAsPackagingOnly()
     {
         var harness = new Harness();
 
@@ -597,9 +601,30 @@ public class InitialImportServiceTests
 
         var product = Assert.Single(plan.ProductsToCreate).Product;
 
-        Assert.Equal(30, product.UnitsPerBox);
-        Assert.True(product.IsBoxedProduct);      // 낱개 판매 체크가 켜진 상태
-        Assert.Null(product.UnitSellingPrice);    // 박스가에서 계산한다
+        Assert.Equal(30, product.UnitsPerBox);     // 포장은 기록된다
+        Assert.True(product.IsBoxedProduct);
+        Assert.False(product.SellsLooseUnits);     // 낱개 판매는 꺼진 채로
+        Assert.Null(product.UnitSellingPrice);
+        Assert.Null(product.UnitBarcode);          // 찍을 일이 없으니 만들지 않는다
+    }
+
+    /// <summary>낱개가를 적으면 그것이 낱개 판매를 켜는 스위치다.</summary>
+    [Fact]
+    public async Task PlanProducts_TurnsLooseSaleOnWhenAPriceIsGiven()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "0.50")
+        });
+
+        Assert.Empty(plan.Issues);
+
+        var product = Assert.Single(plan.ProductsToCreate).Product;
+
+        Assert.True(product.SellsLooseUnits);
+        Assert.Equal(0.50m, product.UnitSellingPrice);
     }
 
     /// <summary>

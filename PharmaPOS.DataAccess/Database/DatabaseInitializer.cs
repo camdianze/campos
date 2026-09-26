@@ -97,6 +97,16 @@ public class DatabaseInitializer
         // "no such column: unit_barcode"로 앱이 아예 열리지 않는다.
         AddColumnIfMissing(connection, "Product_Master", "unit_barcode", "TEXT");
 
+        // 낱개 판매 여부. 전에는 units_per_box > 1 이 곧 낱개 판매였으므로,
+        // 이미 등록된 상품은 그 규칙대로 채워 넣어 지금까지의 동작을 그대로 잇는다.
+        // (새 규칙은 여기서부터 적용된다 — 낱개가 없이 저장하려 하면 그때 막힌다.)
+        if (AddColumnIfMissing(connection, "Product_Master", "sells_loose", "INTEGER NOT NULL DEFAULT 0"))
+        {
+            using var backfill = connection.CreateCommand();
+            backfill.CommandText = "UPDATE Product_Master SET sells_loose = 1 WHERE units_per_box > 1;";
+            backfill.ExecuteNonQuery();
+        }
+
         using (var unitBarcodeIndex = connection.CreateCommand())
         {
             unitBarcodeIndex.CommandText = """
@@ -282,6 +292,7 @@ public class DatabaseInitializer
                 category            TEXT,
                 dosage_form         TEXT,
                 unit_barcode        TEXT,
+                sells_loose         INTEGER NOT NULL DEFAULT 0,
                 photo               BLOB,
                 photo_updated_at    INTEGER
             );

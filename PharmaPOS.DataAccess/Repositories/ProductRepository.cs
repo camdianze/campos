@@ -96,7 +96,7 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form, unit_barcode
+                   dosage_form, unit_barcode, sells_loose
             FROM Product_Master
             {whereSql}
             ORDER BY {orderBySql};
@@ -123,7 +123,7 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form, unit_barcode
+                   dosage_form, unit_barcode, sells_loose
             FROM Product_Master
             WHERE product_id = $productId;
             """;
@@ -179,13 +179,13 @@ public class ProductRepository : IProductRepository
                  strength, unit, manufacturer, country_of_origin, cost_price,
                  selling_price, safety_stock_level, status, created_at,
                  atc_code, is_combination, units_per_box, unit_selling_price, category,
-                 dosage_form, unit_barcode)
+                 dosage_form, unit_barcode, sells_loose)
             VALUES
                 ($productId, $barcode, $internalBarcode, $productName, $genericName,
                  $strength, $unit, $manufacturer, $countryOfOrigin, $costPrice,
                  $sellingPrice, $safetyStockLevel, $status, $createdAt,
                  $atcCode, $isCombination, $unitsPerBox, $unitSellingPrice, $category,
-                 $dosageForm, $unitBarcode);
+                 $dosageForm, $unitBarcode, $sellsLoose);
             """;
         AddProductParameters(command, product);
         await command.ExecuteNonQueryAsync();
@@ -211,7 +211,8 @@ public class ProductRepository : IProductRepository
                 unit_selling_price = $unitSellingPrice,
                 category = $category,
                 dosage_form = $dosageForm,
-                unit_barcode = $unitBarcode
+                unit_barcode = $unitBarcode,
+                sells_loose = $sellsLoose
             WHERE product_id = $productId;
             """;
 
@@ -398,6 +399,7 @@ public class ProductRepository : IProductRepository
         command.Parameters.AddWithValue("$category", (object?)product.Category?.ToString() ?? DBNull.Value);
         command.Parameters.AddWithValue("$dosageForm", (object?)product.DosageForm?.ToString() ?? DBNull.Value);
         command.Parameters.AddWithValue("$unitBarcode", (object?)product.UnitBarcodeOverride ?? DBNull.Value);
+        command.Parameters.AddWithValue("$sellsLoose", product.SellsLooseUnits ? 1 : 0);
     }
 
     private static Product MapToProduct(SqliteDataReader reader)
@@ -432,7 +434,8 @@ public class ProductRepository : IProductRepository
             DosageForm = reader.IsDBNull(19) || !Enum.TryParse<DosageForm>(reader.GetString(19), out var dosageForm)
                 ? null
                 : dosageForm,
-            UnitBarcodeOverride = reader.IsDBNull(20) ? null : reader.GetString(20)
+            UnitBarcodeOverride = reader.IsDBNull(20) ? null : reader.GetString(20),
+            SellsLooseUnits = !reader.IsDBNull(21) && reader.GetInt32(21) != 0
         };
     }
 

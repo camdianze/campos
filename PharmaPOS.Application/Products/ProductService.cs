@@ -113,21 +113,39 @@ public class ProductService : IProductService
 
         // 낱개가는 헐어서 파는 상품에만 의미가 있다. 낱개 판매를 끈 상품에 값만 남아 있으면
         // 화면에는 안 보이는데 나중에 다시 켜는 순간 옛 가격이 되살아난다.
-        if (!product.IsBoxedProduct)
+        // 낱개 판매는 세 가지가 한 묶음이다 — 켬, 박스당 개수, 낱개가.
+        // 하나라도 없으면 "낱개로 팔 수 있는데 얼마인지는 모르는 상품"이 되는데,
+        // 그런 상품이 계산대에 오면 앱이 값을 지어내거나 판매가 멈춘다. 둘 다 나쁘다.
+        if (product.SellsLooseUnits)
         {
+            if (!product.IsBoxedProduct)
+            {
+                return ProductSaveResult.Failure(
+                    "To sell loose units, enter how many are in one box (2 or more).");
+            }
+
+            if (product.UnitSellingPrice is not { } loosePrice || loosePrice <= 0)
+            {
+                return ProductSaveResult.Failure(
+                    "To sell loose units, enter the price of one loose unit.");
+            }
+
+            // 낱개가는 네 자리까지 받는다. 가격이 리엘로 정해지기 때문이다 —
+            // 500리엘짜리 알약은 $0.125라 센트로는 적을 수 없지만 잘못된 값이 아니다.
+            if (decimal.Round(loosePrice, LooseUnitPriceDecimals) != loosePrice)
+            {
+                return ProductSaveResult.Failure(
+                    $"Loose unit price can have at most {LooseUnitPriceDecimals} decimal places.");
+            }
+        }
+        else
+        {
+            // 낱개로 팔지 않는 상품에 남은 낱개 값은 버린다. 남겨 두면 소분을 껐는데도
+            // 스캔되는 코드와 쓰이지 않는 가격이 남는다. 박스당 개수는 그대로 둔다 —
+            // 그건 포장에 관한 사실이라 낱개 판매와 무관하게 참이다.
             product.UnitSellingPrice = null;
         }
 
-        // 경고 후 확인이 필요한 케이스: 아직 확인 안 받았으면 여기서 멈추고 확인을 요청한다.
-        if (product.SellingPrice < product.CostPrice && !acknowledgeLowerSellingPriceWarning)
-        {
-            return ProductSaveResult.NeedsConfirmation(
-                "Selling price is lower than cost price. Continue?");
-        }
-
-        // 바코드는 앞뒤 공백 없이 저장한다. 스캐너가 찍은 값과 글자 단위로 같아야
-        // 판매 화면이 장바구니까지 한 번에 가는데, 붙여넣기나 시트에서 공백 하나가
-        // 따라오면 검색은 되고 담기는 안 되는 상태가 된다 — 계산대에서 원인을 알 수 없다.
         product.Barcode = string.IsNullOrWhiteSpace(product.Barcode) ? null : product.Barcode.Trim();
         product.InternalBarcode = string.IsNullOrWhiteSpace(product.InternalBarcode)
             ? null
@@ -137,7 +155,7 @@ public class ProductService : IProductService
         // 박스/낱개 구분이 없는 상품에 적혀 있으면 버린다 — 남겨 두면 소분을 껐는데도
         // 스캔되는 코드가 남는다.
         product.UnitBarcodeOverride =
-            product.IsBoxedProduct && !string.IsNullOrWhiteSpace(product.UnitBarcodeOverride)
+            product.SellsLooseUnits && !string.IsNullOrWhiteSpace(product.UnitBarcodeOverride)
                 ? product.UnitBarcodeOverride.Trim()
                 : null;
 
@@ -191,7 +209,7 @@ public class ProductService : IProductService
         // 낱개 바코드를 직접 적어 넣었으면 그 수단이 이미 있으므로 만들지 않는다.
         var needsInternalBarcode =
             string.IsNullOrWhiteSpace(product.Barcode)
-            || (product.IsBoxedProduct && string.IsNullOrWhiteSpace(product.UnitBarcodeOverride));
+            || (product.SellsLooseUnits && string.IsNullOrWhiteSpace(product.UnitBarcodeOverride));
 
         if (needsInternalBarcode && string.IsNullOrWhiteSpace(product.InternalBarcode))
         {

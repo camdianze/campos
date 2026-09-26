@@ -70,6 +70,9 @@ public class ManualBarcodeTests
         Unit = "Capsule",
         Manufacturer = "Maker A",
         UnitsPerBox = 30,
+        // 낱개 바코드가 걸린 규칙이라 낱개 판매를 켜 둔다 — 켜려면 낱개가가 있어야 한다.
+        SellsLooseUnits = true,
+        UnitSellingPrice = 0.50m,
         CostPrice = 3.00m,
         SellingPrice = 9.00m,
         SafetyStockLevel = 10,
@@ -219,6 +222,7 @@ public class ManualBarcodeTests
     {
         var product = Boxed();
         product.UnitsPerBox = 1;
+        product.SellsLooseUnits = false;
         product.UnitBarcodeOverride = "8802222222222";
 
         var result = await SaveAsync(product);
@@ -257,6 +261,8 @@ public class ManualBarcodeTests
             ProductName = "Other",
             Unit = "Tablet",
             UnitsPerBox = 10,
+            SellsLooseUnits = true,
+            UnitSellingPrice = 0.50m,
             InternalBarcode = "INT-00000007",
             CostPrice = 1m,
             SellingPrice = 2m,

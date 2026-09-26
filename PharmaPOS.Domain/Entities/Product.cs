@@ -95,8 +95,21 @@ public class Product
     /// </summary>
     public ProductCategory? Category { get; set; }
 
-    /// <summary>박스/낱개를 구분해서 파는 상품인지.</summary>
+    /// <summary>
+    /// 한 박스에 여러 개가 든 상품인지. <b>포장 단위</b>에 관한 것이다 —
+    /// 입고를 박스로 세고, 재고를 "3박스 + 7개"로 보여주는 근거가 이 값이다.
+    /// </summary>
     public bool IsBoxedProduct => UnitsPerBox > 1;
+
+    /// <summary>
+    /// 박스를 헐어 낱개로도 파는지. 위의 IsBoxedProduct와 <b>다른 값</b>이다.
+    ///
+    /// 한동안 둘이 같은 값이었다 — 박스에 30정이 들었으면 낱개로도 판다고 본 것이다.
+    /// 그런데 한 박스에 30정이 들었지만 박스째로만 파는 상품이 있고, 그런 상품까지
+    /// 낱개 판매로 잡히면 낱개가가 없는 채로 "낱개 판매 가능"한 상태가 된다.
+    /// 포장은 제조사가 정하고 낱개 판매는 약국이 정하므로, 두 값이어야 한다.
+    /// </summary>
+    public bool SellsLooseUnits { get; set; }
 
     /// <summary>
     /// 낱개에 실제로 인쇄돼 있는 바코드. 블리스터 한 알, 시럽 한 병처럼
@@ -110,13 +123,13 @@ public class Product
     /// <summary>
     /// 낱개 판매용 바코드. 낱개에 실제로 인쇄된 코드가 있으면 그것을 쓰고,
     /// 없으면 내부 바코드에 -EA(Each)를 붙여 만든다.
-    /// 박스/낱개 구분이 없는 상품에는 없다.
+    /// 낱개로 팔지 않는 상품에는 없다 — 찍을 일이 없는 코드를 만들 이유가 없다.
     /// </summary>
     public string? UnitBarcode
     {
         get
         {
-            if (!IsBoxedProduct)
+            if (!SellsLooseUnits)
             {
                 return null;
             }
@@ -150,29 +163,25 @@ public class Product
     ///
     /// 네 자리인 이유는 가격이 리엘로 정해지기 때문이다 — 500리엘짜리 알약은 $0.125라
     /// 센트로 적을 수 없고, 1리엘은 환율 4,000에서 $0.00025다.
-    ///
-    /// 여기서 <b>끊는</b> 이유는 따로 있다. 낱개가를 비워 둔 상품은 박스가를 개수로
-    /// 나눠 쓰는데($10 ÷ 30), 그 나머지를 그대로 들고 다니면 0.3333333333333333이
-    /// 화면과 장바구니와 영수증을 지나 원장까지 들어간다. 자리에 따라 다르게 끊긴
-    /// 숫자가 화면마다 나오고, 합계는 19.566666666666666 같은 값이 된다 —
-    /// 낼 수도 없고 맞춰 볼 수도 없는 금액이다.
     /// </summary>
     public const int LooseUnitPriceDecimals = 4;
 
-    /// <summary>
-    /// 낱개 하나의 실판매가. 따로 정해 두지 않았으면 박스가를 나눠 쓴다.
-    /// 나눈 값은 반드시 자릿수로 끊는다 — 나머지가 끝없이 이어지는 경우가 흔하다.
-    /// </summary>
-    public decimal EffectiveUnitSellingPrice =>
-        UnitSellingPrice ?? (IsBoxedProduct ? Divide(SellingPrice, UnitsPerBox) : SellingPrice);
+    // 낱개가를 박스가에서 자동으로 계산하던 기능은 없앴다.
+    //
+    // 비어 있으면 박스가 ÷ 개수를 썼는데, 그 값은 원가에 가까운 숫자이지 파는 가격이
+    // 아니다 — 박스를 헐어 낱개로 파는 데에는 마진이 붙고, 얼마를 붙일지는 약국이
+    // 정한다. 그런데 화면 어디에도 "이 가격은 앱이 지어낸 것"이라는 표시가 없어서,
+    // 계산대에서는 약국이 정한 가격과 구별되지 않았다.
+    //
+    // 대신 낱개 판매를 켜려면 낱개가를 반드시 입력하게 했다(ProductService).
+    // 값이 없는 상태 자체를 만들 수 없으므로 계산해서 메울 일도 없다.
 
     /// <summary>
     /// 낱개 하나의 원가. 원가는 판매가와 달리 박스가에서 나누기만 한다 —
-    /// 낱개로 헐어 판다고 매입 단가가 달라지지는 않기 때문이다.
+    /// 낱개로 헐어 판다고 <b>매입</b> 단가가 달라지지는 않기 때문이다.
+    /// 값을 지어내는 것이 아니라 이미 치른 돈을 개수로 배분하는 것이라 자동 계산이 맞다.
     /// </summary>
-    public decimal UnitCostPrice => IsBoxedProduct ? Divide(CostPrice, UnitsPerBox) : CostPrice;
-
-    /// <summary>박스가를 개수로 나눈다. 나머지는 낱개가와 같은 자리에서 끊는다.</summary>
-    private static decimal Divide(decimal boxPrice, int unitsPerBox) =>
-        decimal.Round(boxPrice / unitsPerBox, LooseUnitPriceDecimals, MidpointRounding.AwayFromZero);
+    public decimal UnitCostPrice => IsBoxedProduct
+        ? decimal.Round(CostPrice / UnitsPerBox, LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
+        : CostPrice;
 }

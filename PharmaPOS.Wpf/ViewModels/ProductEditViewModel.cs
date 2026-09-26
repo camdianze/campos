@@ -159,7 +159,11 @@ public class ProductEditViewModel : ViewModelBase
         }
     }
 
-    /// <summary>낱개가를 비워 뒀을 때 실제로 어떤 값이 쓰이는지 보여준다.</summary>
+    /// <summary>
+    /// 낱개가 칸 아래 줄. 비어 있으면 참고할 값을 <b>알려주기만</b> 한다 — 예전처럼
+    /// 그 값을 몰래 쓰지는 않는다. 박스가를 나눈 값은 원가에 가까운 숫자이지
+    /// 파는 가격이 아니고, 마진을 얼마나 붙일지는 약국이 정한다.
+    /// </summary>
     public string UnitPriceHint
     {
         get
@@ -178,10 +182,14 @@ public class ProductEditViewModel : ViewModelBase
                 && NumberInput.TryParseInt(UnitsPerBox, out var perBox)
                 && perBox > 1)
             {
-                return $"Leave empty to sell one {UnitLabel} at {boxPrice / perBox} ({boxPrice} ÷ {perBox}).";
+                var share = decimal.Round(boxPrice / perBox,
+                    Product.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero);
+
+                return $"Required. The box works out at {share} per {UnitLabel} "
+                     + $"({boxPrice} ÷ {perBox}) — loose is usually sold for more.";
             }
 
-            return $"Leave empty to sell one {UnitLabel} at the box price divided by the count above.";
+            return $"Required. Enter what one {UnitLabel} sells for.";
         }
     }
 
@@ -584,7 +592,7 @@ public class ProductEditViewModel : ViewModelBase
             _category = existingProduct.Category;
             _isCombination = existingProduct.IsCombination;
             // 낱개 판매 여부는 별도 컬럼이 아니라 박스당 개수로 표현된다.
-            _sellsLooseUnits = existingProduct.IsBoxedProduct;
+            _sellsLooseUnits = existingProduct.SellsLooseUnits;
             _unitsPerBox = NumberInput.ToText(existingProduct.UnitsPerBox);
             _unitSellingPrice = existingProduct.UnitSellingPrice is { } loose
                 ? NumberInput.ToText(loose)
@@ -656,18 +664,22 @@ public class ProductEditViewModel : ViewModelBase
                 return;
             }
 
-            // 비워 두는 것과 잘못 적은 것은 다르게 다뤄야 한다. 비었으면 "박스가에서 계산"이고,
-            // 숫자가 아니면 입력 실수라 조용히 넘어가면 안 된다.
-            if (!string.IsNullOrWhiteSpace(unitSellingPriceText))
+            // 낱개가는 이제 필수다. 비워 두면 앱이 박스가를 나눠 값을 지어내곤 했는데,
+            // 그 값은 원가에 가까운 숫자이지 파는 가격이 아니다 — 마진을 얼마나 붙일지는
+            // 약국이 정한다. 화면에는 지어낸 값이라는 표시도 없었다.
+            if (string.IsNullOrWhiteSpace(unitSellingPriceText))
             {
-                if (!NumberInput.TryParseDecimal(unitSellingPriceText, out var parsedUnitPrice))
-                {
-                    Message = "Loose unit price must be a number.";
-                    return;
-                }
-
-                unitSellingPrice = parsedUnitPrice;
+                Message = $"Enter the price of one {UnitLabel}.";
+                return;
             }
+
+            if (!NumberInput.TryParseDecimal(unitSellingPriceText, out var parsedUnitPrice))
+            {
+                Message = "Loose unit price must be a number.";
+                return;
+            }
+
+            unitSellingPrice = parsedUnitPrice;
         }
 
         var product = new Product
@@ -691,6 +703,7 @@ public class ProductEditViewModel : ViewModelBase
             Category = Category,
             IsCombination = IsCombination,
             UnitsPerBox = unitsPerBox,
+            SellsLooseUnits = SellsLooseUnits,
             UnitSellingPrice = unitSellingPrice,
             CreatedAt = 0 // 신규 등록 시 서비스가 채운다. 수정 시에는 DB의 기존 값이 UPDATE 대상에서 그대로 유지된다.
         };

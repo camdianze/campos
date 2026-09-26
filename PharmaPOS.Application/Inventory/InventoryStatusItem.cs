@@ -47,7 +47,9 @@ public class InventoryStatusItem
     /// 박스가를 그대로 두면 "299개"와 "45,000"이 나란히 놓여 곱셈이 엉뚱해진다.
     /// </summary>
     public decimal DisplayUnitPrice =>
-        UnitSellingPrice ?? (IsBoxedProduct ? SellingPrice / UnitsPerBox : SellingPrice);
+        UnitSellingPrice ?? (IsBoxedProduct
+            ? decimal.Round(SellingPrice / UnitsPerBox, 4, MidpointRounding.AwayFromZero)
+            : SellingPrice);
 
     /// <summary>
     /// 만료임박으로 보는 기간(일). 재고 조회의 Within90Days 필터, 알림 조회와 같은 값이다.

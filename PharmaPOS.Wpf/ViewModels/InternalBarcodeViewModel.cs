@@ -65,7 +65,7 @@ public class InternalBarcodeViewModel : ViewModelBase
             var plan = $"Prints {code} ({source}), one label per copy.";
 
             // 낱개 바코드는 내부 바코드에서 나온다. 화면에서 방금 만든 경우까지 반영하려면 여기서 붙인다.
-            if (!_selectedProduct.IsBoxedProduct || string.IsNullOrWhiteSpace(InternalBarcode))
+            if (!_selectedProduct.SellsLooseUnits || string.IsNullOrWhiteSpace(InternalBarcode))
             {
                 return plan;
             }

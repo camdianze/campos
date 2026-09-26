@@ -98,6 +98,9 @@ public class PhotoImportServiceTests
         SellingPrice = 200,
         SafetyStockLevel = 1,
         UnitsPerBox = unitsPerBox,
+        // 낱개 바코드는 낱개 판매를 켠 상품에만 있다.
+        SellsLooseUnits = unitsPerBox > 1,
+        UnitSellingPrice = unitsPerBox > 1 ? 0.50m : null,
         Status = EntityStatus.Active,
         CreatedAt = 0
     };

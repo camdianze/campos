@@ -427,6 +427,7 @@ public class InitialImportService : IInitialImportService
             SellingPrice = sellingPrice.Value,
             SafetyStockLevel = safetyStock ?? 0,
             UnitsPerBox = looseSale?.UnitsPerBox ?? 1,
+            SellsLooseUnits = looseSale?.SellsLoose ?? false,
             UnitSellingPrice = looseSale?.LooseUnitPrice,
             GenericName = NullIfEmpty(row.Get(InitialImportColumns.GenericName)),
             Strength = NullIfEmpty(row.Get(InitialImportColumns.Strength)),
@@ -545,6 +546,15 @@ public class InitialImportService : IInitialImportService
             if (looseSale.LooseUnitPrice is { } loosePrice && loosePrice != merged.UnitSellingPrice)
             {
                 merged.UnitSellingPrice = loosePrice;
+                changed = true;
+            }
+
+            // 낱개 판매를 켜는 것은 가격이 적힌 행뿐이다. 끄지는 않는다 — 박스당 개수만
+            // 고치러 온 행이 화면에서 켜 둔 낱개 판매를 꺼 버리면 안 된다(임포트는
+            // 값을 비울 수 없다는 규칙과 같다). 끄는 것은 상품 화면에서 한다.
+            if (looseSale.SellsLoose && !merged.SellsLooseUnits)
+            {
+                merged.SellsLooseUnits = true;
                 changed = true;
             }
         }
@@ -770,11 +780,13 @@ public class InitialImportService : IInitialImportService
     }
 
     /// <summary>
-    /// 소분 판매 설정. 두 칸이 다 비면 null(= 적지 않음)이다.
-    /// LooseUnitPrice가 null이면 "박스가 ÷ 박스당 개수"로 계산한다 — 상품 화면에서
-    /// 낱개가를 비워 두었을 때와 같다.
+    /// 박스 구성과 낱개 판매. 두 칸이 다 비면 null(= 적지 않음)이다.
+    ///
+    /// <c>SellsLoose</c>가 <c>UnitsPerBox</c>와 따로 있는 이유: 한 박스에 30정이
+    /// 들었다는 것과 그 박스를 헐어 낱개로도 판다는 것은 다른 사실이다. 포장은
+    /// 제조사가 정하고 낱개 판매는 약국이 정한다.
     /// </summary>
-    private sealed record LooseSaleSetting(int UnitsPerBox, decimal? LooseUnitPrice);
+    private sealed record LooseSaleSetting(int UnitsPerBox, decimal? LooseUnitPrice, bool SellsLoose);
 
     private static bool TryReadLooseSale(
         ImportSourceRow row, ImportPriceFormat priceFormat, out LooseSaleSetting? looseSale, out string? error)
@@ -793,15 +805,17 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        // 소분 판매를 세우는 것은 units_per_box다. 그 값이 박스 하나를 몇 개로 헐 수
-        // 있는지 정하고, 낱개 바코드(-EA)와 낱개 재고가 거기서 나온다.
+        // units_per_box는 <b>박스 구성</b>만 정한다 — 박스 하나에 몇 개가 들었는지.
+        // 입고를 박스로 세고 재고를 "3박스 + 7개"로 보여주는 근거가 이 값이다.
         //
-        // 낱개가는 없어도 된다 — 비어 있으면 "박스가 ÷ 박스당 개수"로 계산한다.
-        // 상품 화면이 원래 그렇게 동작하는데 임포트만 둘 다 요구해서, 시트에 박스당
-        // 개수만 적은 행이 통째로 막혔다.
+        // <b>낱개 판매를 켜는 것은 loose_unit_price다.</b> 낱개로 팔려면 낱개가 얼마인지
+        // 정해져 있어야 하고, 그걸 정하는 것은 약국이다. 전에는 units_per_box만 있어도
+        // 낱개 판매가 켜졌고 가격은 박스가를 나눠 지어냈는데, 그 값은 원가에 가까운
+        // 숫자이지 파는 가격이 아니다. 박스에 30정이 들었지만 박스째로만 파는 상품도
+        // 흔하다 — 그런 상품까지 낱개 판매로 잡혀 있었다.
         //
         // 반대로 낱개가만 적은 것은 세울 방법이 없다. 박스 하나에 몇 개가 들었는지
-        // 모르면 헐 수가 없고, 그 상태로 저장하면 낱개가는 버려진다.
+        // 모르면 헐 수가 없다.
         if (!hasUnitsPerBox)
         {
             error = "loose_unit_price is set but units_per_box is empty. "
@@ -831,26 +845,28 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        decimal? loosePrice = null;
-
-        if (hasLoosePrice)
+        // 가격이 없으면 박스 구성만 기록하고 낱개 판매는 꺼 둔다. 행을 거절하지 않는
+        // 이유는, "한 박스에 30정"이라는 것 자체가 맞는 정보이고 재고를 박스로 세는 데
+        // 쓰이기 때문이다. 나중에 낱개로 팔기로 하면 가격만 넣으면 된다.
+        if (!hasLoosePrice)
         {
-            if (!priceFormat.TryRead(loosePriceText, out var parsed, out var moneyError))
-            {
-                error = $"loose_unit_price {moneyError}";
-                return false;
-            }
-
-            if (parsed <= 0)
-            {
-                error = "loose_unit_price must be a number greater than zero.";
-                return false;
-            }
-
-            loosePrice = parsed;
+            looseSale = new LooseSaleSetting(unitsPerBox, null, SellsLoose: false);
+            return true;
         }
 
-        looseSale = new LooseSaleSetting(unitsPerBox, loosePrice);
+        if (!priceFormat.TryRead(loosePriceText, out var loosePrice, out var moneyError))
+        {
+            error = $"loose_unit_price {moneyError}";
+            return false;
+        }
+
+        if (loosePrice <= 0)
+        {
+            error = "loose_unit_price must be a number greater than zero.";
+            return false;
+        }
+
+        looseSale = new LooseSaleSetting(unitsPerBox, loosePrice, SellsLoose: true);
         return true;
     }
 

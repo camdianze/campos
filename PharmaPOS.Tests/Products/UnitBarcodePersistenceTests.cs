@@ -54,6 +54,8 @@ public class UnitBarcodePersistenceTests : IDisposable
         Unit = "Capsule",
         Manufacturer = "Maker A",
         UnitsPerBox = 30,
+        SellsLooseUnits = true,
+        UnitSellingPrice = 0.50m,
         CostPrice = 3.00m,
         SellingPrice = 9.00m,
         SafetyStockLevel = 10,

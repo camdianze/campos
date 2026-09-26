@@ -97,7 +97,7 @@ public partial class PosSaleViewModel : ViewModelBase
 
         // 낱개용 바코드(-EA)를 찍었으면 그 판매 단위를 그대로 이어받는다.
         // 이름으로 찾았거나 박스/낱개 구분이 없는 상품이면 각각 박스·낱개가 기본이다.
-        _selectedSaleUnit = value?.IsBoxedProduct == true
+        _selectedSaleUnit = value?.SellsLooseUnits == true
             ? _scannedSaleUnit
             : SaleUnitOption.Each;
 
@@ -142,7 +142,8 @@ public partial class PosSaleViewModel : ViewModelBase
     public IReadOnlyList<SaleUnitOption> AvailableSaleUnits { get; } = Enum.GetValues<SaleUnitOption>();
 
     /// <summary>박스/낱개 선택칸을 보여줄지. 구분이 없는 상품에는 고를 것이 없다.</summary>
-    public bool IsBoxedProductSelected => SelectedProduct?.IsBoxedProduct == true;
+    /// <summary>낱개/박스를 고를 수 있는 상품인지. 포장이 아니라 판매 방식이 정한다.</summary>
+    public bool IsBoxedProductSelected => SelectedProduct?.SellsLooseUnits == true;
 
     /// <summary>박스로 팔 때는 수량이 박스 개수라는 걸 라벨에 드러낸다.</summary>
     public string QuantityLabel =>
@@ -159,11 +160,14 @@ public partial class PosSaleViewModel : ViewModelBase
         }
 
         // 박스가가 기본값이고, 헐어 파는 낱개만 따로 정한 가격을 쓴다.
-        return IsBoxSaleSelected(product) ? product.SellingPrice : product.EffectiveUnitSellingPrice;
+        // 낱개가는 반드시 저장돼 있다(ProductService가 없이는 저장을 거절한다).
+        // 그래도 옛 데이터가 있을 수 있으므로, 없으면 박스가로 떨어지지 않고 비워 둔다 —
+        // 값을 지어내느니 계산대에서 멈추는 편이 낫다.
+        return IsBoxSaleSelected(product) ? product.SellingPrice : product.UnitSellingPrice;
     }
 
     private bool IsBoxSaleSelected(Product product) =>
-        product.IsBoxedProduct && SelectedSaleUnit == SaleUnitOption.Box;
+        product.SellsLooseUnits && SelectedSaleUnit == SaleUnitOption.Box;
 
     private void ResetUnitPriceFromProduct()
     {
