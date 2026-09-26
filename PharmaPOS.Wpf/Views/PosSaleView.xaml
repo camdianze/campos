@@ -122,8 +122,8 @@
                         </DataGridTemplateColumn>
                         <!-- Qty가 박스 개수인지 낱개 개수인지는 이 컬럼으로만 구분된다. -->
                         <DataGridTextColumn Header="Unit"     Binding="{Binding SaleUnitLabel}" Width="55"/>
-                        <DataGridTextColumn Header="Price"    Binding="{Binding UnitPrice}"   Width="80"/>
-                        <DataGridTextColumn Header="Total"    Binding="{Binding LineTotal}"   Width="80"/>
+                        <DataGridTextColumn Header="Price"    Binding="{Binding UnitPrice, StringFormat={}{0:0.00##}}" Width="80"/>
+                        <DataGridTextColumn Header="Total"    Binding="{Binding LineTotal, StringFormat={}{0:N2}}" Width="80"/>
                         <DataGridTemplateColumn Header="" Width="70">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -277,7 +277,7 @@
                     <Grid Margin="0,0,0,4">
                         <TextBlock Text="{svc:Loc ui.pos.total, Total}" FontSize="13" Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding TotalAmount}"
+                        <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N2}}"
                                    FontSize="20" FontWeight="Bold"
                                    Foreground="{StaticResource TextBrush}"
                                    HorizontalAlignment="Right"/>
@@ -297,7 +297,7 @@
                         <Grid>
                             <TextBlock Text="{svc:Loc ui.pos.change, Change}" FontSize="12" Foreground="{StaticResource MutedTextBrush}"
                                        VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding ChangeDue}"
+                            <TextBlock Text="{Binding ChangeDue, StringFormat={}{0:N2}}"
                                        FontSize="16" FontWeight="SemiBold"
                                        Foreground="#38A169"
                                        HorizontalAlignment="Right"/>

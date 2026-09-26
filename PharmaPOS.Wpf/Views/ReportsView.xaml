@@ -100,7 +100,7 @@
             <Border Style="{StaticResource SummaryCard}">
                 <StackPanel>
                     <TextBlock Text="Sales Amount" Style="{StaticResource SummaryLabel}"/>
-                    <TextBlock Text="{Binding Report.Current.Amount}" Style="{StaticResource SummaryValue}"/>
+                    <TextBlock Text="{Binding Report.Current.Amount, StringFormat={}{0:N2}}" Style="{StaticResource SummaryValue}"/>
                     <!-- 리엘 환산. 환율 표기를 반드시 함께 낸다 — 판매 시점의 환율은
                          저장되지 않아 지난달 매출도 오늘 환율로 환산되기 때문이다.
                          환율이 오르면 과거 매출이 저절로 올라가 보이는데, 어느 환율로
@@ -213,7 +213,7 @@
                         <DataGridTextColumn Header="#"      Binding="{Binding Rank}"     Width="36"/>
                         <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*"/>
                         <DataGridTextColumn Header="Qty"    Binding="{Binding Quantity}" Width="60"/>
-                        <DataGridTextColumn Header="Amount" Binding="{Binding Amount}"   Width="90"/>
+                        <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat={}{0:N2}}" Width="90"/>
                         <!-- 순위표에서는 전기 대비 증감보다 "이 약이 매출의 얼마를 차지하는가"가
                              읽을 값이다. 순위 자체가 이미 크기순이므로, 1위가 전체의 40%인지
                              4%인지가 그다음 질문이 된다. 증감은 위쪽 요약 카드가 맡는다.
