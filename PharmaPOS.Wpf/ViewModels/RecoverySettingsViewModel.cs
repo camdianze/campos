@@ -1,4 +1,5 @@
-﻿using PharmaPOS.Application.Authentication;
+﻿using PharmaPOS.Application.Parsing;
+using PharmaPOS.Application.Authentication;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 
@@ -75,7 +76,7 @@ public class RecoverySettingsViewModel : ViewModelBase
         int? smtpPortValue = null;
         if (IsOtherProvider && !string.IsNullOrWhiteSpace(SmtpPort))
         {
-            if (!int.TryParse(SmtpPort, out var parsedPort))
+            if (!NumberInput.TryParseInt(SmtpPort, out var parsedPort))
             {
                 Message = "Please enter a valid SMTP port number.";
                 return;

@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using PharmaPOS.Application.Parsing;
+using System.Collections.ObjectModel;
 using System.Windows;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
@@ -166,7 +167,11 @@ public partial class PosSaleViewModel : ViewModelBase
 
     private void ResetUnitPriceFromProduct()
     {
-        UnitPrice = CurrentSaleUnitPrice()?.ToString() ?? string.Empty;
+        // 지역 설정이 아니라 NumberInput 규칙으로 적는다 — 이 칸을 다시 읽는 쪽이
+        // 그 규칙을 쓴다. 둘이 어긋나면 계산대에서 단가가 조용히 바뀐다.
+        UnitPrice = CurrentSaleUnitPrice() is { } price
+            ? NumberInput.ToText(price)
+            : string.Empty;
     }
 
     public string Quantity
@@ -494,7 +499,7 @@ public partial class PosSaleViewModel : ViewModelBase
             return;
         }
 
-        if (!int.TryParse(Quantity, out var quantity))
+        if (!NumberInput.TryParseInt(Quantity, out var quantity))
         {
             Message = "Quantity must be a whole number.";
             return;
@@ -506,7 +511,7 @@ public partial class PosSaleViewModel : ViewModelBase
             return;
         }
 
-        if (!decimal.TryParse(UnitPrice, out var unitPrice))
+        if (!NumberInput.TryParseDecimal(UnitPrice, out var unitPrice))
         {
             Message = "Selling price must be greater than zero.";
             return;

@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using PharmaPOS.Application.Parsing;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
@@ -137,7 +138,7 @@ public partial class PosSaleView : UserControl
 
         try
         {
-            if (!int.TryParse(text, out var quantity))
+            if (!NumberInput.TryParseInt(text, out var quantity))
             {
                 viewModel.Message = "Quantity must be a whole number.";
                 box.Text = line.Quantity.ToString();

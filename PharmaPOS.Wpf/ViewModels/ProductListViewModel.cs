@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using PharmaPOS.Application.Parsing;
+using System.Collections.ObjectModel;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Products;
@@ -194,7 +195,7 @@ public class ProductListViewModel : ViewModelBase
                 return string.Empty;
             }
 
-            if (!int.TryParse(StockInQuantity, out var boxes) || boxes <= 0)
+            if (!NumberInput.TryParseInt(StockInQuantity, out var boxes) || boxes <= 0)
             {
                 return $"{product.UnitsPerBox} units per box.";
             }
@@ -434,7 +435,7 @@ public class ProductListViewModel : ViewModelBase
             return;
         }
 
-        if (!int.TryParse(StockInQuantity, out var quantity))
+        if (!NumberInput.TryParseInt(StockInQuantity, out var quantity))
         {
             StockInMessage = IsBoxedProductSelected
                 ? "Box quantity must be a whole number."

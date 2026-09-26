@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using PharmaPOS.Application.Parsing;
+using System.Collections.ObjectModel;
 using System.Windows;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
@@ -383,7 +384,7 @@ public class InventoryStatusViewModel : ViewModelBase
                 return string.Empty;
             }
 
-            if (!int.TryParse(StockInQuantity, out var boxes) || boxes <= 0)
+            if (!NumberInput.TryParseInt(StockInQuantity, out var boxes) || boxes <= 0)
             {
                 return $"{source.UnitsPerBox} units per box.";
             }
@@ -445,7 +446,7 @@ public class InventoryStatusViewModel : ViewModelBase
             return;
         }
 
-        if (!int.TryParse(StockInQuantity, out var quantity))
+        if (!NumberInput.TryParseInt(StockInQuantity, out var quantity))
         {
             StockInMessage = IsBoxedStockInTarget
                 ? "Box quantity must be a whole number."
@@ -612,12 +613,12 @@ public class InventoryStatusViewModel : ViewModelBase
 
         var boxCount = 0;
 
-        if (!string.IsNullOrWhiteSpace(PhysicalBoxCount) && !int.TryParse(PhysicalBoxCount, out boxCount))
+        if (!string.IsNullOrWhiteSpace(PhysicalBoxCount) && !NumberInput.TryParseInt(PhysicalBoxCount, out boxCount))
         {
             return false;
         }
 
-        if (!int.TryParse(PhysicalUnitCount, out var unitCount))
+        if (!NumberInput.TryParseInt(PhysicalUnitCount, out var unitCount))
         {
             return false;
         }
@@ -644,8 +645,8 @@ public class InventoryStatusViewModel : ViewModelBase
         }
 
         // 위에서 파싱이 통과했으니 두 칸 모두 숫자다. 박스 칸은 비워 두면 0으로 본다.
-        int.TryParse(PhysicalBoxCount, out var physicalBoxCount);
-        int.TryParse(PhysicalUnitCount, out var physicalUnitCount);
+        NumberInput.TryParseInt(PhysicalBoxCount, out var physicalBoxCount);
+        NumberInput.TryParseInt(PhysicalUnitCount, out var physicalUnitCount);
 
         var result = await _adjustmentService.SaveAdjustmentAsync(
             _facilityId, item.ProductId, _userId,

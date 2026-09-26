@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using PharmaPOS.Application.Parsing;
+using System.IO;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PharmaPOS.Application.Products;
@@ -173,8 +174,8 @@ public class ProductEditViewModel : ViewModelBase
                 return $"One {UnitLabel} is sold at this price.";
             }
 
-            if (decimal.TryParse(SellingPrice, out var boxPrice)
-                && int.TryParse(UnitsPerBox, out var perBox)
+            if (NumberInput.TryParseDecimal(SellingPrice, out var boxPrice)
+                && NumberInput.TryParseInt(UnitsPerBox, out var perBox)
                 && perBox > 1)
             {
                 return $"Leave empty to sell one {UnitLabel} at {boxPrice / perBox} ({boxPrice} ÷ {perBox}).";
@@ -297,7 +298,7 @@ public class ProductEditViewModel : ViewModelBase
             }
         }
 
-        if (string.IsNullOrWhiteSpace(current) || !decimal.TryParse(current, out var value))
+        if (string.IsNullOrWhiteSpace(current) || !NumberInput.TryParseDecimal(current, out var value))
         {
             _priceBeforeSwitch.Remove(field);
             return current;
@@ -314,8 +315,8 @@ public class ProductEditViewModel : ViewModelBase
         else
         {
             riel = current.Trim();
-            usd = decimal.Round(value / _exchangeRate, ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
-                .ToString(CultureInfo.InvariantCulture);
+            usd = NumberInput.ToText(decimal.Round(value / _exchangeRate,
+                ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero));
         }
 
         _priceBeforeSwitch[field] = (usd, riel);
@@ -337,19 +338,19 @@ public class ProductEditViewModel : ViewModelBase
             return remembered.Usd;
         }
 
-        if (!decimal.TryParse(text, out var riel))
+        if (!NumberInput.TryParseDecimal(text, out var riel))
         {
             return text;
         }
 
-        return decimal.Round(riel / _exchangeRate, ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
-            .ToString(CultureInfo.InvariantCulture);
+        return NumberInput.ToText(decimal.Round(riel / _exchangeRate,
+            ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero));
     }
 
     /// <summary>입력칸 아래에 반대 통화를 적는다. 두 값이 동시에 보여야 한다.</summary>
     private string OtherCurrencyOf(string text)
     {
-        if (!IsRielAvailable || string.IsNullOrWhiteSpace(text) || !decimal.TryParse(text, out var value))
+        if (!IsRielAvailable || string.IsNullOrWhiteSpace(text) || !NumberInput.TryParseDecimal(text, out var value))
         {
             return string.Empty;
         }
@@ -573,17 +574,21 @@ public class ProductEditViewModel : ViewModelBase
             _unit = existingProduct.Unit;
             _manufacturer = existingProduct.Manufacturer ?? string.Empty;
             _countryOfOrigin = existingProduct.CountryOfOrigin ?? string.Empty;
-            _costPrice = existingProduct.CostPrice.ToString();
-            _sellingPrice = existingProduct.SellingPrice.ToString();
-            _safetyStockLevel = existingProduct.SafetyStockLevel.ToString();
+            // 칸에 넣는 글자도 NumberInput과 같은 규칙이어야 한다. ToString()은
+            // Windows 지역 설정을 따라가므로, 읽는 쪽만 고치면 버그가 자리를 옮길 뿐이다.
+            _costPrice = NumberInput.ToText(existingProduct.CostPrice);
+            _sellingPrice = NumberInput.ToText(existingProduct.SellingPrice);
+            _safetyStockLevel = NumberInput.ToText(existingProduct.SafetyStockLevel);
             _status = existingProduct.Status;
             _atcCode = existingProduct.AtcCode ?? string.Empty;
             _category = existingProduct.Category;
             _isCombination = existingProduct.IsCombination;
             // 낱개 판매 여부는 별도 컬럼이 아니라 박스당 개수로 표현된다.
             _sellsLooseUnits = existingProduct.IsBoxedProduct;
-            _unitsPerBox = existingProduct.UnitsPerBox.ToString();
-            _unitSellingPrice = existingProduct.UnitSellingPrice?.ToString() ?? string.Empty;
+            _unitsPerBox = NumberInput.ToText(existingProduct.UnitsPerBox);
+            _unitSellingPrice = existingProduct.UnitSellingPrice is { } loose
+                ? NumberInput.ToText(loose)
+                : string.Empty;
         }
 
         ShowUsdCommand = new RelayCommand(_ => SwitchCurrency(toRiel: false));
@@ -619,13 +624,13 @@ public class ProductEditViewModel : ViewModelBase
         var unitSellingPriceText = ToStoredPrice(nameof(UnitSellingPrice), UnitSellingPrice);
 
         var costPrice = 0m;
-        if (!string.IsNullOrWhiteSpace(costPriceText) && !decimal.TryParse(costPriceText, out costPrice))
+        if (!string.IsNullOrWhiteSpace(costPriceText) && !NumberInput.TryParseDecimal(costPriceText, out costPrice))
         {
             Message = "Cost price must be a number.";
             return;
         }
 
-        if (!decimal.TryParse(sellingPriceText, out var sellingPrice))
+        if (!NumberInput.TryParseDecimal(sellingPriceText, out var sellingPrice))
         {
             Message = "Selling price must be greater than zero.";
             return;
@@ -633,7 +638,7 @@ public class ProductEditViewModel : ViewModelBase
 
         // 안전재고도 선택이다. 비우면 0 — 부족 알림이 뜨지 않을 뿐이다.
         var safetyStockLevel = 0;
-        if (!string.IsNullOrWhiteSpace(SafetyStockLevel) && !int.TryParse(SafetyStockLevel, out safetyStockLevel))
+        if (!string.IsNullOrWhiteSpace(SafetyStockLevel) && !NumberInput.TryParseInt(SafetyStockLevel, out safetyStockLevel))
         {
             Message = "Safety stock level must be a whole number.";
             return;
@@ -645,7 +650,7 @@ public class ProductEditViewModel : ViewModelBase
 
         if (SellsLooseUnits)
         {
-            if (!int.TryParse(UnitsPerBox, out unitsPerBox) || unitsPerBox < 2)
+            if (!NumberInput.TryParseInt(UnitsPerBox, out unitsPerBox) || unitsPerBox < 2)
             {
                 Message = $"Enter how many {UnitLabel}s are in one box (2 or more).";
                 return;
@@ -655,7 +660,7 @@ public class ProductEditViewModel : ViewModelBase
             // 숫자가 아니면 입력 실수라 조용히 넘어가면 안 된다.
             if (!string.IsNullOrWhiteSpace(unitSellingPriceText))
             {
-                if (!decimal.TryParse(unitSellingPriceText, out var parsedUnitPrice))
+                if (!NumberInput.TryParseDecimal(unitSellingPriceText, out var parsedUnitPrice))
                 {
                     Message = "Loose unit price must be a number.";
                     return;

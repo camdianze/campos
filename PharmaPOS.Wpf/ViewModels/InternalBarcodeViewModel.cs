@@ -1,4 +1,5 @@
-﻿using PharmaPOS.Application.Products;
+﻿using PharmaPOS.Application.Parsing;
+using PharmaPOS.Application.Products;
 using PharmaPOS.Domain.Entities;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 
@@ -124,7 +125,7 @@ public class InternalBarcodeViewModel : ViewModelBase
     {
         Message = string.Empty;
 
-        if (!int.TryParse(LabelQuantity, out var quantity))
+        if (!NumberInput.TryParseInt(LabelQuantity, out var quantity))
         {
             Message = "Please enter the label quantity.";
             return;

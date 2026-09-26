@@ -1,4 +1,5 @@
-﻿using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+﻿using PharmaPOS.Application.Parsing;
+using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Receipts;
@@ -130,7 +131,7 @@ public partial class PosSaleViewModel
     {
         get
         {
-            var hasUsd = decimal.TryParse(CashTendered, out var usd);
+            var hasUsd = NumberInput.TryParseDecimal(CashTendered, out var usd);
             var hasRiel = long.TryParse(CashTenderedRiel, out var riel);
 
             if (!hasUsd && !hasRiel)
@@ -238,7 +239,7 @@ public partial class PosSaleViewModel
                 return;
             }
 
-            if (!string.IsNullOrWhiteSpace(CashTendered) && !decimal.TryParse(CashTendered, out _))
+            if (!string.IsNullOrWhiteSpace(CashTendered) && !NumberInput.TryParseDecimal(CashTendered, out _))
             {
                 Message = "Cash tendered in USD must be a number.";
                 return;

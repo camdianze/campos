@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using PharmaPOS.Application.Parsing;
+using System.Collections.ObjectModel;
 using System.Windows;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Repositories;
@@ -273,12 +274,12 @@ public class AdjustmentViewModel : ViewModelBase
 
         var boxCount = 0;
 
-        if (!string.IsNullOrWhiteSpace(PhysicalBoxCount) && !int.TryParse(PhysicalBoxCount, out boxCount))
+        if (!string.IsNullOrWhiteSpace(PhysicalBoxCount) && !NumberInput.TryParseInt(PhysicalBoxCount, out boxCount))
         {
             return false;
         }
 
-        if (!int.TryParse(PhysicalUnitCount, out var unitCount))
+        if (!NumberInput.TryParseInt(PhysicalUnitCount, out var unitCount))
         {
             return false;
         }
@@ -310,8 +311,8 @@ public class AdjustmentViewModel : ViewModelBase
         }
 
         // 위에서 파싱이 통과했으니 두 칸 모두 숫자다. 박스 칸은 비워 두면 0으로 본다.
-        int.TryParse(PhysicalBoxCount, out var physicalBoxCount);
-        int.TryParse(PhysicalUnitCount, out var physicalUnitCount);
+        NumberInput.TryParseInt(PhysicalBoxCount, out var physicalBoxCount);
+        NumberInput.TryParseInt(PhysicalUnitCount, out var physicalUnitCount);
 
         // 이 화면은 배치를 목록에서 고르기만 한다 — 번호를 고치는 칸은 재고 화면의 조정 패널에 있다.
         var result = await _adjustmentService.SaveAdjustmentAsync(

@@ -865,6 +865,60 @@ public class InitialImportServiceTests
         Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
     }
 
+    // ── 실제 현장에서 나온 숫자 ─────────────────────────────────────────────
+    //
+    // 다른 PC에서 80,000리엘로 적은 상품이 19.572달러로 등록됐다는 보고가 있었다.
+    // 어느 환율로 나눠도 나오지 않는 값이라, 임포트가 그 값을 만들 수 있는지를
+    // 여기서 못 박는다. 이 테스트가 통과하면 원인은 임포트 밖에 있다.
+
+    [Theory]
+    [InlineData(4000, 20.0)]        // 80,000 / 4,000
+    [InlineData(4100, 19.5122)]     // 80,000 / 4,100
+    [InlineData(4087, 19.5743)]
+    public async Task PlanProducts_ConvertsEightyThousandRiel(decimal rate, decimal expected)
+    {
+        var harness = new Harness();
+        harness.Currency.ExchangeRate = rate;
+
+        var plan = await harness.Build().PlanProductsAsync(
+            new[]
+            {
+                Row(2, "Amoxicillin", unit: "Tablet", sellingPrice: "80000", costPrice: "0",
+                    unitsPerBox: "20", dosageForm: "Tablet", genericName: "Amoxicillin",
+                    manufacturer: "Maker A")
+            },
+            ImportPriceCurrency.Riel);
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(expected, Assert.Single(plan.ProductsToCreate).Product.SellingPrice);
+    }
+
+    /// <summary>엑셀이 천 단위 쉼표를 붙여 넘겨도 같은 값이어야 한다.</summary>
+    [Theory]
+    [InlineData("80000")]
+    [InlineData("80,000")]
+    [InlineData("80000 KHR")]
+    [InlineData("80,000 KHR")]
+    [InlineData("80000៛")]
+    [InlineData("៛80,000")]
+    [InlineData("80000R")]
+    public async Task PlanProducts_ReadsEightyThousandRielHoweverItIsWritten(string cell)
+    {
+        var harness = new Harness();   // 4,000
+
+        var plan = await harness.Build().PlanProductsAsync(
+            new[]
+            {
+                Row(2, "Amoxicillin", unit: "Tablet", sellingPrice: cell, costPrice: "0",
+                    unitsPerBox: "20", dosageForm: "Tablet", genericName: "Amoxicillin",
+                    manufacturer: "Maker A")
+            },
+            ImportPriceCurrency.Riel);
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(20.0m, Assert.Single(plan.ProductsToCreate).Product.SellingPrice);
+    }
+
     // ── 파일 전체의 통화를 고르는 경우 ──────────────────────────────────────
     //
     // 칸마다 KHR을 붙이는 방법은 시트가 통째로 리엘일 때 쓸 것이 못 된다. 200줄에
