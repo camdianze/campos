@@ -118,7 +118,7 @@
                             </Button>
                         </StackPanel>
                         <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
-                                   Text="Applies to cost_price, selling_price and loose_unit_price in step ①. A cell that says 6000 KHR or $1.50 is read that way whichever button is on. Riel is converted at the rate in Receipt Settings; prices are always stored in dollars."/>
+                                   Text="Applies to cost_price, selling_price and loose_unit_price in step ①. A cell that says 6000 KHR or $1.50 is read that way whichever button is on. Riel is converted at the rate in Receipt Settings; prices are always stored in dollars. Switch to $ for a file this app exported — those are written in dollars."/>
 
                         <Button Content="①  Import Products"
                                 Style="{StaticResource PrimaryBtn}"

@@ -40,7 +40,7 @@ public class BackupExportViewModel : ViewModelBase
     private DateTime? _exportDateFrom;
     private DateTime? _exportDateTo;
 
-    private ImportPriceCurrency _importPriceCurrency = ImportPriceCurrency.Usd;
+    private ImportPriceCurrency _importPriceCurrency = ImportPriceCurrency.Riel;
     private string _backupFilePath = string.Empty;
     private string _message = string.Empty;
 
@@ -54,12 +54,21 @@ public class BackupExportViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 표시가 없는 가격 칸을 무엇으로 읽을지. 기본은 달러다 — 지금까지 만든 파일이
-    /// 전부 달러로 적혀 있고, 기본값을 바꾸면 그 파일들이 조용히 수천 배 싸게 읽힌다.
+    /// 표시가 없는 가격 칸을 무엇으로 읽을지. <b>화면이 처음 고르는 값은 리엘이다</b> —
+    /// 이 약국이 받는 실사 시트가 리엘로 적혀 있기 때문이고, 그 사실은 코드가 아니라
+    /// 약국이 정한다.
     ///
-    /// 칸마다 "6000 KHR"처럼 적는 방법은 그대로 살아 있고, 그쪽이 이긴다. 다만 실제로
+    /// Application 쪽 기본값(<c>PlanProductsAsync</c>)은 달러 그대로다. 둘은 다른 것을
+    /// 정한다 — 저쪽은 "통화를 말하지 않으면 무슨 뜻인가"라는 해석 규칙이고, 이쪽은
+    /// "이 약국의 시트가 무엇으로 적혀 있나"라는 사실이다. 해석 규칙을 바꾸면 그 규칙을
+    /// 전제로 쓴 코드와 테스트가 함께 흔들린다.
+    ///
+    /// 칸마다 "$3.00"처럼 적는 방법은 그대로 살아 있고, 그쪽이 이긴다. 다만 실제로
     /// 받는 시트는 통째로 한 통화라, 200줄에 표시를 붙이다 한 줄을 빠뜨리면 그 상품만
-    /// $6,000으로 들어간다. 그 값은 0보다 크고 자릿수도 맞아서 어떤 검사에도 안 걸린다.
+    /// 4,000배로 들어간다. 그 값은 0보다 크고 자릿수도 맞아서 어떤 검사에도 안 걸린다.
+    ///
+    /// 달러로 적힌 파일을 넣을 일이 있다면 — 이 앱이 <i>내보낸</i> 상품 파일이 그렇다 —
+    /// 누르기 전에 $로 바꿔야 한다. 미리보기 첫 줄이 무엇으로 읽었는지 알려 준다.
     /// </summary>
     public ImportPriceCurrency ImportPriceCurrency
     {
