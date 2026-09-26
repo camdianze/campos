@@ -146,7 +146,28 @@
                     Background="{StaticResource SubtleSurfaceBrush}"
                     CornerRadius="12"
                     Padding="14">
-                <StackPanel>
+                <!--
+                    이 패널은 화면이 낮은 PC에서 아래가 잘렸다. 1366x768 노트북에서는
+                    Confirm Sale이 창 밖으로 나가 판매를 끝낼 방법이 없었다.
+
+                    그래서 둘로 나눈다. 위쪽(입력)은 스크롤되고, 아래쪽(합계·확정)은
+                    고정이다. Auto 행이 필요한 높이를 먼저 가져가고 남는 것이 * 행으로
+                    가므로, 창이 아무리 낮아져도 줄어드는 것은 스크롤 영역뿐이고
+                    합계와 확정 버튼은 잘리지 않는다.
+
+                    합계를 스크롤 쪽에 두지 않는 이유: 손님이 얼마냐고 묻는 순간
+                    스크롤해서 찾아야 하는 금액은 계산대에서 쓸 수 없다.
+                -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,2,0">
 
                     <!-- 선택 상품 -->
                     <TextBlock Text="{svc:Loc ui.pos.selected_product, Selected Product}"
@@ -244,6 +265,12 @@
                     <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource FieldInput}" Margin="0,0,0,12"/>
 
+                    </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- 고정 바닥. 창 높이와 무관하게 항상 보인다. -->
+                    <StackPanel Grid.Row="1" Margin="0,10,0,0">
+
                     <Border Height="1" Background="{StaticResource BorderBrushSoft}" Margin="0,0,0,10"/>
 
                     <!-- 합계 -->
@@ -296,7 +323,8 @@
                             Style="{StaticResource SecondaryBtn}"
                             Height="34"
                             Command="{Binding CancelSaleCommand}"/>
-                </StackPanel>
+                    </StackPanel>
+                </Grid>
             </Border>
         </Grid>
     </DockPanel>
