@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -100,15 +100,25 @@ public class WpfLabelPrintingService : ILabelPrintingService
 
         if (label.Caption is not null)
         {
-            // 박스용과 낱개용은 상품명이 같다. 이 줄이 없으면 둘을 구분할 수 없다.
-            stack.Children.Add(new TextBlock
+            // 흰 글자에 검은 바탕으로 뒤집어 그린다. 작은 글씨 한 줄로는 부족하다 —
+            // 박스용과 낱개용은 상품명이 같고 코드도 -EA 세 글자만 다르다. 계산대에서
+            // 카드를 집는 사람은 글자를 읽는 게 아니라 카드를 알아보는 것이라,
+            // 멀리서도 서로 달라 보여야 한다. 감열지에 인쇄가 흐려져도 검은 띠는 남는다.
+            stack.Children.Add(new Border
             {
-                Text = label.Caption,
-                FontFamily = new FontFamily(ThermalTextPrinter.FontFamilyList),
-                FontSize = 10,
-                Foreground = Brushes.Black,
-                TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 4)
+                Background = Brushes.Black,
+                Padding = new Thickness(4, 2, 4, 2),
+                Margin = new Thickness(0, 0, 0, 5),
+                Child = new TextBlock
+                {
+                    Text = label.Caption,
+                    FontFamily = new FontFamily(ThermalTextPrinter.FontFamilyList),
+                    FontSize = 13,
+                    FontWeight = FontWeights.Bold,
+                    Foreground = Brushes.White,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap
+                }
             });
         }
 

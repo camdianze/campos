@@ -108,13 +108,21 @@ public class InternalBarcodeService : IInternalBarcodeService
 
         var labels = new List<BarcodeLabel>();
 
+        // 소분 상품은 카드가 두 장 나오고 상품명이 같다. 게다가 낱개 코드가
+        // "내부 바코드 + -EA"라서 사람이 읽는 줄까지 거의 같아 보인다
+        // (INT-00000146 / INT-00000146-EA). 잘못 집어 찍으면 알약 한 알 대신
+        // 박스 하나가 팔린다. 그래서 두 장 다 자기가 무엇인지 크게 말하게 한다.
+        var boxCaption = product.UnitBarcode is null
+            ? null
+            : $"BOX OF {product.UnitsPerBox}";
+
         for (var i = 0; i < labelQuantity; i++)
         {
-            labels.Add(new BarcodeLabel(wholeProductCode, product.ProductName));
+            labels.Add(new BarcodeLabel(wholeProductCode, product.ProductName, Caption: boxCaption));
 
-            // 낱개 바코드는 소분 판매 상품에만 있다 (내부 바코드 + "-EA").
-            // 유통사 바코드가 있어도 이것만은 내부 바코드를 쓴다 — 유통사 바코드는 박스에 붙은 것이라
-            // 낱개를 가리키지 못한다.
+            // 낱개 바코드는 소분 판매 상품에만 있다. 낱개에 제조사가 찍어 둔 코드가
+            // 있으면 그것을, 없으면 내부 바코드 + "-EA"를 쓴다. 유통사 바코드는
+            // 박스에 붙은 것이라 낱개를 가리키지 못한다.
             if (product.UnitBarcode is { } unitBarcode)
             {
                 labels.Add(new BarcodeLabel(
