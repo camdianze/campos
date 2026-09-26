@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.RecoverySettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctl="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
@@ -58,9 +59,7 @@
                           Margin="0,0,0,14"/>
 
                 <TextBlock Text="App Password" Style="{StaticResource FieldLabel}"/>
-                <PasswordBox x:Name="AppPasswordInput"
-                             Style="{StaticResource FieldPassword}"
-                             Margin="0,0,0,14"/>
+                <ctl:PasswordField x:Name="AppPasswordInput" Margin="0,0,0,14"/>
 
                 <StackPanel Visibility="{Binding IsOtherProvider, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="SMTP Host" Style="{StaticResource FieldLabel}"/>

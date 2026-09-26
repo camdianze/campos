@@ -1,6 +1,7 @@
 ﻿<Window x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.AddUserWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Controls"
              xmlns:policy="clr-namespace:PharmaPOS.Application.PasswordPolicy;assembly=PharmaPOS.Application"
         Title="Add User"
         Background="White"
@@ -31,7 +32,7 @@
 
         <StackPanel Grid.Row="2" Margin="0,0,0,14">
             <TextBlock Text="Password" Style="{StaticResource FieldLabel}"/>
-            <PasswordBox x:Name="PasswordInput" Style="{StaticResource FieldPassword}"/>
+            <ctl:PasswordField x:Name="PasswordInput"/>
             <TextBlock Text="{x:Static policy:PasswordPolicyValidator.RuleSummary}"
                        Style="{StaticResource Caption}" FontSize="11"
                        TextWrapping="Wrap" Margin="0,4,0,0"/>
@@ -39,7 +40,7 @@
 
         <StackPanel Grid.Row="3" Margin="0,0,0,14">
             <TextBlock Text="Confirm Password" Style="{StaticResource FieldLabel}"/>
-            <PasswordBox x:Name="ConfirmPasswordInput" Style="{StaticResource FieldPassword}"/>
+            <ctl:PasswordField x:Name="ConfirmPasswordInput"/>
         </StackPanel>
 
         <StackPanel Grid.Row="4" Margin="0,0,0,20">

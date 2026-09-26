@@ -98,13 +98,13 @@ public class LoginViewModel : ViewModelBase
 
     private async void ExecuteLogin(object? parameter)
     {
-        if (parameter is not System.Windows.Controls.PasswordBox passwordBox)
+        if (parameter is not Controls.PasswordField passwordField)
         {
             ErrorMessage = "Internal error: password box not found.";
             return;
         }
 
-        var password = passwordBox.Password;
+        var password = passwordField.Password;
 
         if (string.IsNullOrWhiteSpace(Username))
         {
