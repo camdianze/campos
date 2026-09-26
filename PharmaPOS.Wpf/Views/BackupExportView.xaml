@@ -142,7 +142,7 @@
                                 Margin="0,0,0,4"
                                 Command="{Binding ImportPhotosCommand}"/>
                         <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
-                                   Text="Asks for a folder instead of a file. Name each photo after the product's barcode - 8801234567890.jpg - and it is attached to that product. Use JPG; photos straight off an iPhone are HEIC and cannot be read."/>
+                                   Text="Asks for a folder instead of a file. Name each photo after the product's barcode - 8801234567890.jpg. For a product with only an internal barcode the issued number alone is enough: INT-00000146 takes 146.jpg. The product name works too. Use JPG; photos straight off an iPhone are HEIC and cannot be read."/>
 
                         <Border Background="{StaticResource SurfaceBrush}"
                                 BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"

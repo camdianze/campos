@@ -1,4 +1,5 @@
-﻿using PharmaPOS.Application.Products;
+﻿using System.Globalization;
+using PharmaPOS.Application.Products;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Domain.Entities;
 
@@ -186,6 +187,11 @@ public class PhotoImportService : IPhotoImportService
     /// 그 뒤에 접미사(-EA)를 떼고 한 번 더 보는 것은 UnitBarcode가 답하지 못하는
     /// 경우를 위해서다 — 제조사 바코드 뒤에 손으로 -EA를 붙여 파일명을 지은 경우.
     ///
+    /// 그다음이 <b>발급 번호만</b> 적은 파일명이다(146.jpg → INT-00000146). 이 기능에서
+    /// 제일 번거로운 일이 사진 수백 장에 코드를 옮겨 적는 것인데, INT-00000146은
+    /// 0이 다섯 개라 하나 더 치거나 덜 쳐도 목록에서 티가 나지 않는다. 번호만 남기면
+    /// 파일명이 짧아지고 서로 달라 보여서, 눈으로 검산이 된다.
+    ///
     /// 이름까지 받아 주는 이유: 바코드가 없는 상품에도 사진을 붙일 수 있어야 하고,
     /// 상품 임포트가 이미 이름으로 상품을 알아본다.
     /// </summary>
@@ -216,11 +222,73 @@ public class PhotoImportService : IPhotoImportService
             }
         }
 
+        var bySequenceNumber = MatchByIssuedNumber(products, key);
+
+        if (bySequenceNumber.Count > 0)
+        {
+            return bySequenceNumber;
+        }
+
         return products
             .Where(p => InitialImportColumns.ProductNameComparer.Equals(
                 InitialImportColumns.NormalizeProductName(p.ProductName),
                 InitialImportColumns.NormalizeProductName(key)))
             .ToList();
+    }
+
+    /// <summary>
+    /// 자동 발급된 내부 바코드(INT-00000146)를 발급 번호만으로 찾는다.
+    /// 146, 00000146, INT-146 모두 같은 상품을 가리킨다 — 앞의 0은 자릿수를 맞추려고
+    /// 채운 것이지 값이 아니다.
+    ///
+    /// 이 검사는 <b>코드 전체가 정확히 맞는 경우를 모두 본 뒤</b>에만 돈다. 어느 상품의
+    /// 제조사 바코드가 마침 "146"이면 그쪽이 먼저 잡혀야 한다 — 그 값은 상품에 실제로
+    /// 인쇄된 것이고, 발급 번호는 우리가 붙인 별명이다.
+    ///
+    /// 발급 번호는 유일하므로 여러 상품이 걸릴 수 없다. 그래도 걸리는 경우
+    /// (파일명이 이름과도 맞는 등)는 부르는 쪽이 세어 보고 사람에게 물어본다.
+    /// </summary>
+    private static List<Product> MatchByIssuedNumber(IReadOnlyList<Product> products, string key)
+    {
+        var digits = key;
+
+        if (digits.StartsWith(Product.GeneratedBarcodePrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            digits = digits[Product.GeneratedBarcodePrefix.Length..];
+        }
+
+        if (!long.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out var number))
+        {
+            return [];
+        }
+
+        return products
+            .Where(p => IssuedNumberOf(p.InternalBarcode) == number)
+            .ToList();
+    }
+
+    /// <summary>
+    /// INT-00000146에서 146을 꺼낸다. 직접 입력한 내부 바코드(8801234567890 등)는
+    /// 발급 번호가 아니므로 null이다 — 그런 값은 파일명에 그대로 적으면 정확히 맞는다.
+    /// </summary>
+    private static long? IssuedNumberOf(string? internalBarcode)
+    {
+        if (string.IsNullOrWhiteSpace(internalBarcode))
+        {
+            return null;
+        }
+
+        var trimmed = internalBarcode.Trim();
+
+        if (!trimmed.StartsWith(Product.GeneratedBarcodePrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return long.TryParse(trimmed[Product.GeneratedBarcodePrefix.Length..],
+            NumberStyles.None, CultureInfo.InvariantCulture, out var number)
+            ? number
+            : null;
     }
 
     private static bool Matches(string? value, string key) =>

@@ -140,6 +140,70 @@ public class PhotoImportServiceTests
         Assert.Equal("p1", Assert.Single(plan.Matches).Product.ProductId);
     }
 
+    // ── 발급 번호만 적은 파일명 ─────────────────────────────────────────────
+    //
+    // 이 기능에서 제일 번거로운 일이 사진 수백 장에 코드를 옮겨 적는 것이다.
+    // INT-00000146은 0이 다섯 개라 하나 더 치거나 덜 쳐도 파일 목록에서 티가 나지 않고,
+    // 틀린 파일은 조용히 "매치 없음"으로 빠진다.
+
+    [Theory]
+    [InlineData("146")]
+    [InlineData("0146")]
+    [InlineData("00000146")]
+    [InlineData("INT-146")]
+    [InlineData("int-146")]
+    public async Task PlanAsync_MatchesByTheIssuedNumberAlone(string fileStem)
+    {
+        var (service, repo, _) = Build();
+        repo.Products.Add(Make("p1", "Amoxicillin", internalBarcode: "INT-00000146"));
+
+        var source = new FakePhotoSource();
+        source.Add($"{fileStem}.jpg");
+
+        var plan = await service.PlanAsync(source);
+
+        Assert.Equal("p1", Assert.Single(plan.Matches).Product.ProductId);
+        Assert.Empty(plan.UnmatchedFiles);
+    }
+
+    /// <summary>
+    /// 상품에 실제로 인쇄된 코드가 먼저다. 어느 상품의 제조사 바코드가 마침 "146"이면
+    /// 그쪽이 잡혀야 한다 — 발급 번호는 우리가 붙인 별명일 뿐이다.
+    /// </summary>
+    [Fact]
+    public async Task PlanAsync_PrefersAnExactBarcodeOverAnIssuedNumber()
+    {
+        var (service, repo, _) = Build();
+        repo.Products.Add(Make("p1", "Amoxicillin", internalBarcode: "INT-00000146"));
+        repo.Products.Add(Make("p2", "Paracetamol", barcode: "146"));
+
+        var source = new FakePhotoSource();
+        source.Add("146.jpg");
+
+        var plan = await service.PlanAsync(source);
+
+        Assert.Equal("p2", Assert.Single(plan.Matches).Product.ProductId);
+    }
+
+    /// <summary>
+    /// 직접 입력한 내부 바코드는 발급 번호가 아니다. 8801234567890을 적어 둔 상품이
+    /// "146.jpg"에 걸리면 엉뚱한 상품에 사진이 붙는다.
+    /// </summary>
+    [Fact]
+    public async Task PlanAsync_DoesNotReadATypedInternalBarcodeAsAnIssuedNumber()
+    {
+        var (service, repo, _) = Build();
+        repo.Products.Add(Make("p1", "Amoxicillin", internalBarcode: "8801234567890"));
+
+        var source = new FakePhotoSource();
+        source.Add("146.jpg");
+
+        var plan = await service.PlanAsync(source);
+
+        Assert.Empty(plan.Matches);
+        Assert.Single(plan.UnmatchedFiles);
+    }
+
     /// <summary>
     /// 낱개에 제조사가 찍어 둔 코드로 파일명을 지어도 붙는다. 상품이 가진 코드라면
     /// 어느 것이든 받는다 — 사진은 상품의 것이지 판매 단위의 것이 아니다.
