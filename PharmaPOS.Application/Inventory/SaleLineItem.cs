@@ -37,7 +37,19 @@ public class SaleLineItem
     /// <summary>상품의 박스당 낱개 수. 박스/낱개 구분이 없는 상품은 1.</summary>
     public int UnitsPerBox { get; set; } = 1;
 
-    public decimal LineTotal => Quantity * UnitPrice;
+    /// <summary>
+    /// 이 줄의 금액. 센트에서 끊는다.
+    ///
+    /// UnitPrice는 네 자리까지 가질 수 있다 — 낱개가는 박스가를 개수로 나눈 값이거나
+    /// 리엘에서 환산한 값이라 센트로 떨어지지 않는다. 하지만 그것은 <b>단가</b>이고,
+    /// 실제로 기록되고 인쇄되는 <b>금액</b>은 통화 단위여야 한다.
+    ///
+    /// 끊지 않으면 영수증과 원장이 어긋난다: 영수증은 이 값을 0.00 형식으로 찍는데
+    /// (ReceiptRenderer) 원장의 total_amount에는 2.3331이 들어가서, 하루치 영수증을
+    /// 더한 값과 매출 카드의 숫자가 서로 맞지 않게 된다.
+    /// </summary>
+    public decimal LineTotal =>
+        decimal.Round(Quantity * UnitPrice, 2, MidpointRounding.AwayFromZero);
 
     /// <summary>낱개로 환산한 실제 출고 수량. 재고 차감과 원장 기록에 쓰는 값이다.</summary>
     public int PieceQuantity => IsBoxSale ? Quantity * UnitsPerBox : Quantity;

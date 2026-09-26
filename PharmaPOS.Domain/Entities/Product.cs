@@ -145,13 +145,34 @@ public class Product
     /// </summary>
     public const string GeneratedBarcodePrefix = "INT-";
 
-    /// <summary>낱개 하나의 실판매가. 따로 정해 두지 않았으면 박스가를 나눠 쓴다.</summary>
+    /// <summary>
+    /// 낱개 가격이 가질 수 있는 소수 자릿수.
+    ///
+    /// 네 자리인 이유는 가격이 리엘로 정해지기 때문이다 — 500리엘짜리 알약은 $0.125라
+    /// 센트로 적을 수 없고, 1리엘은 환율 4,000에서 $0.00025다.
+    ///
+    /// 여기서 <b>끊는</b> 이유는 따로 있다. 낱개가를 비워 둔 상품은 박스가를 개수로
+    /// 나눠 쓰는데($10 ÷ 30), 그 나머지를 그대로 들고 다니면 0.3333333333333333이
+    /// 화면과 장바구니와 영수증을 지나 원장까지 들어간다. 자리에 따라 다르게 끊긴
+    /// 숫자가 화면마다 나오고, 합계는 19.566666666666666 같은 값이 된다 —
+    /// 낼 수도 없고 맞춰 볼 수도 없는 금액이다.
+    /// </summary>
+    public const int LooseUnitPriceDecimals = 4;
+
+    /// <summary>
+    /// 낱개 하나의 실판매가. 따로 정해 두지 않았으면 박스가를 나눠 쓴다.
+    /// 나눈 값은 반드시 자릿수로 끊는다 — 나머지가 끝없이 이어지는 경우가 흔하다.
+    /// </summary>
     public decimal EffectiveUnitSellingPrice =>
-        UnitSellingPrice ?? (IsBoxedProduct ? SellingPrice / UnitsPerBox : SellingPrice);
+        UnitSellingPrice ?? (IsBoxedProduct ? Divide(SellingPrice, UnitsPerBox) : SellingPrice);
 
     /// <summary>
     /// 낱개 하나의 원가. 원가는 판매가와 달리 박스가에서 나누기만 한다 —
     /// 낱개로 헐어 판다고 매입 단가가 달라지지는 않기 때문이다.
     /// </summary>
-    public decimal UnitCostPrice => IsBoxedProduct ? CostPrice / UnitsPerBox : CostPrice;
+    public decimal UnitCostPrice => IsBoxedProduct ? Divide(CostPrice, UnitsPerBox) : CostPrice;
+
+    /// <summary>박스가를 개수로 나눈다. 나머지는 낱개가와 같은 자리에서 끊는다.</summary>
+    private static decimal Divide(decimal boxPrice, int unitsPerBox) =>
+        decimal.Round(boxPrice / unitsPerBox, LooseUnitPriceDecimals, MidpointRounding.AwayFromZero);
 }

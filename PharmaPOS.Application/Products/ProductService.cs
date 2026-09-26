@@ -12,10 +12,11 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
     /// <summary>
-    /// 낱개가가 가질 수 있는 소수 자릿수. 리엘로 정해진 가격을 달러로 담기 위한 값이다 —
-    /// 1리엘은 환율 4,000에서 $0.00025이므로 네 자리가 있어야 적을 수 있다.
+    /// 낱개가가 가질 수 있는 소수 자릿수. 값은 <see cref="Product.LooseUnitPriceDecimals"/>에
+    /// 있다 — 박스가를 나눠 낱개가를 만드는 계산이 Domain에 있어서, 규칙이 거기 있어야
+    /// 만드는 쪽과 검사하는 쪽이 같은 자리에서 끊는다.
     /// </summary>
-    public const int LooseUnitPriceDecimals = 4;
+    public const int LooseUnitPriceDecimals = Product.LooseUnitPriceDecimals;
 
     private readonly IInternalBarcodeSequenceRepository _barcodeSequenceRepository;
 
