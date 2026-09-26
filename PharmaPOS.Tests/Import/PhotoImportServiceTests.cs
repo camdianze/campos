@@ -85,12 +85,14 @@ public class PhotoImportServiceTests
     }
 
     private static Product Make(
-        string id, string name, string? barcode = null, string? internalBarcode = null, int unitsPerBox = 1) => new()
+        string id, string name, string? barcode = null, string? internalBarcode = null,
+        int unitsPerBox = 1, string? unitBarcode = null) => new()
     {
         ProductId = id,
         ProductName = name,
         Barcode = barcode,
         InternalBarcode = internalBarcode,
+        UnitBarcodeOverride = unitBarcode,
         Unit = "Tablet",
         CostPrice = 100,
         SellingPrice = 200,
@@ -136,6 +138,26 @@ public class PhotoImportServiceTests
         var plan = await service.PlanAsync(source);
 
         Assert.Equal("p1", Assert.Single(plan.Matches).Product.ProductId);
+    }
+
+    /// <summary>
+    /// 낱개에 제조사가 찍어 둔 코드로 파일명을 지어도 붙는다. 상품이 가진 코드라면
+    /// 어느 것이든 받는다 — 사진은 상품의 것이지 판매 단위의 것이 아니다.
+    /// </summary>
+    [Fact]
+    public async Task PlanAsync_MatchesByThePrintedLooseUnitBarcode()
+    {
+        var (service, repo, _) = Build();
+        repo.Products.Add(Make("p1", "Amoxicillin",
+            barcode: "8801111111111", unitsPerBox: 30, unitBarcode: "8802222222222"));
+
+        var source = new FakePhotoSource();
+        source.Add("8802222222222.jpg");
+
+        var plan = await service.PlanAsync(source);
+
+        Assert.Equal("p1", Assert.Single(plan.Matches).Product.ProductId);
+        Assert.Empty(plan.UnmatchedFiles);
     }
 
     /// <summary>

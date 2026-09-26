@@ -178,15 +178,23 @@ public class PhotoImportService : IPhotoImportService
     /// <summary>
     /// 파일명으로 상품을 찾는다. 바코드가 먼저다 — 이름은 겹칠 수 있어도 바코드는 유일하다.
     ///
-    /// 낱개용 접미사(-EA)를 떼고 한 번 더 보는 이유: 라벨을 뽑아 둔 그대로 파일명을
-    /// 적는 경우가 있는데, 사진은 상품의 것이지 판매 단위의 것이 아니다.
+    /// <b>상품이 가진 코드라면 어느 것이든 받는다</b> — 제조사 바코드, 내부 바코드,
+    /// 낱개 바코드. 사진은 상품의 것이지 판매 단위의 것이 아니므로, 어느 코드로 파일명을
+    /// 지었든 같은 사진이 같은 상품에 붙는다. 판매에서는 어느 코드를 찍었는지가 박스냐
+    /// 낱개냐를 가르지만, 여기서는 가를 것이 없다.
+    ///
+    /// 그 뒤에 접미사(-EA)를 떼고 한 번 더 보는 것은 UnitBarcode가 답하지 못하는
+    /// 경우를 위해서다 — 제조사 바코드 뒤에 손으로 -EA를 붙여 파일명을 지은 경우.
+    ///
     /// 이름까지 받아 주는 이유: 바코드가 없는 상품에도 사진을 붙일 수 있어야 하고,
     /// 상품 임포트가 이미 이름으로 상품을 알아본다.
     /// </summary>
     private static List<Product> FindProducts(IReadOnlyList<Product> products, string key)
     {
         var byBarcode = products
-            .Where(p => Matches(p.Barcode, key) || Matches(p.InternalBarcode, key))
+            .Where(p => Matches(p.Barcode, key)
+                     || Matches(p.InternalBarcode, key)
+                     || Matches(p.UnitBarcode, key))
             .ToList();
 
         if (byBarcode.Count > 0)
