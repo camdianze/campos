@@ -20,15 +20,17 @@ public interface IProductRepository
     Task<Product?> GetByIdAsync(string productId);
 
     /// <summary>
-    /// 제조사 바코드가 이미 등록되어 있는지 확인한다.
+    /// 이 코드가 어느 상품에든 이미 쓰이고 있는지 확인한다 — 제조사 바코드, 내부 바코드,
+    /// 낱개 바코드 <b>셋 모두</b>를 본다.
+    ///
+    /// 컬럼별로 따로 보면 안 된다. 스캐너는 어느 칸에 들어 있는 값인지 모르고 찍으므로,
+    /// A상품의 내부 바코드와 B상품의 제조사 바코드가 같으면 그 코드를 찍었을 때
+    /// 어느 쪽이 잡히는지 계산대에서 알 수 없다. 바코드를 손으로 입력할 수 있게 되면서
+    /// 그 상태를 만들 수 있게 됐다.
+    ///
     /// excludeProductId를 지정하면(수정 시 자기 자신 제외), 그 상품은 검사에서 제외한다.
     /// </summary>
-    Task<bool> BarcodeExistsAsync(string barcode, string? excludeProductId = null);
-
-    /// <summary>
-    /// 내부 바코드가 이미 등록되어 있는지 확인한다.
-    /// </summary>
-    Task<bool> InternalBarcodeExistsAsync(string internalBarcode, string? excludeProductId = null);
+    Task<bool> BarcodeInUseAsync(string code, string? excludeProductId = null);
 
     /// <summary>
     /// 신규 상품을 저장한다.

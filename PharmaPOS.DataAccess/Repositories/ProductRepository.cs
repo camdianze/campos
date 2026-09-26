@@ -50,7 +50,8 @@ public class ProductRepository : IProductRepository
                 (LOWER(product_name) LIKE $contains ESCAPE '\'
                  OR LOWER(generic_name) LIKE $contains ESCAPE '\'
                  OR LOWER(barcode) LIKE $contains ESCAPE '\'
-                 OR LOWER(internal_barcode) LIKE $contains ESCAPE '\')
+                 OR LOWER(internal_barcode) LIKE $contains ESCAPE '\'
+                 OR LOWER(unit_barcode) LIKE $contains ESCAPE '\')
                 """);
 
             command.Parameters.AddWithValue("$exact", term);
@@ -64,7 +65,9 @@ public class ProductRepository : IProductRepository
             orderBySql = """
                 CASE
                     WHEN LOWER(product_name) = $exact THEN 0
-                    WHEN LOWER(barcode) = $exact OR LOWER(internal_barcode) = $exact THEN 1
+                    WHEN LOWER(barcode) = $exact
+                      OR LOWER(internal_barcode) = $exact
+                      OR LOWER(unit_barcode) = $exact THEN 1
                     WHEN LOWER(product_name) LIKE $prefix ESCAPE '\' THEN 2
                     WHEN LOWER(product_name) LIKE $wordStart ESCAPE '\' THEN 3
                     WHEN LOWER(generic_name) = $exact THEN 4
@@ -93,7 +96,7 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form
+                   dosage_form, unit_barcode
             FROM Product_Master
             {whereSql}
             ORDER BY {orderBySql};
@@ -120,7 +123,7 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form
+                   dosage_form, unit_barcode
             FROM Product_Master
             WHERE product_id = $productId;
             """;
@@ -136,34 +139,29 @@ public class ProductRepository : IProductRepository
         return MapToProduct(reader);
     }
 
-    public async Task<bool> BarcodeExistsAsync(string barcode, string? excludeProductId = null)
+    public async Task<bool> BarcodeInUseAsync(string code, string? excludeProductId = null)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
 
         using var command = connection.CreateCommand();
+
+        // 세 컬럼을 함께 본다 — 스캐너는 어느 칸에 든 값인지 모르고 찍는다.
+        // 마지막 조건은 저장돼 있지 않은 낱개 바코드다: 낱개 코드를 따로 적지 않은
+        // 소분 상품은 내부 바코드 + "-EA"가 실제로 스캔되므로, 그 값도 이미 쓰이는
+        // 코드로 본다. 그러지 않으면 손으로 그것과 같은 코드를 넣을 수 있다.
         command.CommandText = """
             SELECT COUNT(*) FROM Product_Master
-            WHERE barcode = $barcode
-              AND ($excludeProductId IS NULL OR product_id != $excludeProductId);
+            WHERE ($excludeProductId IS NULL OR product_id != $excludeProductId)
+              AND (barcode = $code
+                   OR internal_barcode = $code
+                   OR unit_barcode = $code
+                   OR (unit_barcode IS NULL
+                       AND units_per_box > 1
+                       AND internal_barcode IS NOT NULL
+                       AND internal_barcode || $unitSuffix = $code));
             """;
-        command.Parameters.AddWithValue("$barcode", barcode);
-        command.Parameters.AddWithValue("$excludeProductId", (object?)excludeProductId ?? DBNull.Value);
-
-        var count = (long)(await command.ExecuteScalarAsync())!;
-        return count > 0;
-    }
-
-    public async Task<bool> InternalBarcodeExistsAsync(string internalBarcode, string? excludeProductId = null)
-    {
-        using var connection = _connectionFactory.CreateOpenConnection();
-
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT COUNT(*) FROM Product_Master
-            WHERE internal_barcode = $internalBarcode
-              AND ($excludeProductId IS NULL OR product_id != $excludeProductId);
-            """;
-        command.Parameters.AddWithValue("$internalBarcode", internalBarcode);
+        command.Parameters.AddWithValue("$code", code);
+        command.Parameters.AddWithValue("$unitSuffix", Product.UnitBarcodeSuffix);
         command.Parameters.AddWithValue("$excludeProductId", (object?)excludeProductId ?? DBNull.Value);
 
         var count = (long)(await command.ExecuteScalarAsync())!;
@@ -181,13 +179,13 @@ public class ProductRepository : IProductRepository
                  strength, unit, manufacturer, country_of_origin, cost_price,
                  selling_price, safety_stock_level, status, created_at,
                  atc_code, is_combination, units_per_box, unit_selling_price, category,
-                 dosage_form)
+                 dosage_form, unit_barcode)
             VALUES
                 ($productId, $barcode, $internalBarcode, $productName, $genericName,
                  $strength, $unit, $manufacturer, $countryOfOrigin, $costPrice,
                  $sellingPrice, $safetyStockLevel, $status, $createdAt,
                  $atcCode, $isCombination, $unitsPerBox, $unitSellingPrice, $category,
-                 $dosageForm);
+                 $dosageForm, $unitBarcode);
             """;
         AddProductParameters(command, product);
         await command.ExecuteNonQueryAsync();
@@ -212,7 +210,8 @@ public class ProductRepository : IProductRepository
                 units_per_box = $unitsPerBox,
                 unit_selling_price = $unitSellingPrice,
                 category = $category,
-                dosage_form = $dosageForm
+                dosage_form = $dosageForm,
+                unit_barcode = $unitBarcode
             WHERE product_id = $productId;
             """;
 
@@ -398,6 +397,7 @@ public class ProductRepository : IProductRepository
         command.Parameters.AddWithValue("$unitSellingPrice", (object?)product.UnitSellingPrice ?? DBNull.Value);
         command.Parameters.AddWithValue("$category", (object?)product.Category?.ToString() ?? DBNull.Value);
         command.Parameters.AddWithValue("$dosageForm", (object?)product.DosageForm?.ToString() ?? DBNull.Value);
+        command.Parameters.AddWithValue("$unitBarcode", (object?)product.UnitBarcodeOverride ?? DBNull.Value);
     }
 
     private static Product MapToProduct(SqliteDataReader reader)
@@ -431,7 +431,8 @@ public class ProductRepository : IProductRepository
             // "정하지 않음"으로 넘어가야 상품 목록이 열린다.
             DosageForm = reader.IsDBNull(19) || !Enum.TryParse<DosageForm>(reader.GetString(19), out var dosageForm)
                 ? null
-                : dosageForm
+                : dosageForm,
+            UnitBarcodeOverride = reader.IsDBNull(20) ? null : reader.GetString(20)
         };
     }
 

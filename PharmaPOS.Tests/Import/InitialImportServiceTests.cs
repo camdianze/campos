@@ -34,11 +34,10 @@ public class InitialImportServiceTests
         public Task<Product?> GetByIdAsync(string productId)
             => Task.FromResult(Products.FirstOrDefault(p => p.ProductId == productId));
 
-        public Task<bool> BarcodeExistsAsync(string barcode, string? excludeProductId = null)
-            => Task.FromResult(Products.Any(p => p.Barcode == barcode && p.ProductId != excludeProductId));
-
-        public Task<bool> InternalBarcodeExistsAsync(string internalBarcode, string? excludeProductId = null)
-            => Task.FromResult(false);
+        public Task<bool> BarcodeInUseAsync(string code, string? excludeProductId = null)
+            => Task.FromResult(Products.Any(p =>
+                p.ProductId != excludeProductId
+                && (p.Barcode == code || p.InternalBarcode == code || p.UnitBarcode == code)));
 
         public Task InsertAsync(Product product)
         {

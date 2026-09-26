@@ -90,6 +90,22 @@ public class DatabaseInitializer
         // 이건 "약의 형태"다. category와 같이 선택 입력이라 NULL을 그대로 둔다.
         AddColumnIfMissing(connection, "Product_Master", "dosage_form", "TEXT");
 
+        // 낱개에 제조사가 따로 찍어 둔 바코드. 비어 있으면 내부 바코드 + "-EA"를 쓴다.
+        //
+        // 이 인덱스는 CreateProductMasterTable이 아니라 여기에 둔다 — 그쪽은
+        // ApplyMigrations보다 먼저 돌아서, 아직 컬럼이 없는 기존 DB에서는
+        // "no such column: unit_barcode"로 앱이 아예 열리지 않는다.
+        AddColumnIfMissing(connection, "Product_Master", "unit_barcode", "TEXT");
+
+        using (var unitBarcodeIndex = connection.CreateCommand())
+        {
+            unitBarcodeIndex.CommandText = """
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_product_unit_barcode
+                    ON Product_Master(unit_barcode) WHERE unit_barcode IS NOT NULL;
+                """;
+            unitBarcodeIndex.ExecuteNonQuery();
+        }
+
         // 상품 사진. 파일이 아니라 DB에 넣는 이유는 백업이 pharmapos.db 하나만 복사하기 때문이다 —
         // 파일로 두면 백업본을 복원했을 때 사진만 통째로 사라지고, 현장에서 원인을 찾을 수 없다.
         // 대신 저장 전에 줄이고 다시 압축해서 장당 수백 KB로 묶는다(ProductPhotoService).
@@ -265,6 +281,7 @@ public class DatabaseInitializer
                 unit_selling_price  REAL,
                 category            TEXT,
                 dosage_form         TEXT,
+                unit_barcode        TEXT,
                 photo               BLOB,
                 photo_updated_at    INTEGER
             );

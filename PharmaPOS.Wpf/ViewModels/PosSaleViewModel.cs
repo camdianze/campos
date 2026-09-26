@@ -253,19 +253,30 @@ public partial class PosSaleViewModel : ViewModelBase
             return;
         }
 
-        // 낱개용 바코드는 내부 바코드 뒤에 -EA가 붙은 형태다. DB에는 접미사 없이
-        // 저장돼 있으므로 떼어내고 찾되, 어느 단위로 찍었는지는 기억해 둔다.
+        // 낱개 코드는 두 종류다. 낱개에 제조사가 코드를 인쇄해 둔 상품은 그 값이
+        // 그대로 저장돼 있어 찍은 값으로 한 번에 걸린다. 그런 코드가 없는 상품은
+        // 내부 바코드 + "-EA" 라벨을 뽑아 쓰는데, 그 값은 DB에 통째로 들어 있지
+        // 않으므로 접미사를 떼고 한 번 더 찾아야 한다.
         var scannedTerm = SearchTerm.Trim();
 
-        var isUnitBarcode = scannedTerm.EndsWith(Product.UnitBarcodeSuffix, StringComparison.OrdinalIgnoreCase);
+        var results = await _productRepository.SearchAsync(scannedTerm, EntityStatus.Active);
+        var scanned = results.FirstOrDefault(p => IsExactBarcodeMatch(p, scannedTerm));
 
-        _scannedSaleUnit = isUnitBarcode ? SaleUnitOption.Each : SaleUnitOption.Box;
+        if (scanned is null
+            && scannedTerm.EndsWith(Product.UnitBarcodeSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            results = await _productRepository.SearchAsync(
+                scannedTerm[..^Product.UnitBarcodeSuffix.Length], EntityStatus.Active);
 
-        var lookupTerm = isUnitBarcode
-            ? scannedTerm[..^Product.UnitBarcodeSuffix.Length]
-            : scannedTerm;
+            scanned = results.FirstOrDefault(p => IsExactBarcodeMatch(p, scannedTerm));
+        }
 
-        var results = await _productRepository.SearchAsync(lookupTerm, EntityStatus.Active);
+        // 어느 단위로 찍었는지는 접미사가 아니라 <b>어느 칸이 맞았는지</b>로 정한다.
+        // 낱개에 인쇄된 제조사 코드는 -EA로 끝나지 않으므로, 접미사만 보고 정하면
+        // 그런 상품의 낱개를 찍었을 때 박스가 한 통 팔린다.
+        _scannedSaleUnit = scanned is not null && IsUnitBarcodeMatch(scanned, scannedTerm)
+            ? SaleUnitOption.Each
+            : SaleUnitOption.Box;
 
         SearchResults.Clear();
         foreach (var product in results)
@@ -287,9 +298,7 @@ public partial class PosSaleViewModel : ViewModelBase
         // 그래서 결과가 여럿이어도(이름에 같은 숫자가 들어간 상품 등) 망설일 이유가 없다.
         // 이름으로 찾은 경우는 종전 그대로다 — 사람이 고른다.
         // 첫 결과만 보지 않는다. 검색은 이름·성분명까지 훑으므로, 바코드가 정확히
-        // 맞는 상품이 목록의 둘째 줄에 올 수도 있다.
-        var scanned = results.FirstOrDefault(p => IsExactBarcodeMatch(p, lookupTerm));
-
+        // 맞는 상품이 목록의 둘째 줄에 올 수도 있다(위에서 이미 그렇게 찾았다).
         if (scanned is not null)
         {
             // 배치를 다 읽은 뒤에 담아야 한다. 선택만 해 두고 바로 담으면
@@ -322,13 +331,25 @@ public partial class PosSaleViewModel : ViewModelBase
 
     /// <summary>
     /// 찍은 값이 이 상품의 바코드 자체인지. 이름이 걸린 것과 구분하기 위한 것이다.
-    /// 낱개용 접미사(-EA)는 부르는 쪽에서 이미 떼어 낸 값이 들어온다.
+    /// 박스 쪽 코드와 낱개 쪽 코드를 모두 본다 — 접미사를 떼기 전의 값이 들어온다.
     /// </summary>
-    private static bool IsExactBarcodeMatch(Product product, string lookupTerm) =>
-        // 저장 쪽도 이제 공백을 지우지만, 이 수정 전에 저장된 상품은 그대로 남아 있다.
-        // 그 값에 공백이 붙어 있어도 스캔은 통해야 하므로 비교할 때도 한 번 더 지운다.
-        string.Equals(product.Barcode?.Trim(), lookupTerm, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(product.InternalBarcode?.Trim(), lookupTerm, StringComparison.OrdinalIgnoreCase);
+    private static bool IsExactBarcodeMatch(Product product, string scannedTerm) =>
+        IsBoxBarcodeMatch(product, scannedTerm) || IsUnitBarcodeMatch(product, scannedTerm);
+
+    /// <summary>
+    /// 저장 쪽도 이제 공백을 지우지만, 그 수정 전에 저장된 상품은 그대로 남아 있다.
+    /// 값에 공백이 붙어 있어도 스캔은 통해야 하므로 비교할 때 한 번 더 지운다.
+    /// </summary>
+    private static bool IsBoxBarcodeMatch(Product product, string scannedTerm) =>
+        string.Equals(product.Barcode?.Trim(), scannedTerm, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(product.InternalBarcode?.Trim(), scannedTerm, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 찍은 값이 이 상품의 <b>낱개</b> 코드인지. 낱개에 인쇄된 제조사 코드이거나
+    /// 내부 바코드 + "-EA"이며, 둘 중 어느 쪽인지는 Product.UnitBarcode가 정한다.
+    /// </summary>
+    private static bool IsUnitBarcodeMatch(Product product, string scannedTerm) =>
+        string.Equals(product.UnitBarcode?.Trim(), scannedTerm, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// 상품을 고르고 배치까지 읽어 온다. 목록 클릭 경로와 달리 기다릴 수 있다.

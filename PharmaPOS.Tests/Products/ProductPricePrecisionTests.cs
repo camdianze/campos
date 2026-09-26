@@ -19,9 +19,7 @@ public class ProductPricePrecisionTests
         public Task<IReadOnlyList<Product>> SearchAsync(string searchTerm, EntityStatus? statusFilter)
             => Task.FromResult<IReadOnlyList<Product>>(Array.Empty<Product>());
         public Task<Product?> GetByIdAsync(string productId) => Task.FromResult<Product?>(null);
-        public Task<bool> BarcodeExistsAsync(string barcode, string? excludeProductId = null)
-            => Task.FromResult(false);
-        public Task<bool> InternalBarcodeExistsAsync(string internalBarcode, string? excludeProductId = null)
+        public Task<bool> BarcodeInUseAsync(string code, string? excludeProductId = null)
             => Task.FromResult(false);
         public Task InsertAsync(Product product) { Saved.Add(product); return Task.CompletedTask; }
         public Task UpdateAsync(Product product) { Saved.Add(product); return Task.CompletedTask; }

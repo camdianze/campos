@@ -99,17 +99,51 @@ public class Product
     public bool IsBoxedProduct => UnitsPerBox > 1;
 
     /// <summary>
-    /// 낱개 판매용 바코드. 박스에는 제조사 바코드가 붙어 있으므로,
-    /// 헐어 파는 낱개만 내부 바코드에 -EA(Each)를 붙여 구분한다.
+    /// 낱개에 실제로 인쇄돼 있는 바코드. 블리스터 한 알, 시럽 한 병처럼
+    /// 제조사가 낱개에도 따로 코드를 찍어 두는 상품이 있고, 그런 상품은
+    /// 그 코드를 찍는 것이 자연스럽다 — 라벨을 뽑아 붙일 이유가 없다.
+    ///
+    /// 비워 두면 내부 바코드 + "-EA"가 쓰인다. 대부분의 상품은 그쪽이다.
+    /// </summary>
+    public string? UnitBarcodeOverride { get; set; }
+
+    /// <summary>
+    /// 낱개 판매용 바코드. 낱개에 실제로 인쇄된 코드가 있으면 그것을 쓰고,
+    /// 없으면 내부 바코드에 -EA(Each)를 붙여 만든다.
     /// 박스/낱개 구분이 없는 상품에는 없다.
     /// </summary>
-    public string? UnitBarcode =>
-        IsBoxedProduct && !string.IsNullOrWhiteSpace(InternalBarcode)
-            ? InternalBarcode + UnitBarcodeSuffix
-            : null;
+    public string? UnitBarcode
+    {
+        get
+        {
+            if (!IsBoxedProduct)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(UnitBarcodeOverride))
+            {
+                return UnitBarcodeOverride.Trim();
+            }
+
+            return string.IsNullOrWhiteSpace(InternalBarcode)
+                ? null
+                : InternalBarcode + UnitBarcodeSuffix;
+        }
+    }
 
     /// <summary>낱개 바코드 접미사. 스캔 입력을 되돌려 읽을 때도 이 값을 쓴다.</summary>
     public const string UnitBarcodeSuffix = "-EA";
+
+    /// <summary>
+    /// 내부 바코드를 자동으로 만들 때 쓰는 접두사(INT-00000146 꼴).
+    ///
+    /// 손으로 입력하는 바코드는 이 접두사를 쓸 수 없다. 자동 채번은 다음 번호가
+    /// 비어 있다고 보고 발급하므로, 사람이 INT-00000200을 미리 적어 두면 채번이
+    /// 언젠가 그 번호에 닿아 저장이 거절된다 — 그때 원인은 몇 달 전에 만들어진 셈이라
+    /// 현장에서 알 길이 없다. 번호 공간을 채번에만 맡겨 그 경우를 없앤다.
+    /// </summary>
+    public const string GeneratedBarcodePrefix = "INT-";
 
     /// <summary>낱개 하나의 실판매가. 따로 정해 두지 않았으면 박스가를 나눠 쓴다.</summary>
     public decimal EffectiveUnitSellingPrice =>

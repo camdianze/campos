@@ -1,5 +1,6 @@
 ﻿using PharmaPOS.Application.Repositories;
 using PharmaPOS.DataAccess.Database;
+using PharmaPOS.Domain.Entities;
 
 namespace PharmaPOS.DataAccess.Repositories;
 
@@ -40,7 +41,7 @@ public class InternalBarcodeSequenceRepository : IInternalBarcodeSequenceReposit
             transaction.Commit();
 
             // PRD 규격: INT-XXXXXXXX (8자리, 0으로 채움)
-            return $"INT-{nextNumber:D8}";
+            return $"{Product.GeneratedBarcodePrefix}{nextNumber:D8}";
         }
         catch
         {

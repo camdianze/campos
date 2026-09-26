@@ -22,6 +22,7 @@ public class ProductEditViewModel : ViewModelBase
     private string _productId = string.Empty;
     private string _barcode = string.Empty;
     private string _internalBarcode = string.Empty;
+    private string _unitBarcode = string.Empty;
     private string _productName = string.Empty;
     private string _genericName = string.Empty;
     private string _strength = string.Empty;
@@ -49,12 +50,34 @@ public class ProductEditViewModel : ViewModelBase
         set => SetProperty(ref _barcode, value);
     }
 
+    /// <summary>
+    /// 내부 바코드. 비워 두면 저장할 때 INT-XXXXXXXX가 발급되고, 적어 넣으면 그 값을 쓴다.
+    /// 상품에 이미 바코드가 인쇄돼 있는데 앱이 다른 번호를 발급하면, 계산대에서
+    /// 쓰지 않는 라벨을 한 장 더 붙여야 한다 — 그래서 직접 적을 수 있어야 한다.
+    /// </summary>
     public string InternalBarcode
     {
         get => _internalBarcode;
         set
         {
             if (SetProperty(ref _internalBarcode, value))
+            {
+                OnPropertyChanged(nameof(UnitBarcodePreview));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 낱개에 실제로 인쇄된 바코드. 블리스터 한 알이나 한 포에 제조사가 따로 코드를
+    /// 찍어 둔 상품이 있고, 그런 상품은 그 코드를 그대로 찍는 것이 맞다.
+    /// 비워 두면 종전대로 내부 바코드 + "-EA"가 쓰인다.
+    /// </summary>
+    public string UnitBarcode
+    {
+        get => _unitBarcode;
+        set
+        {
+            if (SetProperty(ref _unitBarcode, value))
             {
                 OnPropertyChanged(nameof(UnitBarcodePreview));
             }
@@ -117,21 +140,21 @@ public class ProductEditViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 낱개용 바코드 미리보기. 내부 바코드가 아직 없는 신규 상품은 저장할 때 생기므로
-    /// 그 사실을 대신 알려 준다.
+    /// 낱개 바코드 칸을 비워 뒀을 때 실제로 무엇이 쓰이는지. 내부 바코드가 아직 없는
+    /// 신규 상품은 저장할 때 발급되므로 그 사실을 대신 알려 준다.
     /// </summary>
     public string UnitBarcodePreview
     {
         get
         {
-            if (!SellsLooseUnits)
+            if (!SellsLooseUnits || !string.IsNullOrWhiteSpace(UnitBarcode))
             {
                 return string.Empty;
             }
 
             return string.IsNullOrWhiteSpace(InternalBarcode)
-                ? "Generated on save."
-                : InternalBarcode + Product.UnitBarcodeSuffix;
+                ? "Leave empty and one is generated on save."
+                : $"Leave empty and {InternalBarcode + Product.UnitBarcodeSuffix} is used.";
         }
     }
 
@@ -542,6 +565,7 @@ public class ProductEditViewModel : ViewModelBase
             _productId = existingProduct.ProductId;
             _barcode = existingProduct.Barcode ?? string.Empty;
             _internalBarcode = existingProduct.InternalBarcode ?? string.Empty;
+            _unitBarcode = existingProduct.UnitBarcodeOverride ?? string.Empty;
             _productName = existingProduct.ProductName;
             _genericName = existingProduct.GenericName ?? string.Empty;
             _strength = existingProduct.Strength ?? string.Empty;
@@ -646,6 +670,7 @@ public class ProductEditViewModel : ViewModelBase
             ProductId = _productId,
             Barcode = string.IsNullOrWhiteSpace(Barcode) ? null : Barcode,
             InternalBarcode = string.IsNullOrWhiteSpace(InternalBarcode) ? null : InternalBarcode,
+            UnitBarcodeOverride = string.IsNullOrWhiteSpace(UnitBarcode) ? null : UnitBarcode,
             ProductName = ProductName,
             GenericName = string.IsNullOrWhiteSpace(GenericName) ? null : GenericName,
             Strength = string.IsNullOrWhiteSpace(Strength) ? null : Strength,

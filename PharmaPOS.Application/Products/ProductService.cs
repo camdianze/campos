@@ -1,4 +1,5 @@
 ﻿using PharmaPOS.Application.Repositories;
+using PharmaPOS.Domain.Entities;
 using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.Application.Products;
@@ -131,23 +132,65 @@ public class ProductService : IProductService
             ? null
             : product.InternalBarcode.Trim();
 
-        // barcode 중복 확인 (자기 자신은 제외)
+        // 낱개 바코드는 소분 판매 상품에만 뜻이 있다. 낱개가와 같은 규칙으로,
+        // 박스/낱개 구분이 없는 상품에 적혀 있으면 버린다 — 남겨 두면 소분을 껐는데도
+        // 스캔되는 코드가 남는다.
+        product.UnitBarcodeOverride =
+            product.IsBoxedProduct && !string.IsNullOrWhiteSpace(product.UnitBarcodeOverride)
+                ? product.UnitBarcodeOverride.Trim()
+                : null;
+
+        var excludeProductId = isNewProduct ? null : product.ProductId;
+
+        // 제조사 바코드 중복 확인 (자기 자신은 제외)
         if (!string.IsNullOrWhiteSpace(product.Barcode))
         {
-            var barcodeExists = await _productRepository.BarcodeExistsAsync(
-                product.Barcode, excludeProductId: isNewProduct ? null : product.ProductId);
-
-            if (barcodeExists)
+            if (await _productRepository.BarcodeInUseAsync(product.Barcode, excludeProductId))
             {
                 return ProductSaveResult.Failure("This barcode is already registered.");
+            }
+        }
+
+        // 손으로 적어 넣은 내부 바코드를 검사한다. 자동 생성만 되던 시절에는
+        // 형식이 언제나 INT-XXXXXXXX였으므로 검사할 것이 없었다.
+        if (!string.IsNullOrWhiteSpace(product.InternalBarcode))
+        {
+            if (!Code128Encoder.CanEncode(product.InternalBarcode))
+            {
+                return ProductSaveResult.Failure(
+                    "Internal barcode has characters that cannot be printed as a barcode label.");
+            }
+
+            // 내부 바코드 뒤에 -EA를 붙인 값이 낱개 바코드다. 내부 바코드 자체가
+            // -EA로 끝나면 찍었을 때 다른 상품의 낱개로 읽힐 수 있다.
+            if (product.InternalBarcode.EndsWith(Product.UnitBarcodeSuffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return ProductSaveResult.Failure(
+                    $"Internal barcode cannot end with {Product.UnitBarcodeSuffix} "
+                    + "— that ending is what marks a loose unit.");
+            }
+
+            if (product.InternalBarcode.StartsWith(Product.GeneratedBarcodePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return ProductSaveResult.Failure(
+                    $"Internal barcode cannot start with {Product.GeneratedBarcodePrefix} "
+                    + "— those are issued automatically. Leave it empty to get one.");
+            }
+
+            if (await _productRepository.BarcodeInUseAsync(product.InternalBarcode, excludeProductId))
+            {
+                return ProductSaveResult.Failure("Internal barcode already exists.");
             }
         }
 
         // 내부 바코드 자동 생성: 제조사 바코드가 없고, 아직 내부 바코드도 없는 경우.
         // 박스/낱개 상품은 제조사 바코드가 있어도 만든다 — 그 바코드는 박스에 붙은 것이라
         // 헐어서 파는 낱개를 가리킬 수단이 따로 있어야 하고, 그게 InternalBarcode + "-EA"다.
+        //
+        // 낱개 바코드를 직접 적어 넣었으면 그 수단이 이미 있으므로 만들지 않는다.
         var needsInternalBarcode =
-            string.IsNullOrWhiteSpace(product.Barcode) || product.IsBoxedProduct;
+            string.IsNullOrWhiteSpace(product.Barcode)
+            || (product.IsBoxedProduct && string.IsNullOrWhiteSpace(product.UnitBarcodeOverride));
 
         if (needsInternalBarcode && string.IsNullOrWhiteSpace(product.InternalBarcode))
         {
@@ -160,15 +203,27 @@ public class ProductService : IProductService
                 return ProductSaveResult.Failure("Internal barcode could not be generated.");
             }
         }
-        else if (!string.IsNullOrWhiteSpace(product.InternalBarcode))
-        {
-            // 이미 내부 바코드가 있는 상태에서 수정하는 경우, 중복 확인만 한다 (재생성 안 함).
-            var internalBarcodeExists = await _productRepository.InternalBarcodeExistsAsync(
-                product.InternalBarcode, excludeProductId: isNewProduct ? null : product.ProductId);
 
-            if (internalBarcodeExists)
+        // 낱개에 인쇄된 바코드를 따로 적은 경우.
+        if (!string.IsNullOrWhiteSpace(product.UnitBarcodeOverride))
+        {
+            if (!Code128Encoder.CanEncode(product.UnitBarcodeOverride))
             {
-                return ProductSaveResult.Failure("Internal barcode already exists.");
+                return ProductSaveResult.Failure(
+                    "Loose unit barcode has characters that cannot be printed as a barcode label.");
+            }
+
+            // 박스와 낱개가 같은 코드면 한 번 찍어서는 어느 쪽을 파는지 정할 수 없다.
+            if (string.Equals(product.UnitBarcodeOverride, product.Barcode, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(product.UnitBarcodeOverride, product.InternalBarcode, StringComparison.OrdinalIgnoreCase))
+            {
+                return ProductSaveResult.Failure(
+                    "Loose unit barcode must differ from this product's own box barcode.");
+            }
+
+            if (await _productRepository.BarcodeInUseAsync(product.UnitBarcodeOverride, excludeProductId))
+            {
+                return ProductSaveResult.Failure("Loose unit barcode is already registered.");
             }
         }
 

@@ -107,7 +107,7 @@
                              Style="{StaticResource Field}"/>
 
                     <TextBlock Text="Internal Barcode (auto-generated if empty)" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding InternalBarcode}" IsReadOnly="True"
+                    <TextBox Text="{Binding InternalBarcode, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
 
                     <TextBlock Text="SOURCE" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
@@ -297,8 +297,10 @@
                             <TextBlock Text="{Binding UnitPriceHint}" Style="{StaticResource Hint}"/>
 
                             <TextBlock Text="Unit Barcode" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding UnitBarcodePreview, Mode=OneWay}" IsReadOnly="True"
+                            <TextBox Text="{Binding UnitBarcode, UpdateSourceTrigger=PropertyChanged}"
                                      Margin="0,0,0,4"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0"
+                                       Text="{Binding UnitBarcodePreview}"/>
                             <TextBlock Style="{StaticResource Hint}" Margin="0"
                                        Text="Scan this to sell one loose unit. The manufacturer barcode still sells a whole box."/>
                         </StackPanel>
