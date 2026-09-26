@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -231,7 +232,7 @@ public static class ImportFileReader
     {
         if (cell.DataType == XLDataType.DateTime && cell.TryGetValue<DateTime>(out var date))
         {
-            return date.ToString("yyyy-MM-dd");
+            return date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
 
         return cell.GetString().Trim();

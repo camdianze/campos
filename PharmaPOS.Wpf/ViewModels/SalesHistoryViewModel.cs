@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Globalization;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -182,8 +183,8 @@ public class SalesHistoryViewModel : ViewModelBase
         var group = await _salesHistoryService.GetTransactionGroupAsync(_facilityId, SelectedLine);
 
         var detail = new StringBuilder();
-        detail.AppendLine($"Sold by: {SelectedLine.Username}");
-        detail.AppendLine($"Payment: {SelectedLine.PaymentMethod}");
+        detail.AppendLine(CultureInfo.InvariantCulture, $"Sold by: {SelectedLine.Username}");
+        detail.AppendLine(CultureInfo.InvariantCulture, $"Payment: {SelectedLine.PaymentMethod}");
         detail.AppendLine("--------------------");
 
         decimal total = 0;
@@ -191,25 +192,25 @@ public class SalesHistoryViewModel : ViewModelBase
 
         foreach (var line in group)
         {
-            detail.AppendLine($"{line.ProductName} x{line.Quantity} @ {line.UnitPrice} = {line.LineTotal}");
+            detail.AppendLine(CultureInfo.InvariantCulture, $"{line.ProductName} x{line.Quantity} @ {line.UnitPrice} = {line.LineTotal}");
             total += line.LineTotal;
 
             if (line.RefundedQuantity > 0)
             {
-                detail.AppendLine($"  refunded x{line.RefundedQuantity}");
+                detail.AppendLine(CultureInfo.InvariantCulture, $"  refunded x{line.RefundedQuantity}");
                 refunded += line.UnitPrice * line.RefundedQuantity;
             }
         }
 
         detail.AppendLine("--------------------");
-        detail.AppendLine($"Total: {total}");
+        detail.AppendLine(CultureInfo.InvariantCulture, $"Total: {total}");
 
         // 환불이 있었다면 실제로 남은 금액까지 보여 준다 — 판매 금액만 보고
         // 서랍을 맞추면 돌려준 돈만큼 어긋난다.
         if (refunded > 0)
         {
-            detail.AppendLine($"Refunded: -{refunded}");
-            detail.AppendLine($"Net: {total - refunded}");
+            detail.AppendLine(CultureInfo.InvariantCulture, $"Refunded: -{refunded}");
+            detail.AppendLine(CultureInfo.InvariantCulture, $"Net: {total - refunded}");
         }
 
         AppDialog.Show("Sale Detail", detail.ToString(), monospace: true);
@@ -291,8 +292,7 @@ public class SalesHistoryViewModel : ViewModelBase
             {
                 var time = DateTimeOffset.FromUnixTimeMilliseconds(item.TransactionTime).ToLocalTime();
                 var type = item.IsRefund ? "Refund" : "Sale";
-                builder.AppendLine(
-                    $"{type},{item.ProductName},{item.BatchNumber},{item.Quantity},{item.UnitPrice}," +
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{type},{item.ProductName},{item.BatchNumber},{item.Quantity},{item.UnitPrice}," +
                     // 값이 없는 거래는 빈칸이다. 0으로 채우면 재고가 0이었다는 뜻이 된다.
                     $"{item.LineTotal},{item.StockBefore},{item.StockAfter}," +
                     $"{item.PaymentMethod},{item.Username},{time:yyyy-MM-dd HH:mm}");

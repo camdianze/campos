@@ -10,7 +10,7 @@ public class UnixToDateConverter : IValueConverter
         if (value is long ms && ms > 0)
         {
             var date = DateTimeOffset.FromUnixTimeMilliseconds(ms).ToLocalTime();
-            return date.ToString("yyyy-MM-dd");
+            return date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
         return "-";
     }

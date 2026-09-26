@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using PharmaPOS.Application.Inventory;
@@ -250,17 +251,26 @@ public class BackupRepository : IBackupRepository
 
             return rawExpiry == InventoryEntity.NoExpiryDate
                 ? "N"
-                : DateTimeOffset.FromUnixTimeMilliseconds(rawExpiry).ToLocalTime().ToString("yyyy-MM-dd");
+                : DateTimeOffset.FromUnixTimeMilliseconds(rawExpiry).ToLocalTime()
+                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
 
         if (TimestampColumns.Contains(columnName))
         {
             var rawValue = reader.GetInt64(columnIndex);
             var localDateTime = DateTimeOffset.FromUnixTimeMilliseconds(rawValue).ToLocalTime();
-            return localDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // 사용자 지정 서식에서 ':'는 글자 그대로가 아니라 "시간 구분자" 자리표시자다.
+            // 지역 설정에 따라 '.'으로 바뀌는 곳이 있어(핀란드 등) 14:30:00이 14.30.00으로 나간다.
+            return localDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         }
 
-        return reader.GetValue(columnIndex).ToString() ?? string.Empty;
+        // 값을 글자로 바꾸는 마지막 자리. REAL 컬럼은 double로 돌아오고, 그 ToString()은
+        // PC의 지역 설정을 따른다 — 소수점이 ','인 PC에서는 19.5122가 "19,5122"로 나간다.
+        // 쉼표로 나누는 파일에 쉼표가 들어가니 열이 통째로 밀리고, 그 파일을 다시
+        // 임포트하면(상품 파일은 그러라고 만든 것이다) 195122로 읽힌다.
+        return Convert.ToString(reader.GetValue(columnIndex), CultureInfo.InvariantCulture)
+               ?? string.Empty;
     }
 
     public Task<bool> IsValidSqliteFileAsync(string filePath)

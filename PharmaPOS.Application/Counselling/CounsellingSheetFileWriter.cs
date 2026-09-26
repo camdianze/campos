@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using System.Text;
 
 namespace PharmaPOS.Application.Counselling;
@@ -46,7 +47,7 @@ public class CounsellingSheetFileWriter : ICounsellingSheetFileWriter
     /// </summary>
     private static string BuildFileName(string productName, string fileNameHint)
     {
-        var timestamp = DateTimeOffset.Now.ToString("yyyyMMdd-HHmmss");
+        var timestamp = DateTimeOffset.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
         var hint = MakeFileNameSafe(fileNameHint);
         var product = MakeFileNameSafe(productName);
 

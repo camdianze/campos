@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace PharmaPOS.Application.Inventory;
 
 /// <summary>
@@ -42,7 +44,8 @@ public class StockHistoryLineItem
     /// 이 화면의 용도라, 같은 날 안에서의 순서가 보여야 한다.
     /// </summary>
     public string TransactionTimeText =>
-        DateTimeOffset.FromUnixTimeMilliseconds(TransactionTime).ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+        DateTimeOffset.FromUnixTimeMilliseconds(TransactionTime).ToLocalTime()
+            .ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
     /// <summary>화면에 그대로 쓰는 종류 이름. StockOut은 계산대 말로 Sale이다.</summary>
     public string TypeText => TransactionType switch

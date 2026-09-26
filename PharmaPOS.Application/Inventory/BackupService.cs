@@ -1,4 +1,5 @@
-﻿using PharmaPOS.Application.Repositories;
+﻿using System.Globalization;
+using PharmaPOS.Application.Repositories;
 
 namespace PharmaPOS.Application.Inventory;
 
@@ -82,7 +83,7 @@ public class BackupService : IBackupService
             ? new DateTimeOffset(dateTo.Value.Date.AddDays(1).AddMilliseconds(-1)).ToUnixTimeMilliseconds()
             : null;
 
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
         var extension = isCsvFormat ? "csv" : "xlsx";
 
         try
@@ -122,8 +123,8 @@ public class BackupService : IBackupService
             return string.Empty;
         }
 
-        var from = dateFrom?.ToString("yyyyMMdd") ?? "start";
-        var to = dateTo?.ToString("yyyyMMdd") ?? "latest";
+        var from = dateFrom?.ToString("yyyyMMdd", CultureInfo.InvariantCulture) ?? "start";
+        var to = dateTo?.ToString("yyyyMMdd", CultureInfo.InvariantCulture) ?? "latest";
         return $"_{from}-{to}";
     }
 

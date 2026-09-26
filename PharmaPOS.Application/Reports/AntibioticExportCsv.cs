@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace PharmaPOS.Application.Reports;
 
@@ -43,10 +44,10 @@ public static class AntibioticExportCsv
 
         // 파일 하나만 열어도 언제 것인지, 어디 것인지 알 수 있어야 한다.
         // 파일 이름은 옮기다 보면 바뀐다.
-        builder.AppendLine($"App version,{AppVersion.Display}");
-        builder.AppendLine($"Report period,{report.Range.Label}");
-        builder.AppendLine($"Site code,{Escape(NormalizeSiteCode(siteCode))}");
-        builder.AppendLine($"Compared with,{report.Range.PreviousLabel}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"App version,{AppVersion.Display}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Report period,{report.Range.Label}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Site code,{Escape(NormalizeSiteCode(siteCode))}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Compared with,{report.Range.PreviousLabel}");
         builder.AppendLine();
 
         AppendGroupShares(builder, report);
@@ -62,7 +63,7 @@ public static class AntibioticExportCsv
 
         foreach (var share in report.GroupShares)
         {
-            builder.AppendLine($"{share.Group},{share.Quantity},{Escape(share.ShareDisplay)}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{share.Group},{share.Quantity},{Escape(share.ShareDisplay)}");
         }
 
         builder.AppendLine();
@@ -84,8 +85,7 @@ public static class AntibioticExportCsv
             // (화면에서 ViewModel이 하는 것과 같은 자리·같은 이유).
             row.TotalQuantityInPeriod = total;
 
-            builder.AppendLine(
-                $"{Escape(row.Ingredient)},{Escape(row.Strength)},{row.AwareGroup}," +
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{Escape(row.Ingredient)},{Escape(row.Strength)},{row.AwareGroup}," +
                 $"{row.Quantity},{Escape(row.QuantityShare)}," +
                 $"{row.CounsellingPrinted},{row.SaleCount}," +
                 $"{Escape(row.PrintedPercentDisplay)},{row.PreviousQuantity},{Escape(row.QuantityChange)}");
@@ -102,13 +102,12 @@ public static class AntibioticExportCsv
             ? $"{report.AntibioticTrend[0].FullLabel} ~ {report.AntibioticTrend[^1].FullLabel}"
             : report.Range.Label;
 
-        builder.AppendLine($"AntibioticTrend ({months})");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"AntibioticTrend ({months})");
         builder.AppendLine("Month,Total,ACCESS,WATCH,RESERVE,NOT_RECOMMENDED");
 
         foreach (var point in report.AntibioticTrend)
         {
-            builder.AppendLine(
-                $"{point.FullLabel},{point.TotalQuantity},{point.AccessQuantity}," +
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{point.FullLabel},{point.TotalQuantity},{point.AccessQuantity}," +
                 $"{point.WatchQuantity},{point.ReserveQuantity},{point.NotRecommendedQuantity}");
         }
     }

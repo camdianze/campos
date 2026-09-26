@@ -680,9 +680,9 @@ public class ReportsViewModel : ViewModelBase
         AppendPeriodHeader(builder, report);
 
         builder.AppendLine("Summary,Current,Previous,Change");
-        builder.AppendLine($"Sales amount,{report.Current.Amount},{report.Previous.Amount},{report.AmountChange}");
-        builder.AppendLine($"Transactions,{report.Current.TransactionCount},{report.Previous.TransactionCount},{report.TransactionChange}");
-        builder.AppendLine($"Units sold,{report.Current.ItemCount},{report.Previous.ItemCount},{report.ItemChange}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Sales amount,{report.Current.Amount},{report.Previous.Amount},{report.AmountChange}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Transactions,{report.Current.TransactionCount},{report.Previous.TransactionCount},{report.TransactionChange}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Units sold,{report.Current.ItemCount},{report.Previous.ItemCount},{report.ItemChange}");
         builder.AppendLine();
 
         // 화면에는 비중만 두었지만 파일에는 증감도 함께 남긴다 —
@@ -690,8 +690,7 @@ public class ReportsViewModel : ViewModelBase
         builder.AppendLine("Rank,Product,Generic,Strength,Quantity,Amount,AmountShare,PrevQuantity,PrevAmount,AmountChange");
         foreach (var row in Products)
         {
-            builder.AppendLine(
-                $"{row.Rank},{Escape(row.ProductName)},{Escape(row.GenericName)},{Escape(row.Strength)}," +
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{row.Rank},{Escape(row.ProductName)},{Escape(row.GenericName)},{Escape(row.Strength)}," +
                 $"{row.Quantity},{row.Amount},{Escape(row.AmountShare)}," +
                 $"{row.PreviousQuantity},{row.PreviousAmount},{Escape(row.AmountChange)}");
         }
@@ -705,8 +704,7 @@ public class ReportsViewModel : ViewModelBase
         builder.AppendLine("Ingredient,Strength,AwareGroup,Quantity,Amount");
         foreach (var row in Antibiotics)
         {
-            builder.AppendLine(
-                $"{Escape(row.Ingredient)},{Escape(row.Strength)},{row.AwareGroup}," +
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{Escape(row.Ingredient)},{Escape(row.Strength)},{row.AwareGroup}," +
                 $"{row.Quantity},{row.Amount}");
         }
 
@@ -715,7 +713,7 @@ public class ReportsViewModel : ViewModelBase
         builder.AppendLine("Month,NetAmount,Transactions");
         foreach (var point in report.SalesTrend)
         {
-            builder.AppendLine($"{point.FullLabel},{point.Amount},{point.TransactionCount}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{point.FullLabel},{point.Amount},{point.TransactionCount}");
         }
 
         return builder.ToString();
@@ -727,9 +725,9 @@ public class ReportsViewModel : ViewModelBase
     /// </summary>
     private static void AppendPeriodHeader(StringBuilder builder, ReportData report)
     {
-        builder.AppendLine($"App version,{AppVersion.Display}");
-        builder.AppendLine($"Report period,{report.Range.Label}");
-        builder.AppendLine($"Compared with,{report.Range.PreviousLabel}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"App version,{AppVersion.Display}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Report period,{report.Range.Label}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Compared with,{report.Range.PreviousLabel}");
         builder.AppendLine();
     }
 
@@ -743,7 +741,7 @@ public class ReportsViewModel : ViewModelBase
             ? $"{report.SalesTrend[0].FullLabel} ~ {report.SalesTrend[^1].FullLabel}"
             : report.Range.Label;
 
-        builder.AppendLine($"{name} ({months})");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"{name} ({months})");
     }
 
     /// <summary>성분명에 쉼표가 들어가는 복합제가 있어 CSV 값은 감싸 준다.</summary>
