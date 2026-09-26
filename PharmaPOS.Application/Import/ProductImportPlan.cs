@@ -25,6 +25,13 @@ public sealed class ProductImportPlan
     /// </summary>
     public IReadOnlyList<string> UnknownHeaders { get; init; } = Array.Empty<string>();
 
+    /// <summary>
+    /// 가격 칸을 무엇으로 읽었는지 사람이 읽을 수 있게 적은 것("riel (1 USD = 4,100 KHR)").
+    /// 미리보기가 숫자보다 먼저 보여 줘야 하는 값이다 — 통화를 잘못 고르면 모든 가격이
+    /// 수천 배로 틀리는데, 행 수와 상품 수는 아무 이상 없어 보인다.
+    /// </summary>
+    public string PriceFormatDescription { get; init; } = string.Empty;
+
     /// <summary>파일이 통째로 잘못된 경우의 사유(필수 컬럼 없음 등). 이 값이 있으면 진행할 수 없다.</summary>
     public string? FileError { get; init; }
 

@@ -865,6 +865,140 @@ public class InitialImportServiceTests
         Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
     }
 
+    // ── 파일 전체의 통화를 고르는 경우 ──────────────────────────────────────
+    //
+    // 칸마다 KHR을 붙이는 방법은 시트가 통째로 리엘일 때 쓸 것이 못 된다. 200줄에
+    // 표시를 붙이다 한 줄을 빠뜨리면 그 상품만 $6,000으로 등록되는데, 값이 0보다 크고
+    // 자릿수도 맞아서 어떤 검사에도 걸리지 않는다 — 누가 화면에서 눈으로 볼 때까지
+    // 아무 일도 일어나지 않고, 그때는 이미 재고와 함께 들어간 뒤다.
+
+    /// <summary>리엘로 읽기로 하면 표시 없는 숫자가 리엘이다.</summary>
+    [Fact]
+    public async Task PlanProducts_ReadsBareNumbersAsRiel_WhenTheImportIsSetToRiel()
+    {
+        var harness = new Harness();   // 1 USD = 4,000 ៛
+
+        var plan = await harness.Build().PlanProductsAsync(
+            new[] { FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "6000") },
+            ImportPriceCurrency.Riel);
+
+        Assert.Empty(plan.Issues);
+        Assert.Equal(1.50m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
+    }
+
+    /// <summary>판매가·원가도 같이 따라간다. 한 시트 안에서 칸마다 통화가 다를 수는 없다.</summary>
+    [Fact]
+    public async Task PlanProducts_ReadsEveryPriceColumnAsRiel_WhenTheImportIsSetToRiel()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(
+            new[]
+            {
+                Row(2, "Amoxicillin", unit: "Tablet", costPrice: "12000", sellingPrice: "18000",
+                    dosageForm: "Tablet", genericName: "Amoxicillin", manufacturer: "Maker A")
+            },
+            ImportPriceCurrency.Riel);
+
+        var product = Assert.Single(plan.ProductsToCreate).Product;
+
+        Assert.Equal(3.00m, product.CostPrice);
+        Assert.Equal(4.50m, product.SellingPrice);
+    }
+
+    /// <summary>
+    /// 기본값은 달러다. 지금까지 만든 파일이 전부 달러로 적혀 있어서, 기본을 리엘로
+    /// 두면 그 파일들의 4.53이 4.53리엘(=$0.001)로 조용히 읽힌다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_StillReadsBareNumbersAsDollarsByDefault()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "0.25")
+        });
+
+        Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
+    }
+
+    /// <summary>
+    /// 칸에 적힌 표시가 파일 전체 설정을 이긴다. 원가는 달러로 사 오고 판매가만
+    /// 리엘로 매기는 시트가 실제로 있고, 표시는 그 칸에 대한 더 구체적인 지시다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_LetsACellMarkerOverrideTheChosenCurrency()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(
+            new[]
+            {
+                Row(2, "Amoxicillin", unit: "Tablet", costPrice: "$3.00", sellingPrice: "18000",
+                    dosageForm: "Tablet", genericName: "Amoxicillin", manufacturer: "Maker A")
+            },
+            ImportPriceCurrency.Riel);
+
+        var product = Assert.Single(plan.ProductsToCreate).Product;
+
+        Assert.Equal(3.00m, product.CostPrice);    // $가 붙었으므로 달러
+        Assert.Equal(4.50m, product.SellingPrice); // 표시가 없으므로 리엘
+    }
+
+    /// <summary>달러로 읽는 중에도 KHR이 붙은 칸은 리엘이다. 반대 방향도 같다.</summary>
+    [Fact]
+    public async Task PlanProducts_StillReadsAMarkedRielCell_WhenTheImportIsSetToDollars()
+    {
+        var harness = new Harness();
+
+        var plan = await harness.Build().PlanProductsAsync(
+            new[] { FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "1000 KHR") },
+            ImportPriceCurrency.Usd);
+
+        Assert.Equal(0.25m, Assert.Single(plan.ProductsToCreate).Product.UnitSellingPrice);
+    }
+
+    /// <summary>
+    /// 환율 없이 리엘로 읽으라고 하면 파일을 한 줄도 읽기 전에 세운다. 그대로 진행하면
+    /// 가격이 있는 행이 남김없이 같은 이유로 실패하고, 미리보기가 그 목록으로 가득 찬다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_RefusesTheWholeFile_WhenRielIsChosenWithNoExchangeRate()
+    {
+        var harness = new Harness();
+        harness.Currency.ExchangeRate = 0m;
+
+        var plan = await harness.Build().PlanProductsAsync(
+            new[] { FullRow(2, "Amoxicillin", unitsPerBox: "30", looseUnitPrice: "6000") },
+            ImportPriceCurrency.Riel);
+
+        Assert.True(plan.HasFileError);
+        Assert.Contains("exchange rate", plan.FileError);
+        Assert.Empty(plan.Issues);
+    }
+
+    /// <summary>
+    /// 무엇으로 읽었는지 계획이 스스로 밝힌다. 미리보기가 그 줄을 행 수보다 먼저
+    /// 보여 줘야 한다 — 통화를 잘못 고르면 모든 가격이 수천 배 틀리는데, 상품 수와
+    /// 행 수는 아무 이상 없어 보인다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_SaysWhichCurrencyItRead()
+    {
+        var harness = new Harness();
+
+        var riel = await harness.Build().PlanProductsAsync(
+            new[] { FullRow(2, "Amoxicillin") }, ImportPriceCurrency.Riel);
+
+        var usd = await harness.Build().PlanProductsAsync(
+            new[] { FullRow(2, "Amoxicillin") }, ImportPriceCurrency.Usd);
+
+        Assert.Contains("riel", riel.PriceFormatDescription);
+        Assert.Contains("4,000", riel.PriceFormatDescription);
+        Assert.Contains("dollars", usd.PriceFormatDescription);
+    }
+
     // ── 바코드가 먼저다 ─────────────────────────────────────────────────────
     //
     // 바코드는 상품마다 유일하고, 사람이 적는 이름·제조사 철자와 달리 흔들리지 않는다.

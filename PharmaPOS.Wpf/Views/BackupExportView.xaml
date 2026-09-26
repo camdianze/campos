@@ -83,6 +83,43 @@
                                     Command="{Binding SelectImportFileCommand}"/>
                         </Grid>
 
+                        <!-- 통화는 ① 바로 위에 둔다. 가격을 읽는 것은 ①뿐이고,
+                             파일을 고른 다음 누르기 직전에 눈에 들어와야 한다. -->
+                        <TextBlock Text="Prices in the file are" Style="{StaticResource FieldLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Button Content="$  US dollars" Height="34" MinWidth="120"
+                                    FontSize="13" FontWeight="SemiBold" Padding="12,0"
+                                    Command="{Binding ReadPricesInUsdCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SecondaryBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsUsdImport}" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Content="៛  Riel" Height="34" MinWidth="120"
+                                    FontSize="13" FontWeight="SemiBold" Padding="12,0"
+                                    Margin="8,0,0,0"
+                                    Command="{Binding ReadPricesInRielCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SecondaryBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRielImport}" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
+                                   Text="Applies to cost_price, selling_price and loose_unit_price in step ①. A cell that says 6000 KHR or $1.50 is read that way whichever button is on. Riel is converted at the rate in Receipt Settings; prices are always stored in dollars."/>
+
                         <Button Content="①  Import Products"
                                 Style="{StaticResource PrimaryBtn}"
                                 Padding="16,0" HorizontalAlignment="Stretch"

@@ -17,8 +17,16 @@ public interface IInitialImportService
     /// </summary>
     Task<bool> WasAlreadyImportedAsync(ImportType importType, string fileHash);
 
-    /// <summary>파일 행들을 읽어 등록할 상품과 건너뛸 행을 계산한다. DB는 건드리지 않는다.</summary>
-    Task<ProductImportPlan> PlanProductsAsync(IReadOnlyList<ImportSourceRow> rows);
+    /// <summary>
+    /// 파일 행들을 읽어 등록할 상품과 건너뛸 행을 계산한다. DB는 건드리지 않는다.
+    ///
+    /// priceCurrency는 <b>표시가 없는</b> 가격 칸을 무엇으로 읽을지다. 칸에 KHR이나 $가
+    /// 적혀 있으면 그 표시가 이긴다. 시트는 보통 통째로 한 통화로 적혀 있어서, 칸마다
+    /// 표시를 붙이게 하면 한 줄 빠뜨린 상품만 수천 배 비싸게 등록된다.
+    /// </summary>
+    Task<ProductImportPlan> PlanProductsAsync(
+        IReadOnlyList<ImportSourceRow> rows,
+        ImportPriceCurrency priceCurrency = ImportPriceCurrency.Usd);
 
     /// <summary>계산된 상품을 저장하고 임포트 이력을 남긴다.</summary>
     Task<ImportApplyResult> ApplyProductsAsync(

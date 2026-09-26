@@ -40,6 +40,7 @@ public class BackupExportViewModel : ViewModelBase
     private DateTime? _exportDateFrom;
     private DateTime? _exportDateTo;
 
+    private ImportPriceCurrency _importPriceCurrency = ImportPriceCurrency.Usd;
     private string _backupFilePath = string.Empty;
     private string _message = string.Empty;
 
@@ -52,7 +53,33 @@ public class BackupExportViewModel : ViewModelBase
         set => SetProperty(ref _importFilePath, value);
     }
 
+    /// <summary>
+    /// 표시가 없는 가격 칸을 무엇으로 읽을지. 기본은 달러다 — 지금까지 만든 파일이
+    /// 전부 달러로 적혀 있고, 기본값을 바꾸면 그 파일들이 조용히 수천 배 싸게 읽힌다.
+    ///
+    /// 칸마다 "6000 KHR"처럼 적는 방법은 그대로 살아 있고, 그쪽이 이긴다. 다만 실제로
+    /// 받는 시트는 통째로 한 통화라, 200줄에 표시를 붙이다 한 줄을 빠뜨리면 그 상품만
+    /// $6,000으로 들어간다. 그 값은 0보다 크고 자릿수도 맞아서 어떤 검사에도 안 걸린다.
+    /// </summary>
+    public ImportPriceCurrency ImportPriceCurrency
+    {
+        get => _importPriceCurrency;
+        private set
+        {
+            if (SetProperty(ref _importPriceCurrency, value))
+            {
+                OnPropertyChanged(nameof(IsUsdImport));
+                OnPropertyChanged(nameof(IsRielImport));
+            }
+        }
+    }
+
+    public bool IsUsdImport => ImportPriceCurrency == ImportPriceCurrency.Usd;
+    public bool IsRielImport => ImportPriceCurrency == ImportPriceCurrency.Riel;
+
     public RelayCommand SelectImportFileCommand { get; }
+    public RelayCommand ReadPricesInUsdCommand { get; }
+    public RelayCommand ReadPricesInRielCommand { get; }
     public RelayCommand ImportProductsCommand { get; }
     public RelayCommand ImportInventoryCommand { get; }
     public RelayCommand ImportPhotosCommand { get; }
@@ -141,6 +168,8 @@ public class BackupExportViewModel : ViewModelBase
         _userId = userId;
 
         SelectImportFileCommand = new RelayCommand(_ => ExecuteSelectImportFile());
+        ReadPricesInUsdCommand = new RelayCommand(_ => ImportPriceCurrency = ImportPriceCurrency.Usd);
+        ReadPricesInRielCommand = new RelayCommand(_ => ImportPriceCurrency = ImportPriceCurrency.Riel);
         ImportProductsCommand = new RelayCommand(async _ => await ExecuteImportProductsAsync());
         ImportInventoryCommand = new RelayCommand(async _ => await ExecuteImportInventoryAsync());
         ImportPhotosCommand = new RelayCommand(async _ => await ExecuteImportPhotosAsync());
@@ -184,7 +213,7 @@ public class BackupExportViewModel : ViewModelBase
             return;
         }
 
-        var plan = await _initialImportService.PlanProductsAsync(file.Rows);
+        var plan = await _initialImportService.PlanProductsAsync(file.Rows, ImportPriceCurrency);
 
         if (plan.HasFileError)
         {
@@ -195,6 +224,7 @@ public class BackupExportViewModel : ViewModelBase
         var preview = new StringBuilder();
         preview.AppendLine("STEP 1 — PRODUCTS");
         preview.AppendLine("--------------------------------");
+        preview.AppendLine($"Prices read as        : {plan.PriceFormatDescription}");
         preview.AppendLine($"Rows in file          : {plan.TotalRows}");
         preview.AppendLine($"New products          : {plan.CreateCount}");
         preview.AppendLine($"Products to update    : {plan.UpdateCount}");
