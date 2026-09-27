@@ -193,6 +193,66 @@ public class DerivedLoosePriceTests
         Assert.Equal(0.2333m, Product30().UnitCostPrice);   // 7 / 30
     }
 
+    // ── 계산대가 집는 단가 ──────────────────────────────────────────────────
+    //
+    // 이 판단이 계산대의 가격칸을 채우고 재고 차감 단위를 정한다. 화면 안에 두었을 때
+    // 두 번 틀렸다 — 한 번은 낱개 판매를 끈 상품까지 낱개가(null)를 집어서 가격칸이
+    // 빈 채로 떴고, 한 번은 박스 구분이 없는 상품을 박스로 세려 했다.
+    // 둘 다 오류 없이 지나가고, 계산대에서는 "담기가 안 된다"로만 보인다.
+
+    /// <summary>낱개로 팔지 않는 상품은 어느 단위로 고르든 판매가다.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AProductThatIsNotSoldLoose_AlwaysUsesTheSellingPrice(bool sellingLoose)
+    {
+        var product = Product30();      // 한 박스 30정, 낱개 판매 꺼짐
+
+        Assert.Equal(10m, product.PriceForSaleUnit(sellingLoose));
+    }
+
+    /// <summary>낱개로 고르면 낱개가, 박스로 고르면 박스가.</summary>
+    [Fact]
+    public void AProductSoldLoose_UsesThePriceForTheChosenUnit()
+    {
+        var product = Product30();
+        product.SellsLooseUnits = true;
+        product.UnitSellingPrice = 0.5m;
+
+        Assert.Equal(0.5m, product.PriceForSaleUnit(sellingLoose: true));
+        Assert.Equal(10m, product.PriceForSaleUnit(sellingLoose: false));
+    }
+
+    /// <summary>박스 구분이 없는 상품에는 낱개도 박스도 없다. 언제나 판매가다.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AProductWithNoBoxSplit_AlwaysUsesTheSellingPrice(bool sellingLoose)
+    {
+        var product = Product30();
+        product.UnitsPerBox = 1;
+
+        Assert.Equal(10m, product.PriceForSaleUnit(sellingLoose));
+        Assert.False(product.CountsInBoxes(sellingLoose));   // 박스로 셀 것이 없다
+    }
+
+    /// <summary>
+    /// 수량을 박스로 세는지. 박스로 세면 한 줄이 UnitsPerBox만큼 재고를 가져간다.
+    /// </summary>
+    [Fact]
+    public void CountsInBoxes_TakesBothPackagingAndTheChosenUnit()
+    {
+        var boxOnly = Product30();                       // 30정 포장, 낱개 판매 꺼짐
+        Assert.True(boxOnly.CountsInBoxes(sellingLoose: false));
+        Assert.True(boxOnly.CountsInBoxes(sellingLoose: true));   // 낱개로 팔 수 없다
+
+        var loose = Product30();
+        loose.SellsLooseUnits = true;
+        loose.UnitSellingPrice = 0.5m;
+        Assert.True(loose.CountsInBoxes(sellingLoose: false));
+        Assert.False(loose.CountsInBoxes(sellingLoose: true));
+    }
+
     // ── 줄 금액 ─────────────────────────────────────────────────────────────
 
     /// <summary>

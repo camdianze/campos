@@ -197,6 +197,26 @@ public class Product
     // 값이 없는 상태 자체를 만들 수 없으므로 계산해서 메울 일도 없다.
 
     /// <summary>
+    /// 이 판매 단위로 팔 때 손님에게 받을 단가.
+    ///
+    /// 낱개로 고른 경우에만 낱개가이고, 나머지는 전부 판매가다 — 박스로 고른 상품,
+    /// 낱개로 팔지 않는 상품, 박스/낱개 구분이 없는 상품 모두. 이 판단이 계산대의
+    /// 가격칸을 채우므로, 틀리면 칸이 빈 채로 뜨고 담기가 되지 않는다.
+    /// </summary>
+    public decimal? PriceForSaleUnit(bool sellingLoose) =>
+        sellingLoose && SellsLooseUnits ? UnitSellingPrice : SellingPrice;
+
+    /// <summary>
+    /// 이 줄의 수량을 <b>박스 개수</b>로 세는지. 재고 차감이 여기에 달려 있다 —
+    /// 박스로 세면 한 줄이 UnitsPerBox만큼 재고를 가져간다.
+    ///
+    /// 포장과 판매 방식이 <b>둘 다</b> 걸린다. 한 박스에 10정이 든 상품을 박스로 팔면
+    /// 10정이 빠지고, 박스 구분이 없는 상품(UnitsPerBox 1)은 박스로 셀 것이 없다.
+    /// </summary>
+    public bool CountsInBoxes(bool sellingLoose) =>
+        IsBoxedProduct && !(sellingLoose && SellsLooseUnits);
+
+    /// <summary>
     /// 낱개 하나의 원가. 원가는 판매가와 달리 박스가에서 나누기만 한다 —
     /// 낱개로 헐어 판다고 <b>매입</b> 단가가 달라지지는 않기 때문이다.
     /// 값을 지어내는 것이 아니라 이미 치른 돈을 개수로 배분하는 것이라 자동 계산이 맞다.

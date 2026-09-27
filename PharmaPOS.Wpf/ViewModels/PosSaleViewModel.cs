@@ -141,8 +141,10 @@ public partial class PosSaleViewModel : ViewModelBase
 
     public IReadOnlyList<SaleUnitOption> AvailableSaleUnits { get; } = Enum.GetValues<SaleUnitOption>();
 
-    /// <summary>박스/낱개 선택칸을 보여줄지. 구분이 없는 상품에는 고를 것이 없다.</summary>
-    /// <summary>낱개/박스를 고를 수 있는 상품인지. 포장이 아니라 판매 방식이 정한다.</summary>
+    /// <summary>
+    /// 낱개/박스를 고를 수 있는 상품인지. 포장이 아니라 판매 방식이 정한다 —
+    /// 한 박스에 30정이 들었어도 박스째로만 파는 상품에는 고를 것이 없다.
+    /// </summary>
     public bool IsBoxedProductSelected => SelectedProduct?.SellsLooseUnits == true;
 
     /// <summary>박스로 팔 때는 수량이 박스 개수라는 걸 라벨에 드러낸다.</summary>
@@ -159,15 +161,16 @@ public partial class PosSaleViewModel : ViewModelBase
             return null;
         }
 
-        // 박스가가 기본값이고, 헐어 파는 낱개만 따로 정한 가격을 쓴다.
-        // 낱개가는 반드시 저장돼 있다(ProductService가 없이는 저장을 거절한다).
-        // 그래도 옛 데이터가 있을 수 있으므로, 없으면 박스가로 떨어지지 않고 비워 둔다 —
-        // 값을 지어내느니 계산대에서 멈추는 편이 낫다.
-        return IsBoxSaleSelected(product) ? product.SellingPrice : product.UnitSellingPrice;
+        // 규칙은 Product에 있다. 이 판단이 계산대의 가격칸을 채우고 재고 차감 단위를
+        // 정하는데, 화면 안에 두었을 때 두 번 틀렸다 — 틀리면 칸이 빈 채로 뜨거나
+        // 재고가 엉뚱하게 빠지고, 둘 다 오류 없이 지나간다.
+        return product.PriceForSaleUnit(IsLooseSaleSelected);
     }
 
-    private bool IsBoxSaleSelected(Product product) =>
-        product.SellsLooseUnits && SelectedSaleUnit == SaleUnitOption.Box;
+    /// <summary>지금 낱개로 팔려고 고른 상태인지.</summary>
+    private bool IsLooseSaleSelected => SelectedSaleUnit == SaleUnitOption.Each;
+
+    private bool IsBoxSaleSelected(Product product) => product.CountsInBoxes(IsLooseSaleSelected);
 
     private void ResetUnitPriceFromProduct()
     {
