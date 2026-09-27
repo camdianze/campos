@@ -115,6 +115,7 @@ public class ProductEditViewModel : ViewModelBase
 
             FillLoosePriceSuggestion();
             RaiseLooseUnitHints();
+            OnPropertyChanged(nameof(LooseSaleHint));
         }
     }
 
@@ -537,10 +538,21 @@ public class ProductEditViewModel : ViewModelBase
     public bool CanSellLooseUnits =>
         NumberInput.TryParseInt(UnitsPerBox, out var perBox) && perBox > 1;
 
-    /// <summary>체크박스 아래 한 줄. 켤 수 없는 상태라면 왜인지 말한다.</summary>
-    public string LooseSaleHint => CanSellLooseUnits
-        ? $"Break a box open and sell single {UnitLabel}s. Needs a price of its own."
-        : $"Set how many {UnitLabel}s are in a box (2 or more) to sell them singly.";
+    /// <summary>체크박스 아래 한 줄. 아직 모자란 것이 있으면 무엇인지 말한다.</summary>
+    public string LooseSaleHint
+    {
+        get
+        {
+            if (!SellsLooseUnits)
+            {
+                return $"Break a box open and sell single {UnitLabel}s.";
+            }
+
+            return CanSellLooseUnits
+                ? $"One {UnitLabel} gets its own price and barcode below."
+                : $"Enter how many {UnitLabel}s are in one box above (2 or more).";
+        }
+    }
 
     public string ProductName
     {

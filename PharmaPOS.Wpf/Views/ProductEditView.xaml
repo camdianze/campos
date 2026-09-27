@@ -273,9 +273,12 @@
                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
                                Text="How many the manufacturer puts in one box. 1 means it does not come in boxes. Stock is counted in boxes and loose pieces from this."/>
 
+                    <!-- 끄고 켜는 것은 언제나 된다. 박스당 개수가 없다고 잠가 두면,
+                         켜려는 사람은 위 칸부터 채워야 한다는 걸 알 길이 없다 —
+                         눌러도 아무 일이 없는 체크박스로만 보인다.
+                         개수가 모자라면 아래 한 줄이 말하고, 저장할 때 막는다. -->
                     <CheckBox Content="Sell loose units"
-                              IsChecked="{Binding SellsLooseUnits}"
-                              IsEnabled="{Binding CanSellLooseUnits}"/>
+                              IsChecked="{Binding SellsLooseUnits}"/>
                     <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
                                Text="{Binding LooseSaleHint}"/>
 
