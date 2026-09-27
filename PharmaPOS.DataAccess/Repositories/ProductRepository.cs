@@ -96,7 +96,8 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form, unit_barcode, sells_loose
+                   dosage_form, unit_barcode, sells_loose,
+                   selling_price_khr, cost_price_khr, unit_price_khr
             FROM Product_Master
             {whereSql}
             ORDER BY {orderBySql};
@@ -123,7 +124,8 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form, unit_barcode, sells_loose
+                   dosage_form, unit_barcode, sells_loose,
+                   selling_price_khr, cost_price_khr, unit_price_khr
             FROM Product_Master
             WHERE product_id = $productId;
             """;
@@ -179,13 +181,15 @@ public class ProductRepository : IProductRepository
                  strength, unit, manufacturer, country_of_origin, cost_price,
                  selling_price, safety_stock_level, status, created_at,
                  atc_code, is_combination, units_per_box, unit_selling_price, category,
-                 dosage_form, unit_barcode, sells_loose)
+                 dosage_form, unit_barcode, sells_loose,
+                 selling_price_khr, cost_price_khr, unit_price_khr)
             VALUES
                 ($productId, $barcode, $internalBarcode, $productName, $genericName,
                  $strength, $unit, $manufacturer, $countryOfOrigin, $costPrice,
                  $sellingPrice, $safetyStockLevel, $status, $createdAt,
                  $atcCode, $isCombination, $unitsPerBox, $unitSellingPrice, $category,
-                 $dosageForm, $unitBarcode, $sellsLoose);
+                 $dosageForm, $unitBarcode, $sellsLoose,
+                 $sellingPriceKhr, $costPriceKhr, $unitPriceKhr);
             """;
         AddProductParameters(command, product);
         await command.ExecuteNonQueryAsync();
@@ -212,7 +216,10 @@ public class ProductRepository : IProductRepository
                 category = $category,
                 dosage_form = $dosageForm,
                 unit_barcode = $unitBarcode,
-                sells_loose = $sellsLoose
+                sells_loose = $sellsLoose,
+                selling_price_khr = $sellingPriceKhr,
+                cost_price_khr = $costPriceKhr,
+                unit_price_khr = $unitPriceKhr
             WHERE product_id = $productId;
             """;
 
@@ -400,6 +407,9 @@ public class ProductRepository : IProductRepository
         command.Parameters.AddWithValue("$dosageForm", (object?)product.DosageForm?.ToString() ?? DBNull.Value);
         command.Parameters.AddWithValue("$unitBarcode", (object?)product.UnitBarcodeOverride ?? DBNull.Value);
         command.Parameters.AddWithValue("$sellsLoose", product.SellsLooseUnits ? 1 : 0);
+        command.Parameters.AddWithValue("$sellingPriceKhr", (object?)product.SellingPriceKhr ?? DBNull.Value);
+        command.Parameters.AddWithValue("$costPriceKhr", (object?)product.CostPriceKhr ?? DBNull.Value);
+        command.Parameters.AddWithValue("$unitPriceKhr", (object?)product.UnitSellingPriceKhr ?? DBNull.Value);
     }
 
     private static Product MapToProduct(SqliteDataReader reader)
@@ -435,7 +445,10 @@ public class ProductRepository : IProductRepository
                 ? null
                 : dosageForm,
             UnitBarcodeOverride = reader.IsDBNull(20) ? null : reader.GetString(20),
-            SellsLooseUnits = !reader.IsDBNull(21) && reader.GetInt32(21) != 0
+            SellsLooseUnits = !reader.IsDBNull(21) && reader.GetInt32(21) != 0,
+            SellingPriceKhr = reader.IsDBNull(22) ? null : (decimal)reader.GetDouble(22),
+            CostPriceKhr = reader.IsDBNull(23) ? null : (decimal)reader.GetDouble(23),
+            UnitSellingPriceKhr = reader.IsDBNull(24) ? null : (decimal)reader.GetDouble(24)
         };
     }
 

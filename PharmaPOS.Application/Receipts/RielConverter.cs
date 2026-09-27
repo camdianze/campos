@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace PharmaPOS.Application.Receipts;
 
@@ -33,6 +33,13 @@ public static class RielConverter
     /// 현재 문화권을 따르면 기기 설정에 따라 구분자가 바뀐다.
     /// </summary>
     public static string Format(long riel) =>
+        riel.ToString("N0", CultureInfo.InvariantCulture) + " " + RielSymbol;
+
+    /// <summary>
+    /// 환산하지 않고 주어진 리엘 금액을 그대로 적는다. 약국이 적어 넣은 가격을
+    /// 보여줄 때 쓴다 — 그 값은 계산해서 나온 것이 아니라 정해진 것이다.
+    /// </summary>
+    public static string FormatExact(decimal riel) =>
         riel.ToString("N0", CultureInfo.InvariantCulture) + " " + RielSymbol;
 
     public static string Format(decimal usd, decimal rate, int unit) =>

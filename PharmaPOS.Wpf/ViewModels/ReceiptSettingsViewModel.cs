@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
+using Lightweight_Digital_Inventory_Management___POS_System.Views;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Inventory;
@@ -335,6 +336,7 @@ public class ReceiptSettingsViewModel : ViewModelBase
         _paperWidth = settings.PaperWidth;
         _showRiel = settings.ShowRiel;
         _exchangeRate = settings.ExchangeRate.ToString("0.####", CultureInfo.InvariantCulture);
+        _loadedExchangeRate = settings.ExchangeRate;
         _rielRounding = settings.RielRounding;
         _showReceiptNumber = settings.ShowReceiptNumber;
         _showStaffName = settings.ShowStaffName;
@@ -358,13 +360,57 @@ public class ReceiptSettingsViewModel : ViewModelBase
         RefreshPreview();
     }
 
+    /// <summary>화면을 열 때의 환율. 바꾸려 할 때 무엇이 함께 움직이는지 알리기 위한 것이다.</summary>
+    private decimal _loadedExchangeRate;
+
+    private bool ConfirmExchangeRateChange()
+    {
+        var next = ParseDecimal(ExchangeRate);
+
+        if (next == _loadedExchangeRate || _loadedExchangeRate <= 0 || next <= 0)
+        {
+            return true;
+        }
+
+        var before = _loadedExchangeRate.ToString("N0", CultureInfo.InvariantCulture);
+        var after = next.ToString("N0", CultureInfo.InvariantCulture);
+
+        return AppDialog.Confirm(
+            "Exchange rate",
+            $"The exchange rate changes from 1 USD = {before} KHR to 1 USD = {after} KHR."
+            + Environment.NewLine + Environment.NewLine
+            + "Product prices are stored in dollars and do not change. But every riel figure"
+            + " on screen is worked out from this rate, so prices you set in riel will read"
+            + " differently from now on."
+            + Environment.NewLine + Environment.NewLine
+            + "Prices entered in riel keep the amount you typed and are unaffected."
+            + Environment.NewLine + Environment.NewLine
+            + "Change the rate?",
+            "Change",
+            "Cancel");
+    }
+
     private async Task ExecuteSaveAsync()
     {
         Message = string.Empty;
 
+        // 환율은 상품 가격을 다시 계산하지 않는다 — 저장된 금액은 달러이고 그대로 남는다.
+        // 그런데 화면의 모든 리엘 표시는 이 환율로 되돌려 계산되므로, 환율을 바꾸면
+        // 아무도 가격을 건드리지 않았는데 리엘 금액이 전부 함께 움직인다.
+        // 그 사실을 모르면 "가격이 저절로 바뀌었다"로 보이고, 원인을 되짚을 수가 없다.
+        if (!ConfirmExchangeRateChange())
+        {
+            return;
+        }
+
         var result = await _settingsService.SaveAsync(BuildSettings(), _currentUserRole, _currentUserId);
 
         SetFieldErrors(result.FieldErrors);
+
+        if (result.IsSuccess)
+        {
+            _loadedExchangeRate = ParseDecimal(ExchangeRate);
+        }
 
         if (!result.IsSuccess)
         {

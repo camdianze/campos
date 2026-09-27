@@ -159,6 +159,26 @@ public class Product
     public const string GeneratedBarcodePrefix = "INT-";
 
     /// <summary>
+    /// 이 가격을 <b>리엘로 적어 넣었다면</b> 그때 적은 리엘 금액. 달러로 적었으면 null.
+    ///
+    /// 저장되는 금액은 언제나 달러다(원장이 달러이므로). 그런데 달러만 남기면 약국이
+    /// 정한 리엘 가격이 사라진다 — 8,000리엘로 정한 상품이 환율 4,100에서 $1.9512로
+    /// 저장되고, 나중에 환율을 4,000으로 바꾸면 화면이 그 달러를 되돌려 7,800리엘이라고
+    /// 말한다. 아무도 가격을 건드리지 않았는데 200리엘이 움직인 것이다.
+    ///
+    /// 그래서 적어 넣은 값을 그대로 들고 있는다. 화면은 되돌려 계산하는 대신 이 값을
+    /// 보여주므로, 환율이 바뀌어도 8,000리엘은 8,000리엘로 남는다.
+    /// 달러 금액을 고치면 이 값은 더 이상 "적어 넣은 값"이 아니므로 지워진다.
+    /// </summary>
+    public decimal? SellingPriceKhr { get; set; }
+
+    /// <inheritdoc cref="SellingPriceKhr"/>
+    public decimal? CostPriceKhr { get; set; }
+
+    /// <inheritdoc cref="SellingPriceKhr"/>
+    public decimal? UnitSellingPriceKhr { get; set; }
+
+    /// <summary>
     /// 낱개 가격이 가질 수 있는 소수 자릿수.
     ///
     /// 네 자리인 이유는 가격이 리엘로 정해지기 때문이다 — 500리엘짜리 알약은 $0.125라

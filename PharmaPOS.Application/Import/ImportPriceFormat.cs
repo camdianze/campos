@@ -58,9 +58,18 @@ public sealed class ImportPriceFormat
     /// 금액 칸 하나를 달러로 읽는다. 저장되는 값은 언제나 달러다 —
     /// 이 앱의 모든 금액이 달러이고, 환율은 시간이 지나면 바뀌기 때문이다.
     /// </summary>
-    public bool TryRead(string text, out decimal usd, out string? error)
+    public bool TryRead(string text, out decimal usd, out string? error) =>
+        TryRead(text, out usd, out _, out error);
+
+    /// <summary>
+    /// 같은 읽기인데, 리엘로 적혀 있었으면 <paramref name="riel"/>에 그 금액을 담는다.
+    /// 약국이 정한 리엘 가격을 상품에 그대로 남기기 위한 것이다 — 달러만 저장하면
+    /// 환율이 바뀔 때 화면의 리엘 표시가 함께 움직인다.
+    /// </summary>
+    public bool TryRead(string text, out decimal usd, out decimal? riel, out string? error)
     {
         usd = 0m;
+        riel = null;
         error = null;
 
         var trimmed = text.Trim();
@@ -103,6 +112,8 @@ public sealed class ImportPriceFormat
             usd = value;
             return true;
         }
+
+        riel = value;
 
         // 리엘로 적혀 있는데 환율이 없으면 환산할 방법이 없다. 4,000을 4,000달러로
         // 저장하느니 그 행을 세워 두는 편이 낫다.

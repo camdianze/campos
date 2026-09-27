@@ -24,6 +24,13 @@ public class ProductEditViewModel : ViewModelBase
     private string _barcode = string.Empty;
     private string _internalBarcode = string.Empty;
     private string _unitBarcode = string.Empty;
+
+    /// <summary>
+    /// 불러온 상품이 리엘로 적어 넣은 가격을 들고 있으면 그 금액. 달러로 적었으면 null.
+    /// 칸을 손대지 않은 동안에는 되돌려 계산하지 않고 이 값을 보여준다 — 환율이
+    /// 바뀌어도 약국이 정한 8,000리엘이 7,800리엘로 보이지 않게 하려는 것이다.
+    /// </summary>
+    private readonly Dictionary<string, (decimal Usd, decimal Khr)> _enteredInRiel = new();
     private string _productName = string.Empty;
     private string _genericName = string.Empty;
     private string _strength = string.Empty;
@@ -331,6 +338,32 @@ public class ProductEditViewModel : ViewModelBase
         return toRiel ? riel : usd;
     }
 
+    /// <summary>
+    /// 이 칸이 리엘로 정해진 가격인지, 그렇다면 얼마인지. 저장할 때 상품에 함께 남긴다.
+    ///
+    /// 리엘 모드로 적어 넣었으면 그 금액이고, 달러 모드라도 불러올 때부터 리엘 가격이었고
+    /// 아직 달러를 고치지 않았으면 그 금액이다. 달러를 고쳤으면 null이다 — 그때부터는
+    /// 달러로 정한 가격이므로 옛 리엘 금액을 들고 있으면 거짓말이 된다.
+    /// </summary>
+    private decimal? RielPriceFor(string field, string text)
+    {
+        if (_isRielInput)
+        {
+            if (_priceBeforeSwitch.TryGetValue(field, out var remembered)
+                && string.Equals(text.Trim(), remembered.Riel, StringComparison.Ordinal)
+                && _enteredInRiel.TryGetValue(field, out var loaded))
+            {
+                // 화면에서 손대지 않았다. 불러올 때의 금액을 그대로 지킨다 —
+                // 표시용으로 반올림된 값을 저장하면 8,000이 7,800으로 굳는다.
+                return loaded.Khr;
+            }
+
+            return NumberInput.TryParseDecimal(text, out var typed) && typed > 0 ? typed : null;
+        }
+
+        return EnteredRielFor(field, text);
+    }
+
     /// <summary>저장할 값. 리엘로 적혀 있으면 달러로 되돌린다.</summary>
     private string ToStoredPrice(string field, string text)
     {
@@ -355,23 +388,58 @@ public class ProductEditViewModel : ViewModelBase
             ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero));
     }
 
+    private void Remember(string field, decimal? usd, decimal? khr)
+    {
+        if (usd is { } dollars && khr is { } riel)
+        {
+            _enteredInRiel[field] = (dollars, riel);
+        }
+    }
+
+    /// <summary>
+    /// 이 칸에 적어 넣었던 리엘 금액. 칸의 달러 값이 그때 그대로일 때만 돌려준다 —
+    /// 달러를 고쳤으면 그 리엘 금액은 더 이상 이 가격을 가리키지 않는다.
+    /// </summary>
+    private decimal? EnteredRielFor(string field, string text)
+    {
+        if (_isRielInput
+            || !_enteredInRiel.TryGetValue(field, out var remembered)
+            || !NumberInput.TryParseDecimal(text, out var value))
+        {
+            return null;
+        }
+
+        return value == remembered.Usd ? remembered.Khr : null;
+    }
+
     /// <summary>입력칸 아래에 반대 통화를 적는다. 두 값이 동시에 보여야 한다.</summary>
-    private string OtherCurrencyOf(string text)
+    private string OtherCurrencyOf(string field, string text)
     {
         if (!IsRielAvailable || string.IsNullOrWhiteSpace(text) || !NumberInput.TryParseDecimal(text, out var value))
         {
             return string.Empty;
         }
 
-        return _isRielInput
-            ? "= $" + decimal.Round(value / _exchangeRate, ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
-                .ToString("0.00##", CultureInfo.InvariantCulture)
-            : "= " + RielConverter.Format(value, _exchangeRate, _rielRounding);
+        if (_isRielInput)
+        {
+            return "= $" + decimal.Round(value / _exchangeRate, ProductService.LooseUnitPriceDecimals,
+                MidpointRounding.AwayFromZero).ToString("0.00##", CultureInfo.InvariantCulture);
+        }
+
+        // 리엘로 적어 넣은 가격이면 <b>그때 적은 금액</b>을 그대로 보여준다.
+        // 달러에서 되돌려 계산하면 환율이 바뀌었을 때 약국이 정한 가격과 달라진다.
+        if (EnteredRielFor(field, text) is { } entered)
+        {
+            return "= " + RielConverter.FormatExact(entered) + " (as entered)";
+        }
+
+        return "= " + RielConverter.Format(value, _exchangeRate, _rielRounding);
     }
 
-    public string SellingPriceInOtherCurrency => OtherCurrencyOf(SellingPrice);
-    public string CostPriceInOtherCurrency => OtherCurrencyOf(CostPrice);
-    public string UnitSellingPriceInOtherCurrency => OtherCurrencyOf(UnitSellingPrice);
+    public string SellingPriceInOtherCurrency => OtherCurrencyOf(nameof(SellingPrice), SellingPrice);
+    public string CostPriceInOtherCurrency => OtherCurrencyOf(nameof(CostPrice), CostPrice);
+    public string UnitSellingPriceInOtherCurrency =>
+        OtherCurrencyOf(nameof(UnitSellingPrice), UnitSellingPrice);
 
     private void RaisePriceHintsChanged()
     {
@@ -597,6 +665,13 @@ public class ProductEditViewModel : ViewModelBase
             _unitSellingPrice = existingProduct.UnitSellingPrice is { } loose
                 ? NumberInput.ToText(loose)
                 : string.Empty;
+
+            // 리엘로 적어 넣은 가격은 그 금액을 기억해 둔다. 달러 금액이 그대로인
+            // 동안에는 환산하지 않고 이 값을 보여준다.
+            Remember(nameof(SellingPrice), existingProduct.SellingPrice, existingProduct.SellingPriceKhr);
+            Remember(nameof(CostPrice), existingProduct.CostPrice, existingProduct.CostPriceKhr);
+            Remember(nameof(UnitSellingPrice),
+                existingProduct.UnitSellingPrice, existingProduct.UnitSellingPriceKhr);
         }
 
         ShowUsdCommand = new RelayCommand(_ => SwitchCurrency(toRiel: false));
@@ -697,6 +772,13 @@ public class ProductEditViewModel : ViewModelBase
             CountryOfOrigin = string.IsNullOrWhiteSpace(CountryOfOrigin) ? null : CountryOfOrigin,
             CostPrice = costPrice,
             SellingPrice = sellingPrice,
+            // 리엘로 정한 가격은 그 금액을 함께 남긴다. 환율이 바뀌어도 약국이 정한
+            // 리엘 가격이 화면에서 움직이지 않게 하기 위한 것이다.
+            SellingPriceKhr = RielPriceFor(nameof(SellingPrice), SellingPrice),
+            CostPriceKhr = RielPriceFor(nameof(CostPrice), CostPrice),
+            UnitSellingPriceKhr = SellsLooseUnits
+                ? RielPriceFor(nameof(UnitSellingPrice), UnitSellingPrice)
+                : null,
             SafetyStockLevel = safetyStockLevel,
             Status = Status,
             AtcCode = string.IsNullOrWhiteSpace(AtcCode) ? null : AtcCode.Trim().ToUpperInvariant(),

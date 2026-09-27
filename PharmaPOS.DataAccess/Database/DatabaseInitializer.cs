@@ -100,6 +100,12 @@ public class DatabaseInitializer
         // 낱개 판매 여부. 전에는 units_per_box > 1 이 곧 낱개 판매였으므로,
         // 이미 등록된 상품은 그 규칙대로 채워 넣어 지금까지의 동작을 그대로 잇는다.
         // (새 규칙은 여기서부터 적용된다 — 낱개가 없이 저장하려 하면 그때 막힌다.)
+        // 리엘로 적어 넣은 가격을 그대로 기억한다. 환율이 바뀌어도 약국이 정한
+        // 리엘 금액이 흔들리지 않게 하려는 것이다. 달러로 적었으면 NULL이다.
+        AddColumnIfMissing(connection, "Product_Master", "selling_price_khr", "REAL");
+        AddColumnIfMissing(connection, "Product_Master", "cost_price_khr", "REAL");
+        AddColumnIfMissing(connection, "Product_Master", "unit_price_khr", "REAL");
+
         if (AddColumnIfMissing(connection, "Product_Master", "sells_loose", "INTEGER NOT NULL DEFAULT 0"))
         {
             using var backfill = connection.CreateCommand();
@@ -293,6 +299,9 @@ public class DatabaseInitializer
                 dosage_form         TEXT,
                 unit_barcode        TEXT,
                 sells_loose         INTEGER NOT NULL DEFAULT 0,
+                selling_price_khr   REAL,
+                cost_price_khr      REAL,
+                unit_price_khr      REAL,
                 photo               BLOB,
                 photo_updated_at    INTEGER
             );

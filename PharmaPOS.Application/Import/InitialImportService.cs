@@ -390,12 +390,12 @@ public class InitialImportService : IInitialImportService
         // 원가는 비워도 된다. 상품 화면과 같은 규칙이고, 조사 시트도 "Empty = 0"으로
         // 안내한다 — 요구하면 시트가 시키는 대로 채운 파일이 통째로 막힌다.
         // 모르는 원가를 0으로 두면 "원가보다 싸게 판다" 경고만 뜨지 않을 뿐이다.
-        if (!TryReadPrice(row, InitialImportColumns.CostPrice, priceFormat, out var costPrice, out error, allowZero: true))
+        if (!TryReadPrice(row, InitialImportColumns.CostPrice, priceFormat, out var costPrice, out var costPriceKhr, out error, allowZero: true))
         {
             return null;
         }
 
-        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, priceFormat, out var sellingPrice, out error))
+        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, priceFormat, out var sellingPrice, out var sellingPriceKhr, out error))
         {
             return null;
         }
@@ -429,6 +429,11 @@ public class InitialImportService : IInitialImportService
             UnitsPerBox = looseSale?.UnitsPerBox ?? 1,
             SellsLooseUnits = looseSale?.SellsLoose ?? false,
             UnitSellingPrice = looseSale?.LooseUnitPrice,
+            // 리엘로 적혀 있던 가격은 그 금액을 그대로 남긴다. 환율이 바뀌어도
+            // 약국이 정한 리엘 가격이 흔들리지 않게 하기 위해서다.
+            SellingPriceKhr = sellingPriceKhr,
+            CostPriceKhr = costPriceKhr,
+            UnitSellingPriceKhr = looseSale?.LooseUnitPriceKhr,
             GenericName = NullIfEmpty(row.Get(InitialImportColumns.GenericName)),
             Strength = NullIfEmpty(row.Get(InitialImportColumns.Strength)),
             DosageForm = dosageForm,
@@ -494,7 +499,7 @@ public class InitialImportService : IInitialImportService
         ApplyText(row.Get(InitialImportColumns.CountryOfOrigin), merged.CountryOfOrigin,
             value => merged.CountryOfOrigin = value, ref changed);
 
-        if (!TryReadPrice(row, InitialImportColumns.CostPrice, priceFormat, out var costPrice, out error, allowZero: true))
+        if (!TryReadPrice(row, InitialImportColumns.CostPrice, priceFormat, out var costPrice, out var costPriceKhr, out error, allowZero: true))
         {
             return null;
         }
@@ -505,7 +510,7 @@ public class InitialImportService : IInitialImportService
             changed = true;
         }
 
-        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, priceFormat, out var sellingPrice, out error))
+        if (!TryReadPrice(row, InitialImportColumns.SellingPrice, priceFormat, out var sellingPrice, out var sellingPriceKhr, out error))
         {
             return null;
         }
@@ -546,6 +551,7 @@ public class InitialImportService : IInitialImportService
             if (looseSale.LooseUnitPrice is { } loosePrice && loosePrice != merged.UnitSellingPrice)
             {
                 merged.UnitSellingPrice = loosePrice;
+                merged.UnitSellingPriceKhr = looseSale.LooseUnitPriceKhr;
                 changed = true;
             }
 
@@ -620,9 +626,15 @@ public class InitialImportService : IInitialImportService
     /// </summary>
     private static bool TryReadPrice(
         ImportSourceRow row, string[] column, ImportPriceFormat priceFormat,
-        out decimal? price, out string? error, bool allowZero = false)
+        out decimal? price, out string? error, bool allowZero = false) =>
+        TryReadPrice(row, column, priceFormat, out price, out _, out error, allowZero);
+
+    private static bool TryReadPrice(
+        ImportSourceRow row, string[] column, ImportPriceFormat priceFormat,
+        out decimal? price, out decimal? riel, out string? error, bool allowZero = false)
     {
         price = null;
+        riel = null;
         error = null;
 
         var name = InitialImportColumns.DisplayNameOf(column);
@@ -633,7 +645,7 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        if (!priceFormat.TryRead(text, out var parsed, out var moneyError))
+        if (!priceFormat.TryRead(text, out var parsed, out riel, out var moneyError))
         {
             error = $"{name} {moneyError}";
             return false;
@@ -786,7 +798,8 @@ public class InitialImportService : IInitialImportService
     /// 들었다는 것과 그 박스를 헐어 낱개로도 판다는 것은 다른 사실이다. 포장은
     /// 제조사가 정하고 낱개 판매는 약국이 정한다.
     /// </summary>
-    private sealed record LooseSaleSetting(int UnitsPerBox, decimal? LooseUnitPrice, bool SellsLoose);
+    private sealed record LooseSaleSetting(
+        int UnitsPerBox, decimal? LooseUnitPrice, bool SellsLoose, decimal? LooseUnitPriceKhr = null);
 
     private static bool TryReadLooseSale(
         ImportSourceRow row, ImportPriceFormat priceFormat, out LooseSaleSetting? looseSale, out string? error)
@@ -854,7 +867,7 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        if (!priceFormat.TryRead(loosePriceText, out var loosePrice, out var moneyError))
+        if (!priceFormat.TryRead(loosePriceText, out var loosePrice, out var loosePriceKhr, out var moneyError))
         {
             error = $"loose_unit_price {moneyError}";
             return false;
@@ -866,7 +879,7 @@ public class InitialImportService : IInitialImportService
             return false;
         }
 
-        looseSale = new LooseSaleSetting(unitsPerBox, loosePrice, SellsLoose: true);
+        looseSale = new LooseSaleSetting(unitsPerBox, loosePrice, SellsLoose: true, loosePriceKhr);
         return true;
     }
 
