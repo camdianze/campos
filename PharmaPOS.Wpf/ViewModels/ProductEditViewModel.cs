@@ -113,6 +113,7 @@ public class ProductEditViewModel : ViewModelBase
                 UnitsPerBox = string.Empty;
             }
 
+            FillLoosePriceSuggestion();
             RaiseLooseUnitHints();
         }
     }
@@ -139,6 +140,7 @@ public class ProductEditViewModel : ViewModelBase
                 SellsLooseUnits = false;
             }
 
+            FillLoosePriceSuggestion();
             RaiseLooseUnitHints();
         }
     }
@@ -151,6 +153,11 @@ public class ProductEditViewModel : ViewModelBase
         {
             if (SetProperty(ref _unitSellingPrice, value))
             {
+                if (!_isFillingLoosePrice)
+                {
+                    _loosePriceWasFilledIn = false;
+                }
+
                 OnPropertyChanged(nameof(UnitPriceHint));
                 OnPropertyChanged(nameof(UnitSellingPriceInOtherCurrency));
             }
@@ -177,6 +184,53 @@ public class ProductEditViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 낱개가 칸이 비어 있으면 박스가에서 뽑은 값을 채워 넣는다.
+    ///
+    /// <b>비어 있을 때만</b> 채운다 — 적어 둔 값을 덮으면 약국이 매긴 가격이 사라진다.
+    /// 채운 값은 그냥 칸에 들어간 글자이고, 사람이 보고 고칠 수 있으며, 저장하면
+    /// 그 상품의 가격이 된다. 앱이 계산대에서 몰래 쓰던 것과는 다르다.
+    ///
+    /// 지금 보고 있는 통화로 적는다. 지불 단위로 <b>올려서</b> 적는 것도 같은 이유다 —
+    /// 2,050리엘은 낼 방법이 없고, 올리는 쪽이 헐어 파는 값에 마진이 붙는 방향이다.
+    /// </summary>
+    private void FillLoosePriceSuggestion()
+    {
+        if (!SellsLooseUnits
+            || !string.IsNullOrWhiteSpace(UnitSellingPrice)
+            || !CanSellLooseUnits
+            || !NumberInput.TryParseDecimal(SellingPrice, out var boxPrice)
+            || boxPrice <= 0
+            || !NumberInput.TryParseInt(UnitsPerBox, out var perBox)
+            || perBox < 2)
+        {
+            return;
+        }
+
+        var share = boxPrice / perBox;
+
+        _isFillingLoosePrice = true;
+
+        try
+        {
+            UnitSellingPrice = _isRielInput
+                ? NumberInput.ToText(RielConverter.RoundUpToPayable(share, _rielRounding))
+                : NumberInput.ToText(decimal.Ceiling(share * 100m) / 100m);
+        }
+        finally
+        {
+            _isFillingLoosePrice = false;
+        }
+
+        _loosePriceWasFilledIn = true;
+    }
+
+    /// <summary>지금 칸에 든 낱개가가 사람이 적은 것이 아니라 박스가에서 뽑은 값인지.</summary>
+    private bool _loosePriceWasFilledIn;
+
+    /// <summary>채워 넣는 중. 그 사이의 변경은 "사람이 고쳤다"로 세지 않는다.</summary>
+    private bool _isFillingLoosePrice;
+
+    /// <summary>
     /// 낱개가 칸 아래 줄. 비어 있으면 참고할 값을 <b>알려주기만</b> 한다 — 예전처럼
     /// 그 값을 몰래 쓰지는 않는다. 박스가를 나눈 값은 원가에 가까운 숫자이지
     /// 파는 가격이 아니고, 마진을 얼마나 붙일지는 약국이 정한다.
@@ -190,22 +244,17 @@ public class ProductEditViewModel : ViewModelBase
                 return string.Empty;
             }
 
-            if (!string.IsNullOrWhiteSpace(UnitSellingPrice))
+            if (string.IsNullOrWhiteSpace(UnitSellingPrice))
             {
-                return $"One {UnitLabel} is sold at this price.";
+                return $"Required. Enter what one {UnitLabel} sells for.";
             }
 
-            if (NumberInput.TryParseDecimal(SellingPrice, out var boxPrice)
-                && NumberInput.TryParseInt(UnitsPerBox, out var perBox)
-                && perBox > 1)
-            {
-                var share = decimal.Round(boxPrice / perBox, 2, MidpointRounding.AwayFromZero);
-
-                return $"Required. The box works out at {share} per {UnitLabel} "
-                     + $"({boxPrice} ÷ {perBox}) — loose is usually sold for more.";
-            }
-
-            return $"Required. Enter what one {UnitLabel} sells for.";
+            // 채워 넣은 값인지 사람이 적은 값인지 말한다. 숫자만 보면 구별되지 않고,
+            // 구별되지 않으면 아무도 검토하지 않는다.
+            return _loosePriceWasFilledIn
+                ? $"Worked out from the box price ({SellingPrice} ÷ {UnitsPerBox}). "
+                  + "Change it if loose units sell for more."
+                : $"One {UnitLabel} is sold at this price.";
         }
     }
 
@@ -585,6 +634,7 @@ public class ProductEditViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(SellingPriceInOtherCurrency));
                 // 박스가를 고치면 아래에 보여주는 낱개 환산가도 따라 바뀌어야 한다.
+                FillLoosePriceSuggestion();
                 OnPropertyChanged(nameof(UnitPriceHint));
             }
         }
