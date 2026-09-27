@@ -1,4 +1,5 @@
 ﻿using PharmaPOS.Application.Parsing;
+using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Windows;
 using PharmaPOS.Application.Counselling;
@@ -174,11 +175,37 @@ public partial class PosSaleViewModel : ViewModelBase
 
     private void ResetUnitPriceFromProduct()
     {
-        // 지역 설정이 아니라 NumberInput 규칙으로 적는다 — 이 칸을 다시 읽는 쪽이
-        // 그 규칙을 쓴다. 둘이 어긋나면 계산대에서 단가가 조용히 바뀐다.
-        UnitPrice = CurrentSaleUnitPrice() is { } price
-            ? NumberInput.ToText(price)
-            : string.Empty;
+        // 칸에는 센트까지만 적는다. 계산대가 가장 자주 보는 금액칸이고, 4.878 같은
+        // 숫자는 아무도 낼 수 없다.
+        //
+        // 그런데 <b>반올림한 값을 쓰지는 않는다.</b> 저장된 단가는 리엘 가격에서
+        // 나온 값이라 센트로 떨어지지 않는 것이 정상이고(20,000៛ ÷ 4,100 = 4.878),
+        // 그 네 자리가 있어야 곱했을 때 리엘이 제자리로 돌아온다. 그래서 정확한 값은
+        // 따로 들고 있다가, 사람이 칸을 고치지 않았으면 그 값을 쓴다.
+        _exactUnitPrice = CurrentSaleUnitPrice();
+
+        UnitPrice = _exactUnitPrice is { } price ? FormatMoney(price) : string.Empty;
+    }
+
+    /// <summary>칸에 적힌 그대로의 단가. 사람이 고치지 않았으면 반올림 전 값을 쓴다.</summary>
+    private decimal? _exactUnitPrice;
+
+    private static string FormatMoney(decimal value) =>
+        value.ToString("0.00", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// 담을 때 쓸 단가. 칸의 글자가 보여주던 그대로면 반올림 전 값을, 고쳤으면 적은 값을 쓴다.
+    /// </summary>
+    private bool TryReadUnitPrice(out decimal unitPrice)
+    {
+        if (_exactUnitPrice is { } exact
+            && string.Equals(UnitPrice.Trim(), FormatMoney(exact), StringComparison.Ordinal))
+        {
+            unitPrice = exact;
+            return true;
+        }
+
+        return NumberInput.TryParseDecimal(UnitPrice, out unitPrice);
     }
 
     public string Quantity
@@ -518,7 +545,7 @@ public partial class PosSaleViewModel : ViewModelBase
             return;
         }
 
-        if (!NumberInput.TryParseDecimal(UnitPrice, out var unitPrice))
+        if (!TryReadUnitPrice(out var unitPrice))
         {
             Message = "Selling price must be greater than zero.";
             return;

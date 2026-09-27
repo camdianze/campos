@@ -461,9 +461,17 @@ public class ProductEditViewModel : ViewModelBase
     /// <summary>저장할 값. 리엘로 적혀 있으면 달러로 되돌린다.</summary>
     private string ToStoredPrice(string field, string text)
     {
-        if (!_isRielInput || string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(text))
         {
             return text;
+        }
+
+        if (!_isRielInput)
+        {
+            // 보여준 글자를 손대지 않았으면 반올림 전 값을 그대로 저장한다.
+            return UntouchedExactUsd(field, text) is { } exact
+                ? NumberInput.ToText(exact)
+                : text;
         }
 
         if (_priceBeforeSwitch.TryGetValue(field, out var remembered)
@@ -484,6 +492,34 @@ public class ProductEditViewModel : ViewModelBase
         return NumberInput.ToText(decimal.Round(payable / _exchangeRate,
             ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero));
     }
+
+    /// <summary>칸에 적을 글자. 센트까지만.</summary>
+    private static string MoneyText(decimal value) =>
+        value.ToString("0.00", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// 칸에 보여준 글자 뒤의 정확한 달러 값. 글자가 그대로면 이 값을 저장한다 —
+    /// 화면에 맞춰 반올림한 값을 저장하면, 열어서 저장만 해도 가격이 조금씩 움직인다.
+    /// </summary>
+    private readonly Dictionary<string, decimal> _exactUsd = new();
+
+    private void RememberExact(string field, decimal usd) => _exactUsd[field] = usd;
+
+    /// <summary>
+    /// 지금 칸에 든 리엘 금액이 적어 넣었던 그 값이면, 그때 저장된 달러.
+    /// 화면이 보여주는 달러와 저장되는 달러가 같아야 한다.
+    /// </summary>
+    private decimal? StoredUsdFor(string field, decimal riel) =>
+        _enteredInRiel.TryGetValue(field, out var remembered) && remembered.Khr == riel
+            ? remembered.Usd
+            : null;
+
+    /// <summary>글자가 보여주던 그대로인지. 그렇다면 반올림 전 값을 쓴다.</summary>
+    private decimal? UntouchedExactUsd(string field, string text) =>
+        _exactUsd.TryGetValue(field, out var exact)
+        && string.Equals(text.Trim(), MoneyText(exact), StringComparison.Ordinal)
+            ? exact
+            : null;
 
     private void Remember(string field, decimal? usd, decimal? khr)
     {
@@ -519,6 +555,15 @@ public class ProductEditViewModel : ViewModelBase
 
         if (_isRielInput)
         {
+            // 적어 넣었던 리엘 금액 그대로면, 저장돼 있는 달러를 보여준다.
+            // 오늘 환율로 다시 환산하면 실제로 저장될 값과 다른 숫자가 나온다 —
+            // 5,000៛은 임포트 당시 4,100에서 $1.2195가 됐는데, 지금 4,000으로
+            // 되돌리면 $1.25다. 저장은 1.2195로 되므로 화면이 거짓말을 하게 된다.
+            if (StoredUsdFor(field, value) is { } stored)
+            {
+                return "= $" + MoneyText(stored);
+            }
+
             return "= $" + decimal.Round(value / _exchangeRate, ProductService.LooseUnitPriceDecimals,
                 MidpointRounding.AwayFromZero).ToString("N2", CultureInfo.InvariantCulture);
         }
@@ -772,8 +817,14 @@ public class ProductEditViewModel : ViewModelBase
             _countryOfOrigin = existingProduct.CountryOfOrigin ?? string.Empty;
             // 칸에 넣는 글자도 NumberInput과 같은 규칙이어야 한다. ToString()은
             // Windows 지역 설정을 따라가므로, 읽는 쪽만 고치면 버그가 자리를 옮길 뿐이다.
-            _costPrice = NumberInput.ToText(existingProduct.CostPrice);
-            _sellingPrice = NumberInput.ToText(existingProduct.SellingPrice);
+            // 칸에는 센트까지만 적는다 — 4.878 같은 숫자는 아무도 낼 수 없다.
+            // 정확한 값은 따로 들고 있다가, 사람이 칸을 고치지 않았으면 그 값을 저장한다.
+            // 저장된 달러는 리엘 가격에서 나온 값이라 센트로 떨어지지 않는 것이 정상이고
+            // (20,000៛ ÷ 4,100 = 4.878), 반올림해서 저장하면 리엘 가격이 움직인다.
+            _costPrice = MoneyText(existingProduct.CostPrice);
+            _sellingPrice = MoneyText(existingProduct.SellingPrice);
+            RememberExact(nameof(CostPrice), existingProduct.CostPrice);
+            RememberExact(nameof(SellingPrice), existingProduct.SellingPrice);
             _safetyStockLevel = NumberInput.ToText(existingProduct.SafetyStockLevel);
             _status = existingProduct.Status;
             _atcCode = existingProduct.AtcCode ?? string.Empty;
@@ -782,9 +833,11 @@ public class ProductEditViewModel : ViewModelBase
             // 낱개 판매 여부는 별도 컬럼이 아니라 박스당 개수로 표현된다.
             _sellsLooseUnits = existingProduct.SellsLooseUnits;
             _unitsPerBox = NumberInput.ToText(existingProduct.UnitsPerBox);
-            _unitSellingPrice = existingProduct.UnitSellingPrice is { } loose
-                ? NumberInput.ToText(loose)
-                : string.Empty;
+            if (existingProduct.UnitSellingPrice is { } loose)
+            {
+                _unitSellingPrice = MoneyText(loose);
+                RememberExact(nameof(UnitSellingPrice), loose);
+            }
 
             // 리엘로 적어 넣은 가격은 그 금액을 기억해 둔다. 달러 금액이 그대로인
             // 동안에는 환산하지 않고 이 값을 보여준다.
