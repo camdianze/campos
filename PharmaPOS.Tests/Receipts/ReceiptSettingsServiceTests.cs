@@ -120,8 +120,10 @@ public class ReceiptSettingsServiceTests
         var settings = await service.GetAsync();
 
         // 깨진 값만 기본값으로 떨어지고 멀쩡한 값은 살아남는다.
+        // 환율은 숫자를 박지 않고 기본값과 견준다 — 이 테스트가 확인하는 것은
+        // "그 값으로 떨어진다"이지 "4,100이다"가 아니다.
         Assert.Equal(ReceiptPaperWidth.Mm80, settings.PaperWidth);
-        Assert.Equal(4100m, settings.ExchangeRate);
+        Assert.Equal(new ReceiptSettings().ExchangeRate, settings.ExchangeRate);
         Assert.Equal(100, settings.RielRounding);
         Assert.Equal("Sample Pharmacy", settings.ShopNameEn);
     }

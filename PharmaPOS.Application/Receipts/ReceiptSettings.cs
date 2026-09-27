@@ -24,8 +24,15 @@ public class ReceiptSettings
 
     public bool ShowRiel { get; set; } = true;
 
-    /// <summary>1 USD가 몇 리엘인지. 환율은 고정이 아니므로 관리자가 직접 갱신한다.</summary>
-    public decimal ExchangeRate { get; set; } = 4100m;
+    /// <summary>
+    /// 1 USD가 몇 리엘인지. 환율은 고정이 아니므로 관리자가 직접 갱신한다.
+    ///
+    /// 이 값은 <b>설정에 아무것도 저장돼 있지 않을 때</b>만 쓰인다 — 새 설치의 출발점이다.
+    /// 이미 쓰던 DB는 저장된 값을 그대로 쓰므로 여기를 고쳐도 바뀌지 않는다.
+    /// 가격은 이 환율로 달러로 환산돼 저장되므로, 임포트 <b>전에</b> 맞춰 두는 것이
+    /// 나중에 고치는 것보다 훨씬 낫다.
+    /// </summary>
+    public decimal ExchangeRate { get; set; } = 4000m;
 
     /// <summary>리엘 반올림 단위. 0이면 반올림하지 않는다.</summary>
     public int RielRounding { get; set; } = 100;
