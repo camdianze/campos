@@ -854,7 +854,7 @@ public class InventoryStatusViewModel : ViewModelBase
         var boxBreakdown = SelectedItem.IsBoxedProduct
             ? $"\nBoxes: {SelectedItem.BoxQuantity} ({SelectedItem.UnitsPerBox} per box)"
               + $"\nLoose Units: {SelectedItem.UnitQuantity}"
-              + $"\nBox Price: {SelectedItem.SellingPrice}"
+              + $"\nBox Price: {SelectedItem.SellingPrice:N2}"
             : string.Empty;
 
         var detail = $"""

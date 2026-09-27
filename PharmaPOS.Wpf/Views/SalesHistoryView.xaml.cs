@@ -42,7 +42,7 @@ public partial class SalesHistoryView : UserControl
 
         // 목록을 다시 읽어야 방금 생긴 환불 행과 바뀐 상태가 보인다.
         await viewModel.ExecuteSearchAsync();
-        viewModel.Message = $"Refunded {dialog.RefundedAmount}.";
+        viewModel.Message = $"Refunded {dialog.RefundedAmount:N2}.";
     }
 
     private void OnBackClickFromViewModel()

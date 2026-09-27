@@ -29,6 +29,10 @@ public class SalesHistoryViewModel : ViewModelBase
 
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
+    /// <summary>화면에 적는 금액. 어디서나 센트까지만 — 손님이 내는 단위다.</summary>
+    private static string Money(decimal value) =>
+        value.ToString("N2", CultureInfo.InvariantCulture);
+
     private string _searchTerm = string.Empty;
     private PaymentMethod? _selectedPaymentMethod;
     private SalesHistoryLineItem? _selectedLine;
@@ -192,7 +196,8 @@ public class SalesHistoryViewModel : ViewModelBase
 
         foreach (var line in group)
         {
-            detail.AppendLine(CultureInfo.InvariantCulture, $"{line.ProductName} x{line.Quantity} @ {line.UnitPrice} = {line.LineTotal}");
+            detail.AppendLine(CultureInfo.InvariantCulture,
+                $"{line.ProductName} x{line.Quantity} @ {Money(line.UnitPrice)} = {Money(line.LineTotal)}");
             total += line.LineTotal;
 
             if (line.RefundedQuantity > 0)
@@ -203,14 +208,14 @@ public class SalesHistoryViewModel : ViewModelBase
         }
 
         detail.AppendLine("--------------------");
-        detail.AppendLine(CultureInfo.InvariantCulture, $"Total: {total}");
+        detail.AppendLine(CultureInfo.InvariantCulture, $"Total: {Money(total)}");
 
         // 환불이 있었다면 실제로 남은 금액까지 보여 준다 — 판매 금액만 보고
         // 서랍을 맞추면 돌려준 돈만큼 어긋난다.
         if (refunded > 0)
         {
-            detail.AppendLine(CultureInfo.InvariantCulture, $"Refunded: -{refunded}");
-            detail.AppendLine(CultureInfo.InvariantCulture, $"Net: {total - refunded}");
+            detail.AppendLine(CultureInfo.InvariantCulture, $"Refunded: -{Money(refunded)}");
+            detail.AppendLine(CultureInfo.InvariantCulture, $"Net: {Money(total - refunded)}");
         }
 
         AppDialog.Show("Sale Detail", detail.ToString(), monospace: true);
@@ -294,7 +299,7 @@ public class SalesHistoryViewModel : ViewModelBase
                 var type = item.IsRefund ? "Refund" : "Sale";
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{type},{item.ProductName},{item.BatchNumber},{item.Quantity},{item.UnitPrice}," +
                     // 값이 없는 거래는 빈칸이다. 0으로 채우면 재고가 0이었다는 뜻이 된다.
-                    $"{item.LineTotal},{item.StockBefore},{item.StockAfter}," +
+                    $"{item.LineTotal:0.00},{item.StockBefore},{item.StockAfter}," +
                     $"{item.PaymentMethod},{item.Username},{time:yyyy-MM-dd HH:mm}");
             }
 

@@ -680,7 +680,7 @@ public class ReportsViewModel : ViewModelBase
         AppendPeriodHeader(builder, report);
 
         builder.AppendLine("Summary,Current,Previous,Change");
-        builder.AppendLine(CultureInfo.InvariantCulture, $"Sales amount,{report.Current.Amount},{report.Previous.Amount},{report.AmountChange}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Sales amount,{report.Current.Amount:0.00},{report.Previous.Amount:0.00},{report.AmountChange}");
         builder.AppendLine(CultureInfo.InvariantCulture, $"Transactions,{report.Current.TransactionCount},{report.Previous.TransactionCount},{report.TransactionChange}");
         builder.AppendLine(CultureInfo.InvariantCulture, $"Units sold,{report.Current.ItemCount},{report.Previous.ItemCount},{report.ItemChange}");
         builder.AppendLine();
@@ -691,8 +691,8 @@ public class ReportsViewModel : ViewModelBase
         foreach (var row in Products)
         {
             builder.AppendLine(CultureInfo.InvariantCulture, $"{row.Rank},{Escape(row.ProductName)},{Escape(row.GenericName)},{Escape(row.Strength)}," +
-                $"{row.Quantity},{row.Amount},{Escape(row.AmountShare)}," +
-                $"{row.PreviousQuantity},{row.PreviousAmount},{Escape(row.AmountChange)}");
+                $"{row.Quantity},{row.Amount:0.00},{Escape(row.AmountShare)}," +
+                $"{row.PreviousQuantity},{row.PreviousAmount:0.00},{Escape(row.AmountChange)}");
         }
 
         // 성분별 항생제 매출. 항생제 파일에서 뺀 금액이 여기 있다 —
@@ -705,7 +705,7 @@ public class ReportsViewModel : ViewModelBase
         foreach (var row in Antibiotics)
         {
             builder.AppendLine(CultureInfo.InvariantCulture, $"{Escape(row.Ingredient)},{Escape(row.Strength)},{row.AwareGroup}," +
-                $"{row.Quantity},{row.Amount}");
+                $"{row.Quantity},{row.Amount:0.00}");
         }
 
         builder.AppendLine();
