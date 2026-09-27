@@ -293,8 +293,11 @@
                               Command="{Binding SellInPosCommand}"
                               IsEnabled="{Binding HasSelection}"/>
                     <Separator/>
-                    <MenuItem Header="View Product Details"
-                              Command="{Binding ViewProductDetailsCommand}"
+                    <!-- "View Details"가 아니라 "Go to Products"다. Products 화면의 같은 이름 메뉴는
+                         상품 상세로 들어가는데 이쪽은 상품 <b>목록</b>으로 넘어간다 —
+                         이름이 같으면 어디로 가는지 눌러 봐야 안다. -->
+                    <MenuItem Header="Go to Products"
+                              Command="{Binding GoToProductsCommand}"
                               IsEnabled="{Binding HasSelection}"/>
                     <MenuItem Header="Stock-in"
                               Command="{Binding StockInCommand}"

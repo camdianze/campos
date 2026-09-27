@@ -21,7 +21,7 @@ public partial class InventoryStatusView : UserControl
         InitializeComponent();
 
         var viewModel = BuildViewModel();
-        viewModel.NavigateToProductDetails += OnNavigateToProductDetails;
+        viewModel.NavigateToProducts += OnNavigateToProducts;
         viewModel.NavigateToPosSale += OnNavigateToPosSale;
 
         DataContext = viewModel;
@@ -113,7 +113,7 @@ public partial class InventoryStatusView : UserControl
     /// 고른 상품이 이미 선택된 채로 상품 목록 화면을 연다.
     /// ← Back으로 이 화면에 돌아올 수 있도록 진입 출처를 함께 넘긴다.
     /// </summary>
-    private void OnNavigateToProductDetails(string productId)
+    private void OnNavigateToProducts(string productId)
     {
         var parentWindow = System.Windows.Window.GetWindow(this) as MainWindow;
 

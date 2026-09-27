@@ -176,10 +176,10 @@ public class InventoryStatusViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 고른 것의 상품 목록 화면으로 넘어간다.
+    /// 고른 것을 선택한 채로 상품 목록 화면으로 넘어간다.
     /// 배치 행에서 눌러도 그 배치의 부모 상품이 대상이다 — 상품 정보는 배치가 아니라 상품에 있다.
     /// </summary>
-    private void ExecuteViewProductDetails()
+    private void ExecuteGoToProducts()
     {
         Message = string.Empty;
 
@@ -192,7 +192,7 @@ public class InventoryStatusViewModel : ViewModelBase
             return;
         }
 
-        NavigateToProductDetails?.Invoke(productId);
+        NavigateToProducts?.Invoke(productId);
     }
 
     /// <summary>
@@ -264,14 +264,18 @@ public class InventoryStatusViewModel : ViewModelBase
     public RelayCommand AdjustmentCommand { get; }
     public RelayCommand DeleteBatchCommand { get; }
 
-    /// <summary>우클릭 메뉴 전용. 고른 상품이 선택된 채로 상품 목록 화면을 연다.</summary>
-    public RelayCommand ViewProductDetailsCommand { get; }
+    /// <summary>
+    /// 우클릭 메뉴 전용. 고른 상품이 선택된 채로 <b>상품 목록</b> 화면을 연다.
+    /// Products 화면의 View Details(상품 상세로 들어감)와 도착지가 다르므로
+    /// 메뉴도 이름도 "Go to Products"다.
+    /// </summary>
+    public RelayCommand GoToProductsCommand { get; }
 
     /// <summary>우클릭 메뉴 전용. 고른 상품을 들고 판매 화면으로 넘어간다.</summary>
     public RelayCommand SellInPosCommand { get; }
 
     /// <summary>상품 목록 화면으로 넘어가 달라는 요청(상품 ID). 화면 전환은 코드 비하인드가 한다.</summary>
-    public event Action<string>? NavigateToProductDetails;
+    public event Action<string>? NavigateToProducts;
 
     /// <summary>판매 화면으로 넘어가 달라는 요청(상품 ID).</summary>
     public event Action<string>? NavigateToPosSale;
@@ -290,7 +294,7 @@ public class InventoryStatusViewModel : ViewModelBase
         _userId = userId;
 
         ViewDetailCommand = new RelayCommand(_ => ExecuteViewDetail());
-        ViewProductDetailsCommand = new RelayCommand(_ => ExecuteViewProductDetails());
+        GoToProductsCommand = new RelayCommand(_ => ExecuteGoToProducts());
         SellInPosCommand = new RelayCommand(_ => ExecuteSellInPos());
         StockInCommand = new RelayCommand(_ => ExecuteOpenStockInPanel());
         AdjustmentCommand = new RelayCommand(_ => ExecuteOpenAdjustmentPanel());
