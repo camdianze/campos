@@ -261,17 +261,19 @@
                     <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding Status}"
                               Style="{StaticResource FieldCombo}"/>
 
-                    <!-- 포장과 낱개 판매는 별개다.
-                         박스당 개수는 제조사가 정한 사실이라 언제나 보인다 — 낱개로 팔지
-                         않아도 재고는 그 단위로 세어진다(48정 = 4박스 + 8정).
-                         체크를 켜야 의미를 갖는 것은 낱개가와 낱개 바코드뿐이다. -->
-                    <TextBlock Text="PACKAGING" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
+                    <!-- 한 구역으로 둔다. 박스당 개수는 체크를 켜기 전에 정해야 하는
+                         값이라 바로 위에 있는 것이 읽는 순서와 맞는다.
+                         다만 체크에 따라 <b>숨기지는 않는다</b> — 낱개로 팔지 않아도
+                         재고는 그 단위로 세어지고(48정 = 4박스 + 8정), 숨겨 두었을 때
+                         재고 화면은 박스로 세는데 상품 화면에는 박스 얘기가 한 줄도
+                         없는 상태가 됐다. -->
+                    <TextBlock Text="LOOSE UNITS" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
 
                     <TextBlock Text="{Binding UnitsPerBoxLabel}" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource Field}"/>
                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
-                               Text="How many the manufacturer puts in one box. 1 means it does not come in boxes. Stock is counted in boxes and loose pieces from this."/>
+                               Text="How many the manufacturer puts in one box. 1 means it does not come in boxes. Stock is counted in boxes and loose pieces from this, whether or not you sell them singly."/>
 
                     <!-- 끄고 켜는 것은 언제나 된다. 박스당 개수가 없다고 잠가 두면,
                          켜려는 사람은 위 칸부터 채워야 한다는 걸 알 길이 없다 —
