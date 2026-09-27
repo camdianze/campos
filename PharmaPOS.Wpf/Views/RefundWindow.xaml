@@ -58,7 +58,7 @@
                 <!-- 이미 환불된 몫을 뺀 "지금 되돌릴 수 있는 최대" — 입력 한도가 그대로 보여야
                      계산대에서 숫자가 잘려 나갈 때 왜 그런지 알 수 있다. -->
                 <DataGridTextColumn Header="Refundable" Binding="{Binding RemainingQuantity}" Width="80" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Price"      Binding="{Binding UnitPrice, StringFormat={}{0:0.00##}}" Width="70" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Price"      Binding="{Binding UnitPrice, StringFormat={}{0:N2}}" Width="70" IsReadOnly="True"/>
 
                 <!-- 한 번 눌러 바로 고칠 수 있게 템플릿 컬럼으로 둔다.
                      기본 DataGridTextColumn은 셀을 두 번 눌러야 편집으로 들어간다. -->

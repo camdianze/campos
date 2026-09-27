@@ -189,8 +189,7 @@ public class ProductEditViewModel : ViewModelBase
                 && NumberInput.TryParseInt(UnitsPerBox, out var perBox)
                 && perBox > 1)
             {
-                var share = decimal.Round(boxPrice / perBox,
-                    Product.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero);
+                var share = decimal.Round(boxPrice / perBox, 2, MidpointRounding.AwayFromZero);
 
                 return $"Required. The box works out at {share} per {UnitLabel} "
                      + $"({boxPrice} ÷ {perBox}) — loose is usually sold for more.";
@@ -274,6 +273,14 @@ public class ProductEditViewModel : ViewModelBase
             _showRiel = false;
         }
 
+        // 리엘로 정해진 상품은 리엘로 연다. 약국이 정한 값이 8,000리엘인데 칸에
+        // $1.9512가 떠 있으면, 자기가 정한 가격을 알아볼 수 없다 — 달러는 장부를
+        // 위한 파생값이지 이 약국이 가격을 정하는 단위가 아니다.
+        if (IsRielAvailable && _enteredInRiel.Count > 0 && !_isRielInput)
+        {
+            SwitchCurrency(toRiel: true);
+        }
+
         OnPropertyChanged(nameof(IsRielAvailable));
         OnPropertyChanged(nameof(ExchangeRateNote));
         RaisePriceHintsChanged();
@@ -324,8 +331,13 @@ public class ProductEditViewModel : ViewModelBase
         if (toRiel)
         {
             usd = current.Trim();
-            riel = RielConverter.ToRiel(value, _exchangeRate, _rielRounding)
-                .ToString(CultureInfo.InvariantCulture);
+
+            // 적어 넣었던 금액이 있으면 환산하지 않는다. 환율이 그 사이 바뀌었으면
+            // 환산값은 약국이 정한 가격과 다르다 — 8,000이 7,800으로 보이게 된다.
+            riel = EnteredRielFor(field, current) is { } entered
+                ? NumberInput.ToText(entered)
+                : RielConverter.ToRiel(value, _exchangeRate, _rielRounding)
+                    .ToString(CultureInfo.InvariantCulture);
         }
         else
         {
@@ -430,7 +442,7 @@ public class ProductEditViewModel : ViewModelBase
         if (_isRielInput)
         {
             return "= $" + decimal.Round(value / _exchangeRate, ProductService.LooseUnitPriceDecimals,
-                MidpointRounding.AwayFromZero).ToString("0.00##", CultureInfo.InvariantCulture);
+                MidpointRounding.AwayFromZero).ToString("N2", CultureInfo.InvariantCulture);
         }
 
         // 리엘로 적어 넣은 가격이면 <b>그때 적은 금액</b>을 그대로 보여준다.
