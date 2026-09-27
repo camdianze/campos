@@ -261,25 +261,28 @@
                     <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding Status}"
                               Style="{StaticResource FieldCombo}"/>
 
-                    <!-- 소분 판매. 이 체크를 켜야 아래 세 가지(박스당 개수·낱개가·낱개 바코드)가
-                         의미를 갖는다. 꺼 두면 박스당 1개짜리 상품으로 저장돼 종전과 똑같이 동작한다.
-                         오른쪽 단의 맨 아래에 둔다. -->
-                    <TextBlock Text="LOOSE UNITS" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
+                    <!-- 포장과 낱개 판매는 별개다.
+                         박스당 개수는 제조사가 정한 사실이라 언제나 보인다 — 낱개로 팔지
+                         않아도 재고는 그 단위로 세어진다(48정 = 4박스 + 8정).
+                         체크를 켜야 의미를 갖는 것은 낱개가와 낱개 바코드뿐이다. -->
+                    <TextBlock Text="PACKAGING" Style="{StaticResource SectionHeader}" Margin="0,10,0,8"/>
+
+                    <TextBlock Text="{Binding UnitsPerBoxLabel}" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource Field}"/>
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
+                               Text="How many the manufacturer puts in one box. 1 means it does not come in boxes. Stock is counted in boxes and loose pieces from this."/>
 
                     <CheckBox Content="Sell loose units"
-                              IsChecked="{Binding SellsLooseUnits}"/>
-                    <!-- 재고는 파는 단위의 개수다. 켜는 순간 지금까지의 10개는 10박스가 되므로 그 사실을 미리 말해 둔다. -->
+                              IsChecked="{Binding SellsLooseUnits}"
+                              IsEnabled="{Binding CanSellLooseUnits}"/>
                     <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
-                               Text="Stock on hand is counted as boxes: 10 in stock becomes 10 boxes when this is switched on."/>
+                               Text="{Binding LooseSaleHint}"/>
 
                     <Border Visibility="{Binding SellsLooseUnits, Converter={StaticResource BoolToVis}}"
                             Background="{StaticResource SubtleSurfaceBrush}" CornerRadius="8"
                             Padding="14,12" Margin="0,8,0,0">
                         <StackPanel>
-                            <TextBlock Text="{Binding UnitsPerBoxLabel}" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding UnitsPerBox, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource Field}"/>
-
                             <TextBlock Text="Loose Unit Price * (max 4 decimals)" Style="{StaticResource FieldLabel}"/>
                             <Grid Margin="0,0,0,2">
                                 <Grid.ColumnDefinitions>

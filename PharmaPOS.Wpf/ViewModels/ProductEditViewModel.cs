@@ -126,10 +126,20 @@ public class ProductEditViewModel : ViewModelBase
         get => _unitsPerBox;
         set
         {
-            if (SetProperty(ref _unitsPerBox, value))
+            if (!SetProperty(ref _unitsPerBox, value))
             {
-                RaiseLooseUnitHints();
+                return;
             }
+
+            // 박스에 하나뿐이면 헐 것이 없다. 체크만 남겨 두면 저장할 때
+            // "박스당 개수를 적으라"고 막히는데, 그 칸은 방금 사람이 적은 값이라
+            // 무엇을 고치라는 것인지 알 수 없다.
+            if (!CanSellLooseUnits && _sellsLooseUnits)
+            {
+                SellsLooseUnits = false;
+            }
+
+            RaiseLooseUnitHints();
         }
     }
 
@@ -201,7 +211,7 @@ public class ProductEditViewModel : ViewModelBase
 
     /// <summary>위쪽 원가·판매가가 어느 단위 기준인지 알려 준다. 이게 혼동의 핵심이었다.</summary>
     public string BoxPriceHint =>
-        SellsLooseUnits
+        CanSellLooseUnits
             ? "Cost price and selling price above are for one box."
             : $"Cost price and selling price above are for one {UnitLabel}.";
 
@@ -217,6 +227,8 @@ public class ProductEditViewModel : ViewModelBase
         OnPropertyChanged(nameof(UnitPriceHint));
         OnPropertyChanged(nameof(BoxPriceHint));
         OnPropertyChanged(nameof(UnitsPerBoxLabel));
+        OnPropertyChanged(nameof(CanSellLooseUnits));
+        OnPropertyChanged(nameof(LooseSaleHint));
     }
 
     // ── 통화 ────────────────────────────────────────────────────────────────
@@ -468,7 +480,18 @@ public class ProductEditViewModel : ViewModelBase
     }
 
     /// <summary>"Sachets Per Box"처럼 제형 이름을 넣어 준다.</summary>
-    public string UnitsPerBoxLabel => $"{UnitLabel}s Per Box *";
+    public string UnitsPerBoxLabel => $"{UnitLabel}s Per Box";
+
+    /// <summary>
+    /// 낱개 판매를 켤 수 있는지. 박스에 둘 이상 들어 있어야 헐 것이 있다.
+    /// </summary>
+    public bool CanSellLooseUnits =>
+        NumberInput.TryParseInt(UnitsPerBox, out var perBox) && perBox > 1;
+
+    /// <summary>체크박스 아래 한 줄. 켤 수 없는 상태라면 왜인지 말한다.</summary>
+    public string LooseSaleHint => CanSellLooseUnits
+        ? $"Break a box open and sell single {UnitLabel}s. Needs a price of its own."
+        : $"Set how many {UnitLabel}s are in a box (2 or more) to sell them singly.";
 
     public string ProductName
     {
