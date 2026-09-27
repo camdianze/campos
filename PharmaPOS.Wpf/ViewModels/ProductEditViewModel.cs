@@ -107,10 +107,23 @@ public class ProductEditViewModel : ViewModelBase
                 return;
             }
 
-            // 켜는 순간 1이 남아 있으면 "낱개로 파는데 박스당 1개"라는 모순이 된다.
+            // 켜는 순간 1이 남아 있으면 "낱개로 파는데 박스당 1개"라는 모순이므로 비운다.
+            //
+            // 비우는 동안 플래그를 세우는 것이 중요하다. UnitsPerBox 세터에는 "2 미만이면
+            // 낱개 판매를 끈다"는 규칙이 있어서, 그냥 비우면 방금 켠 체크가 그 자리에서
+            // 도로 꺼진다 — 화면에서는 체크가 아예 켜지지 않는 것으로 보인다.
             if (value && _unitsPerBox is "1" or "")
             {
-                UnitsPerBox = string.Empty;
+                _isClearingUnitsPerBox = true;
+
+                try
+                {
+                    UnitsPerBox = string.Empty;
+                }
+                finally
+                {
+                    _isClearingUnitsPerBox = false;
+                }
             }
 
             FillLoosePriceSuggestion();
@@ -133,10 +146,10 @@ public class ProductEditViewModel : ViewModelBase
                 return;
             }
 
-            // 박스에 하나뿐이면 헐 것이 없다. 체크만 남겨 두면 저장할 때
-            // "박스당 개수를 적으라"고 막히는데, 그 칸은 방금 사람이 적은 값이라
-            // 무엇을 고치라는 것인지 알 수 없다.
-            if (!CanSellLooseUnits && _sellsLooseUnits)
+            // 박스에 하나뿐이면 헐 것이 없으므로 낱개 판매도 끈다.
+            // 단, 체크를 켜면서 이 칸을 비우는 중이라면 끄지 않는다 — 그 경우의 빈 칸은
+            // "아직 안 적었다"는 뜻이지 "박스에 하나뿐"이라는 뜻이 아니다.
+            if (!_isClearingUnitsPerBox && !CanSellLooseUnits && _sellsLooseUnits)
             {
                 SellsLooseUnits = false;
             }
@@ -230,6 +243,9 @@ public class ProductEditViewModel : ViewModelBase
 
     /// <summary>채워 넣는 중. 그 사이의 변경은 "사람이 고쳤다"로 세지 않는다.</summary>
     private bool _isFillingLoosePrice;
+
+    /// <summary>체크를 켜면서 박스당 개수 칸을 비우는 중. 그 빈 칸으로 체크를 끄지 않는다.</summary>
+    private bool _isClearingUnitsPerBox;
 
     /// <summary>
     /// 낱개가 칸 아래 줄. 비어 있으면 참고할 값을 <b>알려주기만</b> 한다 — 예전처럼
