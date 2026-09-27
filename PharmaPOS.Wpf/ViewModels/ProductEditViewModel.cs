@@ -769,13 +769,26 @@ public class ProductEditViewModel : ViewModelBase
             return;
         }
 
-        // 낱개 판매를 끄면 박스/낱개 구분이 없는 상품이다 — 박스당 1개, 낱개가 없음.
+        // 박스당 개수는 낱개 판매와 무관하게 읽는다. 포장은 제조사가 정한 사실이고
+        // 재고가 그 단위로 세어지므로, 낱개로 팔지 않는다고 1로 덮어쓰면 안 된다.
+        //
+        // 한동안 체크가 켜져 있을 때만 읽었다. 그때는 둘이 같은 값이었으니 맞았지만,
+        // 둘을 나눈 뒤로는 낱개 판매가 꺼진 상품을 열어 저장하기만 해도 박스당 개수가
+        // 10에서 1이 됐다 — 그리고 ProductService가 그 변화를 보고 재고를 다시 셌다.
+        // 아무것도 고치지 않았는데 48정이 48박스가 되는 종류의 사고다.
         var unitsPerBox = 1;
         decimal? unitSellingPrice = null;
 
+        if (!string.IsNullOrWhiteSpace(UnitsPerBox)
+            && (!NumberInput.TryParseInt(UnitsPerBox, out unitsPerBox) || unitsPerBox < 1))
+        {
+            Message = $"{UnitLabel}s per box must be a whole number (1 if it does not come in boxes).";
+            return;
+        }
+
         if (SellsLooseUnits)
         {
-            if (!NumberInput.TryParseInt(UnitsPerBox, out unitsPerBox) || unitsPerBox < 2)
+            if (unitsPerBox < 2)
             {
                 Message = $"Enter how many {UnitLabel}s are in one box (2 or more).";
                 return;
