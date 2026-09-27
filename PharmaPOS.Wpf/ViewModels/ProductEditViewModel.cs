@@ -358,7 +358,11 @@ public class ProductEditViewModel : ViewModelBase
                 return loaded.Khr;
             }
 
-            return NumberInput.TryParseDecimal(text, out var typed) && typed > 0 ? typed : null;
+            // 적어 넣은 리엘도 실제로 낼 수 있는 단위로 맞춘다. 4,037리엘짜리
+            // 가격은 정할 수가 없다 — 100리엘 미만 동전이 돌지 않는다.
+            return NumberInput.TryParseDecimal(text, out var typed) && typed > 0
+                ? RielConverter.RoundToPayable(typed, _rielRounding)
+                : null;
         }
 
         return EnteredRielFor(field, text);
@@ -384,7 +388,10 @@ public class ProductEditViewModel : ViewModelBase
             return text;
         }
 
-        return NumberInput.ToText(decimal.Round(riel / _exchangeRate,
+        // 낼 수 있는 단위로 맞춘 뒤 환산한다. 저장되는 달러는 그 리엘 금액에서 나온 값이다.
+        var payable = RielConverter.RoundToPayable(riel, _rielRounding);
+
+        return NumberInput.ToText(decimal.Round(payable / _exchangeRate,
             ProductService.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero));
     }
 

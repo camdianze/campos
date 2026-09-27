@@ -55,15 +55,16 @@ public class InitialImportService : IInitialImportService
     /// 칸은 환산할 방법이 없으므로 그 행이 오류로 빠진다 — 4,000을 4,000달러로
     /// 저장하는 것보다 낫다.
     /// </summary>
-    private async Task<decimal> ReadExchangeRateAsync()
+    private async Task<(decimal Rate, int Rounding)> ReadCurrencyAsync()
     {
         try
         {
-            return (await _receiptSettingsService.GetAsync()).ExchangeRate;
+            var settings = await _receiptSettingsService.GetAsync();
+            return (settings.ExchangeRate, settings.RielRounding);
         }
         catch (Exception)
         {
-            return 0m;
+            return (0m, 0);
         }
     }
 
@@ -116,7 +117,8 @@ public class InitialImportService : IInitialImportService
             .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
         var existingByBarcode = BuildBarcodeIndex(existingProducts);
-        var priceFormat = new ImportPriceFormat(priceCurrency, await ReadExchangeRateAsync());
+        var currency = await ReadCurrencyAsync();
+        var priceFormat = new ImportPriceFormat(priceCurrency, currency.Rate, currency.Rounding);
 
         // 환율 없이 리엘로 읽으라고 하면 가격이 있는 행이 하나도 남김없이 같은
         // 이유로 실패한다. 그 목록을 보여 주느니 파일을 열기 전에 세운다.

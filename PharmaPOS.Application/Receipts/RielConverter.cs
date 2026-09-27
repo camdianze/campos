@@ -14,6 +14,18 @@ public static class RielConverter
     public const string RielSymbol = "៛";
 
     /// <summary>
+    /// 리엘 금액을 실제로 주고받을 수 있는 단위로 맞춘다.
+    ///
+    /// <b>가격을 정할 때</b> 쓴다 — 4,037리엘짜리 가격은 낼 방법이 없으므로 4,000이
+    /// 되어야 한다. 환산 결과를 다듬는 <see cref="ToRiel"/>와 같은 규칙을 쓴다.
+    /// 두 곳이 다른 단위로 끊으면 정해 둔 가격과 계산대가 부르는 금액이 어긋난다.
+    /// </summary>
+    public static decimal RoundToPayable(decimal riel, int unit) =>
+        unit > 0
+            ? Math.Round(riel / unit, MidpointRounding.AwayFromZero) * unit
+            : Math.Round(riel, MidpointRounding.AwayFromZero);
+
+    /// <summary>
     /// unit이 0보다 크면 그 단위로 반올림하고, 아니면 1리엘 단위로 반올림한다.
     /// </summary>
     public static long ToRiel(decimal usd, decimal rate, int unit)

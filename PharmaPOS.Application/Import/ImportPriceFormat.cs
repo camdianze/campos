@@ -37,10 +37,17 @@ public sealed class ImportPriceFormat
     /// <summary>1달러가 몇 리엘인지. 0이면 설정되지 않은 것이다.</summary>
     public decimal ExchangeRate { get; }
 
-    public ImportPriceFormat(ImportPriceCurrency defaultCurrency, decimal exchangeRate)
+    /// <summary>
+    /// 리엘 가격을 맞출 단위(currency.rounding). 캄보디아는 소액 동전이 돌지 않아
+    /// 100리엘 미만은 주고받을 방법이 없다 — 4,037리엘짜리 가격은 정할 수가 없다.
+    /// </summary>
+    public int RielRounding { get; }
+
+    public ImportPriceFormat(ImportPriceCurrency defaultCurrency, decimal exchangeRate, int rielRounding = 0)
     {
         DefaultCurrency = defaultCurrency;
         ExchangeRate = exchangeRate;
+        RielRounding = rielRounding;
     }
 
     /// <summary>
@@ -113,6 +120,9 @@ public sealed class ImportPriceFormat
             return true;
         }
 
+        // 실제로 낼 수 있는 단위로 맞춘 뒤에 환산한다. 순서가 중요하다 —
+        // 환산부터 하면 달러가 맞출 수 없는 리엘 금액에서 나온 값이 된다.
+        value = Receipts.RielConverter.RoundToPayable(value, RielRounding);
         riel = value;
 
         // 리엘로 적혀 있는데 환율이 없으면 환산할 방법이 없다. 4,000을 4,000달러로

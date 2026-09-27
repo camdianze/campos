@@ -69,6 +69,60 @@ public class RielPriceMemoryTests
         Assert.Null(riel);
     }
 
+    // ── 낼 수 있는 금액으로 정해진다 ────────────────────────────────────────
+    //
+    // 캄보디아는 100리엘 미만 동전이 돌지 않는다. 4,037리엘짜리 가격은 정할 수가 없고,
+    // 그런 값을 저장해 두면 계산대에서 부르는 금액과 정해 둔 가격이 언제나 어긋난다.
+
+    [Theory]
+    [InlineData("4000", 4000)]     // 이미 맞는 값은 그대로
+    [InlineData("4037", 4000)]
+    [InlineData("4060", 4100)]
+    [InlineData("8000", 8000)]
+    [InlineData("7950", 8000)]
+    public void ARielPrice_IsRoundedToWhatCanBePaid(string cell, decimal expected)
+    {
+        var format = new ImportPriceFormat(ImportPriceCurrency.Riel, 4100m, rielRounding: 100);
+
+        Assert.True(format.TryRead(cell, out _, out var riel, out _));
+        Assert.Equal(expected, riel);
+    }
+
+    /// <summary>
+    /// 맞춘 <b>뒤에</b> 환산한다. 순서가 반대면 달러가 낼 수 없는 리엘 금액에서
+    /// 나온 값이 되고, 계산대가 그 달러를 되돌릴 때 정해 둔 가격과 달라진다.
+    /// </summary>
+    [Fact]
+    public void TheDollarComesFromTheRoundedRiel()
+    {
+        var format = new ImportPriceFormat(ImportPriceCurrency.Riel, 4100m, rielRounding: 100);
+
+        Assert.True(format.TryRead("4037", out var usd, out var riel, out _));
+
+        Assert.Equal(4000m, riel);
+        Assert.Equal(0.9756m, usd);        // 4,000 / 4,100 — 4,037이 아니다
+    }
+
+    /// <summary>
+    /// 환율이 그대로인 동안에는 손님이 정확히 정해 둔 금액을 낸다.
+    /// 계산대는 달러 합계를 리엘로 되돌려 100단위로 맞추는데, 가격이 이미 100단위라
+    /// 그 되돌림이 원래 값으로 떨어진다.
+    /// </summary>
+    [Theory]
+    [InlineData(1, 4000)]
+    [InlineData(3, 12000)]
+    [InlineData(10, 40000)]
+    public void AtTheSameRate_TheCustomerPaysExactlyThePriceThatWasSet(int quantity, long expected)
+    {
+        var format = new ImportPriceFormat(ImportPriceCurrency.Riel, 4100m, rielRounding: 100);
+        Assert.True(format.TryRead("4000", out var usd, out _, out _));
+
+        // 줄 금액은 센트에서 끊긴다(SaleLineItem과 같은 규칙).
+        var lineTotal = decimal.Round(usd * quantity, 2, MidpointRounding.AwayFromZero);
+
+        Assert.Equal(expected, PharmaPOS.Application.Receipts.RielConverter.ToRiel(lineTotal, 4100m, 100));
+    }
+
     /// <summary>
     /// 이것이 문제의 핵심이다. 저장된 달러를 오늘 환율로 되돌리면 적어 넣은 값과
     /// 달라진다 — 그래서 되돌리지 않고 적어 넣은 값을 보여주는 것이다.
