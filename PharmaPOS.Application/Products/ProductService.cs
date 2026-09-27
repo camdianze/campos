@@ -161,6 +161,13 @@ public class ProductService : IProductService
 
         var excludeProductId = isNewProduct ? null : product.ProductId;
 
+        // 이미 저장돼 있는 값. 아래 INT- 검사가 이 값을 알아야 한다 — 그 검사는
+        // 사람이 <b>새로 치는</b> 값을 겨냥한 것인데, 상품 화면은 발급받은 코드를
+        // 칸에 채워서 열기 때문에 구별하지 않으면 기존 상품이 통째로 저장되지 않는다.
+        var storedInternalBarcode = isNewProduct
+            ? null
+            : (await _productRepository.GetByIdAsync(product.ProductId))?.InternalBarcode;
+
         // 제조사 바코드 중복 확인 (자기 자신은 제외)
         if (!string.IsNullOrWhiteSpace(product.Barcode))
         {
@@ -189,7 +196,16 @@ public class ProductService : IProductService
                     + "— that ending is what marks a loose unit.");
             }
 
-            if (product.InternalBarcode.StartsWith(Product.GeneratedBarcodePrefix, StringComparison.OrdinalIgnoreCase))
+            // 발급받은 코드를 그대로 두고 저장하는 것은 막지 않는다. 막는 것은
+            // 사람이 INT- 번호를 <b>새로 지어내는</b> 경우다 — 채번이 언젠가 그 번호에
+            // 닿아 저장이 거절되는데, 그때 원인은 몇 달 전에 만들어진 셈이라
+            // 현장에서 알 길이 없다.
+            var keptTheIssuedCode = storedInternalBarcode is not null
+                && string.Equals(product.InternalBarcode, storedInternalBarcode.Trim(),
+                    StringComparison.OrdinalIgnoreCase);
+
+            if (!keptTheIssuedCode
+                && product.InternalBarcode.StartsWith(Product.GeneratedBarcodePrefix, StringComparison.OrdinalIgnoreCase))
             {
                 return ProductSaveResult.Failure(
                     $"Internal barcode cannot start with {Product.GeneratedBarcodePrefix} "

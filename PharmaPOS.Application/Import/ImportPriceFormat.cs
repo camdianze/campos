@@ -141,6 +141,36 @@ public sealed class ImportPriceFormat
         return true;
     }
 
+    /// <summary>
+    /// 박스가에서 낱개가를 뽑아낸다. 약국이 "낱개가는 박스가 ÷ 개수를 100리엘
+    /// 단위로 올린 값"이라고 <b>정한 경우에만</b> 쓰인다 — 임포트 화면에서 켜야 돈다.
+    ///
+    /// 앱이 계산대에서 몰래 하던 것과 결과는 같지만 성질이 다르다. 여기서 나온 값은
+    /// 상품에 저장돼 화면에 보이고 고칠 수 있으며, 미리보기가 몇 건이 이렇게 들어가는지
+    /// 먼저 말한다. 판매 시점에 만들어지는 값은 하나도 없다.
+    /// </summary>
+    public bool TryAssumeLoosePrice(decimal boxPriceUsd, int unitsPerBox, out decimal usd, out decimal riel)
+    {
+        usd = 0m;
+        riel = 0m;
+
+        if (ExchangeRate <= 0 || boxPriceUsd <= 0 || unitsPerBox < 2)
+        {
+            return false;
+        }
+
+        // 리엘로 나누고 리엘로 올린다. 달러에서 나누면 낼 수 없는 금액이 나온다.
+        riel = RoundUpToPayableRiel(boxPriceUsd * ExchangeRate / unitsPerBox);
+
+        usd = decimal.Round(riel / ExchangeRate,
+            Domain.Entities.Product.LooseUnitPriceDecimals, MidpointRounding.AwayFromZero);
+
+        return usd > 0;
+    }
+
+    private decimal RoundUpToPayableRiel(decimal riel) =>
+        Receipts.RielConverter.RoundUpToPayable(riel, RielRounding);
+
     private static bool TryStrip(ref string text, string marker)
     {
         if (text.StartsWith(marker, StringComparison.OrdinalIgnoreCase))

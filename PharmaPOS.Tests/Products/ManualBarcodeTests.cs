@@ -141,6 +141,75 @@ public class ManualBarcodeTests
     }
 
     /// <summary>
+    /// 발급받은 코드를 그대로 두고 저장하는 것은 막지 않는다.
+    ///
+    /// 여기서 한 번 틀렸었다. 상품 화면은 발급받은 INT- 코드를 칸에 채워서 열기 때문에,
+    /// 사람이 새로 친 값과 구별하지 않으면 <b>자동 발급을 받은 상품은 전부 저장이
+    /// 막힌다</b> — 아무것도 고치지 않고 Save만 눌러도 거절된다.
+    /// </summary>
+    [Fact]
+    public async Task KeepingAnIssuedInternalBarcode_IsAllowedOnEdit()
+    {
+        _repository.Existing.Add(new Product
+        {
+            ProductId = "p1",
+            ProductName = "Amoxil 500mg Capsule",
+            Unit = "Capsule",
+            Manufacturer = "Maker A",
+            InternalBarcode = "INT-00000001",
+            UnitsPerBox = 30,
+            SellsLooseUnits = true,
+            UnitSellingPrice = 0.50m,
+            CostPrice = 3.00m,
+            SellingPrice = 9.00m,
+            SafetyStockLevel = 0,
+            Status = EntityStatus.Active,
+            CreatedAt = 0
+        });
+
+        var product = Boxed();
+        product.ProductId = "p1";
+        product.InternalBarcode = "INT-00000001";     // 칸에 들어 있던 그대로
+
+        var result = await Service().SaveProductAsync(product, isNewProduct: false, userId: "user-1");
+
+        Assert.True(result.IsSuccess, result.Message);
+    }
+
+    /// <summary>
+    /// 그래도 <b>새로</b> 지어낸 INT- 번호는 막는다. 채번이 언젠가 그 번호에 닿는다.
+    /// </summary>
+    [Fact]
+    public async Task TypingADifferentIssuedLookingNumber_IsStillRefused()
+    {
+        _repository.Existing.Add(new Product
+        {
+            ProductId = "p1",
+            ProductName = "Amoxil 500mg Capsule",
+            Unit = "Capsule",
+            Manufacturer = "Maker A",
+            InternalBarcode = "INT-00000001",
+            UnitsPerBox = 30,
+            SellsLooseUnits = true,
+            UnitSellingPrice = 0.50m,
+            CostPrice = 3.00m,
+            SellingPrice = 9.00m,
+            SafetyStockLevel = 0,
+            Status = EntityStatus.Active,
+            CreatedAt = 0
+        });
+
+        var product = Boxed();
+        product.ProductId = "p1";
+        product.InternalBarcode = "INT-00000200";     // 손으로 지어낸 번호
+
+        var result = await Service().SaveProductAsync(product, isNewProduct: false, userId: "user-1");
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("INT-", result.Message);
+    }
+
+    /// <summary>
     /// 다른 상품이 <b>제조사</b> 바코드로 쓰고 있는 값도 막는다. 스캐너는 그 코드가
     /// 어느 칸에 들어 있는지 모르고 찍으므로, 칸별로 따로 보면 찍었을 때 어느 상품이
     /// 잡히는지 알 수 없는 상태가 만들어진다.

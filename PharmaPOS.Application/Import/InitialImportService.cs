@@ -86,7 +86,8 @@ public class InitialImportService : IInitialImportService
 
     public async Task<ProductImportPlan> PlanProductsAsync(
         IReadOnlyList<ImportSourceRow> rows,
-        ImportPriceCurrency priceCurrency = ImportPriceCurrency.Usd)
+        ImportPriceCurrency priceCurrency = ImportPriceCurrency.Usd,
+        bool assumeLoosePrices = false)
     {
         var headerError = ValidateHeaders(rows, InitialImportColumns.RequiredForProducts);
 
@@ -117,6 +118,7 @@ public class InitialImportService : IInitialImportService
             .ToDictionary(g => g.Key, g => g.ToList(), InitialImportColumns.ProductNameComparer);
 
         var existingByBarcode = BuildBarcodeIndex(existingProducts);
+        var assumedLoosePrices = 0;
         var currency = await ReadCurrencyAsync();
         var priceFormat = new ImportPriceFormat(priceCurrency, currency.Rate, currency.Rounding);
 
@@ -189,7 +191,8 @@ public class InitialImportService : IInitialImportService
 
             if (existing is not null)
             {
-                var merged = MergeProduct(existing, row, priceFormat, out var hasChanges, out var mergeError);
+                var merged = MergeProduct(existing, row, priceFormat, assumeLoosePrices,
+                                          out var hasChanges, out var mergeError);
 
                 if (merged is null)
                 {
@@ -202,6 +205,11 @@ public class InitialImportService : IInitialImportService
                     // 상품명만 적힌 행(배치를 적으러 온 행)은 고칠 것이 없다.
                     unchanged.Add(productName);
                     continue;
+                }
+
+                if (WasLoosePriceAssumed(row, merged, existing))
+                {
+                    assumedLoosePrices++;
                 }
 
                 toUpdate.Add(new ProductImportLine { LineNumber = row.LineNumber, Product = merged });
@@ -219,12 +227,17 @@ public class InitialImportService : IInitialImportService
                 continue;
             }
 
-            var product = BuildProduct(row, productName, priceFormat, out var error);
+            var product = BuildProduct(row, productName, priceFormat, assumeLoosePrices, out var error);
 
             if (product is null)
             {
                 issues.Add(new ImportIssue(row.LineNumber, error!));
                 continue;
+            }
+
+            if (WasLoosePriceAssumed(row, product))
+            {
+                assumedLoosePrices++;
             }
 
             toCreate.Add(new ProductImportLine { LineNumber = row.LineNumber, Product = product });
@@ -238,6 +251,7 @@ public class InitialImportService : IInitialImportService
             ProductsToUpdate = toUpdate,
             DuplicateRowCount = duplicateRowCount,
             UnchangedNames = unchanged,
+            AssumedLoosePriceCount = assumedLoosePrices,
             Issues = issues
         };
     }
@@ -369,7 +383,8 @@ public class InitialImportService : IInitialImportService
 
     /// <summary>한 행을 새 상품으로 바꾼다. 값이 잘못됐으면 null과 사유를 돌려준다.</summary>
     private static Product? BuildProduct(
-        ImportSourceRow row, string productName, ImportPriceFormat priceFormat, out string? error)
+        ImportSourceRow row, string productName, ImportPriceFormat priceFormat,
+        bool assumeLoosePrices, out string? error)
     {
         // 아래 값들은 신규 상품에만 요구한다. 기존 상품을 고치는 행에는 없어도 된다.
         var unit = row.Get(InitialImportColumns.Unit);
@@ -409,7 +424,8 @@ public class InitialImportService : IInitialImportService
         }
 
         if (!TryReadSafetyStock(row, out var safetyStock, out error)
-            || !TryReadLooseSale(row, priceFormat, out var looseSale, out error)
+            || !TryReadLooseSale(row, priceFormat, sellingPrice, assumeLoosePrices,
+                                 out var looseSale, out error)
             || !TryReadStatus(row, out var status, out error)
             || !TryReadDosageForm(row, out var dosageForm, out error))
         {
@@ -455,7 +471,7 @@ public class InitialImportService : IInitialImportService
     /// </summary>
     /// <param name="hasChanges">실제로 바뀐 값이 있는지. 없으면 저장할 이유가 없다.</param>
     private static Product? MergeProduct(
-        Product existing, ImportSourceRow row, ImportPriceFormat priceFormat,
+        Product existing, ImportSourceRow row, ImportPriceFormat priceFormat, bool assumeLoosePrices,
         out bool hasChanges, out string? error)
     {
         hasChanges = false;
@@ -534,7 +550,8 @@ public class InitialImportService : IInitialImportService
             changed = true;
         }
 
-        if (!TryReadLooseSale(row, priceFormat, out var looseSale, out error))
+        if (!TryReadLooseSale(row, priceFormat, sellingPrice ?? merged.SellingPrice, assumeLoosePrices,
+                              out var looseSale, out error))
         {
             return null;
         }
@@ -550,7 +567,14 @@ public class InitialImportService : IInitialImportService
             // 낱개가는 파일이 실제로 적었을 때만 덮어쓴다. 비어 있다고 지워 버리면
             // 박스당 개수만 고치러 온 행이 저장돼 있던 낱개가를 날린다 — 임포트는
             // 값을 비울 수 없다는 규칙이 여기에도 걸린다.
-            if (looseSale.LooseUnitPrice is { } loosePrice && loosePrice != merged.UnitSellingPrice)
+            // 계산해서 나온 값은 <b>이미 정해 둔 가격을 절대 덮지 않는다.</b> 약국이
+            // 매긴 낱개가가 규칙에서 벗어나 있는 것은 정상이다 — 그게 가격을 사람이
+            // 정하는 이유다. 파일이 실제로 적어 온 값만 덮어쓴다.
+            var mayWritePrice = !looseSale.Assumed || merged.UnitSellingPrice is null;
+
+            if (mayWritePrice
+                && looseSale.LooseUnitPrice is { } loosePrice
+                && loosePrice != merged.UnitSellingPrice)
             {
                 merged.UnitSellingPrice = loosePrice;
                 merged.UnitSellingPriceKhr = looseSale.LooseUnitPriceKhr;
@@ -560,7 +584,7 @@ public class InitialImportService : IInitialImportService
             // 낱개 판매를 켜는 것은 가격이 적힌 행뿐이다. 끄지는 않는다 — 박스당 개수만
             // 고치러 온 행이 화면에서 켜 둔 낱개 판매를 꺼 버리면 안 된다(임포트는
             // 값을 비울 수 없다는 규칙과 같다). 끄는 것은 상품 화면에서 한다.
-            if (looseSale.SellsLoose && !merged.SellsLooseUnits)
+            if (looseSale.SellsLoose && !merged.SellsLooseUnits && merged.UnitSellingPrice is not null)
             {
                 merged.SellsLooseUnits = true;
                 changed = true;
@@ -801,10 +825,12 @@ public class InitialImportService : IInitialImportService
     /// 제조사가 정하고 낱개 판매는 약국이 정한다.
     /// </summary>
     private sealed record LooseSaleSetting(
-        int UnitsPerBox, decimal? LooseUnitPrice, bool SellsLoose, decimal? LooseUnitPriceKhr = null);
+        int UnitsPerBox, decimal? LooseUnitPrice, bool SellsLoose,
+        decimal? LooseUnitPriceKhr = null, bool Assumed = false);
 
     private static bool TryReadLooseSale(
-        ImportSourceRow row, ImportPriceFormat priceFormat, out LooseSaleSetting? looseSale, out string? error)
+        ImportSourceRow row, ImportPriceFormat priceFormat, decimal? boxPrice, bool assumeLoosePrice,
+        out LooseSaleSetting? looseSale, out string? error)
     {
         looseSale = null;
         error = null;
@@ -860,11 +886,22 @@ public class InitialImportService : IInitialImportService
             return true;
         }
 
-        // 가격이 없으면 박스 구성만 기록하고 낱개 판매는 꺼 둔다. 행을 거절하지 않는
-        // 이유는, "한 박스에 30정"이라는 것 자체가 맞는 정보이고 재고를 박스로 세는 데
-        // 쓰이기 때문이다. 나중에 낱개로 팔기로 하면 가격만 넣으면 된다.
         if (!hasLoosePrice)
         {
+            // 약국이 "낱개가는 박스가 ÷ 개수를 올림한 값"이라고 정했으면 그 값을 넣는다.
+            // 임포트 화면에서 켜야만 돈다 — 조용히 일어나면 안 되는 일이다.
+            if (assumeLoosePrice
+                && boxPrice is { } box
+                && priceFormat.TryAssumeLoosePrice(box, unitsPerBox, out var assumedUsd, out var assumedRiel))
+            {
+                looseSale = new LooseSaleSetting(
+                    unitsPerBox, assumedUsd, SellsLoose: true, assumedRiel, Assumed: true);
+                return true;
+            }
+
+            // 그러지 않으면 박스 구성만 기록하고 낱개 판매는 꺼 둔다. 행을 거절하지
+            // 않는 이유는, "한 박스에 30정"이라는 것 자체가 맞는 정보이고 재고를
+            // 박스로 세는 데 쓰이기 때문이다. 나중에 가격만 넣으면 켜진다.
             looseSale = new LooseSaleSetting(unitsPerBox, null, SellsLoose: false);
             return true;
         }
@@ -884,6 +921,17 @@ public class InitialImportService : IInitialImportService
         looseSale = new LooseSaleSetting(unitsPerBox, loosePrice, SellsLoose: true, loosePriceKhr);
         return true;
     }
+
+    /// <summary>
+    /// 이 상품의 낱개가가 파일이 아니라 계산에서 나온 것인지. 파일의 칸이 비어 있는데
+    /// 낱개 판매가 켜져 나왔다면 추정값이다 — 미리보기가 그 건수를 먼저 말한다.
+    /// </summary>
+    private static bool WasLoosePriceAssumed(ImportSourceRow row, Product product, Product? existing = null) =>
+        product.SellsLooseUnits
+        && product.UnitSellingPrice is not null
+        // 이미 낱개로 팔고 있던 상품은 추정된 것이 아니다. 그 가격은 전에 정해진 값이다.
+        && existing?.SellsLooseUnits != true
+        && NullIfDash(row.Get(InitialImportColumns.LooseUnitPrice)).Length == 0;
 
     private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
 

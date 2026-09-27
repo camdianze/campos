@@ -26,6 +26,18 @@ public static class RielConverter
             : Math.Round(riel, MidpointRounding.AwayFromZero);
 
     /// <summary>
+    /// 지불 단위로 <b>올린다</b>. 박스가를 개수로 나눠 낱개가를 정할 때 쓴다 —
+    /// 내림하면 낱개를 다 팔았을 때 박스가에 못 미치고, 올리면 헐어 파는 값이
+    /// 박스보다 조금 비싸진다. 뒤쪽이 약국이 실제로 매기는 방향이다.
+    ///
+    /// 단위가 100이면 결과도 최소 100리엘이다. 그보다 작은 금액은 받을 방법이 없다.
+    /// </summary>
+    public static decimal RoundUpToPayable(decimal riel, int unit) =>
+        unit > 0
+            ? Math.Ceiling(riel / unit) * unit
+            : Math.Ceiling(riel);
+
+    /// <summary>
     /// unit이 0보다 크면 그 단위로 반올림하고, 아니면 1리엘 단위로 반올림한다.
     /// </summary>
     public static long ToRiel(decimal usd, decimal rate, int unit)

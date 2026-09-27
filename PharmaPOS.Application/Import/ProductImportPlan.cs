@@ -32,6 +32,12 @@ public sealed class ProductImportPlan
     /// </summary>
     public string PriceFormatDescription { get; init; } = string.Empty;
 
+    /// <summary>
+    /// 파일에 낱개가가 없어서 박스가에서 뽑아 넣은 상품 수.
+    /// 약국이 정한 값이 아니라 정해 둔 규칙으로 계산한 값이라, 미리보기가 먼저 말한다.
+    /// </summary>
+    public int AssumedLoosePriceCount { get; init; }
+
     /// <summary>파일이 통째로 잘못된 경우의 사유(필수 컬럼 없음 등). 이 값이 있으면 진행할 수 없다.</summary>
     public string? FileError { get; init; }
 

@@ -120,6 +120,12 @@
                         <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
                                    Text="Applies to cost_price, selling_price and loose_unit_price in step ①. A cell that says 6000 KHR or $1.50 is read that way whichever button is on. Riel is converted at the rate in Receipt Settings; prices are always stored in dollars. Switch to $ for a file this app exported — those are written in dollars."/>
 
+                        <CheckBox Content="Work out a loose unit price where the file has none"
+                                  IsChecked="{Binding AssumeLoosePrices}"
+                                  Margin="0,0,0,4"/>
+                        <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
+                                   Text="Box price divided by the count, rounded up to a payable amount, and loose sale switched on. Only for pharmacies that price loose units that way - a price already set is never overwritten, and the preview says how many products get one."/>
+
                         <Button Content="①  Import Products"
                                 Style="{StaticResource PrimaryBtn}"
                                 Padding="16,0" HorizontalAlignment="Stretch"

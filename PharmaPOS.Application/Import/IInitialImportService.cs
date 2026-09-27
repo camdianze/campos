@@ -24,9 +24,15 @@ public interface IInitialImportService
     /// 적혀 있으면 그 표시가 이긴다. 시트는 보통 통째로 한 통화로 적혀 있어서, 칸마다
     /// 표시를 붙이게 하면 한 줄 빠뜨린 상품만 수천 배 비싸게 등록된다.
     /// </summary>
+    /// <param name="assumeLoosePrices">
+    /// 박스당 개수는 있는데 낱개가가 비어 있는 행에, 박스가 ÷ 개수를 지불 단위로
+    /// 올린 값을 넣을지. 약국이 그렇게 가격을 정한다고 밝힌 경우에만 켠다 —
+    /// 기본은 끔이고, 꺼 두면 그런 행은 박스 구성만 기록되고 낱개 판매는 꺼진다.
+    /// </param>
     Task<ProductImportPlan> PlanProductsAsync(
         IReadOnlyList<ImportSourceRow> rows,
-        ImportPriceCurrency priceCurrency = ImportPriceCurrency.Usd);
+        ImportPriceCurrency priceCurrency = ImportPriceCurrency.Usd,
+        bool assumeLoosePrices = false);
 
     /// <summary>계산된 상품을 저장하고 임포트 이력을 남긴다.</summary>
     Task<ImportApplyResult> ApplyProductsAsync(

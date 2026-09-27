@@ -41,6 +41,7 @@ public class BackupExportViewModel : ViewModelBase
     private DateTime? _exportDateTo;
 
     private ImportPriceCurrency _importPriceCurrency = ImportPriceCurrency.Riel;
+    private bool _assumeLoosePrices;
     private string _backupFilePath = string.Empty;
     private string _message = string.Empty;
 
@@ -85,6 +86,21 @@ public class BackupExportViewModel : ViewModelBase
 
     public bool IsUsdImport => ImportPriceCurrency == ImportPriceCurrency.Usd;
     public bool IsRielImport => ImportPriceCurrency == ImportPriceCurrency.Riel;
+
+    /// <summary>
+    /// 낱개가가 비어 있는 행에 "박스가 ÷ 박스당 개수를 지불 단위로 올린 값"을 넣을지.
+    /// 약국이 낱개가를 그렇게 정한다고 밝힌 경우에만 켠다.
+    ///
+    /// 기본은 꺼짐이다. 계산해서 나온 값은 약국이 매긴 가격이 아니고 실제로는
+    /// 상품마다 크게 다르다 — 박스를 헐어 파는 데 붙이는 마진을 앱이 알 수는 없다.
+    /// 켜 두더라도 <b>이미 정해 둔 낱개가는 덮지 않고</b>, 미리보기가 몇 건이
+    /// 이렇게 들어가는지 먼저 말한다.
+    /// </summary>
+    public bool AssumeLoosePrices
+    {
+        get => _assumeLoosePrices;
+        set => SetProperty(ref _assumeLoosePrices, value);
+    }
 
     public RelayCommand SelectImportFileCommand { get; }
     public RelayCommand ReadPricesInUsdCommand { get; }
@@ -222,7 +238,8 @@ public class BackupExportViewModel : ViewModelBase
             return;
         }
 
-        var plan = await _initialImportService.PlanProductsAsync(file.Rows, ImportPriceCurrency);
+        var plan = await _initialImportService.PlanProductsAsync(
+            file.Rows, ImportPriceCurrency, AssumeLoosePrices);
 
         if (plan.HasFileError)
         {
@@ -240,6 +257,16 @@ public class BackupExportViewModel : ViewModelBase
         preview.AppendLine($"Unchanged             : {plan.UnchangedCount}");
         preview.AppendLine($"Duplicate rows skipped: {plan.DuplicateRowCount}");
         preview.AppendLine($"Rows with errors      : {plan.ErrorRowCount}");
+
+        // 계산해서 들어가는 가격은 적용 전에 반드시 말한다. 숫자만 보면 약국이
+        // 정한 가격과 구별되지 않는다.
+        if (plan.AssumedLoosePriceCount > 0)
+        {
+            preview.AppendLine();
+            preview.AppendLine($"Loose price worked out: {plan.AssumedLoosePriceCount} products");
+            preview.AppendLine("  (box price / count, rounded up to a payable amount - review these)");
+        }
+
         AppendIssues(preview, "Errors", plan.Issues);
         AppendUnknownHeaders(preview, plan.UnknownHeaders);
 
