@@ -127,12 +127,9 @@ public class AdminDashboardViewModel : ViewModelBase
         {
             var payload = await _syncPayloadBuilder.BuildAsync(_facilityId);
 
-            // 사람이 읽을 파일이므로 들여쓴다. 실제 전송은 들여쓰지 않는다.
-            var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
+            // 전송과 같은 규칙으로 쓴다(SyncJson). 들여쓰기만 다르다 — 미리보기가
+            // 전송과 다른 모양을 보여주면 미리 볼 이유가 없다.
+            var json = JsonSerializer.Serialize(payload, SyncJson.PreviewOptions);
 
             var path = Path.Combine(
                 dialog.FolderName,

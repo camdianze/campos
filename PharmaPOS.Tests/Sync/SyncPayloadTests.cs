@@ -90,7 +90,7 @@ public class SyncPayloadTests : IDisposable
     private async Task<string> BuildJsonAsync()
     {
         var payload = await new SyncPayloadBuilder(_repository).BuildAsync(FacilityId);
-        return JsonSerializer.Serialize(payload);
+        return JsonSerializer.Serialize(payload, SyncJson.Options);
     }
 
     // ── 나가면 안 되는 것 ───────────────────────────────────────────────────
@@ -135,6 +135,34 @@ public class SyncPayloadTests : IDisposable
         Assert.Equal(new[] { "UserId", "Username", "Role", "Status" }.Order(), names.Order());
 
         await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 이름이 서버 컬럼과 같아야 한다. 맞춰 두면 Edge Function의 허용 목록이 곧
+    /// 컬럼 목록이 되고, 이름을 바꿔 주는 표가 필요 없어진다 — 그 표는 한 줄만
+    /// 틀려도 그 컬럼만 조용히 비어서 들어가는 종류의 코드다.
+    /// </summary>
+    [Theory]
+    [InlineData("product_id")]
+    [InlineData("internal_barcode")]
+    [InlineData("units_per_box")]
+    [InlineData("selling_price_khr")]
+    [InlineData("safety_stock_level")]
+    [InlineData("transaction_time")]
+    [InlineData("stock_before")]
+    public async Task PropertiesAreNamedLikeTheServerColumns(string column)
+    {
+        Assert.Contains($"\"{column}\"", await BuildJsonAsync(), StringComparison.Ordinal);
+    }
+
+    /// <summary>C# 쪽 이름이 그대로 나가면 서버가 못 알아본다.</summary>
+    [Fact]
+    public async Task NoPascalCaseNamesGoOut()
+    {
+        var json = await BuildJsonAsync();
+
+        Assert.DoesNotContain("\"ProductId\"", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"UnitsPerBox\"", json, StringComparison.Ordinal);
     }
 
     // ── 나가야 하는 것 ─────────────────────────────────────────────────────
