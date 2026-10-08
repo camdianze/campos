@@ -254,7 +254,17 @@ Drift here fails in the worst possible way: the issuer still produces a well-for
 
 ## Repository notes
 
-**This project uses `main` only.** There is no branching workflow — commit directly to `main` and push to `origin main`. Do not create feature branches, and do not open pull requests, unless explicitly asked. (This overrides any default "branch before committing on the default branch" behavior.)
+**Two branches, and which one you are on decides what you may change.** The single-`main` rule held until v2 work began; `v1.26` is tagged at the last commit before the split, so the version a pharmacy is running can always be checked out by name.
+
+| Branch | For | Rule |
+|---|---|---|
+| `main` | **v1 maintenance only** | Bugs found in the field. Nothing else. |
+| `v2` | **sync feature development** | Every piece of v2 work commits here. |
+
+- **Fix a field bug on `main`, then merge it into `v2`.** A fix that lives only on `main` disappears the day v2 ships, and it will not be noticed going: v2 will look complete and simply have the bug back. Merging the other way round — `v2` into `main` — is what carries half-finished sync code onto the machine at the counter.
+- **`v2` → `main` happens only when the owner says so.** Not when v2 looks finished, not to "keep main current". That merge is what puts new code in a pharmacy, so the decision is theirs and it is asked for each time.
+- Still no pull requests and no other branches unless asked; commit to whichever of the two you are on and push it. These two exist because v1 is live and must stay fixable while v2 is half-built — any third branch would need its own reason.
+
 
 Pushed to the private remote `camdianze/campos`. `.gitignore` at the root excludes build output (`bin/`, `obj/`), `.vs/`, `*.user`, and — importantly — `*.db` / `*.db-wal` / `*.db-shm`, since backup-export files contain real account hashes and sales records.
 
