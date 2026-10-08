@@ -30,6 +30,7 @@ public class DatabaseInitializer
         CreateImportHistoryTable(connection);
         CreateReceiptCounterTable(connection);
         CreateReceiptNumberTable(connection);
+        CreateSyncStateTable(connection);
 
         ApplyMigrations(connection);
     }
@@ -121,6 +122,14 @@ public class DatabaseInitializer
                 """;
             unitBarcodeIndex.ExecuteNonQuery();
         }
+
+        // 상품이 마지막으로 바뀐 시각. 서버가 "이 상품 정보가 언제 것인지" 알아야 하고,
+        // v3 앱이 그 값을 화면에 쓴다. created_at만 있어서는 알 수 없었다.
+        //
+        // 변경분을 고르는 기준으로는 쓰지 않는다 — 상품은 수백 행뿐이라 매번 전부 보낸다.
+        // 시각을 기준으로 삼으면 PC 시계를 뒤로 돌렸을 때 그 사이 고친 상품이 조용히
+        // 빠지는데, 전부 보내면 그 경우가 아예 없다.
+        AddColumnIfMissing(connection, "Product_Master", "updated_at", "INTEGER");
 
         // 상품 사진. 파일이 아니라 DB에 넣는 이유는 백업이 pharmapos.db 하나만 복사하기 때문이다 —
         // 파일로 두면 백업본을 복원했을 때 사진만 통째로 사라지고, 현장에서 원인을 찾을 수 없다.
@@ -256,6 +265,35 @@ public class DatabaseInitializer
         return true;
     }
 
+    /// <summary>
+    /// 동기화가 "어디까지 보냈는지"를 기억하는 표. 스트림(보내는 묶음)마다 한 줄이다.
+    ///
+    /// position의 뜻은 스트림마다 다르다 — 거래·상담 기록은 SQLite의 rowid(들어온 순서),
+    /// 사진은 photo_updated_at(시각)이다. 한 컬럼에 두 뜻을 담는 것이 좋아 보이지는 않지만,
+    /// 스트림마다 컬럼을 따로 두면 스트림이 늘 때마다 마이그레이션이 생긴다.
+    ///
+    /// <b>거래 기록에 시각을 쓰지 않는 이유</b>가 이 설계의 핵심이다. 입고 화면은
+    /// 입고 날짜를 사용자가 고르게 하므로(StockInService), 지난주 들어온 물건을 오늘
+    /// 입력하면 transaction_time이 지난주로 박힌다. "마지막으로 보낸 시각 이후"로
+    /// 고르면 그 행은 조건을 영영 통과하지 못한다 — 오류 없이, 서버 재고만 모자란 채로.
+    /// rowid는 무엇이 적혀 있든 들어온 순서대로 늘기 때문에 그 구멍이 없다.
+    ///
+    /// 그래서 Stock_Transaction을 <b>통째로 다시 만드는 마이그레이션은 금지</b>다.
+    /// ALTER TABLE ADD COLUMN은 rowid를 보존하지만 테이블 재생성은 번호를 바꾼다.
+    /// </summary>
+    private static void CreateSyncStateTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Sync_State (
+                stream     TEXT PRIMARY KEY,
+                position   INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
+            """;
+        command.ExecuteNonQuery();
+    }
+
     private static void CreateFacilityTable(SqliteConnection connection)
     {
         using var command = connection.CreateCommand();
@@ -297,6 +335,7 @@ public class DatabaseInitializer
                 unit_selling_price  REAL,
                 category            TEXT,
                 dosage_form         TEXT,
+                updated_at          INTEGER,
                 unit_barcode        TEXT,
                 sells_loose         INTEGER NOT NULL DEFAULT 0,
                 selling_price_khr   REAL,

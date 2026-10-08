@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using PharmaPOS.Application.Sync;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -117,6 +118,7 @@ public partial class UserManagementView : UserControl
         var dashboardViewModel = new AdminDashboardViewModel(
             dashboardService,
             App.Services.GetRequiredService<IReceiptSettingsService>(),
+            App.Services.GetRequiredService<SyncPayloadBuilder>(),
             App.CurrentShellViewModel!.CurrentUser.FacilityId);
 
         var dashboardView = new AdminDashboardView();

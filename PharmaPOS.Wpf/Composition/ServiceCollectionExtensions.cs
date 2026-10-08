@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using PharmaPOS.Application.Sync;
+using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Authentication;
 using PharmaPOS.Application.Counselling;
 using PharmaPOS.Application.Import;
@@ -77,6 +78,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IRefundRepository, RefundRepository>();
         services.AddTransient<IImportHistoryRepository, ImportHistoryRepository>();
         services.AddTransient<IReportRepository, ReportRepository>();
+        services.AddTransient<ISyncRepository, SyncRepository>();
         services.AddTransient<IBackupRepository>(sp => new BackupRepository(
      sp.GetRequiredService<SqliteConnectionFactory>(), dbFilePath));
         // Application 서비스
@@ -99,6 +101,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPhotoImportService, PhotoImportService>();
         services.AddTransient<IReportService, ReportService>();
         services.AddTransient<IBackupService, BackupService>();
+        services.AddTransient<SyncPayloadBuilder>();
         services.AddTransient<IRecoverySettingsService, RecoverySettingsService>();
         services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
         services.AddTransient<IAntibioticMatchingService, AntibioticMatchingService>();

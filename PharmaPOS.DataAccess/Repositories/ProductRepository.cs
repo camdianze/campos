@@ -96,7 +96,7 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form, unit_barcode, sells_loose,
+                   dosage_form, unit_barcode, sells_loose, updated_at,
                    selling_price_khr, cost_price_khr, unit_price_khr
             FROM Product_Master
             {whereSql}
@@ -124,7 +124,7 @@ public class ProductRepository : IProductRepository
                    strength, unit, manufacturer, country_of_origin, cost_price,
                    selling_price, safety_stock_level, status, created_at,
                    atc_code, is_combination, units_per_box, unit_selling_price, category,
-                   dosage_form, unit_barcode, sells_loose,
+                   dosage_form, unit_barcode, sells_loose, updated_at,
                    selling_price_khr, cost_price_khr, unit_price_khr
             FROM Product_Master
             WHERE product_id = $productId;
@@ -181,14 +181,14 @@ public class ProductRepository : IProductRepository
                  strength, unit, manufacturer, country_of_origin, cost_price,
                  selling_price, safety_stock_level, status, created_at,
                  atc_code, is_combination, units_per_box, unit_selling_price, category,
-                 dosage_form, unit_barcode, sells_loose,
+                 dosage_form, unit_barcode, sells_loose, updated_at,
                  selling_price_khr, cost_price_khr, unit_price_khr)
             VALUES
                 ($productId, $barcode, $internalBarcode, $productName, $genericName,
                  $strength, $unit, $manufacturer, $countryOfOrigin, $costPrice,
                  $sellingPrice, $safetyStockLevel, $status, $createdAt,
                  $atcCode, $isCombination, $unitsPerBox, $unitSellingPrice, $category,
-                 $dosageForm, $unitBarcode, $sellsLoose,
+                 $dosageForm, $unitBarcode, $sellsLoose, $updatedAt,
                  $sellingPriceKhr, $costPriceKhr, $unitPriceKhr);
             """;
         AddProductParameters(command, product);
@@ -219,7 +219,8 @@ public class ProductRepository : IProductRepository
                 sells_loose = $sellsLoose,
                 selling_price_khr = $sellingPriceKhr,
                 cost_price_khr = $costPriceKhr,
-                unit_price_khr = $unitPriceKhr
+                unit_price_khr = $unitPriceKhr,
+                updated_at = $updatedAt
             WHERE product_id = $productId;
             """;
 
@@ -407,6 +408,11 @@ public class ProductRepository : IProductRepository
         command.Parameters.AddWithValue("$dosageForm", (object?)product.DosageForm?.ToString() ?? DBNull.Value);
         command.Parameters.AddWithValue("$unitBarcode", (object?)product.UnitBarcodeOverride ?? DBNull.Value);
         command.Parameters.AddWithValue("$sellsLoose", product.SellsLooseUnits ? 1 : 0);
+
+        // 저장하는 그 순간이 "마지막으로 바뀐 시각"이다. 호출자가 넘기는 값이 아니라
+        // 여기서 찍는다 — 넘기게 하면 한 군데서 빠뜨렸을 때 그 상품만 서버에서
+        // 영영 옛날 것으로 보이고, 화면에는 아무 표시가 없다.
+        command.Parameters.AddWithValue("$updatedAt", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         command.Parameters.AddWithValue("$sellingPriceKhr", (object?)product.SellingPriceKhr ?? DBNull.Value);
         command.Parameters.AddWithValue("$costPriceKhr", (object?)product.CostPriceKhr ?? DBNull.Value);
         command.Parameters.AddWithValue("$unitPriceKhr", (object?)product.UnitSellingPriceKhr ?? DBNull.Value);
@@ -446,9 +452,10 @@ public class ProductRepository : IProductRepository
                 : dosageForm,
             UnitBarcodeOverride = reader.IsDBNull(20) ? null : reader.GetString(20),
             SellsLooseUnits = !reader.IsDBNull(21) && reader.GetInt32(21) != 0,
-            SellingPriceKhr = reader.IsDBNull(22) ? null : (decimal)reader.GetDouble(22),
-            CostPriceKhr = reader.IsDBNull(23) ? null : (decimal)reader.GetDouble(23),
-            UnitSellingPriceKhr = reader.IsDBNull(24) ? null : (decimal)reader.GetDouble(24)
+            UpdatedAt = reader.IsDBNull(22) ? null : reader.GetInt64(22),
+            SellingPriceKhr = reader.IsDBNull(23) ? null : (decimal)reader.GetDouble(23),
+            CostPriceKhr = reader.IsDBNull(24) ? null : (decimal)reader.GetDouble(24),
+            UnitSellingPriceKhr = reader.IsDBNull(25) ? null : (decimal)reader.GetDouble(25)
         };
     }
 

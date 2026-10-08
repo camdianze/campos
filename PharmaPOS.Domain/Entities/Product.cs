@@ -170,6 +170,12 @@ public class Product
     /// 보여주므로, 환율이 바뀌어도 8,000리엘은 8,000리엘로 남는다.
     /// 달러 금액을 고치면 이 값은 더 이상 "적어 넣은 값"이 아니므로 지워진다.
     /// </summary>
+    /// <summary>
+    /// 이 상품이 마지막으로 바뀐 시각(Unix epoch 밀리초). 저장할 때 자동으로 찍힌다.
+    /// 이 컬럼이 생기기 전에 등록된 상품은 null이고, 한 번 수정하면 채워진다.
+    /// </summary>
+    public long? UpdatedAt { get; set; }
+
     public decimal? SellingPriceKhr { get; set; }
 
     /// <inheritdoc cref="SellingPriceKhr"/>
