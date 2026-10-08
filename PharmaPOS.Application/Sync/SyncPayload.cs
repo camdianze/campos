@@ -1,4 +1,6 @@
-﻿namespace PharmaPOS.Application.Sync;
+﻿using System.Text.Json.Serialization;
+
+namespace PharmaPOS.Application.Sync;
 
 /// <summary>
 /// 서버로 보내는 한 묶음.
@@ -33,6 +35,15 @@ public sealed class SyncPayload
     public IReadOnlyDictionary<string, long> Positions { get; init; }
         = new Dictionary<string, long>();
 
+    /// <summary>
+    /// 화면에 "몇 건"을 적기 위한 합계. <b>보내지 않는다.</b>
+    ///
+    /// 서버는 받은 행을 직접 셀 수 있으므로 이 숫자는 전송에 쓸모가 없고, 보내면
+    /// 오히려 해롭다 — 아무도 대조하지 않는 숫자가 하나 늘어난다. 게다가 서버는
+    /// 모르는 이름이 오면 묶음 전체를 거부하므로(그래야 열이 조용히 비지 않는다),
+    /// 이 계산값이 JSON에 섞이면 업로드가 통째로 실패한다.
+    /// </summary>
+    [JsonIgnore]
     public int RowCount =>
         Products.Count + Inventory.Count + Users.Count + Transactions.Count + CounsellingLogs.Count;
 }

@@ -252,6 +252,22 @@ Three places show the same `LicenseStatus`, never their own judgement: the activ
 
 Drift here fails in the worst possible way: the issuer still produces a well-formed code, the ledger still records it, and nothing looks wrong until a customer types it in and is refused — at the counter, in front of them, with only new customers affected. So both repos ship the same `license-vectors.json` and assert the same things against it (payload byte layout, decode round-trip, signature verification with the *test* key, and that a tampered code fails). Change any of the three files and you must change the other copy too; whichever side you forget breaks its own build first. `LicenseService.cs` is deliberately **not** shared — only the issuer signs, only the app verifies.
 
+## Sync (v2 only, in progress)
+
+Server-side design and the step-by-step setup live in [supabase/README.md](supabase/README.md); only the rules that are easy to break from the C# side are here.
+
+**The JSON field names *are* the server column names** (`JsonNamingPolicy.SnakeCaseLower`, set once in [SyncJson](PharmaPOS.Application/Sync/SyncJson.cs)). There is deliberately no mapping table anywhere: the Edge Function's allowed-column list is the column list, so nothing can quietly rename a field into a column that then arrives empty. The preview file and the upload must use the same options — the preview exists to show the shape that will be sent, and a preview that differs from it shows a shape that is never sent.
+
+**The server rejects a payload carrying a name it does not know**, rather than dropping it. So a new column goes to the server **first**, then to the app. The wrong order stops the pharmacy's sync, which is visible; the other failure — a column silently empty on the server — is not. A consequence that already bit once: a derived C# property is serialized like any other, so `SyncPayload.RowCount` (a count for the on-screen message) would have failed every upload. It carries `[JsonIgnore]`, and `TopLevelFieldsAreExactlyTheOnesTheServerKnows` pins the whole top-level set so the next convenience property cannot repeat it.
+
+**`ISyncRepository` returns `Sync*` types, never entities**, and its SQL names every column instead of `SELECT *`. That is what keeps `password_hash` out: it is in `Users`, but a column not written in the query cannot reach the payload. `SyncPayloadTests` seeds a recognisable hash and asserts it is absent from the serialized JSON. `SyncUser` has exactly four properties and the server table has exactly four columns, so there is no place to put a secret even by mistake.
+
+**The watermark is `rowid`, not a timestamp** — `Sync_State(stream, position)`, read and written through `GetPositionAsync`/`SavePositionAsync`. `transaction_time` is a date the user picks on the Stock-IN screen, so a row entered today with last month's date would never be selected by a time-based watermark. This is also why [DatabaseInitializer](PharmaPOS.DataAccess/Database/DatabaseInitializer.cs) carries the warning that **`Stock_Transaction` must never be rebuilt** (`CREATE TABLE … AS SELECT`, or a `VACUUM INTO` restore of a rebuilt table): renumbering rowid either re-sends everything or skips rows, with nothing on screen either way.
+
+**`positions` advances only after the server confirms.** The payload carries the position it would move to, and `Sync_State` is written when the response arrives — not when the request is sent. Writing it first means the rows in a failed batch are never selected again.
+
+**Money is synced raw and in full**, including `selling_price_khr` and friends. This is the opposite of the antibiotic CSV rule, and deliberately so: that file leaves the pharmacy for a research body, while this goes to the owner's own server, and the later processing is a separate Python step. Prices arrive in unconstrained `numeric` columns — `numeric(12,2)` would round, and the four-decimal values are the ones that make riel come back out whole.
+
 ## Repository notes
 
 **Two branches, and which one you are on decides what you may change.** The single-`main` rule held until v2 work began; `v1.26` is tagged at the last commit before the split, so the version a pharmacy is running can always be checked out by name.

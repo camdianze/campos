@@ -155,6 +155,29 @@ public class SyncPayloadTests : IDisposable
         Assert.Contains($"\"{column}\"", await BuildJsonAsync(), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// 최상위에 나가는 이름은 정확히 이 여섯 개다.
+    ///
+    /// 서버는 모르는 이름이 오면 묶음 <b>전체</b>를 거부한다 — 조용히 버리면 그 열만
+    /// 비어서 들어가고 아무도 보고하지 않기 때문이다. 그래서 계산용 속성 하나를
+    /// 무심히 추가하면 약국의 업로드가 통째로 멈춘다. RowCount가 실제로 그랬다.
+    /// </summary>
+    [Fact]
+    public async Task TopLevelFieldsAreExactlyTheOnesTheServerKnows()
+    {
+        using var document = JsonDocument.Parse(await BuildJsonAsync());
+
+        var names = document.RootElement.EnumerateObject().Select(p => p.Name).OrderBy(n => n);
+
+        Assert.Equal(
+            new[]
+            {
+                "app_version", "client_time", "counselling_logs",
+                "inventory", "positions", "products", "transactions", "users"
+            },
+            names);
+    }
+
     /// <summary>C# 쪽 이름이 그대로 나가면 서버가 못 알아본다.</summary>
     [Fact]
     public async Task NoPascalCaseNamesGoOut()
