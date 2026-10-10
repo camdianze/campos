@@ -6,6 +6,10 @@
 |---|---|
 | `schema.sql` | 표 전부. SQL Editor에 붙여 실행한다. |
 | `functions/sync/index.ts` | Edge Function. 서버로 들어가는 유일한 길. |
+| `new-token.ps1` | PC용 토큰 하나를 만들고, 붙여넣을 SQL을 출력한다. |
+| `test-upload.ps1` | 미리보기 파일을 실제로 보내 서버를 확인한다. |
+
+CLI는 필요 없다 — 전부 웹 콘솔과 위 두 스크립트로 끝난다.
 
 ---
 
@@ -53,29 +57,16 @@ SQL Editor → New query → [`schema.sql`](schema.sql) 전체를 붙이고 **Ru
 
 ### ③ 약국 하나와 토큰 등록
 
-먼저 토큰을 만든다 (PowerShell):
-
 ```powershell
-# 32바이트 난수 → hex 64자
--join ((1..32) | ForEach-Object { '{0:x2}' -f (Get-Random -Max 256) })
+cd supabase
+.\new-token.ps1 -SiteId KH-0001 -Label "첫 약국"
 ```
 
-나온 문자열을 **안전한 곳에 적어 둔다.** 서버는 해시만 가지므로 잃어버리면 다시 발급해야 한다.
+토큰이 한 번 출력되고, 그 아래에 **붙여넣을 SQL이 바로 나온다.** 토큰을 비밀번호 관리자에 저장한 뒤 SQL만 SQL Editor에 붙여 실행한다.
 
-SQL Editor에서 (`site_id`와 토큰을 자기 값으로 바꿔서):
+SQL에는 **해시만** 들어간다 — 토큰 원본을 SQL Editor에 붙이면 쿼리 기록에 남고, 그 기록은 지우기 번거롭고 지웠는지 확인할 방법도 없다. 서버가 해시만 가지는 것과 같은 이유다.
 
-```sql
-insert into public.site (site_id, label)
-values ('KH-0001', '첫 약국')
-on conflict (site_id) do nothing;
-
-insert into public.site_token (token_sha256, site_id, label)
-values (
-    encode(sha256('여기에_위에서_만든_토큰'::bytea), 'hex'),
-    'KH-0001',
-    '사무실 PC'
-);
-```
+토큰을 잃으면 복구할 수 없으니 다시 발급해야 한다 (`revoked_at`을 채워 옛것을 막고 새로 발급).
 
 `site_id`는 **가명 코드**다. 약국 이름을 넣지 않는다 — 어느 약국인지는 발급 대장(이 DB 밖)이 들고 있고, 라이선스 시리얼과 같은 방식이다. 항생제 CSV의 `research.site_code`와 같은 값을 쓰면 나중에 맞춰 보기 편하다.
 
@@ -93,20 +84,17 @@ supabase functions deploy sync --project-ref <프로젝트_ref>
 
 ### ⑤ 확인 — 1단계 미리보기 파일을 그대로 보내 본다
 
-이게 2단계의 검증이다. 바탕화면에 있는 `sync-preview-*.json`을 실제로 POST한다.
+이게 2단계의 검증이다. 앱에서 **Preview Sync Data**로 파일을 하나 받아 두고 (관리자 대시보드 → DATA SYNC), 그 파일을 실제로 POST한다.
 
 ```powershell
-$url   = "https://xxxx.supabase.co/functions/v1/sync"
-$anon  = "<anon public 키>"
-$token = "<③에서 만든 토큰>"
-$file  = "$env:USERPROFILE\Desktop\sync-preview-20261008-185904.json"
-
-curl.exe -X POST $url `
-  -H "Authorization: Bearer $anon" `
-  -H "x-campos-token: $token" `
-  -H "content-type: application/json" `
-  --data-binary "@$file"
+cd supabase
+.\test-upload.ps1 -Url https://xxxx.supabase.co `
+                  -AnonKey "<anon public 키>" `
+                  -Token "<③에서 만든 토큰>" `
+                  -File "$env:USERPROFILE\Desktop\sync-preview-20261010-101500.json"
 ```
+
+스크립트가 **보낸 건수와 받은 건수를 대조해서** 알려준다. 눈으로 숫자를 맞춰 보는 단계를 없애려는 것이다 — 한 표만 0으로 들어가도 나머지가 맞으면 정상처럼 보인다.
 
 성공하면 이렇게 돌아온다:
 
