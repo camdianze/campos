@@ -232,6 +232,32 @@ create table if not exists public.product_photo (
 -- Edge Function만 service_role로 이 표들에 닿고, 그 키는 서버를 떠나지 않는다.
 -- 정책을 하나라도 추가하면 그 순간 함수 밖에 길이 생긴다 — 이 설계에서 가장
 -- 조용히 깨지는 부분이 그것이다.
+-- ── 권한을 프로젝트 설정이 아니라 여기서 정한다 ──────────────────────────
+-- Supabase의 "Automatically expose new tables"는 새 표의 권한을 anon·authenticated
+-- <b>그리고 service_role</b>에 한꺼번에 준다. 꺼 두는 것이 맞지만(Supabase 자신이
+-- 그렇게 권하고, 2026-05-30부터 새 프로젝트의 기본값이다), 끄면 service_role도
+-- 권한을 못 받아 Edge Function이 "permission denied"로 죽는다.
+--
+-- 그래서 설정에 맡기지 않고 필요한 것만 여기서 준다. 이 파일을 실행한 프로젝트는
+-- 그 체크박스가 켜져 있든 꺼져 있든 같게 동작한다 — 설정 화면의 상태를 기억해야
+-- 하는 코드는 몇 달 뒤에 아무도 기억하지 못한다.
+grant usage on schema public to service_role;
+
+grant select, insert, update, delete
+    on all tables in schema public to service_role;
+
+-- 앞으로 추가될 표까지. 빠뜨리면 그 표만 조용히 안 들어간다.
+alter default privileges in schema public
+    grant select, insert, update, delete on tables to service_role;
+
+-- anon·authenticated는 이 표들에 닿을 일이 없다. RLS가 이미 막지만, 권한까지
+-- 거두면 정책을 실수로 하나 추가해도 길이 열리지 않는다 — 자물쇠 두 개가
+-- 서로 다른 실수를 막는다.
+revoke all on all tables in schema public from anon, authenticated;
+
+alter default privileges in schema public
+    revoke all on tables from anon, authenticated;
+
 alter table public.site              enable row level security;
 alter table public.site_token        enable row level security;
 alter table public.sync_batch        enable row level security;

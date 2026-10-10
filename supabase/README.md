@@ -42,6 +42,14 @@ CLI는 필요 없다 — 전부 웹 콘솔과 위 두 스크립트로 끝난다.
 - **Region: Southeast Asia (Singapore)** — 캄보디아에서 가장 가깝다
 - 데이터베이스 비밀번호는 적어 두기 (분실하면 재설정만 가능)
 
+Security 체크박스 세 개:
+
+| 항목 | | 왜 |
+|---|---|---|
+| Enable Data API | ✅ **켠다** | Edge Function이 supabase-js로 `/rest/v1`을 호출한다. 끄면 함수가 부를 곳이 없어진다. |
+| Automatically expose new tables | ⬜ **끈다** | 이걸 켜면 새 표가 `anon`·`authenticated`에도 열린다. 다만 이 설정은 `service_role` 권한까지 같이 주므로, 끈 채로 두면 함수가 권한 오류로 죽는다 — 그래서 `schema.sql`이 `service_role`에 필요한 권한을 **직접** 준다. 설정이 어느 쪽이든 같게 동작한다. |
+| Enable automatic RLS | ✅ **켠다** | `schema.sql`이 9개 표에 전부 RLS를 켜므로 지금은 할 일이 없다. 나중에 누가 표를 하나 더 만들고 RLS를 잊는 경우를 막는 안전망이고, 그게 이 설계가 가장 조용히 깨지는 방식이다. `service_role`은 RLS를 우회하므로 함수에는 영향이 없다. |
+
 만든 뒤 **Settings → API**에서 두 개를 적어 둔다:
 
 - `Project URL` — `https://xxxx.supabase.co`
