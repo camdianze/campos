@@ -86,6 +86,43 @@ function fail(status: number, message: string) {
   });
 }
 
+/// 표에 쓸 수 있는 키를 꺼낸다. RLS를 우회하는 키이고, 이 함수 밖으로 나가지 않는다.
+///
+/// 이름이 두 가지인 이유는 Supabase가 키 체계를 바꾸는 중이기 때문이다. 예전
+/// 프로젝트는 SUPABASE_SERVICE_ROLE_KEY에 평문을, 새 프로젝트는
+/// SUPABASE_SECRET_KEYS에 JSON 사전을 준다. 어느 쪽만 있는지는 프로젝트를 만든
+/// 시기에 달렸고, 한쪽만 읽으면 멀쩡해 보이는 함수가 설명 없는 500으로 죽는다.
+function readSecretKey(): string {
+    const dictionary = Deno.env.get("SUPABASE_SECRET_KEYS");
+
+    if (dictionary) {
+        try {
+            const parsed = JSON.parse(dictionary);
+
+            // 콘솔에서 만든 키의 이름은 default다. 이름을 바꿔 쓴 경우를 위해
+            // 첫 번째 값도 받아 둔다.
+            const key = parsed["default"] ?? Object.values(parsed)[0];
+
+            if (typeof key === "string" && key.length > 0) {
+                return key;
+            }
+        } catch {
+            // 사전이 아니면 아래 평문 쪽으로 넘어간다.
+        }
+    }
+
+    const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (legacy) {
+        return legacy;
+    }
+
+    throw new Error(
+        "The function cannot find its database key "
+        + "(neither SUPABASE_SECRET_KEYS nor SUPABASE_SERVICE_ROLE_KEY is set).",
+    );
+}
+
 async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return Array.from(new Uint8Array(digest))
@@ -104,11 +141,18 @@ Deno.serve(async (request) => {
     return fail(401, "This device is not registered for sync.");
   }
 
-  const db = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { persistSession: false } },
-  );
+  let db;
+
+  try {
+    db = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      readSecretKey(),
+      { auth: { persistSession: false } },
+    );
+  } catch (thrown) {
+    // 설정 문제이지 약국의 문제가 아니므로, 무엇이 없는지 그대로 말한다.
+    return fail(500, thrown instanceof Error ? thrown.message : String(thrown));
+  }
 
   // ── 어느 약국인가: 토큰이 답한다 ─────────────────────────────────────────
   const tokenHash = await sha256Hex(token);
