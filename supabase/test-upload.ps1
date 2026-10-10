@@ -40,7 +40,10 @@ $endpoint = $Url.TrimEnd('/') + "/functions/v1/sync"
 
 try {
     $response = Invoke-RestMethod -Method Post -Uri $endpoint -Body ([System.IO.File]::ReadAllBytes($File)) -Headers @{
+        # Supabase 게이트웨이는 경로에 따라 둘 중 하나를 본다. 둘 다 보내면
+        # 어느 쪽을 보든 통과한다 — anon 키는 비밀이 아니므로 잃을 것이 없다.
         "Authorization"   = "Bearer $AnonKey"
+        "apikey"          = $AnonKey
         "x-campos-token"  = $Token
         "content-type"    = "application/json"
     }
