@@ -173,6 +173,8 @@ public partial class AdminDashboardView : UserControl
         var backupExportViewModel = new BackupExportViewModel(
             backupService, initialImportService, photoImportService,
             App.Services.GetRequiredService<SyncPayloadBuilder>(),
+            App.Services.GetRequiredService<SyncSettingsService>(),
+            App.Services.GetRequiredService<ISyncClient>(),
             currentUser.FacilityId, currentUser.UserId);
 
         var backupExportView = new BackupExportView();

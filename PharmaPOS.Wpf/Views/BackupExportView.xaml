@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:converters="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
+             xmlns:ctl="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Controls"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="960" d:DesignHeight="700">
@@ -11,7 +12,10 @@
     <!--
         화면을 좌우로 나눈 기준은 데이터가 흐르는 방향이다.
         왼쪽은 파일 → 앱(가져오기), 오른쪽은 앱 → 파일(내보내기·백업).
-        복원만 아래 위험 구역에 따로 두었다 — 나머지와 달리 지금 데이터를 통째로 버린다.
+        그 아래가 앱 → 서버(동기화)이고, 복원만 맨 아래 위험 구역에 따로 두었다.
+
+        위에서 아래로 되돌리기 어려운 순서다: 가져오기·내보내기는 다시 하면 되고,
+        보낸 묶음은 되돌릴 수 없으며, 복원은 지금 있는 것을 버린다.
     -->
     <UserControl.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBoolConverter"/>
@@ -275,16 +279,72 @@
                     <TextBlock Text="SERVER SYNC" Style="{StaticResource EyebrowLabel}"/>
                     <TextBlock Text="App to server" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
-                               Text="Writes the data that would be sent to the server as a file, so it can be read before anything leaves this computer. Sending is not built yet."/>
+                               Text="Set up once per computer. The address and the publishable key are the same for every pharmacy; the token is this computer's own."/>
 
-                    <Button Content="Preview Sync Data"
-                            Style="{StaticResource SecondaryBtn}"
-                            Padding="16,0" HorizontalAlignment="Left"
-                            Command="{Binding PreviewSyncDataCommand}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="18"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="{Binding SyncPreviewMessage}"
-                               Style="{StaticResource PanelHint}" TextWrapping="Wrap"
-                               Margin="0,10,0,0"/>
+                        <!-- 왼쪽: 연결 설정 -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Server address" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding SyncServerUrl, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInput}"
+                                     IsEnabled="{Binding IsSyncIdle}"
+                                     Margin="0,0,0,10"/>
+
+                            <TextBlock Text="Publishable key" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding SyncPublishableKey, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FieldInput}"
+                                     IsEnabled="{Binding IsSyncIdle}"
+                                     Margin="0,0,0,10"/>
+
+                            <!-- 토큰만 비밀이라 PasswordField를 쓴다. 눈 버튼이 있어야
+                                 64자짜리 hex를 붙여넣고 맞는지 볼 수 있다. -->
+                            <TextBlock Text="Device token" Style="{StaticResource FieldLabel}"/>
+                            <ctl:PasswordField x:Name="SyncTokenInput" Margin="0,0,0,4"/>
+                            <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,12"
+                                       Text="Stored encrypted for this Windows account only, so a copied database cannot sync from another computer. Never paste the server's secret key here."/>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Save"
+                                        Style="{StaticResource PrimaryBtn}"
+                                        Padding="20,0" Margin="0,0,8,0"
+                                        IsEnabled="{Binding IsSyncIdle}"
+                                        Click="OnSaveSyncSettingsClick"/>
+                                <Button Content="Test Connection"
+                                        Style="{StaticResource SecondaryBtn}"
+                                        Padding="16,0"
+                                        IsEnabled="{Binding IsSyncIdle}"
+                                        Click="OnTestSyncConnectionClick"/>
+                            </StackPanel>
+
+                            <TextBlock Text="{Binding SyncStatusMessage}"
+                                       Style="{StaticResource PanelHint}" TextWrapping="Wrap"
+                                       Margin="0,10,0,0"/>
+                        </StackPanel>
+
+                        <!-- 오른쪽: 무엇이 나가는지 -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="What gets sent" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,10"
+                                       Text="Products, stock by batch, the stock ledger, counselling records, and staff names with their roles. No passwords and no customer details — there is no column for them on the server."/>
+
+                            <Button Content="Preview Sync Data"
+                                    Style="{StaticResource SecondaryBtn}"
+                                    Padding="16,0" HorizontalAlignment="Left"
+                                    Command="{Binding PreviewSyncDataCommand}"/>
+                            <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
+                                       Text="Writes exactly what would be sent to a file, so it can be read first. Nothing leaves this computer."/>
+
+                            <TextBlock Text="{Binding SyncPreviewMessage}"
+                                       Style="{StaticResource PanelHint}" TextWrapping="Wrap"
+                                       Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
 

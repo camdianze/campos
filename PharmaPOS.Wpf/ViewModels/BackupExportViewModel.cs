@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using Microsoft.Win32;
+using PharmaPOS.Application;
 using PharmaPOS.Application.Import;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Sync;
@@ -245,13 +246,154 @@ public class BackupExportViewModel : ViewModelBase
         }
     }
 
+    // ── 서버 연결 ────────────────────────────────────────────────────────
+    // 세 칸 중 토큰만 비밀이고, 그것만 DPAPI로 암호화되어 저장된다. 주소와
+    // publishable 키는 모든 약국이 같고 앱에 실려 나가도 되는 값이다.
+
+    public string SyncServerUrl
+    {
+        get => _syncServerUrl;
+        set => SetProperty(ref _syncServerUrl, value);
+    }
+
+    public string SyncPublishableKey
+    {
+        get => _syncPublishableKey;
+        set => SetProperty(ref _syncPublishableKey, value);
+    }
+
+    /// <summary>연결 상태 한 줄. 어느 약국으로 연결되었는지까지 말한다.</summary>
+    public string SyncStatusMessage
+    {
+        get => _syncStatusMessage;
+        private set => SetProperty(ref _syncStatusMessage, value);
+    }
+
+    /// <summary>보내는 중에는 버튼을 잠근다. 두 번 눌러 두 묶음이 가지 않게.</summary>
+    public bool IsSyncBusy
+    {
+        get => _isSyncBusy;
+        private set
+        {
+            if (SetProperty(ref _isSyncBusy, value))
+            {
+                OnPropertyChanged(nameof(IsSyncIdle));
+            }
+        }
+    }
+
+    public bool IsSyncIdle => !_isSyncBusy;
+
+    private string _syncServerUrl = string.Empty;
+    private string _syncPublishableKey = string.Empty;
+    private string _syncStatusMessage = string.Empty;
+    private bool _isSyncBusy;
+
+    /// <summary>
+    /// 저장된 설정을 화면에 올린다. <b>토큰도 칸에 되돌려 넣는다</b> — 비워 두면
+    /// 주소만 고치고 Save를 누른 사람이 토큰을 지우게 되고, 그 PC는 다음 전송에서야
+    /// 조용히 거부된다. 제품 화면이 발급된 내부 바코드를 칸에 채워 두는 것과 같은
+    /// 이유다.
+    /// </summary>
+    public async Task<string> LoadSyncSettingsAsync()
+    {
+        try
+        {
+            var settings = await _syncSettingsService.LoadAsync();
+
+            SyncServerUrl = settings.ServerUrl;
+            SyncPublishableKey = settings.PublishableKey;
+            SyncStatusMessage = settings.IsConfigured
+                ? "Saved. Press Test Connection to check it."
+                : "Not connected to a server.";
+
+            return settings.Token;
+        }
+        catch (Exception exception)
+        {
+            SyncStatusMessage = "The saved connection could not be read: " + exception.Message;
+            return string.Empty;
+        }
+    }
+
+    public async Task SaveSyncSettingsAsync(string token)
+    {
+        IsSyncBusy = true;
+
+        try
+        {
+            var result = await _syncSettingsService.SaveAsync(SyncServerUrl, SyncPublishableKey, token);
+
+            // 주소를 다듬어 저장했다면 칸에도 다듬은 것을 보여준다 — 저장된 것과
+            // 보이는 것이 다르면 다음에 여는 사람이 무엇이 쓰이는지 알 수 없다.
+            if (result.IsSuccess)
+            {
+                SyncServerUrl = SyncSettings.NormalizeUrl(SyncServerUrl);
+            }
+
+            SyncStatusMessage = result.Message;
+        }
+        finally
+        {
+            IsSyncBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// 행을 하나도 담지 않은 묶음을 실제로 보낸다. 따로 만든 "확인용" 경로가
+    /// 아니라 전송과 같은 길이므로, 여기서 통과하면 주소·공개 키·토큰·네트워크가
+    /// 전부 맞다는 뜻이다. 서버에는 전부 0인 전송 기록이 한 줄 남는데, 그것이
+    /// 바로 "이 PC가 연결을 확인했다"는 기록이다.
+    /// </summary>
+    public async Task TestSyncConnectionAsync(string token)
+    {
+        IsSyncBusy = true;
+        SyncStatusMessage = "Checking…";
+
+        try
+        {
+            var settings = new SyncSettings
+            {
+                ServerUrl = SyncSettings.NormalizeUrl(SyncServerUrl),
+                PublishableKey = (SyncPublishableKey ?? string.Empty).Trim(),
+                Token = (token ?? string.Empty).Trim(),
+            };
+
+            if (!settings.IsConfigured)
+            {
+                SyncStatusMessage = "Fill in the address, the publishable key and the token first.";
+                return;
+            }
+
+            var empty = new SyncPayload
+            {
+                AppVersion = AppVersion.Display,
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+
+            var result = await _syncClient.SendAsync(settings, empty);
+
+            SyncStatusMessage = result.IsSuccess
+                ? $"Connected. The server knows this computer as {result.SiteId}."
+                : "Not connected. " + result.Message;
+        }
+        finally
+        {
+            IsSyncBusy = false;
+        }
+    }
+
     private readonly SyncPayloadBuilder _syncPayloadBuilder;
+    private readonly SyncSettingsService _syncSettingsService;
+    private readonly ISyncClient _syncClient;
 
     public BackupExportViewModel(
         IBackupService backupService,
         IInitialImportService initialImportService,
         IPhotoImportService photoImportService,
         SyncPayloadBuilder syncPayloadBuilder,
+        SyncSettingsService syncSettingsService,
+        ISyncClient syncClient,
         string facilityId,
         string userId)
     {
@@ -259,6 +401,8 @@ public class BackupExportViewModel : ViewModelBase
         _initialImportService = initialImportService;
         _photoImportService = photoImportService;
         _syncPayloadBuilder = syncPayloadBuilder;
+        _syncSettingsService = syncSettingsService;
+        _syncClient = syncClient;
         _facilityId = facilityId;
         _userId = userId;
 

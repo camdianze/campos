@@ -36,6 +36,24 @@ public static class AppSettingKeys
     public const string ResearchSiteCode = "research.site_code";
 
     /// <summary>적재된 시드 파일의 지문(해시 + 정규화 규칙 버전). 재적재 여부 판단에 쓴다.</summary>
+    // ── 서버 동기화 (v2) ──────────────────────────────────────────────
+    // 영수증 설정과 달리 ReceiptSettingKeys 목록에 넣지 않는다. 영수증 화면이
+    // 그 목록을 통째로 읽어 쓰기 때문에, 섞으면 영수증을 저장할 때 동기화
+    // 설정까지 같이 쓰이게 된다.
+
+    /// <summary>Supabase 프로젝트 주소. 모든 약국이 같고 비밀이 아니다.</summary>
+    public const string SyncServerUrl = "sync.url";
+
+    /// <summary>publishable 키. 앱에 실려 나가는 값이라 비밀이 아니다.</summary>
+    public const string SyncPublishableKey = "sync.key";
+
+    /// <summary>
+    /// 이 PC의 토큰. <b>DPAPI로 암호화해서</b> 저장한다 — 이 값만이 비밀이고,
+    /// 이 PC 하나를 가리킨다. 복사된 데이터베이스가 다른 PC에서 전송할 수 없는
+    /// 이유가 이것이다.
+    /// </summary>
+    public const string SyncToken = "sync.token";
+
     public const string AwareSeedSignature = "aware.seed_signature";
 
     /// <summary>적재된 시드의 출처 표기. 예: 'WHO AWaRe 2025'.</summary>
