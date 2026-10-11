@@ -45,10 +45,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0"
-                       Text="Import / Export"
+                       Text="Data Center"
                        Style="{StaticResource PageTitle}"
                        Margin="0,0,0,20"/>
 
@@ -263,8 +264,32 @@
                 </Border>
             </Grid>
 
+            <!-- ═══ 가운데: 서버 동기화 ═══ -->
+            <!-- 가져오기·내보내기와 같은 화면에 두는 이유는 셋 다 "데이터가 앱을
+                 드나드는 일"이기 때문이다. 관리자 대시보드에 따로 두었더니 백업을
+                 찾던 사람이 둘을 다른 종류의 일로 읽었다. 복원 위에 두는 것은
+                 되돌릴 수 없는 정도 순서다 — 동기화는 보낸 것을 되돌릴 수 없고,
+                 복원은 지금 있는 것을 버린다. -->
+            <Border Grid.Row="2" Style="{StaticResource PanelCard}" Margin="0,18,0,0">
+                <StackPanel>
+                    <TextBlock Text="SERVER SYNC" Style="{StaticResource EyebrowLabel}"/>
+                    <TextBlock Text="App to server" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,14"
+                               Text="Writes the data that would be sent to the server as a file, so it can be read before anything leaves this computer. Sending is not built yet."/>
+
+                    <Button Content="Preview Sync Data"
+                            Style="{StaticResource SecondaryBtn}"
+                            Padding="16,0" HorizontalAlignment="Left"
+                            Command="{Binding PreviewSyncDataCommand}"/>
+
+                    <TextBlock Text="{Binding SyncPreviewMessage}"
+                               Style="{StaticResource PanelHint}" TextWrapping="Wrap"
+                               Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+
             <!-- ═══ 아래: 복원 (위험) ═══ -->
-            <Border Grid.Row="2" Margin="0,18,0,0"
+            <Border Grid.Row="3" Margin="0,18,0,0"
                     Background="#FEF2F2"
                     BorderBrush="{StaticResource DangerBrush}" BorderThickness="1"
                     CornerRadius="10" Padding="18,16">
@@ -299,7 +324,7 @@
             </Border>
 
             <!-- 뒤로 + 메시지 -->
-            <StackPanel Grid.Row="3" Margin="0,18,0,0">
+            <StackPanel Grid.Row="4" Margin="0,18,0,0">
                 <Button Content="← Back"
                         Style="{StaticResource SecondaryBtn}"
                         Padding="16,0"
@@ -308,7 +333,18 @@
                         Margin="0,0,0,10"/>
                 <TextBlock Text="{Binding Message}"
                            Foreground="{StaticResource DangerBrush}"
-                           TextWrapping="Wrap" FontSize="13"/>
+                           TextWrapping="Wrap" FontSize="13"
+                           Margin="0,0,0,14"/>
+
+                <!-- 이 줄이 이 화면을 Data Center로 묶은 이유의 절반이다. 데이터를
+                     빼내는 길은 "지금 보고 있는 목록"과 "앱 데이터 전체" 둘인데,
+                     그 갈림길에 답해 주는 곳이 어디에도 없었다. 그래서 백업을 찾던
+                     사람이 판매 내역의 Export를 눌렀다. 화면별 Export를 여기로
+                     옮기지 않는 것은, 그것들의 값어치가 걸러 놓은 목록 그대로를
+                     내보내는 데 있어서 — 옮기면 그 화면들의 필터를 여기에 다시
+                     만들어야 한다. -->
+                <TextBlock Style="{StaticResource PanelHint}" TextWrapping="Wrap"
+                           Text="Looking for a list you were just reading? Sales History, Stock History, Alerts and Reports each export what is on their screen, filters and all. This page is for the whole dataset."/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

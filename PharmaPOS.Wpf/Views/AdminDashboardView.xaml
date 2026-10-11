@@ -65,7 +65,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>   <!-- 데이터 동기화 -->
                 <RowDefinition Height="Auto"/>   <!-- 영수증 설정 -->
                 <RowDefinition Height="Auto"/>   <!-- 라이선스 -->
                 <RowDefinition Height="Auto"/>
@@ -137,7 +136,7 @@
                 <Button Content="📊  Inventory Overview"  Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding InventoryOverviewCommand}"/>
                 <Button Content="🛒  Sales History"       Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding SalesHistoryCommand}"/>
                 <Button Content="📈  Reports"             Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding ReportsCommand}"/>
-                <Button Content="📁  Import / Export"     Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding BackupExportCommand}"/>
+                <Button Content="🗄️  Data Center"     Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding BackupExportCommand}"/>
             </UniformGrid>
 
             <!-- ── 데이터 동기화 ────────────────────────────────────────────
@@ -145,34 +144,7 @@
 
                  전송보다 먼저 두는 이유: 동기화에서 제일 위험한 것은 무엇을 보내는가이고,
                  한 번 보낸 것은 되돌릴 수 없다. 눈으로 확인한 뒤에 전송을 붙인다. -->
-            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,20">
-                <StackPanel>
-                    <TextBlock Text="DATA SYNC" Style="{StaticResource EyebrowLabel}" Margin="0,0,0,8"/>
-
-                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,10"
-                               Text="Writes the data that would be sent to the server as a file, so it can be checked. Nothing leaves this computer yet."/>
-
-                    <Button Content="Preview Sync Data"
-                            Style="{StaticResource SecondaryBtn}"
-                            Height="36" Padding="16,0" HorizontalAlignment="Left"
-                            Command="{Binding PreviewSyncDataCommand}"/>
-
-                    <TextBlock Text="{Binding SyncPreviewMessage}"
-                               Style="{StaticResource Caption}" TextWrapping="Wrap"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
-            </Border>
-
-            <!-- ── 영수증 설정 ──────────────────────────────────────────────
-                 판매 영수증에 찍히는 값은 전부 여기서 온다. 코드에는 약국 정보가 없다.
-
-                 별도 화면으로 빼지 않고 대시보드 안에 접히는 구역으로 둔 이유:
-                 이 설정은 한 번 정하면 거의 손대지 않는 값들이라, 관리자 화면에
-                 진입점을 하나 더 만들 만큼 자주 열리지 않는다.
-
-                 DataContext는 코드 비하인드가 ReceiptSettingsViewModel로 갈아 끼운다.
-                 대시보드 ViewModel과 별개의 화면이라 바인딩을 섞지 않는다. -->
-            <Expander Grid.Row="4" x:Name="ReceiptSettingsSection"
+            <Expander Grid.Row="3" x:Name="ReceiptSettingsSection"
                       Margin="6,0,6,20" IsExpanded="False">
                 <Expander.Header>
                     <StackPanel Orientation="Horizontal">
@@ -400,7 +372,7 @@
                  "잠긴 뒤에야 고칠 수 있는" 기능이 된다.
 
                  DataContext는 코드 비하인드가 LicenseSectionViewModel로 갈아 끼운다. -->
-            <Expander Grid.Row="5" x:Name="LicenseSection"
+            <Expander Grid.Row="4" x:Name="LicenseSection"
                       Margin="6,0,6,20" IsExpanded="False">
                 <Expander.Header>
                     <StackPanel Orientation="Horizontal">
@@ -492,7 +464,7 @@
                 </Border>
             </Expander>
 
-            <StackPanel Grid.Row="6">
+            <StackPanel Grid.Row="5">
                 <Button Content="← Back"
                         Style="{StaticResource SecondaryBtn}"
                         HorizontalAlignment="Left"

@@ -1,10 +1,13 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using Microsoft.Win32;
 using PharmaPOS.Application.Import;
 using PharmaPOS.Application.Inventory;
+using PharmaPOS.Application.Sync;
 using PharmaPOS.Domain.Enums;
 using Lightweight_Digital_Inventory_Management___POS_System.Services;
 using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
@@ -13,11 +16,19 @@ using Lightweight_Digital_Inventory_Management___POS_System.Views;
 namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
 
 /// <summary>
-/// Import / Export 화면의 ViewModel.
+/// Data Center 화면의 ViewModel.
 ///
-/// 화면은 왼쪽이 "파일 → 앱"(가져오기), 오른쪽이 "앱 → 파일"(내보내기·백업)이고,
-/// 현재 데이터를 통째로 갈아엎는 복원만 아래 위험 구역에 따로 둔다.
-/// 이 셋은 결과의 무게가 서로 달라 한 덩어리로 섞으면 잘못 누르기 쉽다.
+/// 화면은 왼쪽이 "파일 → 앱"(가져오기), 오른쪽이 "앱 → 파일"(내보내기·백업),
+/// 그 아래가 서버 동기화이고, 현재 데이터를 통째로 갈아엎는 복원만 맨 아래
+/// 위험 구역에 따로 둔다. 결과의 무게가 서로 달라 한 덩어리로 섞으면 잘못
+/// 누르기 쉽다.
+///
+/// 동기화가 여기 있는 이유는 이 화면이 <b>데이터가 앱을 드나드는 곳 전부</b>를
+/// 모아 둔 자리이기 때문이다. 관리자 대시보드에 따로 두었더니 백업을 찾던
+/// 사람이 그 둘을 다른 종류의 일로 읽었다. 화면별 Export(판매 내역·재고
+/// 이력·알림·보고서)는 그 자리에 남는다 — 그것들의 값어치는 <b>걸러 놓은
+/// 목록 그대로</b>를 내보내는 데 있어서, 여기로 옮기면 그 화면들의 필터를
+/// 여기에 다시 만들어야 한다.
 /// </summary>
 public class BackupExportViewModel : ViewModelBase
 {
@@ -179,18 +190,79 @@ public class BackupExportViewModel : ViewModelBase
         set => SetProperty(ref _message, value);
     }
 
+    /// <summary>
+    /// 서버로 보낼 묶음을 만들어 파일로 적는다. <b>보내지는 않는다.</b>
+    ///
+    /// 동기화에서 제일 위험한 것은 무엇을 보내는가이고, 한 번 보낸 것은 되돌릴 수 없다.
+    /// 그래서 전송을 붙이기 전에 그 내용을 눈으로 확인할 수 있게 해 둔다.
+    /// </summary>
+    public RelayCommand PreviewSyncDataCommand { get; }
+
+    /// <summary>미리보기 결과 한 줄. 어디에 적었는지와 몇 건인지.</summary>
+    public string SyncPreviewMessage
+    {
+        get => _syncPreviewMessage;
+        private set => SetProperty(ref _syncPreviewMessage, value);
+    }
+
+    private string _syncPreviewMessage = string.Empty;
+
+    private async Task ExecutePreviewSyncDataAsync()
+    {
+        SyncPreviewMessage = string.Empty;
+
+        var dialog = new OpenFolderDialog { Title = "Where to write the preview file" };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            var payload = await _syncPayloadBuilder.BuildAsync(_facilityId);
+
+            // 전송과 같은 규칙으로 쓴다(SyncJson). 들여쓰기만 다르다 — 미리보기가
+            // 전송과 다른 모양을 보여주면 미리 볼 이유가 없다.
+            var json = JsonSerializer.Serialize(payload, SyncJson.PreviewOptions);
+
+            var path = Path.Combine(
+                dialog.FolderName,
+                $"sync-preview-{DateTimeOffset.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}.json");
+
+            await File.WriteAllTextAsync(path, json, new UTF8Encoding(true));
+
+            SyncPreviewMessage =
+                $"{payload.RowCount:N0} rows written to {Path.GetFileName(path)} "
+                + $"(products {payload.Products.Count:N0}, inventory {payload.Inventory.Count:N0}, "
+                + $"staff {payload.Users.Count:N0}, transactions {payload.Transactions.Count:N0}, "
+                + $"counselling {payload.CounsellingLogs.Count:N0})";
+        }
+        catch (Exception exception)
+        {
+            // 미리보기는 아무것도 바꾸지 않으므로, 실패해도 사유만 보여주고 넘어간다.
+            SyncPreviewMessage = "The preview could not be written: " + exception.Message;
+        }
+    }
+
+    private readonly SyncPayloadBuilder _syncPayloadBuilder;
+
     public BackupExportViewModel(
         IBackupService backupService,
         IInitialImportService initialImportService,
         IPhotoImportService photoImportService,
+        SyncPayloadBuilder syncPayloadBuilder,
         string facilityId,
         string userId)
     {
         _backupService = backupService;
         _initialImportService = initialImportService;
         _photoImportService = photoImportService;
+        _syncPayloadBuilder = syncPayloadBuilder;
         _facilityId = facilityId;
         _userId = userId;
+
+        PreviewSyncDataCommand = new RelayCommand(async _ => await ExecutePreviewSyncDataAsync());
 
         SelectImportFileCommand = new RelayCommand(_ => ExecuteSelectImportFile());
         ReadPricesInUsdCommand = new RelayCommand(_ => ImportPriceCurrency = ImportPriceCurrency.Usd);

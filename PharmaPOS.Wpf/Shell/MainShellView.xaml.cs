@@ -179,7 +179,6 @@ public partial class MainShellView : UserControl
         var dashboardViewModel = new AdminDashboardViewModel(
             dashboardService,
             App.Services.GetRequiredService<IReceiptSettingsService>(),
-            App.Services.GetRequiredService<SyncPayloadBuilder>(),
             shellViewModel.CurrentUser.FacilityId);
 
         var dashboardView = new AdminDashboardView();

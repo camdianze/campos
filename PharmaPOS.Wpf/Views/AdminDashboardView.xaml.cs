@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PharmaPOS.Application.Sync;
 using System.IO;
 using PharmaPOS.Application.Licensing;
 using System.ComponentModel;
@@ -171,6 +172,7 @@ public partial class AdminDashboardView : UserControl
 
         var backupExportViewModel = new BackupExportViewModel(
             backupService, initialImportService, photoImportService,
+            App.Services.GetRequiredService<SyncPayloadBuilder>(),
             currentUser.FacilityId, currentUser.UserId);
 
         var backupExportView = new BackupExportView();
