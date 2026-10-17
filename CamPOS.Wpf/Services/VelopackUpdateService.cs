@@ -215,9 +215,16 @@ public sealed class VelopackUpdateService : IUpdateService
 
         try
         {
-            var url = $"{_baseUrl}/{ReadChannel()}/";
+            var channel = ReadChannel();
 
-            _manager ??= new UpdateManager(new SimpleWebSource(url));
+            // 채널이 두 군데에 나타난다: 폴더 이름(/test/)과 파일 이름(RELEASES-test).
+            // 기본적으로 파일 이름 쪽은 <b>패키지를 만들 때 구워진</b> 채널을 따르므로,
+            // 설정만 바꾸면 /stable/RELEASES-test 처럼 어긋난 주소를 찾게 된다.
+            // ExplicitChannel로 둘을 같은 값에 묶는다 — 그래야 설정 하나로 채널이
+            // 바뀌고, test 설치본을 stable로 되돌릴 때 다시 깔 필요가 없다.
+            var options = new UpdateOptions { ExplicitChannel = channel };
+
+            _manager ??= new UpdateManager(new SimpleWebSource($"{_baseUrl}/{channel}/"), options);
             return _manager;
         }
         catch
