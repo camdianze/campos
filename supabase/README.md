@@ -239,6 +239,8 @@ where table_name = 'app_user';   -- site_id, user_id, username, role, status, se
 
 ## 약국 하나 등록하기 (지금 방식)
 
+> 설치부터 확인까지의 전체 순서는 [docs/new-pharmacy.md](../docs/new-pharmacy.md)에 있다. 여기는 서버 쪽만 적는다.
+
 설치할 때 사람이 넣는 것은 **라이선스 코드 하나**다. 동기화 토큰은 앱이 서버에서 받아 와 혼자 저장한다 — 사람이 보지도 만지지도 않는다.
 
 ### 라이선스를 발급할 때 서버에도 한 줄
