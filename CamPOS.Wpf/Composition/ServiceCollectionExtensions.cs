@@ -105,6 +105,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IBackupService, BackupService>();
         services.AddTransient<SyncPayloadBuilder>();
         services.AddTransient<SyncSettingsService>();
+        services.AddTransient<ISyncRegistrationService, HttpSyncRegistrationService>();
         services.AddTransient<SyncService>();
 
         // 앱이 살아 있는 동안 하나. 화면과 무관하게 돌아야 하므로 Singleton이다.

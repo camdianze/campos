@@ -7,6 +7,7 @@
 | `schema.sql` | 표 전부. SQL Editor에 붙여 실행한다. |
 | `functions/sync/index.ts` | Edge Function. 서버로 들어가는 유일한 길. |
 | `functions/sync-photo/index.ts` | 사진 한 장을 받는다. 싣는 것이 달라 함수가 따로 있다. |
+| `functions/register/index.ts` | 라이선스 코드를 이 PC의 토큰으로 바꿔 준다. |
 | `new-token.ps1` | PC용 토큰 하나를 만들고, 붙여넣을 SQL을 출력한다. |
 | `test-upload.ps1` | 미리보기 파일을 실제로 보내 서버를 확인한다. |
 | `check.sql` | 서버에 무엇이 들어와 있는지 한눈에. 전송할 때마다 다시 Run. |
@@ -236,7 +237,40 @@ where table_name = 'app_user';   -- site_id, user_id, username, role, status, se
 
 ---
 
-## 손으로 만드는 토큰은 임시다 (3단계 직후에 없앨 것)
+## 약국 하나 등록하기 (지금 방식)
+
+설치할 때 사람이 넣는 것은 **라이선스 코드 하나**다. 동기화 토큰은 앱이 서버에서 받아 와 혼자 저장한다 — 사람이 보지도 만지지도 않는다.
+
+### 라이선스를 발급할 때 서버에도 한 줄
+
+```sql
+-- 약국이 처음이면 먼저
+insert into public.site (site_id, label)
+values ('KH-0002', '두 번째 약국')
+on conflict (site_id) do nothing;
+
+-- 발급한 라이선스의 일련번호를 그 약국에 묶는다
+insert into public.license_issuance (serial, site_id, label, expires_at)
+values (42, 'KH-0002', '두 번째 약국', '2027-10-01');
+```
+
+**일련번호는 갱신할 때마다 새로 나온다.** 같은 약국의 내년 라이선스는 다른 `serial`로 같은 `site_id`를 가리키므로, 갱신할 때도 한 줄 추가한다. `site_id`는 그대로다.
+
+### 약국 PC에서
+
+라이선스 코드를 입력하고 활성화하면 끝이다. 앱이 `register` 함수를 불러 토큰을 받아 DPAPI로 저장한다.
+
+인터넷이 없으면 활성화만 되고 동기화는 설정되지 않는다 — **앱은 그대로 쓸 수 있고**, 나중에 Data Center에서 다시 하거나 토큰을 손으로 넣으면 된다.
+
+### 나중에: 발급 도구가 직접 쓰게
+
+지금은 위 SQL을 손으로 넣는다. 발급 도구가 `license_issuance`에 쓰도록 바꾸면 그 한 줄도 사라지고, **Firestore도 접을 수 있다** — 발급 내역이 여기 다 있기 때문이다.
+
+그 전에 `%APPDATA%\PharmaPOS.Issuer`의 대장이 온전한지 확인할 것. 그 폴더를 잃으면 새 라이선스 발급이 영영 불가능하다.
+
+---
+
+## 손으로 만드는 토큰은 언제 쓰나
 
 지금은 설치할 때 **두 가지**를 넣어야 한다 — 라이선스 코드, 그리고 동기화 토큰. 하나여야 맞고, 목표는 **라이선스만 넣으면 토큰이 자동으로 발급되는 것**이다.
 

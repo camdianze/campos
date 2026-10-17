@@ -45,6 +45,38 @@ create table if not exists public.site_token (
 
 create index if not exists site_token_site_idx on public.site_token(site_id);
 
+-- ── 라이선스 발급 대장 ─────────────────────────────────────────────────────
+-- 어느 일련번호가 어느 약국에 나갔는지. register 함수가 이것을 읽어 라이선스
+-- 코드를 토큰으로 바꿔 준다.
+--
+-- 라이선스 코드 안에는 고객 이름이 없다(LicensePayload의 주석 참조). 서명이
+-- 맞다고 해서 어느 약국인지 알 수 있는 것은 아니고, 그 대응을 들고 있는 것이
+-- 이 표다.
+--
+-- <b>발급 대장 전체</b>를 담는다. serial → site_id만 있으면 register는 돌지만,
+-- 그러면 발급 내역이 Firestore와 여기 둘로 나뉜 채 남는다. 발급 도구가 여기에
+-- 쓰도록 바뀌는 날 Firestore를 접을 수 있게, 그때 필요한 칸을 미리 둔다.
+--
+-- site_id는 갱신해도 바뀌지 않는다. 일련번호는 발급 건마다 새로 나오므로,
+-- 같은 약국의 2년치 라이선스는 서로 다른 serial로 같은 site_id를 가리킨다 —
+-- 그것이 이 표가 있어야 하는 이유이기도 하다.
+create table if not exists public.license_issuance (
+    serial       bigint primary key,
+    site_id      text not null references public.site(site_id),
+
+    -- 대장이므로 약국 이름이 여기엔 들어간다. 항생제 CSV의 가명성은 "그 파일에
+    -- 이름이 없다"는 것이지 대장이 없다는 뜻이 아니다. 이 표는 Edge Function만
+    -- 읽는다(아래 RLS).
+    label        text,
+
+    issued_at    timestamptz not null default now(),
+    expires_at   timestamptz,
+    revoked_at   timestamptz,
+    note         text
+);
+
+create index if not exists license_issuance_site_idx on public.license_issuance(site_id);
+
 -- ── 전송 기록 ──────────────────────────────────────────────────────────────
 -- 받은 묶음 하나가 한 행. 약국이 오류를 말할 때 테이블을 뒤지지 않고 여기만
 -- 보면 언제 무엇이 몇 건 들어왔는지, 어디서 멈췄는지 알 수 있다.
@@ -258,6 +290,7 @@ revoke all on all tables in schema public from anon, authenticated;
 alter default privileges in schema public
     revoke all on tables from anon, authenticated;
 
+alter table public.license_issuance  enable row level security;
 alter table public.site              enable row level security;
 alter table public.site_token        enable row level security;
 alter table public.sync_batch        enable row level security;
