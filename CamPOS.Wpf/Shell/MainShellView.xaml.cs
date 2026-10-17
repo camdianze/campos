@@ -1,4 +1,5 @@
 ﻿using CamPOS.Application.Sync;
+using CamPOS.Application.Updates;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
@@ -179,6 +180,8 @@ public partial class MainShellView : UserControl
         var dashboardViewModel = new AdminDashboardViewModel(
             dashboardService,
             App.Services.GetRequiredService<IReceiptSettingsService>(),
+            App.Services.GetRequiredService<IUpdateService>(),
+            App.Services.GetRequiredService<IAppSettingRepository>(),
             shellViewModel.CurrentUser.FacilityId);
 
         var dashboardView = new AdminDashboardView();

@@ -1,4 +1,8 @@
 ﻿using System.Globalization;
+using CamPOS.Application;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Settings;
+using CamPOS.Application.Updates;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
@@ -15,6 +19,8 @@ public class AdminDashboardViewModel : ViewModelBase
 {
     private readonly IAdminDashboardService _dashboardService;
     private readonly IReceiptSettingsService _receiptSettingsService;
+    private readonly IUpdateService _updateService;
+    private readonly IAppSettingRepository _appSettings;
     private readonly string _facilityId;
 
     private DashboardMetrics? _metrics;
@@ -90,13 +96,158 @@ public class AdminDashboardViewModel : ViewModelBase
     public event Action? NavigateToBackupExport;
     public event Action? NavigateBack;
 
+    // ── 자동 업데이트 ────────────────────────────────────────────────────
+    // 약국에게는 묻지도 알리지도 않는다. 그래서 "이 PC가 새 버전을 받았나"를
+    // 알 수 있는 자리가 여기뿐이고, 선유님이 전화로 물어볼 수 있어야 한다.
+
+    public RelayCommand CheckForUpdateCommand { get; }
+
+    public IReadOnlyList<string> UpdateChannels { get; } =
+        [Application.Updates.UpdateChannels.Stable, Application.Updates.UpdateChannels.Test];
+
+    public string UpdateCurrentVersion
+    {
+        get => _updateCurrentVersion;
+        private set => SetProperty(ref _updateCurrentVersion, value);
+    }
+
+    public string UpdateLastChecked
+    {
+        get => _updateLastChecked;
+        private set => SetProperty(ref _updateLastChecked, value);
+    }
+
+    public string UpdateDownloaded
+    {
+        get => _updateDownloaded;
+        private set => SetProperty(ref _updateDownloaded, value);
+    }
+
+    public string UpdateMessage
+    {
+        get => _updateMessage;
+        private set => SetProperty(ref _updateMessage, value);
+    }
+
+    /// <summary>접힌 채로 보이는 한 줄. 펴 봐야 아는 정보는 아무도 안 본다.</summary>
+    public string UpdateHeaderSummary
+    {
+        get => _updateHeaderSummary;
+        private set => SetProperty(ref _updateHeaderSummary, value);
+    }
+
+    public bool IsUpdateIdle
+    {
+        get => _isUpdateIdle;
+        private set => SetProperty(ref _isUpdateIdle, value);
+    }
+
+    /// <summary>
+    /// 고르는 즉시 저장한다. "저장" 버튼을 따로 두면 안 누르고 나가고, 그러면
+    /// 바꿨다고 믿는 채널과 실제로 보는 채널이 달라진다.
+    /// </summary>
+    public string UpdateChannel
+    {
+        get => _updateChannel;
+        set
+        {
+            if (SetProperty(ref _updateChannel, value) && !_isLoadingUpdateStatus)
+            {
+                _ = SaveUpdateChannelAsync(value);
+            }
+        }
+    }
+
+    private string _updateCurrentVersion = AppVersion.Number;
+    private string _updateLastChecked = "Never";
+    private string _updateDownloaded = "Nothing";
+    private string _updateMessage = string.Empty;
+    private string _updateHeaderSummary = string.Empty;
+    private string _updateChannel = Application.Updates.UpdateChannels.Default;
+    private bool _isUpdateIdle = true;
+    private bool _isLoadingUpdateStatus;
+
+    private async Task SaveUpdateChannelAsync(string channel)
+    {
+        try
+        {
+            await _appSettings.SetAsync(
+                AppSettingKeys.UpdateChannel,
+                Application.Updates.UpdateChannels.Normalize(channel),
+                "enum");
+
+            UpdateMessage = channel == Application.Updates.UpdateChannels.Test
+                ? "This computer will now receive test builds."
+                : "This computer will receive released versions only.";
+        }
+        catch (Exception exception)
+        {
+            UpdateMessage = "The channel could not be saved: " + exception.Message;
+        }
+    }
+
+    private void ShowUpdateStatus(UpdateStatus status)
+    {
+        _isLoadingUpdateStatus = true;
+
+        try
+        {
+            UpdateCurrentVersion = status.IsInstalled
+                ? status.CurrentVersion
+                : status.CurrentVersion + "  (not installed by the updater)";
+
+            // 사람이 눈으로만 보는 글자라 PC의 지역 설정을 따른다.
+            UpdateLastChecked = status.LastChecked is null
+                ? "Never"
+                : status.LastChecked.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+
+            UpdateDownloaded = status.DownloadedVersion is null
+                ? "Nothing"
+                : status.DownloadedVersion + " — installs when CamPOS is closed";
+
+            UpdateChannel = status.Channel;
+            UpdateMessage = status.LastMessage;
+
+            UpdateHeaderSummary = status.DownloadedVersion is null
+                ? status.CurrentVersion
+                : $"{status.CurrentVersion} → {status.DownloadedVersion} on next close";
+        }
+        finally
+        {
+            _isLoadingUpdateStatus = false;
+        }
+    }
+
+    private async Task ExecuteCheckForUpdateAsync()
+    {
+        IsUpdateIdle = false;
+        UpdateMessage = "Checking…";
+
+        try
+        {
+            ShowUpdateStatus(await _updateService.CheckNowAsync());
+        }
+        catch (Exception exception)
+        {
+            UpdateMessage = "The check failed: " + exception.Message;
+        }
+        finally
+        {
+            IsUpdateIdle = true;
+        }
+    }
+
     public AdminDashboardViewModel(
         IAdminDashboardService dashboardService,
         IReceiptSettingsService receiptSettingsService,
+        IUpdateService updateService,
+        IAppSettingRepository appSettings,
         string facilityId)
     {
         _dashboardService = dashboardService;
         _receiptSettingsService = receiptSettingsService;
+        _updateService = updateService;
+        _appSettings = appSettings;
         _facilityId = facilityId;
 
         ProductManagementCommand = new RelayCommand(_ => NavigateToProductManagement?.Invoke());
@@ -106,6 +257,9 @@ public class AdminDashboardViewModel : ViewModelBase
 
         ReportsCommand = new RelayCommand(_ => NavigateToReports?.Invoke());
         BackupExportCommand = new RelayCommand(_ => NavigateToBackupExport?.Invoke());
+
+        CheckForUpdateCommand = new RelayCommand(async _ => await ExecuteCheckForUpdateAsync());
+        ShowUpdateStatus(_updateService.GetStatus());
 
         BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());
 

@@ -286,6 +286,24 @@ Server-side design and the step-by-step setup live in [supabase/README.md](supab
 
 **Money is synced raw and in full**, including `selling_price_khr` and friends. This is the opposite of the antibiotic CSV rule, and deliberately so: that file leaves the pharmacy for a research body, while this goes to the owner's own server, and the later processing is a separate Python step. Prices arrive in unconstrained `numeric` columns — `numeric(12,2)` would round, and the four-decimal values are the ones that make riel come back out whole.
 
+## Automatic updates (v2 only)
+
+The pharmacy is never asked and never told. CamPOS checks once at startup in the background, downloads only, and installs when the app is closed — no prompt, no progress bar, no notice when it fails. A question about installing an update is not one to ask at a till, and a slow line must never hold up opening the app. [supabase/releases-bucket.md](supabase/releases-bucket.md) sets the storage up and [supabase/README.md](supabase/README.md) holds the release procedure; what follows is what is easy to break from the code side.
+
+**[UpdatePolicy](CamPOS.Application/Updates/UpdatePolicy.cs) decides *when*, and lives in Application so the rule sits where tests hold it.** Its two failure modes both happen in front of a customer: a restart in the middle of a sale, and a replacement with no backup to go back to. So checking happens **only at startup** — checking while the app is in use spends a slow pharmacy's bandwidth during trading to gain a few hours — and applying happens **only at shutdown**, which is the one moment that interrupts nothing. **A failed backup postpones rather than cancels**: the download stays and is tried again next time, because being a day late is not comparable to having nowhere to go back to. A channel that cannot be read means `stable`, since failing towards `test` would send unverified builds to pharmacies.
+
+**Everything goes in `update-log.txt`** next to the database. The update happens behind the pharmacy's back, so when they say it stopped working yesterday there has to be something to read — a plain text file, because it must be readable when the app is not, and over the phone.
+
+**The entry point is [Program.cs](CamPOS.Wpf/Program.cs), not WPF's generated `Main`.** `VelopackApp.Build().Run()` has to be the first thing that happens: during an install or rollback this process does that one job and exits, and opening windows and the database would both waste the work and hold files the replacement needs.
+
+**The releases URL is read-only and public, and upload rights exist in neither the app nor this repository.** Uploading is done by hand in the Supabase dashboard. An upload key in the app would be distributed to every pharmacy PC, and one of those being opened up would let someone ship any version to all of them; with only read open, the worst case is a stranger downloading an installer that was going to pharmacies anyway.
+
+**The build is framework-dependent, not self-contained.** Self-contained makes the package 64 MB, over Supabase's 50 MB per-file limit on the free plan, and 64 MB is a long download on the connections these pharmacies have. Framework-dependent is **7 MB full and about 2 MB for a delta**, and `vpk pack --framework net10.0-x64-desktop` makes the installer fetch the .NET Desktop Runtime from Microsoft once, at first install, when somebody is standing there. Velopack also cannot use `PublishSingleFile`: it packs a folder and diffs per file, and one 146 MB blob has no usable delta.
+
+**`AppVersion.Number` is the only version.** [deploy.ps1](deploy.ps1) edits it and packs from it, so what a pharmacy reads on screen and what is actually installed cannot diverge. Velopack needs three-part SemVer, so the script appends `.0` for the package while the screen keeps two parts — a pharmacy has no use for a `.0`.
+
+**Data does not move.** Velopack installs to `%LOCALAPPDATA%\CamPOS` while the database, `license.dat` and the sync token stay in `%APPDATA%\CamPOS`. Changing the install location therefore changes nothing a pharmacy would notice.
+
 ## Repository notes
 
 **Two branches, and which one you are on decides what you may change.** The single-`main` rule held until v2 work began; `v1.26` is tagged at the last commit before the split, so the version a pharmacy is running can always be checked out by name.

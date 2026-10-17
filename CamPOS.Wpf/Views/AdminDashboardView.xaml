@@ -67,6 +67,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>   <!-- 영수증 설정 -->
                 <RowDefinition Height="Auto"/>   <!-- 라이선스 -->
+                <RowDefinition Height="Auto"/>   <!-- 자동 업데이트 -->
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
@@ -464,7 +465,73 @@
                 </Border>
             </Expander>
 
-            <StackPanel Grid.Row="5">
+            <!-- 자동 업데이트. 약국에게는 아무것도 묻지 않고 알리지도 않으므로,
+                 "이 PC가 새 버전을 받았나"를 알 수 있는 자리는 여기뿐이다.
+                 관리자 대시보드 자체가 Administrator에게만 열리므로 이 칸도 그렇다. -->
+            <Expander Grid.Row="5" Margin="6,0,6,20" IsExpanded="False">
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⬇️  Updates" FontWeight="SemiBold" FontSize="14"/>
+                        <TextBlock Text="{Binding UpdateHeaderSummary}"
+                                   VerticalAlignment="Center" Margin="12,0,0,0" FontSize="12"
+                                   Foreground="{StaticResource MutedTextBrush}"/>
+                    </StackPanel>
+                </Expander.Header>
+
+                <Border Style="{StaticResource Card}" Margin="0,10,0,0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
+                                   Text="CamPOS checks for a new version when it starts, downloads it in the background, and installs it the next time it is closed. Nothing interrupts a sale, and nothing is asked."/>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="This version" Style="{StaticResource Caption}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding UpdateCurrentVersion}" FontWeight="SemiBold"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Last checked" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding UpdateLastChecked}" Margin="0,6,0,0"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Ready to install" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding UpdateDownloaded}" Margin="0,6,0,0"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Channel" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+                            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,6,0,0">
+                                <!-- test는 본인 PC와 약국 한 곳에서만 쓴다. 검증 전 버전이
+                                     그 PC로 온다는 뜻이므로, 바꾼 사실이 보여야 한다. -->
+                                <ComboBox ItemsSource="{Binding UpdateChannels}"
+                                          SelectedItem="{Binding UpdateChannel}"
+                                          Width="110" Height="28"/>
+                                <TextBlock Text="test receives unverified builds"
+                                           Style="{StaticResource Caption}"
+                                           VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Check now"
+                                    Style="{StaticResource SecondaryBtn}"
+                                    Height="34" Padding="16,0"
+                                    IsEnabled="{Binding IsUpdateIdle}"
+                                    Command="{Binding CheckForUpdateCommand}"/>
+                            <TextBlock Text="{Binding UpdateMessage}"
+                                       Style="{StaticResource Caption}" TextWrapping="Wrap"
+                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Expander>
+
+            <StackPanel Grid.Row="6">
                 <Button Content="← Back"
                         Style="{StaticResource SecondaryBtn}"
                         HorizontalAlignment="Left"
