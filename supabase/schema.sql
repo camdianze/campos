@@ -45,6 +45,20 @@ create table if not exists public.site_token (
 
 create index if not exists site_token_site_idx on public.site_token(site_id);
 
+-- ── 발급 도구의 비밀 ───────────────────────────────────────────────────────
+-- 발급 도구가 issue 함수를 부를 때 내미는 값. 토큰과 같은 방식으로 SHA-256만
+-- 저장하므로, 이 표가 새어도 그것으로 등록할 수는 없다.
+--
+-- 발급 도구에 Supabase 비밀 키를 주지 않는 이유가 이 표다. 그 키는 RLS를 통째로
+-- 우회해 약국 데이터 전부를 읽을 수 있는데, 발급 도구에 필요한 것은 대장에 한 줄
+-- 쓰는 권한뿐이다. 노트북이 털려도 라이선스 등록 말고는 할 수 없어야 한다.
+create table if not exists public.issuer_secret (
+    secret_sha256  text primary key,
+    label          text,
+    created_at     timestamptz not null default now(),
+    revoked_at     timestamptz
+);
+
 -- ── 라이선스 발급 대장 ─────────────────────────────────────────────────────
 -- 어느 일련번호가 어느 약국에 나갔는지. register 함수가 이것을 읽어 라이선스
 -- 코드를 토큰으로 바꿔 준다.
@@ -290,6 +304,7 @@ revoke all on all tables in schema public from anon, authenticated;
 alter default privileges in schema public
     revoke all on tables from anon, authenticated;
 
+alter table public.issuer_secret     enable row level security;
 alter table public.license_issuance  enable row level security;
 alter table public.site              enable row level security;
 alter table public.site_token        enable row level security;

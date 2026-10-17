@@ -8,6 +8,7 @@
 | `functions/sync/index.ts` | Edge Function. 서버로 들어가는 유일한 길. |
 | `functions/sync-photo/index.ts` | 사진 한 장을 받는다. 싣는 것이 달라 함수가 따로 있다. |
 | `functions/register/index.ts` | 라이선스 코드를 이 PC의 토큰으로 바꿔 준다. |
+| `functions/issue/index.ts` | 발급 도구가 발급 내역을 적는 곳. 공유 비밀로만 열린다. |
 | `new-token.ps1` | PC용 토큰 하나를 만들고, 붙여넣을 SQL을 출력한다. |
 | `test-upload.ps1` | 미리보기 파일을 실제로 보내 서버를 확인한다. |
 | `check.sql` | 서버에 무엇이 들어와 있는지 한눈에. 전송할 때마다 다시 Run. |
@@ -244,7 +245,39 @@ where table_name = 'app_user';   -- site_id, user_id, username, role, status, se
 
 설치할 때 사람이 넣는 것은 **라이선스 코드 하나**다. 동기화 토큰은 앱이 서버에서 받아 와 혼자 저장한다 — 사람이 보지도 만지지도 않는다.
 
-### 라이선스를 발급할 때 서버에도 한 줄
+### 라이선스를 발급할 때 — 발급 도구가 알아서 올린다
+
+```
+발급하기.bat → 고객명 → 약국 코드(KH-0002) → 만료일
+```
+
+발급 도구가 `issue` 함수를 불러 `site`와 `license_issuance`를 채운다. 손으로 SQL을 넣을 일이 없고, 인터넷이 없으면 큐에 쌓였다가 `sync`로 올라간다.
+
+**발급 도구가 Supabase 비밀 키를 들고 있지 않다.** 그 키는 RLS를 통째로 우회해 약국 데이터 전부를 읽을 수 있는데, 발급 도구에 필요한 것은 대장에 한 줄 쓰는 권한뿐이다. 그래서 전용 함수와 공유 비밀을 쓰고, 서버에는 그 비밀의 SHA-256만 둔다 — 노트북이 털려도 라이선스 등록 말고는 못 한다.
+
+#### 발급 도구를 처음 설정할 때 (한 번만)
+
+비밀을 하나 정하고 서버에 등록한다:
+
+```sql
+-- '아무-긴-문자열'을 실제 값으로 바꾸고, 같은 값을 cloud.json의 issuerSecret에 적는다
+insert into public.issuer_secret (secret_sha256, label)
+values (encode(sha256('아무-긴-문자열'::bytea), 'hex'), '발급 노트북');
+```
+
+그리고 `%APPDATA%\PharmaPOS.Issuer\cloud.json`:
+
+```json
+{
+  "supabaseUrl": "https://wigewqyblckkguaslupp.supabase.co",
+  "issuerSecret": "아무-긴-문자열",
+  "publishableKey": "sb_publishable_..."
+}
+```
+
+`발급하기.bat`에서 `cloud status`로 연결을 확인할 수 있다.
+
+### 손으로 넣어야 하는 경우
 
 ```sql
 -- 약국이 처음이면 먼저
