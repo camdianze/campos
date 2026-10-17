@@ -26,10 +26,18 @@ public sealed class SyncService
     public const int MaxBatchesPerRun = 20;
 
     /// <summary>
-    /// 한 번 눌렀을 때 올릴 사진의 최대 장수. 장당 수백 KB라 원장보다 훨씬 느리고,
-    /// 느린 회선에서 끝이 안 보이는 작업이 되면 안 된다. 남으면 화면이 말한다.
+    /// 한 번 눌렀을 때 사진에 쓸 시간. <b>장수가 아니라 시간으로 끊는다</b> —
+    /// 사람이 신경 쓰는 것은 얼마나 기다리느냐이지 몇 장이냐가 아니고, 회선이
+    /// 빠르면 한 번에 다 가야 한다. 장수로 끊으면 300장짜리 약국은 빠른 회선에서도
+    /// 버튼을 여섯 번 눌러야 했다.
     /// </summary>
-    public const int MaxPhotosPerRun = 50;
+    public static readonly TimeSpan PhotoTimeBudget = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// 시간 예산과 별개의 안전장치. 한 장이 즉시 실패해 되돌아오는 상태에서는
+    /// 2분 동안 수천 번을 돌 수 있다.
+    /// </summary>
+    public const int MaxPhotosPerRun = 2000;
 
     private readonly SyncPayloadBuilder _builder;
     private readonly ISyncRepository _repository;
@@ -156,10 +164,17 @@ public sealed class SyncService
 
         try
         {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+
             // 바이트까지 읽으므로 한 번에 조금씩 가져온다.
             for (var taken = 0; taken < MaxPhotosPerRun; taken += PhotoBatch)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (clock.Elapsed > PhotoTimeBudget)
+                {
+                    break;
+                }
 
                 var photos = await _repository.GetPhotosToUploadAsync(PhotoBatch);
 
@@ -170,6 +185,11 @@ public sealed class SyncService
 
                 foreach (var photo in photos)
                 {
+                    if (clock.Elapsed > PhotoTimeBudget)
+                    {
+                        break;
+                    }
+
                     var result = await _client.UploadPhotoAsync(settings, photo, cancellationToken);
 
                     if (!result.IsSuccess)
