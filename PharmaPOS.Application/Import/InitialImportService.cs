@@ -476,29 +476,11 @@ public class InitialImportService : IInitialImportService
     {
         hasChanges = false;
 
-        var merged = new Product
-        {
-            ProductId = existing.ProductId,
-            ProductName = existing.ProductName,
-            Barcode = existing.Barcode,
-            InternalBarcode = existing.InternalBarcode,
-            GenericName = existing.GenericName,
-            Strength = existing.Strength,
-            DosageForm = existing.DosageForm,
-            Unit = existing.Unit,
-            Manufacturer = existing.Manufacturer,
-            CountryOfOrigin = existing.CountryOfOrigin,
-            CostPrice = existing.CostPrice,
-            SellingPrice = existing.SellingPrice,
-            SafetyStockLevel = existing.SafetyStockLevel,
-            Status = existing.Status,
-            CreatedAt = existing.CreatedAt,
-            AtcCode = existing.AtcCode,
-            IsCombination = existing.IsCombination,
-            UnitsPerBox = existing.UnitsPerBox,
-            UnitSellingPrice = existing.UnitSellingPrice,
-            Category = existing.Category
-        };
+        // 먼저 통째로 베끼고, 파일이 실제로 적어 온 칸만 덮어쓴다. 베끼는 목록을
+        // 여기 손으로 적어 두었을 때는 컬럼이 늘 때마다 빠뜨렸고, 빠뜨린 칸은
+        // 기본값으로 저장되어 값이 지워졌다 — 낱개 판매 여부와 리엘 가격이 그렇게
+        // 날아갔다. Product.Copy()가 기본이면 새 컬럼이 저절로 따라온다.
+        var merged = existing.Copy();
 
         var changed = false;
 

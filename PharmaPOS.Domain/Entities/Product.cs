@@ -230,4 +230,45 @@ public class Product
     public decimal UnitCostPrice => IsBoxedProduct
         ? decimal.Round(CostPrice / UnitsPerBox, LooseUnitPriceDecimals, MidpointRounding.AwayFromZero)
         : CostPrice;
+
+    /// <summary>
+    /// 이 상품을 그대로 베낀 새 객체. 값을 하나씩 손으로 옮겨 적던 자리를 대신한다.
+    ///
+    /// 임포트가 기존 상품을 갱신할 때, 먼저 베끼고 파일이 적어 온 칸만 덮어쓴다.
+    /// 그 베끼는 목록을 손으로 적어 두었더니 컬럼이 늘 때마다 거기 추가하는 것을
+    /// 잊었고, 잊힌 칸은 <b>기본값으로 저장되어 값이 지워졌다</b> — 낱개 판매 여부와
+    /// 리엘로 적어 둔 가격이 실제로 그렇게 날아갔다. 임포트는 값을 비울 수 없다는
+    /// 규칙이 바로 그 자리에서 깨져 있었고, 화면에는 아무 표시도 나지 않았다.
+    ///
+    /// 베끼는 쪽을 기본으로 두면 컬럼을 새로 만들어도 저절로 따라온다. 빼야 할
+    /// 값이 있으면 그때는 <b>일부러</b> 빼게 된다.
+    /// </summary>
+    public Product Copy() => new()
+    {
+        ProductId = ProductId,
+        ProductName = ProductName,
+        Barcode = Barcode,
+        InternalBarcode = InternalBarcode,
+        UnitBarcodeOverride = UnitBarcodeOverride,
+        GenericName = GenericName,
+        Strength = Strength,
+        DosageForm = DosageForm,
+        Unit = Unit,
+        Manufacturer = Manufacturer,
+        CountryOfOrigin = CountryOfOrigin,
+        CostPrice = CostPrice,
+        SellingPrice = SellingPrice,
+        UnitSellingPrice = UnitSellingPrice,
+        SellingPriceKhr = SellingPriceKhr,
+        CostPriceKhr = CostPriceKhr,
+        UnitSellingPriceKhr = UnitSellingPriceKhr,
+        SafetyStockLevel = SafetyStockLevel,
+        Status = Status,
+        CreatedAt = CreatedAt,
+        AtcCode = AtcCode,
+        IsCombination = IsCombination,
+        UnitsPerBox = UnitsPerBox,
+        SellsLooseUnits = SellsLooseUnits,
+        Category = Category,
+    };
 }
