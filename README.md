@@ -1,4 +1,4 @@
-# PharmaPOS
+# CamPOS
 
 소규모 약국·보건시설을 위한 **재고 관리 및 POS(판매 시점 관리) 데스크톱 애플리케이션**입니다.
 
@@ -68,9 +68,9 @@ WPF ──────> Application ──> Domain
 
 | 프로젝트 | 역할 |
 |---|---|
-| `PharmaPOS.Domain` | 엔티티와 열거형. 의존성 없음, 로직 없음 |
-| `PharmaPOS.Application` | 비즈니스 규칙, 서비스 구현체, 리포지토리 **인터페이스** |
-| `PharmaPOS.DataAccess` | 리포지토리 **구현체**, 스키마 생성, 백업/내보내기 |
+| `CamPOS.Domain` | 엔티티와 열거형. 의존성 없음, 로직 없음 |
+| `CamPOS.Application` | 비즈니스 규칙, 서비스 구현체, 리포지토리 **인터페이스** |
+| `CamPOS.DataAccess` | 리포지토리 **구현체**, 스키마 생성, 백업/내보내기 |
 | WPF 프로젝트 | 화면(View/ViewModel), DI 조립, 플랫폼 종속 구현(DPAPI 등) |
 
 리포지토리 인터페이스를 `Application`에 두고 구현을 `DataAccess`에 둠으로써 의존 방향을 뒤집었습니다. 그 결과 **Domain·Application·DataAccess 세 프로젝트는 플랫폼 독립적(`net10.0`)** 이며, Windows에 묶인 것은 WPF 프로젝트뿐입니다.
@@ -97,16 +97,16 @@ WPF ──────> Application ──> Domain
 
 ```powershell
 # 빌드
-dotnet build PharmaPOS.slnx
+dotnet build CamPOS.slnx
 
 # 실행
-dotnet run --project PharmaPOS.Wpf
+dotnet run --project CamPOS.Wpf
 
 # 배포용 게시 (자체 포함 단일 실행 파일, win-x64)
-dotnet publish PharmaPOS.Wpf -p:PublishProfile=FolderProfile
+dotnet publish CamPOS.Wpf -p:PublishProfile=FolderProfile
 ```
 
-게시 결과물은 `PharmaPOS.exe` 입니다.
+게시 결과물은 `CamPOS.exe` 입니다.
 
 ### 최초 실행
 
@@ -119,7 +119,7 @@ dotnet publish PharmaPOS.Wpf -p:PublishProfile=FolderProfile
 데이터베이스는 첫 실행 시 아래 경로에 자동 생성됩니다.
 
 ```
-%APPDATA%\PharmaPOS\pharmapos.db
+%APPDATA%\CamPOS\campos.db
 ```
 
 이 폴더를 삭제하면 앱이 초기 설정 상태로 돌아갑니다. 개발 중 초기화가 필요할 때 사용하세요.

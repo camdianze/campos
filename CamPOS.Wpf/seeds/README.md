@@ -96,7 +96,7 @@ ATC 접두사(J01 등)로 전신 여부를 자동 판별하지 않는 이유는 
 
 앱은 다음 순서로 찾고, 먼저 발견한 파일 하나만 쓴다.
 
-1. `%APPDATA%\PharmaPOS\seeds\aware_2025.csv` — 현장 교체용. 재빌드 없이 갱신 가능.
+1. `%APPDATA%\CamPOS\seeds\aware_2025.csv` — 현장 교체용. 재빌드 없이 갱신 가능.
 2. `(설치 폴더)\seeds\aware_2025.csv` — 빌드에 동봉되는 기본본.
 
 파일 내용이 이전 실행과 같으면 다시 적재하지 않는다. AWaRe 개정판이 나오면
@@ -109,7 +109,7 @@ ATC 접두사(J01 등)로 전신 여부를 자동 판별하지 않는 이유는 
 적재 상태는 설정 화면(관리자 → Counselling)에서 확인할 수 있다.
 
 형식이 잘못된 줄이 있으면 그 줄만 건너뛰고 나머지는 적재한다.
-`PharmaPOS.Tests`의 `ShippedSeedFileTests`가 동봉본 전체를 실제로 적재해
+`CamPOS.Tests`의 `ShippedSeedFileTests`가 동봉본 전체를 실제로 적재해
 건너뛴 줄이 하나도 없는지 검사하므로, 파일을 교체하면 `dotnet test`로 먼저 확인할 것.
 
 ## 2026-09-19 WHO 포털 대조

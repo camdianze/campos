@@ -1,4 +1,4 @@
-﻿# PharmaPOS 화면별 입력 필드 · 목록 · 저장 흐름
+﻿# CamPOS 화면별 입력 필드 · 목록 · 저장 흐름
 
 매뉴얼 작성용으로 `.xaml`과 그에 딸린 ViewModel·서비스를 읽어 정리한 것이다. 코드는 수정하지 않았다.
 기준 시점: 작업 트리 현재 상태 (`main`, 최근 커밋 `6a36a26` + 미커밋 변경분).
@@ -21,8 +21,8 @@
 | **라벨의 `*` 표시는 일관되지 않다** | 실제로 필수인데 `*`가 없는 칸이 많다(초기 설정 1단계 전부, 보안 질문/답, 입고 배치번호·수량 등). 이 문서의 "필수" 열은 화면 표기가 아니라 **코드가 실제로 막는지**를 기준으로 적었다. |
 | **검증 시점** | 입력 중에는 아무 검증도 하지 않는다. **저장/확인 버튼을 눌러야** 한 번에 검사하고, 첫 번째로 걸린 항목의 메시지 하나만 화면 하단(또는 패널 하단)에 빨간 글씨로 표시한다. 입력칸에 붉은 테두리가 생기거나 하지 않는다. |
 | **숫자 칸도 전부 문자열 TextBox** | 스피너·숫자 전용 입력이 아니다. 문자를 쳐도 막히지 않고, 저장할 때 "숫자가 아니다"로 걸린다. |
-| **비밀번호 규칙 안내문** | 비밀번호를 새로 정하는 모든 칸 아래에 같은 문구가 붙는다 — `At least 8 characters, including one letter and one number. Special characters are allowed. Spaces are not.` (출처: [PasswordPolicyValidator.RuleSummary](../PharmaPOS.Application/PasswordPolicy/PasswordPolicyValidator.cs#L20)) |
-| **대화상자** | 시스템 MessageBox는 쓰지 않는다. 전부 자체 [AppDialog](../PharmaPOS.Wpf/Views/AppDialog.xaml.cs)다. |
+| **비밀번호 규칙 안내문** | 비밀번호를 새로 정하는 모든 칸 아래에 같은 문구가 붙는다 — `At least 8 characters, including one letter and one number. Special characters are allowed. Spaces are not.` (출처: [PasswordPolicyValidator.RuleSummary](../CamPOS.Application/PasswordPolicy/PasswordPolicyValidator.cs#L20)) |
+| **대화상자** | 시스템 MessageBox는 쓰지 않는다. 전부 자체 [AppDialog](../CamPOS.Wpf/Views/AppDialog.xaml.cs)다. |
 | **ComboBox 항목은 enum 이름 그대로 표시된다** | `DrugShop`, `MobilePayment`, `Within7Days`, `NonMedicine`처럼 띄어쓰기 없이 나온다. 사람이 읽기 좋은 표시명으로 바꾸는 변환기가 없다. |
 
 ### 0-1. `Strength` · `Dosage Form` · `Unit`은 서로 다른 값이다
@@ -48,7 +48,7 @@
 
 ---
 
-## 1. Activate PharmaPOS — [LicenseActivationView.xaml](../PharmaPOS.Wpf/Views/LicenseActivationView.xaml)
+## 1. Activate CamPOS — [LicenseActivationView.xaml](../CamPOS.Wpf/Views/LicenseActivationView.xaml)
 
 첫 실행 시 1회. 제목 아래 설명: `Enter the license code that came with your copy. This is a one-time step and works without an internet connection.`
 
@@ -70,7 +70,7 @@
 
 ---
 
-## 2. Initial Facility Setup / Login Setup — [InitialSetupView.xaml](../PharmaPOS.Wpf/Views/InitialSetupView.xaml)
+## 2. Initial Facility Setup / Login Setup — [InitialSetupView.xaml](../CamPOS.Wpf/Views/InitialSetupView.xaml)
 
 2단계 마법사. 최초 1회만 나온다.
 
@@ -108,7 +108,7 @@
 
 ---
 
-## 3. Login — [LoginView.xaml](../PharmaPOS.Wpf/Views/LoginView.xaml)
+## 3. Login — [LoginView.xaml](../CamPOS.Wpf/Views/LoginView.xaml)
 
 제목 `Login` / 부제 `Sign in to continue`. 좌측 하단에 앱 버전.
 
@@ -116,7 +116,7 @@
 
 | # | 라벨 | 컨트롤 | 필수 | 기본값 |
 |---|---|---|---|---|
-| 1 | `ID` | TextBox | ✔ | **직전에 `Remember me`로 저장한 아이디**가 있으면 자동으로 채워진다 (`%APPDATA%\PharmaPOS\remember_me.txt`) |
+| 1 | `ID` | TextBox | ✔ | **직전에 `Remember me`로 저장한 아이디**가 있으면 자동으로 채워진다 (`%APPDATA%\CamPOS\remember_me.txt`) |
 | 2 | `Password` | PasswordBox | ✔ | 빈 칸 |
 | 3 | `Remember me` | CheckBox | — | 저장된 아이디가 있으면 **켜진 상태**, 없으면 꺼짐 |
 
@@ -131,7 +131,7 @@
 
 ---
 
-## 4. Find ID — [FindUsernameView.xaml](../PharmaPOS.Wpf/Views/FindUsernameView.xaml)
+## 4. Find ID — [FindUsernameView.xaml](../CamPOS.Wpf/Views/FindUsernameView.xaml)
 
 | # | 라벨 | 컨트롤 | 필수 | 기본값 |
 |---|---|---|---|---|
@@ -141,7 +141,7 @@
 
 ---
 
-## 5. Find Password — [PasswordRecoveryView.xaml](../PharmaPOS.Wpf/Views/PasswordRecoveryView.xaml)
+## 5. Find Password — [PasswordRecoveryView.xaml](../CamPOS.Wpf/Views/PasswordRecoveryView.xaml)
 
 3단계. 화면 제목이 단계마다 바뀐다.
 
@@ -194,7 +194,7 @@
 
 ---
 
-## 6. My Page — [MyPageView.xaml](../PharmaPOS.Wpf/Views/MyPageView.xaml)
+## 6. My Page — [MyPageView.xaml](../CamPOS.Wpf/Views/MyPageView.xaml)
 
 입력 칸 없음. 계정 카드(이니셜 원 · 아이디 · 역할)와 메뉴 두 개.
 
@@ -204,7 +204,7 @@
 
 ---
 
-## 7. Change Password — [ChangePasswordView.xaml](../PharmaPOS.Wpf/Views/ChangePasswordView.xaml)
+## 7. Change Password — [ChangePasswordView.xaml](../CamPOS.Wpf/Views/ChangePasswordView.xaml)
 
 | # | 라벨 | 컨트롤 | 필수 | 기본값 |
 |---|---|---|---|---|
@@ -216,7 +216,7 @@
 
 ---
 
-## 8. Recovery Settings — [RecoverySettingsView.xaml](../PharmaPOS.Wpf/Views/RecoverySettingsView.xaml)
+## 8. Recovery Settings — [RecoverySettingsView.xaml](../CamPOS.Wpf/Views/RecoverySettingsView.xaml)
 
 제목 아래 설명: `Set up at least one recovery method in case you forget your password.`
 `SECURITY QUESTION` / `RECOVERY EMAIL` 두 구역으로 나뉜다.
@@ -244,7 +244,7 @@
 
 ---
 
-## 9. Products — [ProductListView.xaml](../PharmaPOS.Wpf/Views/ProductListView.xaml)
+## 9. Products — [ProductListView.xaml](../CamPOS.Wpf/Views/ProductListView.xaml)
 
 상품 목록 + **하단 입고(Stock-IN) 패널**이 한 화면에 있다. 별도의 입고 전용 화면은 없다.
 
@@ -318,7 +318,7 @@
 
 ---
 
-## 10. Product (등록/수정) — [ProductEditView.xaml](../PharmaPOS.Wpf/Views/ProductEditView.xaml)
+## 10. Product (등록/수정) — [ProductEditView.xaml](../CamPOS.Wpf/Views/ProductEditView.xaml)
 
 좌우 2단. 왼쪽 = "이 약이 무엇인지", 오른쪽 = "얼마에 얼마나 파는지". 신규 등록과 수정이 같은 화면이다.
 
@@ -410,7 +410,7 @@
 
 ---
 
-## 11. Internal Barcode — [InternalBarcodeView.xaml](../PharmaPOS.Wpf/Views/InternalBarcodeView.xaml)
+## 11. Internal Barcode — [InternalBarcodeView.xaml](../CamPOS.Wpf/Views/InternalBarcodeView.xaml)
 
 제목 아래에 대상 상품명이 표시된다.
 
@@ -428,7 +428,7 @@
 
 ---
 
-## 12. Inventory Status — [InventoryStatusView.xaml](../PharmaPOS.Wpf/Views/InventoryStatusView.xaml)
+## 12. Inventory Status — [InventoryStatusView.xaml](../CamPOS.Wpf/Views/InventoryStatusView.xaml)
 
 제품 행을 펼치면 배치 행이 나오는 2단 트리 표. 아래에 **조정 패널**과 **입고 패널**이 같은 자리를 나눠 쓴다(둘 중 하나만 열린다).
 
@@ -519,7 +519,7 @@
 
 ---
 
-## 13. Inventory Adjustment (독립 화면) — [AdjustmentView.xaml](../PharmaPOS.Wpf/Views/AdjustmentView.xaml)
+## 13. Inventory Adjustment (독립 화면) — [AdjustmentView.xaml](../CamPOS.Wpf/Views/AdjustmentView.xaml)
 
 > ⚠️ **현재 이 화면으로 가는 길이 없다.** 조정 기능이 Inventory Status의 패널로 옮겨지면서 메인 셸 하단의 `✏️ Adjustment` 버튼이 사라졌고, 코드 어디에서도 이 화면을 생성하지 않는다. 파일과 ViewModel은 그대로 남아 있다. **매뉴얼에는 넣지 않는 편이 맞다.** 참고용으로만 적어 둔다.
 
@@ -538,7 +538,7 @@
 
 ---
 
-## 14. POS Sale — [PosSaleView.xaml](../PharmaPOS.Wpf/Views/PosSaleView.xaml)
+## 14. POS Sale — [PosSaleView.xaml](../CamPOS.Wpf/Views/PosSaleView.xaml)
 
 왼쪽 장바구니, 오른쪽 주문 패널.
 
@@ -608,7 +608,7 @@
 
 ---
 
-## 15. History — [HistoryView.xaml](../PharmaPOS.Wpf/Views/HistoryView.xaml)
+## 15. History — [HistoryView.xaml](../CamPOS.Wpf/Views/HistoryView.xaml)
 
 입력 칸 없음. 부제 `Select a history type to view records.`
 
@@ -618,7 +618,7 @@
 
 ---
 
-## 16. Sales History — [SalesHistoryView.xaml](../PharmaPOS.Wpf/Views/SalesHistoryView.xaml)
+## 16. Sales History — [SalesHistoryView.xaml](../CamPOS.Wpf/Views/SalesHistoryView.xaml)
 
 화면을 열면 **필터 없이 전체를 한 번 조회**한 상태로 시작한다.
 
@@ -660,7 +660,7 @@
 
 ---
 
-## 17. Refund (창) — [RefundWindow.xaml](../PharmaPOS.Wpf/Views/RefundWindow.xaml)
+## 17. Refund (창) — [RefundWindow.xaml](../CamPOS.Wpf/Views/RefundWindow.xaml)
 
 Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 창(창 제목 `Refund`).
 제목 아래 요약: `Sold on {yyyy-MM-dd HH:mm} by {아이디}  ·  {결제수단}`
@@ -700,7 +700,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 18. Stock History — [StockHistoryView.xaml](../PharmaPOS.Wpf/Views/StockHistoryView.xaml)
+## 18. Stock History — [StockHistoryView.xaml](../CamPOS.Wpf/Views/StockHistoryView.xaml)
 
 읽기 전용 화면. 열자마자 **종류를 가리지 않고** 전체를 한 번 조회한다.
 
@@ -768,7 +768,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 19. Inventory Alerts — [AlertsView.xaml](../PharmaPOS.Wpf/Views/AlertsView.xaml)
+## 19. Inventory Alerts — [AlertsView.xaml](../CamPOS.Wpf/Views/AlertsView.xaml)
 
 메인 셸의 🔔 → `View All Alerts →`로 들어온다.
 
@@ -797,7 +797,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 20. Administrator Dashboard — [AdminDashboardView.xaml](../PharmaPOS.Wpf/Views/AdminDashboardView.xaml)
+## 20. Administrator Dashboard — [AdminDashboardView.xaml](../CamPOS.Wpf/Views/AdminDashboardView.xaml)
 
 지표 카드 6개(`Daily Sales` / `Transactions` / `Inventory Value` / `Active Products` / `Low Stock` / `Expiry Alert`)와 이동 버튼 6개, 그 아래 접히는 구역 둘(`🧾 Receipt Settings`, `🔑 License`).
 
@@ -844,7 +844,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 - 참고: `km-KH.json`의 `reviewed_by`에는 **원어민이 실제로 본 줄**이 적혀 있다(복약지도문의 `important` 3줄). 나머지는 제품 소유자 승인이므로, 문구가 중요한 자리에서는 미검수로 취급할 것.
 
 
-## 21. User Management — [UserManagementView.xaml](../PharmaPOS.Wpf/Views/UserManagementView.xaml)
+## 21. User Management — [UserManagementView.xaml](../CamPOS.Wpf/Views/UserManagementView.xaml)
 
 ### 검색·필터
 
@@ -887,7 +887,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 22. Add User (창) — [AddUserWindow.xaml](../PharmaPOS.Wpf/Views/AddUserWindow.xaml)
+## 22. Add User (창) — [AddUserWindow.xaml](../CamPOS.Wpf/Views/AddUserWindow.xaml)
 
 창 제목 `Add User` / 본문 제목 `Add User`.
 
@@ -902,7 +902,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 23. Reset Password (창) — [ResetPasswordWindow.xaml](../PharmaPOS.Wpf/Views/ResetPasswordWindow.xaml)
+## 23. Reset Password (창) — [ResetPasswordWindow.xaml](../CamPOS.Wpf/Views/ResetPasswordWindow.xaml)
 
 창 제목 `Reset Password`. 본문 맨 위에 `Reset password for: {대상 아이디}`.
 
@@ -917,7 +917,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 24. Reports — [ReportsView.xaml](../PharmaPOS.Wpf/Views/ReportsView.xaml)
+## 24. Reports — [ReportsView.xaml](../CamPOS.Wpf/Views/ReportsView.xaml)
 
 관리자 전용. 화면을 열면 **이번 달 1일 ~ 오늘**로 자동 조회된다.
 
@@ -981,7 +981,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 25. Import / Export — [BackupExportView.xaml](../PharmaPOS.Wpf/Views/BackupExportView.xaml)
+## 25. Import / Export — [BackupExportView.xaml](../CamPOS.Wpf/Views/BackupExportView.xaml)
 
 화면 제목은 `Import / Export`. 좌우로 나뉘고, 복원만 아래 빨간 위험 구역에 따로 있다.
 
@@ -1115,14 +1115,14 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 **복원**
 1. 파일을 안 골랐으면 `Please select a backup file.`
 2. 확인 대화상자 `Confirm Restore` / `Current data will be replaced. Continue?` (Yes/No). 거절하면 `Please confirm database restore.`
-3. **복원 직전 현재 DB를 자동 백업**한다 (`pharmapos_pre_restore_backup_…db`). 내보내기 폴더를 지정하지 않았으면 `%APPDATA%\PharmaPOS\`에 떨어진다.
+3. **복원 직전 현재 DB를 자동 백업**한다 (`pharmapos_pre_restore_backup_…db`). 내보내기 폴더를 지정하지 않았으면 `%APPDATA%\CamPOS\`에 떨어진다.
 4. 성공하면 `Restart Required` / `Database restored successfully. The application will now restart.` → **앱이 자동으로 재시작된다.**
 
 `← Back` → 메인 셸.
 
 ---
 
-## 26. Antibiotic Counselling — [CounsellingSettingsView.xaml](../PharmaPOS.Wpf/Views/CounsellingSettingsView.xaml)
+## 26. Antibiotic Counselling — [CounsellingSettingsView.xaml](../CamPOS.Wpf/Views/CounsellingSettingsView.xaml)
 
 관리자 전용. 제목 아래: `Counselling sheets support pharmacist advice on antibiotic use. They do not provide dosing or diagnosis.`
 화면을 열면 저장된 설정을 읽어 각 칸을 채운다.
@@ -1138,7 +1138,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 |---|---|---|---|---|---|
 | 1 | `When an antibiotic is sold` | ComboBox | ✔ | 저장값 (초기 **`Always`**) | `Always` / `Ask`<br>안내문: `A counselling notice is shown on screen for every antibiotic sale — this cannot be turned off. Always prints the sheet as well; Ask lets you decide each time.` |
 | 2 | `Send the sheet to` | ComboBox | ✔ | 저장값 (초기 **`Printer`**) | `Printer` / `File`<br>안내문: `Printer sends the sheet to the default printer. File saves it as a text file instead - useful for checking the sheet when no printer is attached.` |
-| 3 | `Folder (leave empty for the default location)` | TextBox + `Browse` | — | 저장값 | **`File`을 골랐을 때만 나타난다.** 비우면 `%APPDATA%\PharmaPOS\counselling-sheets\` |
+| 3 | `Folder (leave empty for the default location)` | TextBox + `Browse` | — | 저장값 | **`File`을 골랐을 때만 나타난다.** 비우면 `%APPDATA%\CamPOS\counselling-sheets\` |
 | 4 | `Sheet length` | ComboBox | ✔ | 저장값 (초기 **`Full`**) | `Full` / `Compact`<br>안내문: `Full is about 20 cm on 58 mm paper. Compact is about 10 cm and drops the signature and QR block.` |
 | 5 | `Local language` | ComboBox | ✔ | 저장값, 없으면 **`English only`** | 첫 항목은 항상 `English only`. 그 뒤로 설치된 로케일이 `km-kh (Khmer) - approved` 또는 `… - not reviewed - English only` 형태로 나온다<br>안내문: `English is always printed. A local language is added only after its translation has been reviewed and approved.` |
 | 6 | `More information address (optional)` | TextBox | — | 저장값 | 안내문: `Leave empty to omit the information block from the sheet.` |
@@ -1151,7 +1151,7 @@ Sales History에서 판매 줄을 고르고 `Refund`를 누르면 뜨는 모달 
 
 ---
 
-## 27. 메인 셸 — [MainShellView.xaml](../PharmaPOS.Wpf/Shell/MainShellView.xaml)
+## 27. 메인 셸 — [MainShellView.xaml](../CamPOS.Wpf/Shell/MainShellView.xaml)
 
 입력 칸 없음. 매뉴얼용으로 구성만 적어 둔다.
 

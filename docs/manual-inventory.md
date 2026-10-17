@@ -1,4 +1,4 @@
-# PharmaPOS 매뉴얼 작성용 화면·문자열 인벤토리
+# CamPOS 매뉴얼 작성용 화면·문자열 인벤토리
 
 이 문서는 사용자 매뉴얼을 쓰기 위해 코드에서 뽑아낸 목록이다. 코드는 수정하지 않았고, 읽어서 정리만 했다.
 기준 시점: 작업 트리 현재 상태 (`main`, 최근 커밋 `5830ffa`).
@@ -9,39 +9,39 @@
 
 ## 1. Views 폴더의 .xaml 파일 목록과 실제 제목 텍스트
 
-`PharmaPOS.Wpf/Views/` 에 25개, 셸이 `PharmaPOS.Wpf/Shell/` 에 1개 있다.
+`CamPOS.Wpf/Views/` 에 25개, 셸이 `CamPOS.Wpf/Shell/` 에 1개 있다.
 
 「제목」은 화면 안에 실제로 그려지는 큰 글씨(`Style="{StaticResource PageTitle}"`)를 말한다. `Window`인 경우 창 제목 표시줄 문자열도 함께 적었다.
 
 | 파일 | 종류 | 화면에 보이는 제목 |
 |---|---|---|
-| [AddUserWindow.xaml](../PharmaPOS.Wpf/Views/AddUserWindow.xaml) | Window | 창 제목 `Add User` / 본문 제목 `Add User` |
-| [AdjustmentHistoryView.xaml](../PharmaPOS.Wpf/Views/AdjustmentHistoryView.xaml) | UserControl | `Adjustment History` |
-| [AdjustmentView.xaml](../PharmaPOS.Wpf/Views/AdjustmentView.xaml) | UserControl | `Inventory Adjustment` |
-| [AdminDashboardView.xaml](../PharmaPOS.Wpf/Views/AdminDashboardView.xaml) | UserControl | `Administrator Dashboard` |
-| [AlertsView.xaml](../PharmaPOS.Wpf/Views/AlertsView.xaml) | UserControl | `Inventory Alerts` |
-| [AppDialog.xaml](../PharmaPOS.Wpf/Views/AppDialog.xaml) | Window | 제목이 호출할 때 정해진다 (아래 4번 참고) |
-| [BackupExportView.xaml](../PharmaPOS.Wpf/Views/BackupExportView.xaml) | UserControl | `Backup / Export` |
-| [ChangePasswordView.xaml](../PharmaPOS.Wpf/Views/ChangePasswordView.xaml) | UserControl | `Change Password` |
-| [CounsellingSettingsView.xaml](../PharmaPOS.Wpf/Views/CounsellingSettingsView.xaml) | UserControl | `Antibiotic Counselling` |
-| [FindUsernameView.xaml](../PharmaPOS.Wpf/Views/FindUsernameView.xaml) | UserControl | `Find ID` |
-| [HistoryView.xaml](../PharmaPOS.Wpf/Views/HistoryView.xaml) | UserControl | `History` |
-| [InitialSetupView.xaml](../PharmaPOS.Wpf/Views/InitialSetupView.xaml) | UserControl | 1단계 `Initial Facility Setup` / 2단계 `Login Setup` |
-| [InternalBarcodeView.xaml](../PharmaPOS.Wpf/Views/InternalBarcodeView.xaml) | UserControl | `Internal Barcode` |
-| [InventoryStatusView.xaml](../PharmaPOS.Wpf/Views/InventoryStatusView.xaml) | UserControl | `Inventory Status` |
-| [LicenseActivationView.xaml](../PharmaPOS.Wpf/Views/LicenseActivationView.xaml) | UserControl | `Activate PharmaPOS` |
-| [LoginView.xaml](../PharmaPOS.Wpf/Views/LoginView.xaml) | UserControl | PageTitle 없음 (로고/입력칸만) |
-| [MyPageView.xaml](../PharmaPOS.Wpf/Views/MyPageView.xaml) | UserControl | `My Page` |
-| [PasswordRecoveryView.xaml](../PharmaPOS.Wpf/Views/PasswordRecoveryView.xaml) | UserControl | 단계별로 `Find Password` → `Verify Identity` → `New Password` |
-| [PosSaleView.xaml](../PharmaPOS.Wpf/Views/PosSaleView.xaml) | UserControl | `POS Sale` |
-| [ProductEditView.xaml](../PharmaPOS.Wpf/Views/ProductEditView.xaml) | UserControl | `Product` |
-| [ProductListView.xaml](../PharmaPOS.Wpf/Views/ProductListView.xaml) | UserControl | `Products` |
-| [RecoverySettingsView.xaml](../PharmaPOS.Wpf/Views/RecoverySettingsView.xaml) | UserControl | `Recovery Settings` |
-| [ReportsView.xaml](../PharmaPOS.Wpf/Views/ReportsView.xaml) | UserControl | `Reports` |
-| [ResetPasswordWindow.xaml](../PharmaPOS.Wpf/Views/ResetPasswordWindow.xaml) | Window | 창 제목 `Reset Password` / 본문에 `Reset password for: {사용자명}` |
-| [SalesHistoryView.xaml](../PharmaPOS.Wpf/Views/SalesHistoryView.xaml) | UserControl | `Sales History` |
-| [UserManagementView.xaml](../PharmaPOS.Wpf/Views/UserManagementView.xaml) | UserControl | `User Management` |
-| [Shell/MainShellView.xaml](../PharmaPOS.Wpf/Shell/MainShellView.xaml) | UserControl | 제목 대신 `Welcome, {사용자명}` |
+| [AddUserWindow.xaml](../CamPOS.Wpf/Views/AddUserWindow.xaml) | Window | 창 제목 `Add User` / 본문 제목 `Add User` |
+| [AdjustmentHistoryView.xaml](../CamPOS.Wpf/Views/AdjustmentHistoryView.xaml) | UserControl | `Adjustment History` |
+| [AdjustmentView.xaml](../CamPOS.Wpf/Views/AdjustmentView.xaml) | UserControl | `Inventory Adjustment` |
+| [AdminDashboardView.xaml](../CamPOS.Wpf/Views/AdminDashboardView.xaml) | UserControl | `Administrator Dashboard` |
+| [AlertsView.xaml](../CamPOS.Wpf/Views/AlertsView.xaml) | UserControl | `Inventory Alerts` |
+| [AppDialog.xaml](../CamPOS.Wpf/Views/AppDialog.xaml) | Window | 제목이 호출할 때 정해진다 (아래 4번 참고) |
+| [BackupExportView.xaml](../CamPOS.Wpf/Views/BackupExportView.xaml) | UserControl | `Backup / Export` |
+| [ChangePasswordView.xaml](../CamPOS.Wpf/Views/ChangePasswordView.xaml) | UserControl | `Change Password` |
+| [CounsellingSettingsView.xaml](../CamPOS.Wpf/Views/CounsellingSettingsView.xaml) | UserControl | `Antibiotic Counselling` |
+| [FindUsernameView.xaml](../CamPOS.Wpf/Views/FindUsernameView.xaml) | UserControl | `Find ID` |
+| [HistoryView.xaml](../CamPOS.Wpf/Views/HistoryView.xaml) | UserControl | `History` |
+| [InitialSetupView.xaml](../CamPOS.Wpf/Views/InitialSetupView.xaml) | UserControl | 1단계 `Initial Facility Setup` / 2단계 `Login Setup` |
+| [InternalBarcodeView.xaml](../CamPOS.Wpf/Views/InternalBarcodeView.xaml) | UserControl | `Internal Barcode` |
+| [InventoryStatusView.xaml](../CamPOS.Wpf/Views/InventoryStatusView.xaml) | UserControl | `Inventory Status` |
+| [LicenseActivationView.xaml](../CamPOS.Wpf/Views/LicenseActivationView.xaml) | UserControl | `Activate CamPOS` |
+| [LoginView.xaml](../CamPOS.Wpf/Views/LoginView.xaml) | UserControl | PageTitle 없음 (로고/입력칸만) |
+| [MyPageView.xaml](../CamPOS.Wpf/Views/MyPageView.xaml) | UserControl | `My Page` |
+| [PasswordRecoveryView.xaml](../CamPOS.Wpf/Views/PasswordRecoveryView.xaml) | UserControl | 단계별로 `Find Password` → `Verify Identity` → `New Password` |
+| [PosSaleView.xaml](../CamPOS.Wpf/Views/PosSaleView.xaml) | UserControl | `POS Sale` |
+| [ProductEditView.xaml](../CamPOS.Wpf/Views/ProductEditView.xaml) | UserControl | `Product` |
+| [ProductListView.xaml](../CamPOS.Wpf/Views/ProductListView.xaml) | UserControl | `Products` |
+| [RecoverySettingsView.xaml](../CamPOS.Wpf/Views/RecoverySettingsView.xaml) | UserControl | `Recovery Settings` |
+| [ReportsView.xaml](../CamPOS.Wpf/Views/ReportsView.xaml) | UserControl | `Reports` |
+| [ResetPasswordWindow.xaml](../CamPOS.Wpf/Views/ResetPasswordWindow.xaml) | Window | 창 제목 `Reset Password` / 본문에 `Reset password for: {사용자명}` |
+| [SalesHistoryView.xaml](../CamPOS.Wpf/Views/SalesHistoryView.xaml) | UserControl | `Sales History` |
+| [UserManagementView.xaml](../CamPOS.Wpf/Views/UserManagementView.xaml) | UserControl | `User Management` |
+| [Shell/MainShellView.xaml](../CamPOS.Wpf/Shell/MainShellView.xaml) | UserControl | 제목 대신 `Welcome, {사용자명}` |
 
 보조 설명 문구 (제목 바로 아래 캡션):
 
@@ -59,7 +59,7 @@
 ```
 앱 시작 (App.OnStartup)
 │
-├─ 라이선스 미활성화 → LicenseActivationView "Activate PharmaPOS"
+├─ 라이선스 미활성화 → LicenseActivationView "Activate CamPOS"
 │                        └─ Activate 성공 ──┐
 │                                            ↓
 ├─ 활성화됨 + 초기설정 전 → InitialSetupView (1단계 Initial Facility Setup → 2단계 Login Setup)
@@ -155,7 +155,7 @@ MainShellView  ("Welcome, {사용자명}")
   - 특히 **Sales History의 `← Back`은 History 화면이 아니라 메인 셸로 간다.** Admin Dashboard에서 들어왔을 때도 마찬가지다.
   - Inventory Overview / Product Management로 Admin Dashboard에서 들어가면, 그 화면의 `← Back`은 대시보드가 아니라 메인 셸로 나온다.
 - 입고(Stock-IN) 전용 화면은 없다. Products 화면에서 상품을 선택하면 하단에 입고 패널이 펼쳐진다. Inventory Status의 `Stock-in` 버튼도 Products 화면으로 보낸다.
-- DB 복원에 성공하면 앱이 **자동으로 재시작**된다 ([BackupExportViewModel.cs](../PharmaPOS.Wpf/ViewModels/BackupExportViewModel.cs)).
+- DB 복원에 성공하면 앱이 **자동으로 재시작**된다 ([BackupExportViewModel.cs](../CamPOS.Wpf/ViewModels/BackupExportViewModel.cs)).
 
 ---
 
@@ -292,7 +292,7 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 ### 4-1. 대화상자 (AppDialog — 시스템 MessageBox는 쓰지 않는다)
 
-`MessageBox.Show`는 코드에 하나도 없다. 전부 테마를 맞춘 [AppDialog](../PharmaPOS.Wpf/Views/AppDialog.xaml.cs)로 통일돼 있다.
+`MessageBox.Show`는 코드에 하나도 없다. 전부 테마를 맞춘 [AppDialog](../CamPOS.Wpf/Views/AppDialog.xaml.cs)로 통일돼 있다.
 
 | 제목 | 본문 | 버튼 | 띄우는 곳 |
 |---|---|---|---|
@@ -347,7 +347,7 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 - `Please enter your license code.`
 - `This license code is not valid.`
-- `This license code requires a newer version of PharmaPOS.`
+- `This license code requires a newer version of CamPOS.`
 - `This license expired on {yyyy-MM-dd}. Please contact your supplier.`
 - `The selected file could not be read.` (파일에서 코드 불러오기 실패)
 
@@ -370,8 +370,8 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 발송되는 메일 본문 (SMTP):
 
-- 제목 `PharmaPOS Password Recovery Code` / 본문 `Your password recovery code is: {코드}` + `This code will expire in 10 minutes.`
-- 제목 `PharmaPOS Username Recovery` / 본문 `Your PharmaPOS username is: {아이디}`
+- 제목 `CamPOS Password Recovery Code` / 본문 `Your password recovery code is: {코드}` + `This code will expire in 10 minutes.`
+- 제목 `CamPOS Username Recovery` / 본문 `Your CamPOS username is: {아이디}`
 
 ### 4-6. 복구 설정 (Recovery Settings)
 
@@ -534,8 +534,8 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 권한 분기는 코드상 **딱 두 군데**에만 있다:
 
-1. [MainShellViewModel.cs:47](../PharmaPOS.Wpf/Shell/MainShellViewModel.cs#L47) — `IsAdministrator`. 메인 셸 하단 버튼 줄을 관리자용 4개 / 직원용 2개로 가른다.
-2. [PosSaleViewModel.cs:163](../PharmaPOS.Wpf/ViewModels/PosSaleViewModel.cs#L163) — `CanEditUnitPrice`. POS 판매 화면의 판매가 입력칸을 관리자만 수정할 수 있게 한다.
+1. [MainShellViewModel.cs:47](../CamPOS.Wpf/Shell/MainShellViewModel.cs#L47) — `IsAdministrator`. 메인 셸 하단 버튼 줄을 관리자용 4개 / 직원용 2개로 가른다.
+2. [PosSaleViewModel.cs:163](../CamPOS.Wpf/ViewModels/PosSaleViewModel.cs#L163) — `CanEditUnitPrice`. POS 판매 화면의 판매가 입력칸을 관리자만 수정할 수 있게 한다.
 
 ### 화면 접근
 
@@ -543,7 +543,7 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 |---|---|---|---|
 | Login / Find ID / Find Password | ✔ | ✔ | 로그인 전 |
 | Initial Facility Setup | — | — | 최초 1회, 이때 만들어지는 계정이 첫 관리자 |
-| Activate PharmaPOS | ✔ | ✔ | 로그인 전, 최초 1회 |
+| Activate CamPOS | ✔ | ✔ | 로그인 전, 최초 1회 |
 | MainShell (Welcome) | ✔ | ✔ | |
 | My Page → Change Password / Recovery Settings | ✔ | ✔ | 본인 계정만 |
 | Inventory Alerts (🔔 → View All) | ✔ | ✔ | |
@@ -579,23 +579,23 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 ## 6. 앱이 생성하거나 읽는 파일 경로 전부
 
-### 6-1. 고정 경로 — `%APPDATA%\PharmaPOS\`
+### 6-1. 고정 경로 — `%APPDATA%\CamPOS\`
 
-전체 경로는 보통 `C:\Users\{사용자}\AppData\Roaming\PharmaPOS\` 다. 앱 시작 시 폴더가 없으면 만든다.
+전체 경로는 보통 `C:\Users\{사용자}\AppData\Roaming\CamPOS\` 다. 앱 시작 시 폴더가 없으면 만든다.
 
 | 경로 | 읽기/쓰기 | 내용 |
 |---|---|---|
-| `%APPDATA%\PharmaPOS\` | 생성 | 앱 시작 시 자동 생성 |
-| `%APPDATA%\PharmaPOS\pharmapos.db` | 읽기/쓰기 | SQLite 본 데이터베이스. 첫 실행 시 생성 |
-| `%APPDATA%\PharmaPOS\pharmapos.db-wal`<br>`%APPDATA%\PharmaPOS\pharmapos.db-shm` | 읽기/쓰기 | WAL 저널 모드 부산물. SQLite가 자동 관리 |
-| `%APPDATA%\PharmaPOS\license.dat` | 읽기/쓰기 | 라이선스 활성화 기록. **DPAPI(CurrentUser)로 암호화** — 다른 PC·다른 Windows 계정에서는 복호화되지 않음 |
-| `%APPDATA%\PharmaPOS\remember_me.txt` | 읽기/쓰기 | 로그인 화면 "Remember me"로 저장한 아이디. 체크 해제 시 삭제 |
-| `%APPDATA%\PharmaPOS\seeds\aware_2025.csv` | 읽기 | WHO AWaRe 분류 참조 데이터 **교체본**. 있으면 설치 폴더보다 **우선** |
-| `%APPDATA%\PharmaPOS\locales\{언어코드}.json` | 읽기 | 복약안내 번역 **교체본**. 있으면 설치 폴더보다 **우선** |
-| `%APPDATA%\PharmaPOS\counselling-sheets\` | 생성/쓰기 | 복약안내를 파일로 저장할 때의 **기본** 폴더 |
+| `%APPDATA%\CamPOS\` | 생성 | 앱 시작 시 자동 생성 |
+| `%APPDATA%\CamPOS\campos.db` | 읽기/쓰기 | SQLite 본 데이터베이스. 첫 실행 시 생성 |
+| `%APPDATA%\CamPOS\campos.db-wal`<br>`%APPDATA%\CamPOS\campos.db-shm` | 읽기/쓰기 | WAL 저널 모드 부산물. SQLite가 자동 관리 |
+| `%APPDATA%\CamPOS\license.dat` | 읽기/쓰기 | 라이선스 활성화 기록. **DPAPI(CurrentUser)로 암호화** — 다른 PC·다른 Windows 계정에서는 복호화되지 않음 |
+| `%APPDATA%\CamPOS\remember_me.txt` | 읽기/쓰기 | 로그인 화면 "Remember me"로 저장한 아이디. 체크 해제 시 삭제 |
+| `%APPDATA%\CamPOS\seeds\aware_2025.csv` | 읽기 | WHO AWaRe 분류 참조 데이터 **교체본**. 있으면 설치 폴더보다 **우선** |
+| `%APPDATA%\CamPOS\locales\{언어코드}.json` | 읽기 | 복약안내 번역 **교체본**. 있으면 설치 폴더보다 **우선** |
+| `%APPDATA%\CamPOS\counselling-sheets\` | 생성/쓰기 | 복약안내를 파일로 저장할 때의 **기본** 폴더 |
 | `…\counselling-sheets\counselling_{yyyyMMdd-HHmmss}_{거래ID앞8자}_{상품명}.txt` | 쓰기 | 복약안내 용지 1장 = 파일 1개. UTF-8 BOM |
 
-### 6-2. 설치 폴더 (`PharmaPOS.exe`가 있는 곳)
+### 6-2. 설치 폴더 (`CamPOS.exe`가 있는 곳)
 
 | 경로 | 읽기/쓰기 | 내용 |
 |---|---|---|
@@ -608,7 +608,7 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 | 화면 · 기능 | 대화상자 | 파일 필터 / 기본 파일명 |
 |---|---|---|
-| Activate PharmaPOS → `Load from file…` | 열기 | `License file (*.txt;*.lic)` / `All files (*.*)` |
+| Activate CamPOS → `Load from file…` | 열기 | `License file (*.txt;*.lic)` / `All files (*.*)` |
 | Backup/Export → `📥 Import Products` | 열기 | `CSV/Excel (*.csv;*.xlsx)`, `CSV (*.csv)`, `Excel (*.xlsx)` |
 | Backup/Export → `🔄 Restore DB` | 열기 | `SQLite Database (*.db)` / `All files (*.*)` |
 | Backup/Export → Backup 구역 `Browse` | 폴더 선택 | 백업·내보내기 대상 폴더 |
@@ -622,7 +622,7 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 | 파일명 | 언제 |
 |---|---|
 | `pharmapos_backup_{yyyyMMdd_HHmmss}.db` | `💾 Create DB Backup` |
-| `pharmapos_pre_restore_backup_{yyyyMMdd_HHmmss}.db` | **복원 직전 자동 백업.** 백업 폴더를 지정하지 않았으면 `%APPDATA%\PharmaPOS\`에 떨어진다 |
+| `pharmapos_pre_restore_backup_{yyyyMMdd_HHmmss}.db` | **복원 직전 자동 백업.** 백업 폴더를 지정하지 않았으면 `%APPDATA%\CamPOS\`에 떨어진다 |
 | `{테이블명}_{yyyyMMdd_HHmmss}.csv` 또는 `.xlsx` | `📤 Export Data`. `All`을 고르면 테이블 수만큼 파일이 생성된다 |
 
 ---
@@ -633,9 +633,9 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 | 기능 | 실제 동작 | 위치 |
 |---|---|---|
-| **영수증 인쇄** | 실제 프린터로 나가지 않는다. 영수증 내용을 `Receipt (Simulated Print)` 팝업으로 보여주고 성공으로 처리한다. ESC/POS 58mm 프린터 기종이 미정 | [SimulatedReceiptPrintingService.cs](../PharmaPOS.Wpf/Services/SimulatedReceiptPrintingService.cs) |
-| **라벨 프린터 출력** | `Print Label` 버튼은 입력값 검증만 하고 "출력 준비 완료"를 돌려준다. 실제 하드웨어 연동 없음 | [InternalBarcodeService.cs:81](../PharmaPOS.Application/Products/InternalBarcodeService.cs#L81) |
-| **판매 메모(Notes)** | POS Sale 화면에 `Notes` 입력칸이 있고 값도 잘 들어가지만, **저장되지 않는다.** `Stock_Transaction` 테이블에 컬럼이 없다 | [SaleService.cs:69](../PharmaPOS.Application/Inventory/SaleService.cs#L69) |
+| **영수증 인쇄** | 실제 프린터로 나가지 않는다. 영수증 내용을 `Receipt (Simulated Print)` 팝업으로 보여주고 성공으로 처리한다. ESC/POS 58mm 프린터 기종이 미정 | [SimulatedReceiptPrintingService.cs](../CamPOS.Wpf/Services/SimulatedReceiptPrintingService.cs) |
+| **라벨 프린터 출력** | `Print Label` 버튼은 입력값 검증만 하고 "출력 준비 완료"를 돌려준다. 실제 하드웨어 연동 없음 | [InternalBarcodeService.cs:81](../CamPOS.Application/Products/InternalBarcodeService.cs#L81) |
+| **판매 메모(Notes)** | POS Sale 화면에 `Notes` 입력칸이 있고 값도 잘 들어가지만, **저장되지 않는다.** `Stock_Transaction` 테이블에 컬럼이 없다 | [SaleService.cs:69](../CamPOS.Application/Inventory/SaleService.cs#L69) |
 
 > 매뉴얼 관점에서 가장 위험한 건 **Notes**다. 사용자는 적으면 남는다고 믿을 텐데 실제로는 사라진다. 매뉴얼에서 이 칸을 설명하지 않거나, "현재 버전에서는 저장되지 않습니다"를 명시하는 편이 낫다.
 
@@ -643,7 +643,7 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 | 항목 | 현재 상태 |
 |---|---|
-| **QR 코드 이미지** | 용지에 `[QR]`이라는 글자와 주소 텍스트만 찍힌다. 실제 QR 이미지 인코딩 없음 (외부 패키지 미참조) — [WpfCounsellingSheetPrintingService.cs:155](../PharmaPOS.Wpf/Services/WpfCounsellingSheetPrintingService.cs#L155) |
+| **QR 코드 이미지** | 용지에 `[QR]`이라는 글자와 주소 텍스트만 찍힌다. 실제 QR 이미지 인코딩 없음 (외부 패키지 미참조) — [WpfCounsellingSheetPrintingService.cs:155](../CamPOS.Wpf/Services/WpfCounsellingSheetPrintingService.cs#L155) |
 | **국소(외용) 항생제 제외** | 제외 로직은 구현돼 있으나(`ExcludedTopical`), 동봉된 WHO 파일의 모든 행이 `is_systemic = true`라 **실제로는 한 번도 발동하지 않는다.** 연고에도 복약안내가 나갈 수 있다 |
 | **투여 경로별 분류** | Minocycline / Fosfomycin은 정맥·경구에 따라 등급이 갈리지만, 복약안내 판정에 제형(`dosage_form`)을 쓰지 않기로 해서 **더 엄격한 쪽으로 통일**해 처리한다 (384행 중 2행). 제형 컬럼 자체는 존재하지만 표시·집계 전용이다 |
 | **열전사 프린터 검증** | 복약안내는 Windows 인쇄 파이프라인으로 나간다. ESC/POS가 아니며, 실물 58mm 열전사 프린터에서 검증된 적 없다 |
@@ -652,14 +652,14 @@ CheckBox / RadioButton의 라벨도 구분해서 함께 적었다.
 
 | 항목 | 내용 |
 |---|---|
-| `MainShellViewModel.RoleDescription` | `[Placeholder] Administrator Dashboard` / `[Placeholder] Main Dashboard / POS Screen` / `[Placeholder] Unknown Role` 문자열을 만들지만 **어떤 XAML에도 바인딩되어 있지 않다.** 화면에 나오지 않으므로 매뉴얼에서 무시해도 된다 — [MainShellViewModel.cs:40-45](../PharmaPOS.Wpf/Shell/MainShellViewModel.cs#L40-L45) |
+| `MainShellViewModel.RoleDescription` | `[Placeholder] Administrator Dashboard` / `[Placeholder] Main Dashboard / POS Screen` / `[Placeholder] Unknown Role` 문자열을 만들지만 **어떤 XAML에도 바인딩되어 있지 않다.** 화면에 나오지 않으므로 매뉴얼에서 무시해도 된다 — [MainShellViewModel.cs:40-45](../CamPOS.Wpf/Shell/MainShellViewModel.cs#L40-L45) |
 | `UnixToDateConverter.ConvertBack` | `NotImplementedException`. 단방향 표시 전용이라 문제는 없다 |
 
 ### 7-4. 설계상 의도된 제약 (버그가 아니지만 매뉴얼에 적어야 할 것)
 
 | 항목 | 내용 |
 |---|---|
-| **라이선스 기기 바인딩 없음** | 서명 검증만 한다. 고객이 자기 라이선스 코드를 남에게 알려주는 것은 막지 못한다. 코드 주석에 "공유까지 막으려면 기기 바인딩이 필요하다"로 명시 — [LicenseService.cs](../PharmaPOS.Application/Licensing/LicenseService.cs) |
+| **라이선스 기기 바인딩 없음** | 서명 검증만 한다. 고객이 자기 라이선스 코드를 남에게 알려주는 것은 막지 못한다. 코드 주석에 "공유까지 막으려면 기기 바인딩이 필요하다"로 명시 — [LicenseService.cs](../CamPOS.Application/Licensing/LicenseService.cs) |
 | **비밀번호 복구 상태가 재시작을 못 넘긴다** | OTP·검증 토큰이 `static` 메모리 딕셔너리에 있어, 복구 도중 앱을 끄면 처음부터 다시 해야 한다 |
 | **DPAPI 암호화 범위** | SMTP 앱 비밀번호와 `license.dat`은 Windows 사용자 계정에 묶여 있다. DB를 다른 PC로 복사해도 이 둘은 복호화되지 않는다 |
 | **뒤로가기 스택 없음** | 2번 트리에 적은 대로 `← Back`이 들어온 화면으로 돌아가지 않는 경우가 많다 |

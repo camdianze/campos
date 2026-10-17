@@ -10,7 +10,7 @@ namespace CamPOS.Application.Counselling;
 ///
 /// 시드 파일은 여러 후보 경로에서 찾는다. 먼저 발견된 파일 하나만 쓴다.
 /// 보통 이렇게 넘긴다:
-///   1) %APPDATA%\PharmaPOS\seeds\aware_2025.csv   ← 현장에서 교체 가능 (재빌드 불필요)
+///   1) %APPDATA%\CamPOS\seeds\aware_2025.csv   ← 현장에서 교체 가능 (재빌드 불필요)
 ///   2) (설치 폴더)\seeds\aware_2025.csv           ← 기본 동봉본
 /// AWaRe 분류가 개정되면 1번 자리에 새 파일만 놓으면 다음 실행에서 반영된다.
 /// </summary>

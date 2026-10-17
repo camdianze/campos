@@ -7,7 +7,7 @@ namespace CamPOS.Application.Counselling;
 /// locales/{bcp47}.json 파일에서 로케일을 읽는 구현체.
 ///
 /// 폴더 후보를 앞에서부터 훑어 먼저 발견한 파일을 쓴다. 보통 이렇게 넘긴다:
-///   1) %APPDATA%\PharmaPOS\locales   ← 현장 교체용 (검수 끝난 번역을 여기 놓는다)
+///   1) %APPDATA%\CamPOS\locales   ← 현장 교체용 (검수 끝난 번역을 여기 놓는다)
 ///   2) (설치 폴더)\locales           ← 기본 동봉본
 ///
 /// 이 클래스는 어떤 이유로도 예외를 밖으로 내보내지 않는다.

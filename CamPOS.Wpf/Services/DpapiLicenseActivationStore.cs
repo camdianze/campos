@@ -6,7 +6,7 @@ using PharmaPOS.Application.Licensing;
 namespace CamPOS.Wpf.Services;
 
 /// <summary>
-/// 활성화 기록을 %APPDATA%\PharmaPOS\license.dat에 DPAPI로 암호화해 남긴다.
+/// 활성화 기록을 %APPDATA%\CamPOS\license.dat에 DPAPI로 암호화해 남긴다.
 ///
 /// 여기서는 DPAPI가 맞는 선택이다. 이 PC에서 쓰고 이 PC에서 읽기 때문이다.
 /// 덕분에 license.dat만 다른 PC로 복사해도 그쪽에서는 복호화되지 않아

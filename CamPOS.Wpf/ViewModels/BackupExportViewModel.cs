@@ -919,7 +919,7 @@ public class BackupExportViewModel : ViewModelBase
 
         // 복원 전 자동 백업이 들어갈 폴더. 내보내기 폴더를 고르지 않았으면 앱 데이터 폴더에 남긴다.
         var autoBackupFolder = string.IsNullOrWhiteSpace(ExportFolder)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PharmaPOS")
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CamPOS")
             : ExportFolder;
 
         var result = await _backupService.RestoreDatabaseAsync(BackupFilePath, autoBackupFolder);

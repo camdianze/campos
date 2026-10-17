@@ -10,7 +10,7 @@ public class LoginViewModel : ViewModelBase
     private readonly IAuthenticationService _authenticationService;
     private static readonly string SavedUsernamePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "PharmaPOS", "remember_me.txt");
+        "CamPOS", "remember_me.txt");
 
     private string _username = string.Empty;
     private string _errorMessage = string.Empty;

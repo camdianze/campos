@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using CamPOS.Application.Counselling;
+using CamPOS.Application.Startup;
 using PharmaPOS.Application.Licensing;
 using CamPOS.Application.Repositories;
 using CamPOS.DataAccess.Database;
@@ -28,13 +29,31 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
-        var appDataFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "PharmaPOS");
+        var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var appDataFolder = Path.Combine(roaming, "CamPOS");
+
+        // 내부 이름이 바뀌기 전에 쓰던 폴더. 이미 운영 중인 PC가 새 버전을 켰을 때
+        // 판매 기록·라이선스·동기화 설정이 그대로 보여야 하므로, 데이터베이스를
+        // 열기 전에 옮긴다. 복사이고, 옛 폴더는 남는다.
+        var migration = AppDataMigration.Run(
+            legacyFolder: Path.Combine(roaming, "PharmaPOS"),
+            currentFolder: appDataFolder,
+            legacyDatabaseName: "pharmapos.db",
+            currentDatabaseName: "campos.db",
+            verifyDatabase: SqliteDatabaseCheck.CanOpen);
+
+        if (!migration.IsSuccess)
+        {
+            MessageBox.Show(
+                migration.Message,
+                "CamPOS",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
 
         Directory.CreateDirectory(appDataFolder);
 
-        var dbFilePath = Path.Combine(appDataFolder, "pharmapos.db");
+        var dbFilePath = Path.Combine(appDataFolder, "campos.db");
         var licenseFilePath = Path.Combine(appDataFolder, "license.dat");
 
         // AWaRe 참조 데이터와 복약안내 로케일 파일은 두 곳에서 찾는다.
