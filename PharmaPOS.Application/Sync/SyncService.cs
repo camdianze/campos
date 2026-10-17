@@ -39,6 +39,18 @@ public sealed class SyncService
     /// </summary>
     public const int MaxPhotosPerRun = 2000;
 
+    /// <summary>
+    /// 한 번에 하나만 돈다. <c>static</c>인 이유는 이 서비스가 Transient라 화면마다
+    /// 새 인스턴스를 받기 때문이다 — Data Center를 나갔다 다시 들어오면 두 번째
+    /// 인스턴스가 생기고, 인스턴스 잠금으로는 서로를 못 본다.
+    ///
+    /// 두 번 겹쳐도 데이터가 깨지지는 않는다(키가 (site_id, 원본 ID)라 제자리에서
+    /// 갱신되고, 워터마크는 뒤로 가도 그 행들이 한 번 더 갈 뿐이다). 막는 이유는
+    /// 약국 회선으로 같은 것을 두 번 올리는 일과, 두 개의 결과 문구가 서로를
+    /// 덮어써서 무엇이 실제로 일어났는지 알 수 없게 되는 쪽이다.
+    /// </summary>
+    private static readonly SemaphoreSlim OneAtATime = new(1, 1);
+
     private readonly SyncPayloadBuilder _builder;
     private readonly ISyncRepository _repository;
     private readonly ISyncClient _client;
@@ -61,6 +73,24 @@ public sealed class SyncService
 
     public async Task<SyncRunResult> RunAsync(
         string facilityId, CancellationToken cancellationToken = default)
+    {
+        if (!await OneAtATime.WaitAsync(0, cancellationToken))
+        {
+            return SyncRunResult.Failure("A sync is already running. Wait for it to finish.");
+        }
+
+        try
+        {
+            return await RunOnceAsync(facilityId, cancellationToken);
+        }
+        finally
+        {
+            OneAtATime.Release();
+        }
+    }
+
+    private async Task<SyncRunResult> RunOnceAsync(
+        string facilityId, CancellationToken cancellationToken)
     {
         SyncSettings settings;
 

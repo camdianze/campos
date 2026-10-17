@@ -221,6 +221,34 @@ public class SyncServiceTests
     private static SyncPhoto NewPhoto(string productId, string sha256) =>
         new() { ProductId = productId, Bytes = [1, 2, 3], Sha256 = sha256 };
 
+    /// <summary>
+    /// Data Center를 나갔다 다시 들어오면 ViewModel이 새로 생기고 "보내는 중"
+    /// 표시가 초기화된다. 그 상태에서 다시 누르면 두 전송이 겹치는데, 겹쳐도
+    /// 데이터는 깨지지 않지만 약국 회선으로 같은 것을 두 번 올리게 되고 결과
+    /// 문구 두 개가 서로를 덮어쓴다.
+    /// </summary>
+    [Fact]
+    public async Task TwoRunsAtOnceAreRefusedRatherThanOverlapping()
+    {
+        var repository = new FakeSyncRepository(transactions: 1);
+        var client = FakeSyncClient.ThatSucceeds();
+        client.BlockUntilReleased = true;
+
+        var service = NewService(repository, client);
+
+        var first = service.RunAsync(Facility);
+        await client.WaitUntilInsideSendAsync();
+
+        var second = await service.RunAsync(Facility);
+
+        Assert.False(second.IsSuccess);
+        Assert.Contains("already running", second.Message, StringComparison.OrdinalIgnoreCase);
+
+        client.Release();
+        Assert.True((await first).IsSuccess);
+        Assert.Equal(1, client.Sends);
+    }
+
     // ── 마지막 성공 시각 ────────────────────────────────────────────────
 
     [Fact]
@@ -402,15 +430,30 @@ public class SyncServiceTests
                 : SyncPhotoResult.Uploaded());
         }
 
-        public Task<SyncSendResult> SendAsync(
+        public bool BlockUntilReleased { get; set; }
+
+        private readonly TaskCompletionSource _insideSend = new();
+        private readonly TaskCompletionSource _released = new();
+
+        public Task WaitUntilInsideSendAsync() => _insideSend.Task;
+
+        public void Release() => _released.TrySetResult();
+
+        public async Task<SyncSendResult> SendAsync(
             SyncSettings settings, SyncPayload payload, CancellationToken cancellationToken = default)
         {
             Sends++;
             PayloadsSent.Add(payload);
 
+            if (BlockUntilReleased)
+            {
+                _insideSend.TrySetResult();
+                await _released.Task;
+            }
+
             if (!_succeeds || Sends > _failAfter)
             {
-                return Task.FromResult(SyncSendResult.Failure(_reason));
+                return SyncSendResult.Failure(_reason);
             }
 
             var positions = payload.Positions.ToDictionary(
@@ -423,7 +466,7 @@ public class SyncServiceTests
                 [SyncStreams.CounsellingLogs] = payload.CounsellingLogs.Count,
             };
 
-            return Task.FromResult(SyncSendResult.Success("ok", "DEV-001", accepted, positions));
+            return SyncSendResult.Success("ok", "DEV-001", accepted, positions);
         }
     }
 
