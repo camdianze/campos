@@ -42,6 +42,15 @@ public interface ISyncRepository
         long afterRowId, int limit);
 
     /// <summary>어디까지 보냈는지. 보낸 적이 없으면 0.</summary>
+    /// <summary>
+    /// 아직 보내지 않은 원장·상담 행을 합해서 센다.
+    ///
+    /// 화면에 "밀린 행 수"를 적기 위한 것이고, 그 숫자가 이 기능에서 제일 중요한
+    /// 표시다. 자동 동기화가 조용히 실패하면 앱은 평소와 똑같아 보이는데, 밀린
+    /// 수가 늘어나는 것만은 눈에 보인다.
+    /// </summary>
+    Task<int> CountPendingAsync(string facilityId);
+
     Task<long> GetPositionAsync(string stream);
 
     /// <summary>한 묶음이 서버에 들어간 뒤에만 부른다. 보내기 전에 올리면 그 구간을 잃는다.</summary>

@@ -103,6 +103,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IBackupService, BackupService>();
         services.AddTransient<SyncPayloadBuilder>();
         services.AddTransient<SyncSettingsService>();
+        services.AddTransient<SyncService>();
 
         // HttpClient를 하나 들고 있으므로 Singleton이다. 요청마다 새로 만들면
         // 소켓이 쌓인다 — 이 저장소가 인프라를 Singleton으로 두는 규칙과도 맞다.

@@ -239,6 +239,33 @@ public class SyncRepository : ISyncRepository
         return rows;
     }
 
+    public async Task<int> CountPendingAsync(string facilityId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+
+        // 고르는 기준은 보낼 때와 같아야 한다 — rowid다. 여기만 transaction_time을
+        // 쓰면 화면의 숫자와 실제로 보내지는 행이 어긋난다.
+        command.CommandText = """
+            SELECT
+                (SELECT COUNT(*) FROM Stock_Transaction
+                  WHERE facility_id = $facilityId
+                    AND rowid > (SELECT COALESCE(
+                        (SELECT position FROM Sync_State WHERE stream = $transactions), 0)))
+              + (SELECT COUNT(*) FROM Counselling_Log
+                  WHERE rowid > (SELECT COALESCE(
+                        (SELECT position FROM Sync_State WHERE stream = $counselling), 0)));
+            """;
+        command.Parameters.AddWithValue("$facilityId", facilityId);
+        command.Parameters.AddWithValue("$transactions", SyncStreams.Transactions);
+        command.Parameters.AddWithValue("$counselling", SyncStreams.CounsellingLogs);
+
+        var result = await command.ExecuteScalarAsync();
+
+        return result is null or DBNull ? 0 : Convert.ToInt32(result);
+    }
+
     public async Task<long> GetPositionAsync(string stream)
     {
         using var connection = _connectionFactory.CreateOpenConnection();

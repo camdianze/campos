@@ -246,6 +246,86 @@ public class BackupExportViewModel : ViewModelBase
         }
     }
 
+    // ── 전송 ─────────────────────────────────────────────────────────────
+
+    public RelayCommand SynchronizeCommand { get; }
+
+    /// <summary>
+    /// 마지막으로 성공한 전송. 이 줄이 자동 동기화의 안전장치다 — 전송이 조용히
+    /// 멈추면 앱은 평소와 똑같아 보이고, 그것을 알아차릴 사람은 그 PC 앞에 없다.
+    /// </summary>
+    public string SyncLastSuccessText
+    {
+        get => _syncLastSuccessText;
+        private set => SetProperty(ref _syncLastSuccessText, value);
+    }
+
+    /// <summary>아직 안 보낸 행 수. 늘어나기만 하면 뭔가 멈춘 것이다.</summary>
+    public string SyncPendingText
+    {
+        get => _syncPendingText;
+        private set => SetProperty(ref _syncPendingText, value);
+    }
+
+    private string _syncLastSuccessText = string.Empty;
+    private string _syncPendingText = string.Empty;
+
+    private async Task ExecuteSynchronizeAsync()
+    {
+        if (IsSyncBusy) return;
+
+        IsSyncBusy = true;
+        SyncStatusMessage = "Sending…";
+
+        try
+        {
+            var result = await _syncService.RunAsync(_facilityId);
+
+            SyncStatusMessage = result.IsSuccess ? result.Message : "Not sent. " + result.Message;
+
+            await RefreshSyncStateAsync();
+        }
+        catch (Exception exception)
+        {
+            SyncStatusMessage = "Sync failed: " + exception.Message;
+        }
+        finally
+        {
+            IsSyncBusy = false;
+        }
+    }
+
+    /// <summary>마지막 성공 시각과 밀린 행 수를 다시 읽는다.</summary>
+    private async Task RefreshSyncStateAsync()
+    {
+        try
+        {
+            var last = await _syncService.GetLastSuccessAsync();
+
+            // 사람이 눈으로만 보는 글자라 PC의 지역 설정을 따른다. 저장은
+            // InvariantCulture로 된 epoch 밀리초다.
+            SyncLastSuccessText = last is null
+                ? "Never sent."
+                : "Last sent " + last.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+
+            var pending = await _syncService.CountPendingAsync(_facilityId);
+
+            SyncPendingText = pending switch
+            {
+                < 0 => string.Empty,
+                0 => "Nothing waiting.",
+                1 => "1 row waiting to be sent.",
+                _ => $"{pending:N0} rows waiting to be sent.",
+            };
+        }
+        catch
+        {
+            // 상태 표시를 못 읽은 것으로 화면을 망가뜨리지 않는다.
+            SyncLastSuccessText = string.Empty;
+            SyncPendingText = string.Empty;
+        }
+    }
+
     // ── 서버 연결 ────────────────────────────────────────────────────────
     // 세 칸 중 토큰만 비밀이고, 그것만 DPAPI로 암호화되어 저장된다. 주소와
     // publishable 키는 모든 약국이 같고 앱에 실려 나가도 되는 값이다.
@@ -306,6 +386,8 @@ public class BackupExportViewModel : ViewModelBase
             SyncStatusMessage = settings.IsConfigured
                 ? "Saved. Press Test Connection to check it."
                 : "Not connected to a server.";
+
+            await RefreshSyncStateAsync();
 
             return settings.Token;
         }
@@ -386,6 +468,7 @@ public class BackupExportViewModel : ViewModelBase
     private readonly SyncPayloadBuilder _syncPayloadBuilder;
     private readonly SyncSettingsService _syncSettingsService;
     private readonly ISyncClient _syncClient;
+    private readonly SyncService _syncService;
 
     public BackupExportViewModel(
         IBackupService backupService,
@@ -394,6 +477,7 @@ public class BackupExportViewModel : ViewModelBase
         SyncPayloadBuilder syncPayloadBuilder,
         SyncSettingsService syncSettingsService,
         ISyncClient syncClient,
+        SyncService syncService,
         string facilityId,
         string userId)
     {
@@ -403,10 +487,12 @@ public class BackupExportViewModel : ViewModelBase
         _syncPayloadBuilder = syncPayloadBuilder;
         _syncSettingsService = syncSettingsService;
         _syncClient = syncClient;
+        _syncService = syncService;
         _facilityId = facilityId;
         _userId = userId;
 
         PreviewSyncDataCommand = new RelayCommand(async _ => await ExecutePreviewSyncDataAsync());
+        SynchronizeCommand = new RelayCommand(async _ => await ExecuteSynchronizeAsync());
 
         SelectImportFileCommand = new RelayCommand(_ => ExecuteSelectImportFile());
         ReadPricesInUsdCommand = new RelayCommand(_ => ImportPriceCurrency = ImportPriceCurrency.Usd);

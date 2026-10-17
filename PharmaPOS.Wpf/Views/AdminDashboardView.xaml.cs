@@ -175,6 +175,7 @@ public partial class AdminDashboardView : UserControl
             App.Services.GetRequiredService<SyncPayloadBuilder>(),
             App.Services.GetRequiredService<SyncSettingsService>(),
             App.Services.GetRequiredService<ISyncClient>(),
+            App.Services.GetRequiredService<SyncService>(),
             currentUser.FacilityId, currentUser.UserId);
 
         var backupExportView = new BackupExportView();

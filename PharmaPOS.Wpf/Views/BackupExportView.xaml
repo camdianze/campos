@@ -333,9 +333,26 @@
                             <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,10"
                                        Text="Products, stock by batch, the stock ledger, counselling records, and staff names with their roles. No passwords and no customer details — there is no column for them on the server."/>
 
+                            <!-- 보내는 버튼. 위의 미리보기와 생김새를 다르게 두는
+                                 것은 둘의 무게가 다르기 때문이다 — 하나는 파일을
+                                 쓰고, 하나는 되돌릴 수 없다. -->
+                            <Button Content="⬆  Synchronize"
+                                    Style="{StaticResource PrimaryBtn}"
+                                    Padding="20,0" HorizontalAlignment="Stretch"
+                                    Margin="0,0,0,8"
+                                    IsEnabled="{Binding IsSyncIdle}"
+                                    Command="{Binding SynchronizeCommand}"/>
+
+                            <TextBlock Text="{Binding SyncLastSuccessText}"
+                                       Style="{StaticResource PanelHint}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SyncPendingText}"
+                                       Style="{StaticResource PanelHint}" TextWrapping="Wrap"
+                                       Margin="0,2,0,14"/>
+
                             <Button Content="Preview Sync Data"
                                     Style="{StaticResource SecondaryBtn}"
                                     Padding="16,0" HorizontalAlignment="Left"
+                                    IsEnabled="{Binding IsSyncIdle}"
                                     Command="{Binding PreviewSyncDataCommand}"/>
                             <TextBlock Style="{StaticResource PanelHint}" Margin="0,6,0,0"
                                        Text="Writes exactly what would be sent to a file, so it can be read first. Nothing leaves this computer."/>

@@ -24,7 +24,14 @@ public sealed class SyncPayloadBuilder
         _repository = repository;
     }
 
-    public async Task<SyncPayload> BuildAsync(string facilityId)
+    /// <summary>
+    /// 보낼 묶음 하나를 만든다.
+    ///
+    /// <paramref name="includeCatalogue"/>를 끄면 상품·재고·직원을 빼고 원장만 담는다.
+    /// 밀린 행이 한 묶음에 안 들어가 여러 번 보낼 때, 수백 개의 상품을 묶음마다
+    /// 다시 보낼 이유가 없기 때문이다. 첫 묶음은 켜서 보낸다.
+    /// </summary>
+    public async Task<SyncPayload> BuildAsync(string facilityId, bool includeCatalogue = true)
     {
         var transactionFrom = await _repository.GetPositionAsync(SyncStreams.Transactions);
         var counsellingFrom = await _repository.GetPositionAsync(SyncStreams.CounsellingLogs);
@@ -53,9 +60,9 @@ public sealed class SyncPayloadBuilder
         {
             AppVersion = AppVersion.Display,
             ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            Products = await _repository.GetProductsAsync(),
-            Inventory = await _repository.GetInventoryAsync(facilityId),
-            Users = await _repository.GetUsersAsync(facilityId),
+            Products = includeCatalogue ? await _repository.GetProductsAsync() : [],
+            Inventory = includeCatalogue ? await _repository.GetInventoryAsync(facilityId) : [],
+            Users = includeCatalogue ? await _repository.GetUsersAsync(facilityId) : [],
             Transactions = transactions.Select(t => t.Row).ToList(),
             CounsellingLogs = counselling.Select(c => c.Row).ToList(),
             Positions = positions

@@ -54,6 +54,15 @@ public static class AppSettingKeys
     /// </summary>
     public const string SyncToken = "sync.token";
 
+    /// <summary>
+    /// 마지막으로 성공한 전송 시각(Unix epoch 밀리초, InvariantCulture로 적는다).
+    ///
+    /// 이 값이 화면에 보이는 것이 자동 동기화의 안전장치다. 전송이 조용히 멈추면
+    /// 앱은 평소와 똑같아 보이고, 그것을 알아차릴 사람은 약국이 아니라 이 앱을
+    /// 만든 쪽인데 그 사람은 그 PC 앞에 없다.
+    /// </summary>
+    public const string SyncLastSuccess = "sync.last_success";
+
     public const string AwareSeedSignature = "aware.seed_signature";
 
     /// <summary>적재된 시드의 출처 표기. 예: 'WHO AWaRe 2025'.</summary>
