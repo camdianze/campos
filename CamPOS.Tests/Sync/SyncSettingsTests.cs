@@ -45,6 +45,59 @@ public class SyncSettingsTests
         Assert.True(new SyncSettings { ServerUrl = "u", PublishableKey = "k", Token = "t" }.IsConfigured);
     }
 
+    // ── 앱에 실린 기본값 ────────────────────────────────────────────────
+
+    /// <summary>
+    /// 주소와 공개 키는 모든 약국이 같고 비밀이 아니다. 설치할 때 입력받으면
+    /// 오타가 날 자리만 둘 늘어난다.
+    /// </summary>
+    [Fact]
+    public async Task AnUnconfiguredComputerStillKnowsTheServer()
+    {
+        var store = new FakeSettings();
+        store.Values[AppSettingKeys.SyncToken] = "token";
+
+        var settings = await new SyncSettingsService(store, new ReversingProtector()).LoadAsync();
+
+        Assert.Equal(SyncDefaults.ServerUrl, settings.ServerUrl);
+        Assert.Equal(SyncDefaults.PublishableKey, settings.PublishableKey);
+        Assert.True(settings.IsConfigured);
+    }
+
+    /// <summary>적어 넣은 값이 있으면 그쪽이 이긴다 — 자체 서버를 쓰는 경우.</summary>
+    [Fact]
+    public async Task AStoredAddressWinsOverTheBuiltInOne()
+    {
+        var store = new FakeSettings();
+        store.Values[AppSettingKeys.SyncServerUrl] = "https://own.example.com";
+        store.Values[AppSettingKeys.SyncToken] = "token";
+
+        var settings = await new SyncSettingsService(store, new ReversingProtector()).LoadAsync();
+
+        Assert.Equal("https://own.example.com", settings.ServerUrl);
+    }
+
+    /// <summary>
+    /// 기본값과 같은 주소를 저장하면 빈 값으로 들어간다.
+    ///
+    /// 적어 두면 나중에 프로젝트를 옮겨 앱의 기본값을 바꿔도 그 PC는 옛 주소를
+    /// 계속 쓴다. 그리고 그 사실을 아무도 모른다 — 전송만 조용히 실패한다.
+    /// </summary>
+    [Fact]
+    public async Task SavingTheBuiltInAddressDoesNotPinItIntoThisPharmacy()
+    {
+        var store = new FakeSettings();
+        var service = new SyncSettingsService(store, new ReversingProtector());
+
+        await service.SaveAsync(SyncDefaults.ServerUrl, SyncDefaults.PublishableKey, "t");
+
+        Assert.Equal(string.Empty, store.Values[AppSettingKeys.SyncServerUrl]);
+        Assert.Equal(string.Empty, store.Values[AppSettingKeys.SyncPublishableKey]);
+
+        // 그래도 읽으면 제대로 나온다.
+        Assert.Equal(SyncDefaults.ServerUrl, (await service.LoadAsync()).ServerUrl);
+    }
+
     // ── 저장 ─────────────────────────────────────────────────────────────
 
     /// <summary>
