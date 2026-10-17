@@ -8,6 +8,7 @@
 | `functions/sync/index.ts` | Edge Function. 서버로 들어가는 유일한 길. |
 | `new-token.ps1` | PC용 토큰 하나를 만들고, 붙여넣을 SQL을 출력한다. |
 | `test-upload.ps1` | 미리보기 파일을 실제로 보내 서버를 확인한다. |
+| `check.sql` | 서버에 무엇이 들어와 있는지 한눈에. 전송할 때마다 다시 Run. |
 
 CLI는 필요 없다 — 전부 웹 콘솔과 위 두 스크립트로 끝난다.
 
