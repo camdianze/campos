@@ -105,7 +105,18 @@
                              "바꿨는데 아직 확인 안 한 줄"이 남은 채로 판매를 확정하면 어느 수량이
                              팔리는지 애매해진다. Enter나 다른 곳 클릭이 곧 적용이고, 재고 검사에서
                              막히면 칸의 글자가 원래 수량으로 돌아간다(코드 비하인드). -->
-                        <DataGridTemplateColumn Header="Qty" Width="56">
+                        <!-- 네 자리(9999)까지 들어가야 한다. 56px이던 때는 한 자리밖에
+                             안 보였는데, 칸 너비가 모자라서가 아니라 DataGridCell 스타일의
+                             Padding="12,0"이 좌우 24px을 먼저 먹기 때문이었다. 글자가 설
+                             자리는 22px뿐이었다. 그래서 이 칸만 여백을 줄이고 너비를
+                             조금 넓힌다 — 여백은 글자 컬럼이 숨 쉬라고 둔 것이고, 셀을
+                             가득 채우는 입력칸에는 필요 없다. -->
+                        <DataGridTemplateColumn Header="Qty" Width="68">
+                            <DataGridTemplateColumn.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                    <Setter Property="Padding" Value="4,0"/>
+                                </Style>
+                            </DataGridTemplateColumn.CellStyle>
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBox Text="{Binding Quantity, Mode=OneWay}"
