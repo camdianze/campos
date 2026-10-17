@@ -258,6 +258,7 @@ public class InitialImportServiceTests
         SafetyStockLevel = 3,
         Status = EntityStatus.Active,
         CreatedAt = 1,
+        UpdatedAt = 2,
     };
 
     private sealed class Harness

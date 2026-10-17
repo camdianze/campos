@@ -270,5 +270,10 @@ public class Product
         UnitsPerBox = UnitsPerBox,
         SellsLooseUnits = SellsLooseUnits,
         Category = Category,
+
+        // 저장소가 매번 다시 찍는 값이라 베낄 필요는 없지만, 베끼는 쪽을 기본으로
+        // 둔다는 이 메서드의 약속을 여기서 깨면 다음 사람이 어느 것이 일부러
+        // 빠진 것인지 알 수 없다.
+        UpdatedAt = UpdatedAt,
     };
 }
