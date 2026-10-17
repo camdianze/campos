@@ -491,6 +491,87 @@ public class ProductRepository : IProductRepository
         return new ProductPhoto(bytes, updatedAt);
     }
 
+    public async Task<ProductDeleteOutcome> TryDeleteAsync(string productId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        using var dbTransaction = connection.BeginTransaction();
+
+        try
+        {
+            // 검사와 삭제를 한 트랜잭션에 둔다. 나누면 그 사이에 다른 창에서 판매가
+            // 들어올 수 있고, 방금 "이력 없음"이라고 본 상품이 이력을 가진 채 지워진다.
+            // SaleRepository가 장바구니와 확정 사이의 재고를 다시 보는 것과 같은 이유다.
+            if (!await ExistsAsync(connection, dbTransaction, productId))
+            {
+                dbTransaction.Rollback();
+                return ProductDeleteOutcome.NotFound;
+            }
+
+            if (await CountAsync(connection, dbTransaction,
+                    "SELECT COUNT(*) FROM Stock_Transaction WHERE product_id = $productId;", productId) > 0
+                || await CountAsync(connection, dbTransaction,
+                    "SELECT COUNT(*) FROM Counselling_Log WHERE product_id = $productId;", productId) > 0)
+            {
+                dbTransaction.Rollback();
+                return ProductDeleteOutcome.HasHistory;
+            }
+
+            // 입고가 늘 원장을 남기므로 이력이 없으면 재고도 없어야 한다. 그래도 세는
+            // 것은, 그 가정이 깨진 자리에서 수량이 조용히 사라지는 쪽이 더 나쁘기 때문이다.
+            if (await CountAsync(connection, dbTransaction,
+                    "SELECT COUNT(*) FROM Inventory WHERE product_id = $productId AND current_quantity > 0;",
+                    productId) > 0)
+            {
+                dbTransaction.Rollback();
+                return ProductDeleteOutcome.HasStock;
+            }
+
+            // 수량 0인 배치 행은 같이 지운다. 빈 선반 자리일 뿐 이력이 아니다.
+            await ExecuteAsync(connection, dbTransaction,
+                "DELETE FROM Inventory WHERE product_id = $productId;", productId);
+
+            await ExecuteAsync(connection, dbTransaction,
+                "DELETE FROM Product_Master WHERE product_id = $productId;", productId);
+
+            dbTransaction.Commit();
+            return ProductDeleteOutcome.Deleted;
+        }
+        catch
+        {
+            dbTransaction.Rollback();
+            throw;
+        }
+    }
+
+    private static async Task<bool> ExistsAsync(
+        SqliteConnection connection, SqliteTransaction dbTransaction, string productId) =>
+        await CountAsync(connection, dbTransaction,
+            "SELECT COUNT(*) FROM Product_Master WHERE product_id = $productId;", productId) > 0;
+
+    private static async Task<long> CountAsync(
+        SqliteConnection connection, SqliteTransaction dbTransaction, string sql, string productId)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = dbTransaction;
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$productId", productId);
+
+        var result = await command.ExecuteScalarAsync();
+
+        return result is null or DBNull ? 0 : Convert.ToInt64(result);
+    }
+
+    private static async Task ExecuteAsync(
+        SqliteConnection connection, SqliteTransaction dbTransaction, string sql, string productId)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = dbTransaction;
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$productId", productId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
     public async Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt)
     {
         using var connection = _connectionFactory.CreateOpenConnection();

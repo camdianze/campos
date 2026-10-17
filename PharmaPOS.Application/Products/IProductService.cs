@@ -17,6 +17,13 @@ public interface IProductService
     ///
     /// userId는 수정으로 박스당 개수가 바뀔 때 재고를 다시 세는 조정 원장 행에 적힌다.
     /// </summary>
+    /// <summary>
+    /// 쓰인 적이 없는 상품을 지운다. 이력이 있으면 거부하고 Inactive를 권한다 —
+    /// 판매·입고·조정이 전부 product_id로 상품을 가리키므로, 이력이 있는 상품을
+    /// 지우면 지난 기록에 이름 없는 줄이 남고 되돌릴 수 없다.
+    /// </summary>
+    Task<ProductSaveResult> DeleteProductAsync(string productId);
+
     Task<ProductSaveResult> SaveProductAsync(
         Product product,
         bool isNewProduct,

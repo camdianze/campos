@@ -318,6 +318,16 @@
 
             <!-- 버튼은 두 단 아래에 한 줄로 둔다. 어느 쪽 칸을 채우고 있든 눈에 들어와야 한다. -->
             <StackPanel Grid.Row="2" Margin="0,18,0,0">
+                <!-- 삭제는 저장·취소와 반대쪽 끝에 둔다. 셋을 나란히 두면 되돌릴 수
+                     없는 것이 되돌릴 수 있는 것 옆에 앉는다. 새로 만드는 중에는
+                     지울 것이 없어 아예 나타나지 않는다. -->
+                <Button Content="Delete product"
+                        Style="{StaticResource SoftDangerBtn}"
+                        HorizontalAlignment="Left" Padding="14,0"
+                        Margin="0,0,0,-30"
+                        Visibility="{Binding CanDelete, Converter={StaticResource BoolToVis}}"
+                        Command="{Binding DeleteCommand}"/>
+
                 <Grid HorizontalAlignment="Right" Width="380">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>

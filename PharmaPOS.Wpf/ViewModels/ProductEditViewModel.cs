@@ -767,6 +767,36 @@ public class ProductEditViewModel : ViewModelBase
     public RelayCommand CancelCommand { get; }
 
     /// <summary>저장 성공 또는 Cancel 클릭 시 발생. View가 구독해서 목록 화면으로 전환한다.</summary>
+    /// <summary>
+    /// 쓰인 적 없는 상품을 지운다. 새로 만드는 중에는 지울 것이 없으므로 숨는다.
+    ///
+    /// 이력이 있으면 서비스가 거부하고 Inactive를 권한다. 화면에서 미리 막지 않는
+    /// 이유는, 그 판단이 다른 창의 판매에 따라 <b>지금 이 순간</b> 바뀔 수 있어서다 —
+    /// 버튼을 회색으로 만들어 두면 왜 안 되는지도 말해 주지 못한다.
+    /// </summary>
+    public RelayCommand DeleteCommand { get; }
+
+    public bool CanDelete => !IsNewProduct;
+
+    /// <summary>삭제 전 확인. View가 받아 다이얼로그를 띄운다.</summary>
+    public event Action<string>? DeleteConfirmationRequested;
+
+    private async Task ExecuteDeleteAsync()
+    {
+        var result = await _productService.DeleteProductAsync(_productId);
+
+        if (result.IsSuccess)
+        {
+            NavigateBackToList?.Invoke();
+            return;
+        }
+
+        Message = result.Message ?? "The product could not be deleted.";
+    }
+
+    /// <summary>View가 확인을 받아 왔을 때 부른다.</summary>
+    public async Task ConfirmDeleteAsync() => await ExecuteDeleteAsync();
+
     public event Action? NavigateBackToList;
 
     /// <summary>
@@ -851,6 +881,11 @@ public class ProductEditViewModel : ViewModelBase
         ShowRielCommand = new RelayCommand(_ => SwitchCurrency(toRiel: true));
 
         SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync(acknowledgeWarning: false));
+        DeleteCommand = new RelayCommand(_ => DeleteConfirmationRequested?.Invoke(
+            "Delete " + ProductName + "?"
+            + Environment.NewLine + Environment.NewLine
+            + "This cannot be undone. It only works for a product that has never been sold, "
+            + "received or adjusted."));
         CancelCommand = new RelayCommand(_ => NavigateBackToList?.Invoke());
 
         SetPhotoCommand = new RelayCommand(async _ => await ExecuteSetPhotoAsync(), _ => CanEditPhoto);

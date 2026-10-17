@@ -6,6 +6,21 @@ namespace PharmaPOS.Application.Repositories;
 /// <summary>
 /// Product Master 테이블에 대한 데이터 접근을 추상화한 인터페이스.
 /// </summary>
+/// <summary>상품을 지우려 했을 때 실제로 일어난 일.</summary>
+public enum ProductDeleteOutcome
+{
+    Deleted,
+
+    /// <summary>그 상품이 없다. 다른 창에서 이미 지웠을 수 있다.</summary>
+    NotFound,
+
+    /// <summary>판매·입고·조정이나 상담 기록이 있다. 지우면 그 기록이 고아가 된다.</summary>
+    HasHistory,
+
+    /// <summary>재고가 남아 있다. 숫자가 조용히 사라지는 것을 막는다.</summary>
+    HasStock,
+}
+
 public interface IProductRepository
 {
     /// <summary>
@@ -66,4 +81,17 @@ public interface IProductRepository
 
     /// <summary>사진을 넣거나 바꾼다. photo가 null이면 지운다.</summary>
     Task SavePhotoAsync(string productId, byte[]? photo, long? updatedAt);
+
+    /// <summary>
+    /// 상품을 지운다. <b>이력이 한 줄이라도 있으면 지우지 않는다.</b>
+    ///
+    /// 판매·입고·조정은 전부 product_id로 상품을 가리킨다. 상품이 사라지면 작년
+    /// 매출표에 이름 없는 줄이 남고, 그것은 되돌릴 수 없다. 그래서 지울 수 있는 것은
+    /// "쓰인 적이 없는 상품"뿐이다 — 임포트가 잘못 만들었거나 시험 삼아 넣은 것들.
+    ///
+    /// 검사와 삭제가 <b>한 트랜잭션 안에서</b> 일어난다. 두 번으로 나누면 그 사이에
+    /// 다른 창에서 판매가 들어올 수 있고, 그러면 방금 "이력 없음"이라고 확인한 상품의
+    /// 이력이 생긴 채로 지워진다.
+    /// </summary>
+    Task<ProductDeleteOutcome> TryDeleteAsync(string productId);
 }

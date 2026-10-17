@@ -30,6 +30,12 @@ public class ProductPhotoServiceTests
 
     private sealed class FakeProductRepository : IProductRepository
     {
+        // 이 테스트는 삭제를 쓰지 않는다. 쓰는 곳은 ProductDeleteTests이고,
+        // 거기서는 실제 SQLite에 대고 돌린다 — 검사와 삭제가 한 트랜잭션
+        // 안에서 일어나는지는 가짜로는 볼 수 없다.
+        public Task<ProductDeleteOutcome> TryDeleteAsync(string productId) =>
+            throw new NotSupportedException();
+
         public byte[]? SavedPhoto { get; private set; }
         public long? SavedUpdatedAt { get; private set; }
         public bool SaveWasCalled { get; private set; }

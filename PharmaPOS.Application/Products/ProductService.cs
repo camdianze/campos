@@ -28,6 +28,50 @@ public class ProductService : IProductService
         _barcodeSequenceRepository = barcodeSequenceRepository;
     }
 
+    /// <summary>
+    /// 쓰인 적이 없는 상품을 지운다.
+    ///
+    /// 지울 수 있는 범위를 좁게 잡은 것이 이 기능의 전부다. 판매·입고·조정은 전부
+    /// product_id로 상품을 가리키므로, 이력이 있는 상품을 지우면 지난 기록에 이름
+    /// 없는 줄이 남고 되돌릴 수 없다. 그래서 거부하고 <b>Inactive로 바꾸라고 말한다</b> —
+    /// 그쪽이 "앞으로 안 보이게"에 대한 답이고, 지우기는 "애초에 있어서는 안 됐던 것"에
+    /// 대한 답이다.
+    /// </summary>
+    public async Task<ProductSaveResult> DeleteProductAsync(string productId)
+    {
+        if (string.IsNullOrWhiteSpace(productId))
+        {
+            return ProductSaveResult.Failure("No product to delete.");
+        }
+
+        try
+        {
+            return await _productRepository.TryDeleteAsync(productId) switch
+            {
+                ProductDeleteOutcome.Deleted => ProductSaveResult.Success(),
+
+                ProductDeleteOutcome.NotFound =>
+                    ProductSaveResult.Failure("That product is no longer there."),
+
+                ProductDeleteOutcome.HasHistory =>
+                    ProductSaveResult.Failure(
+                        "This product has been sold, received or adjusted, so deleting it would leave those records "
+                        + "pointing at nothing. Set Status to Inactive instead — it disappears from the product list "
+                        + "and the till, and the past records stay readable."),
+
+                ProductDeleteOutcome.HasStock =>
+                    ProductSaveResult.Failure(
+                        "This product still has stock. Adjust it to zero first, or set Status to Inactive."),
+
+                _ => ProductSaveResult.Failure("The product could not be deleted."),
+            };
+        }
+        catch (Exception exception)
+        {
+            return ProductSaveResult.Failure("The product could not be deleted: " + exception.Message);
+        }
+    }
+
     public async Task<ProductSaveResult> SaveProductAsync(
         Domain.Entities.Product product,
         bool isNewProduct,
