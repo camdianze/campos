@@ -105,6 +105,9 @@ public static class ServiceCollectionExtensions
         services.AddTransient<SyncSettingsService>();
         services.AddTransient<SyncService>();
 
+        // 앱이 살아 있는 동안 하나. 화면과 무관하게 돌아야 하므로 Singleton이다.
+        services.AddSingleton<SyncScheduler>();
+
         // HttpClient를 하나 들고 있으므로 Singleton이다. 요청마다 새로 만들면
         // 소켓이 쌓인다 — 이 저장소가 인프라를 Singleton으로 두는 규칙과도 맞다.
         services.AddSingleton<ISyncClient, HttpSyncClient>();

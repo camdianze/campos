@@ -267,6 +267,41 @@ public class BackupExportViewModel : ViewModelBase
         private set => SetProperty(ref _syncPendingText, value);
     }
 
+    /// <summary>
+    /// 자동 전송 스위치. 끄면 시계만 멈추고 Synchronize 버튼은 그대로 동작한다.
+    /// 값을 바꾸는 즉시 저장한다 — 설정 화면이 아니라 체크박스 하나라 "저장"을
+    /// 따로 누르게 하면 안 누르고 나간다.
+    /// </summary>
+    public bool IsAutoSyncOn
+    {
+        get => _isAutoSyncOn;
+        set
+        {
+            if (SetProperty(ref _isAutoSyncOn, value) && !_isLoadingSyncSettings)
+            {
+                _ = SaveAutoSyncAsync(value);
+            }
+        }
+    }
+
+    private async Task SaveAutoSyncAsync(bool on)
+    {
+        try
+        {
+            await _syncService.SetAutomaticAsync(on);
+
+            SyncStatusMessage = on
+                ? "Automatic sync is on. It sends every 30 minutes."
+                : "Automatic sync is off. Press Synchronize to send.";
+        }
+        catch (Exception exception)
+        {
+            SyncStatusMessage = "The setting could not be saved: " + exception.Message;
+        }
+    }
+
+    private bool _isAutoSyncOn = true;
+    private bool _isLoadingSyncSettings;
     private string _syncLastSuccessText = string.Empty;
     private string _syncPendingText = string.Empty;
 
@@ -379,9 +414,15 @@ public class BackupExportViewModel : ViewModelBase
     /// </summary>
     public async Task<string> LoadSyncSettingsAsync()
     {
+        _isLoadingSyncSettings = true;
+
         try
         {
             var settings = await _syncSettingsService.LoadAsync();
+
+            // 읽어 오는 동안 setter가 저장을 부르지 않게 한다. 화면을 열기만 해도
+            // 설정이 다시 쓰이는 것은 조용하지만 틀린 일이다.
+            IsAutoSyncOn = await _syncService.IsAutomaticAsync();
 
             SyncServerUrl = settings.ServerUrl;
             SyncPublishableKey = settings.PublishableKey;
@@ -397,6 +438,10 @@ public class BackupExportViewModel : ViewModelBase
         {
             SyncStatusMessage = "The saved connection could not be read: " + exception.Message;
             return string.Empty;
+        }
+        finally
+        {
+            _isLoadingSyncSettings = false;
         }
     }
 

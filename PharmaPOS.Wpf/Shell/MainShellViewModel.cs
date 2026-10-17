@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using PharmaPOS.Application.Sync;
 using System.Windows;
 using PharmaPOS.Application.Inventory;
 using PharmaPOS.Application.Licensing;
@@ -24,6 +25,16 @@ public class MainShellViewModel : ViewModelBase
     public string LicenseWarningText { get; } = string.Empty;
 
     /// <summary>배지에 마우스를 올렸을 때. 정확한 만료일과 연장 방법을 적는다.</summary>
+    /// <summary>
+    /// 동기화가 멈춘 상태를 상단 바에 띄울지. 자동 전송의 진짜 위험은 조용히
+    /// 멈추는 것이고, 알아차릴 사람은 이 PC 앞에 없다.
+    /// </summary>
+    public bool ShowSyncWarning { get; }
+
+    public string SyncWarningText { get; } = string.Empty;
+
+    public string SyncWarningTooltip { get; } = string.Empty;
+
     public string LicenseWarningTooltip =>
         $"{_licenseStatus.Summary}\nAdministrators can enter a renewal code "
         + "in Admin Dashboard → License.";
@@ -48,7 +59,8 @@ public class MainShellViewModel : ViewModelBase
 
     public MainShellViewModel(
         User loggedInUser, IAlertService alertService, UiLanguageService uiLanguage,
-        LicenseStatus licenseStatus)
+        LicenseStatus licenseStatus,
+        SyncHealth syncHealth)
     {
         _alertService = alertService;
         _uiLanguage = uiLanguage;
@@ -65,6 +77,12 @@ public class MainShellViewModel : ViewModelBase
         // 만료가 가까우면 상단 바에 남은 날을 띄운다. 기한이 지나면 앱이 아예 열리지
         // 않으므로, 그 전에 볼 기회가 있어야 방문 일정을 잡을 수 있다.
         // 영구 라이선스이거나 아직 한참 남았으면 자리 자체가 없다.
+        // 꺼 둔 것과 못 보내고 있는 것을 다른 문구로 말한다. 꺼 둔 상태를 "실패"로
+        // 보고하면 엉뚱한 곳을 찾게 되고, 아무 말도 안 하면 꺼 둔 사실을 잊는다.
+        ShowSyncWarning = syncHealth.ShouldWarn;
+        SyncWarningText = syncHealth.WarningText;
+        SyncWarningTooltip = syncHealth.WarningTooltip;
+
         ShowLicenseWarning = licenseStatus.ShouldWarn;
         LicenseWarningText = licenseStatus.DaysRemaining switch
         {

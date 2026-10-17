@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PharmaPOS.Application.Sync;
 using PharmaPOS.Application.Licensing;
 using System.Windows.Controls;
 using PharmaPOS.Application.Authentication;
@@ -35,14 +36,19 @@ public partial class LoginView : UserControl
             UsernameInput.Focus();
     }
 
-    private void OnLoginSucceeded(User loggedInUser)
+    private async void OnLoginSucceeded(User loggedInUser)
     {
         var alertService = App.Services.GetRequiredService<IAlertService>();
         var uiLanguage = App.Services.GetRequiredService<UiLanguageService>();
         // 라이선스 상태는 로그인 시점에 한 번 읽는다. 배지가 필요한지 여기서 정해진다.
         var licenseStatus = App.Services.GetRequiredService<ILicenseService>().GetStatus();
+        // 동기화 상태도 로그인 시점에 한 번 읽는다. 배지가 필요한지 여기서 정해진다 —
+        // 자동 전송이 조용히 멈춘 상태를 약국이 알 수 있는 유일한 자리다.
+        var syncHealth = await App.Services.GetRequiredService<SyncService>()
+            .GetHealthAsync(loggedInUser.FacilityId);
+
         var shellViewModel = new MainShellViewModel(
-            loggedInUser, alertService, uiLanguage, licenseStatus);
+            loggedInUser, alertService, uiLanguage, licenseStatus, syncHealth);
         App.CurrentShellViewModel = shellViewModel;
 
         var shellView = new MainShellView { DataContext = shellViewModel };
@@ -50,6 +56,9 @@ public partial class LoginView : UserControl
         var parentWindow = System.Windows.Window.GetWindow(this);
         if (parentWindow is MainWindow mainWindow)
             mainWindow.Content = shellView;
+
+        // 자동 전송의 시계를 돌린다. 화면과 무관하게 앱이 살아 있는 동안 돈다.
+        App.Services.GetRequiredService<SyncScheduler>().Start(loggedInUser.FacilityId);
     }
 
     private void OnForgotPasswordRequested()

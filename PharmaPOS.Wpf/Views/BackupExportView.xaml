@@ -343,6 +343,16 @@
                                     IsEnabled="{Binding IsSyncIdle}"
                                     Command="{Binding SynchronizeCommand}"/>
 
+                            <!-- 끄면 자동 전송만 멈춘다. 위의 Synchronize는 그대로
+                                 동작하고, 아래 두 줄도 그대로 보인다 — 밀린 수가
+                                 늘어나는 것이 보여야 꺼 둔 사실을 잊지 않는다. -->
+                            <CheckBox Content="Auto"
+                                      IsChecked="{Binding IsAutoSyncOn}"
+                                      IsEnabled="{Binding IsSyncIdle}"
+                                      Margin="0,0,0,2"/>
+                            <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,8"
+                                       Text="Sends every 30 minutes on its own. Turning it off does not stop the button above."/>
+
                             <TextBlock Text="{Binding SyncLastSuccessText}"
                                        Style="{StaticResource PanelHint}" TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding SyncPendingText}"

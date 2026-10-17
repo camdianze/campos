@@ -280,6 +280,53 @@ public sealed class SyncService
     public async Task<int> CountPhotosPendingAsync() =>
         await CountPhotosSafelyAsync();
 
+    /// <summary>자동 전송이 켜져 있나. 설정이 없으면 켜진 것으로 읽는다.</summary>
+    public async Task<bool> IsAutomaticAsync()
+    {
+        try
+        {
+            var stored = await _settings.GetAsync(AppSettingKeys.SyncAutomatic);
+
+            // 저장된 빈 문자열은 값이지 "없음"이 아니지만, 여기서는 둘 다 기본값으로
+            // 간다 — 읽을 수 없는 설정이 전송을 멈추게 해서는 안 된다.
+            return stored is null || stored.Length == 0
+                || !bool.TryParse(stored, out var on) || on;
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
+    public async Task SetAutomaticAsync(bool on)
+    {
+        await _settings.SetAsync(
+            AppSettingKeys.SyncAutomatic,
+            on ? "true" : "false",
+            "bool");
+    }
+
+    /// <summary>
+    /// 상단 바 배지를 띄울지 정하는 판단. 로그인할 때 한 번 읽는다.
+    /// </summary>
+    public async Task<SyncHealth> GetHealthAsync(string facilityId)
+    {
+        try
+        {
+            var settings = await _settingsService.LoadAsync();
+
+            return SyncHealth.Of(
+                settings.IsConfigured,
+                await IsAutomaticAsync(),
+                await GetLastSuccessAsync(),
+                await CountPendingSafelyAsync(facilityId) + await CountPhotosSafelyAsync());
+        }
+        catch
+        {
+            return SyncHealth.Unknown();
+        }
+    }
+
     public async Task<DateTimeOffset?> GetLastSuccessAsync()
     {
         try

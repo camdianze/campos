@@ -63,6 +63,16 @@ public static class AppSettingKeys
     /// </summary>
     public const string SyncLastSuccess = "sync.last_success";
 
+    /// <summary>
+    /// 자동 전송을 켤지. 없으면 켜진 것으로 읽는다 — 설치하면 바로 돌아야 한다.
+    ///
+    /// 끌 수 있게 둔 이유는 회선이 느리거나 종량제인 약국, 문제를 찾느라 잠깐
+    /// 멈추고 싶은 경우가 실제로 있기 때문이다. 상담 안내의 <c>never</c>처럼
+    /// 기능을 침묵시키는 값이 아니다 — 꺼도 수동 전송은 되고, 꺼져 있다는 사실이
+    /// 화면에 남는다.
+    /// </summary>
+    public const string SyncAutomatic = "sync.auto";
+
     public const string AwareSeedSignature = "aware.seed_signature";
 
     /// <summary>적재된 시드의 출처 표기. 예: 'WHO AWaRe 2025'.</summary>
