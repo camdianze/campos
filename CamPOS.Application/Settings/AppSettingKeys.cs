@@ -73,6 +73,22 @@ public static class AppSettingKeys
     /// </summary>
     public const string SyncAutomatic = "sync.auto";
 
+    // ── 자동 업데이트 ──────────────────────────────────────────────────
+    // 동기화와 섞이지 않는다. 둘은 방향도(올림/내림), 주기도, 실패했을 때의
+    // 뜻도 다르다.
+
+    /// <summary>
+    /// 배포 채널. <c>test</c> 또는 <c>stable</c>, 없으면 stable.
+    ///
+    /// 먼저 test에 올려 본인 PC와 약국 한 곳에서 확인한 뒤 stable로 옮긴다.
+    /// 읽지 못했을 때 stable로 떨어지는 것이 중요하다 — test로 떨어지면 검증
+    /// 전 버전이 약국에 가는 쪽으로 실패한다.
+    /// </summary>
+    public const string UpdateChannel = "update.channel";
+
+    /// <summary>마지막으로 업데이트를 확인한 시각(Unix epoch 밀리초, InvariantCulture).</summary>
+    public const string UpdateLastCheck = "update.last_check";
+
     public const string AwareSeedSignature = "aware.seed_signature";
 
     /// <summary>적재된 시드의 출처 표기. 예: 'WHO AWaRe 2025'.</summary>

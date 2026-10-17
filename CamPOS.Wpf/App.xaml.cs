@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using CamPOS.Application.Counselling;
 using CamPOS.Application.Startup;
+using CamPOS.Application.Updates;
 using PharmaPOS.Application.Licensing;
 using CamPOS.Application.Repositories;
 using CamPOS.DataAccess.Database;
@@ -78,7 +79,8 @@ public partial class App : System.Windows.Application
 
         var services = new ServiceCollection();
         services.AddPharmaPosServices(
-            dbFilePath, licenseFilePath, awareSeedPaths, localeDirectories, sheetOutputFolder);
+            dbFilePath, licenseFilePath, awareSeedPaths, localeDirectories, sheetOutputFolder,
+            appDataFolder);
         Services = services.BuildServiceProvider();
 
         var databaseInitializer = Services.GetRequiredService<DatabaseInitializer>();
@@ -118,6 +120,33 @@ public partial class App : System.Windows.Application
         }
 
         mainWindow.Show();
+
+        // 업데이트 확인은 화면이 뜬 뒤에 시작한다. 켤 때 한 번뿐이고, 받아만 두고
+        // 교체는 꺼질 때 한다. 기다리지 않는다 — 느린 회선에서 시작이 막히면
+        // 그것은 업데이트가 판매를 방해한 것이다.
+        _ = Services.GetRequiredService<IUpdateService>().CheckAndDownloadAsync();
+    }
+
+    /// <summary>
+    /// 받아 둔 업데이트를 여기서 적용한다. 쓰는 중이 아니라 꺼지는 중이라,
+    /// 판매 도중에 재시작이 걸리는 일이 없다.
+    ///
+    /// 백업이 먼저이고, 실패하면 미룬다. 받아 둔 것은 그대로 남아 다음에 다시
+    /// 시도된다.
+    /// </summary>
+    protected override void OnExit(ExitEventArgs e)
+    {
+        try
+        {
+            Services?.GetService<IUpdateService>()?.ApplyIfReadyAsync()
+                .GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // 닫는 중이다. 업데이트 때문에 종료가 막히는 일은 없어야 한다.
+        }
+
+        base.OnExit(e);
     }
 
     /// <summary>

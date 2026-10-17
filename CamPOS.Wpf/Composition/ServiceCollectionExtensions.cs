@@ -1,4 +1,5 @@
 ﻿using CamPOS.Application.Sync;
+using CamPOS.Application.Updates;
 using Microsoft.Extensions.DependencyInjection;
 using CamPOS.Application.Authentication;
 using CamPOS.Application.Counselling;
@@ -35,7 +36,8 @@ public static class ServiceCollectionExtensions
         string licenseFilePath,
         IReadOnlyList<string> awareSeedPaths,
         IReadOnlyList<string> localeDirectories,
-        string defaultSheetOutputFolder)
+        string defaultSheetOutputFolder,
+        string appDataFolder)
     {
         // 인프라 (DB 연결)
         services.AddSingleton(_ => new SqliteConnectionFactory(dbFilePath));
@@ -107,6 +109,17 @@ public static class ServiceCollectionExtensions
 
         // 앱이 살아 있는 동안 하나. 화면과 무관하게 돌아야 하므로 Singleton이다.
         services.AddSingleton<SyncScheduler>();
+
+        // 자동 업데이트. 받아 둔 것과 마지막 확인 시각을 들고 있으므로 Singleton이다.
+        //
+        // 주소는 여기 박혀 있고 <b>읽기 전용 공개 버킷</b>을 가리킨다. 올리는 권한은
+        // 앱에 없어야 한다 — 약국 PC 수백 대에 업로드 열쇠를 뿌리는 셈이 되고,
+        // 그중 한 대만 뜯겨도 모든 약국에 새 버전을 보낼 수 있게 된다.
+        services.AddSingleton<IUpdateService>(provider => new VelopackUpdateService(
+            provider.GetRequiredService<IAppSettingRepository>(),
+            provider.GetRequiredService<IBackupService>(),
+            UpdateSource.ReleasesBaseUrl,
+            appDataFolder));
 
         // HttpClient를 하나 들고 있으므로 Singleton이다. 요청마다 새로 만들면
         // 소켓이 쌓인다 — 이 저장소가 인프라를 Singleton으로 두는 규칙과도 맞다.
