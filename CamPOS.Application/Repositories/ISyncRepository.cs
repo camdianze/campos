@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Sync;
+﻿using CamPOS.Application.Sync;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 동기화가 보낼 행을 읽어 오고, 어디까지 보냈는지 기억한다.

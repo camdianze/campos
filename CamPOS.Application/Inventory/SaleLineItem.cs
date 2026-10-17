@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// POS 판매 화면(SCR-POS-005)의 Sale Cart 한 줄.

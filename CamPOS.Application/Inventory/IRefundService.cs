@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 판매 취소(환불)를 담당하는 인터페이스. 판매 내역 화면에서 시작한다.

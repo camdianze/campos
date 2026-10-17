@@ -1,22 +1,22 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PharmaPOS.Application.Sync;
+using CamPOS.Application.Sync;
 using System.IO;
 using PharmaPOS.Application.Licensing;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Import;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.Application.Repositories;
-using Lightweight_Digital_Inventory_Management___POS_System.Shell;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using CamPOS.Application.Authentication;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Import;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Products;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Reports;
+using CamPOS.Application.Repositories;
+using CamPOS.Wpf.Shell;
+using CamPOS.Wpf.ViewModels;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 public partial class AdminDashboardView : UserControl
 {

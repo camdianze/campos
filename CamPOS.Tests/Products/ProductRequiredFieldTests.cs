@@ -1,9 +1,9 @@
-﻿using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Products;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// 상품 저장의 필수 항목: 상품명, 제형, 성분명(약일 때), 단위, 판매가.

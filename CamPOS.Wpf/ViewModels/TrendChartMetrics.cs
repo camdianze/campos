@@ -1,4 +1,4 @@
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+﻿namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 추이 그래프의 치수. 매출 그래프와 항생제 그래프가 화면 아래에 나란히 놓이므로

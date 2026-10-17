@@ -1,12 +1,12 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Products;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// 상품 수정이 실제 SQLite까지 닿는지. 가짜 저장소로는 확인할 수 없는 구간이다.

@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Receipts;
+﻿using CamPOS.Application.Counselling;
+using CamPOS.Application.Receipts;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 /// <summary>
 /// 저장소에 동봉된 실제 로케일 파일이 형식에 맞는지 확인한다.
@@ -14,13 +14,13 @@ public class ShippedLocaleFileTests
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
 
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PharmaPOS.slnx")))
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "CamPOS.slnx")))
         {
             directory = directory.Parent;
         }
 
         Assert.NotNull(directory);
-        return Path.Combine(directory!.FullName, "PharmaPOS.Wpf", "locales");
+        return Path.Combine(directory!.FullName, "CamPOS.Wpf", "locales");
     }
 
     [Fact]

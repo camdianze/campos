@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Counselling;
+﻿using CamPOS.Application.Counselling;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증 한 문구를 어느 언어로 낼지 결정한다.

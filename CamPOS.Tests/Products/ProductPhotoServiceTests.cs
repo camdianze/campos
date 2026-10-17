@@ -1,9 +1,9 @@
-﻿using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Products;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// 상품 사진 저장 규칙.

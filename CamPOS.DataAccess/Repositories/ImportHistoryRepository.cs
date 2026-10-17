@@ -1,9 +1,9 @@
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// IImportHistoryRepository의 SQLite 구현체.

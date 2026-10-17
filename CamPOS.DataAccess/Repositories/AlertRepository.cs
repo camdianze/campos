@@ -1,8 +1,8 @@
-﻿using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
+﻿using CamPOS.Application.Inventory;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// IAlertRepository의 SQLite 구현체.

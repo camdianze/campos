@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 
-namespace PharmaPOS.DataAccess.Database;
+namespace CamPOS.DataAccess.Database;
 
 /// <summary>
 /// 앱 최초 실행 시 필요한 테이블을 생성하고, 기존 DB에는 스키마 마이그레이션을 적용한다.

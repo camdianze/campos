@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Sync;
+﻿namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// "동기화가 제대로 돌고 있나"에 대한 한 번의 판단. 로그인할 때 한 번 읽어

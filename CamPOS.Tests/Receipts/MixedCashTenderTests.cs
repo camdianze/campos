@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Receipts;
+﻿using CamPOS.Application.Receipts;
 
-namespace PharmaPOS.Tests.Receipts;
+namespace CamPOS.Tests.Receipts;
 
 /// <summary>
 /// 달러와 리엘을 섞어 받은 현금 계산.

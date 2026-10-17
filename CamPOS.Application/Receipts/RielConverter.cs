@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 달러 금액을 리엘로 환산한다.

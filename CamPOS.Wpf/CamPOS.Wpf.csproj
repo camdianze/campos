@@ -3,10 +3,10 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <!-- 게시 결과물이 PharmaPOS.exe가 되도록 고정한다.
-         RootNamespace는 기존 C#/XAML 네임스페이스와 맞추기 위해 그대로 둔다. -->
-    <AssemblyName>PharmaPOS</AssemblyName>
-    <RootNamespace>Lightweight_Digital_Inventory_Management___POS_System</RootNamespace>
+    <!-- 게시 결과물이 CamPOS.exe가 되도록 고정한다. 폴더 이름이 바뀌어도
+         실행 파일 이름은 여기서 정해진다. -->
+    <AssemblyName>CamPOS</AssemblyName>
+    <RootNamespace>CamPOS.Wpf</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -44,9 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PharmaPOS.Application\PharmaPOS.Application.csproj" />
-    <ProjectReference Include="..\PharmaPOS.DataAccess\PharmaPOS.DataAccess.csproj" />
-    <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />
+    <ProjectReference Include="..\CamPOS.Application\CamPOS.Application.csproj" />
+    <ProjectReference Include="..\CamPOS.DataAccess\CamPOS.DataAccess.csproj" />
+    <ProjectReference Include="..\CamPOS.Domain\CamPOS.Domain.csproj" />
   </ItemGroup>
 
 </Project>

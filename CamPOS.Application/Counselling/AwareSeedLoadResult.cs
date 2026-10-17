@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 시드 적재 시도 결과.

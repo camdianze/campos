@@ -1,11 +1,11 @@
-using System.Windows.Media;
-using PharmaPOS.Domain.Entities;
+﻿using System.Windows.Media;
+using CamPOS.Domain.Entities;
 
 // 속성 이름(AwareGroup)이 타입 이름과 같아 네임스페이스로 풀어 쓰면 가려진다.
 // 별칭을 두어 switch에서 열거형 값을 명확히 가리킨다.
-using Group = PharmaPOS.Domain.Enums.AwareGroup;
+using Group = CamPOS.Domain.Enums.AwareGroup;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 상품 목록의 한 줄. 상품 자체와, 그 상품이 어느 AWaRe 그룹으로 판별됐는지를 함께 들고 있다.

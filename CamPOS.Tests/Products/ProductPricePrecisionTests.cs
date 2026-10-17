@@ -1,9 +1,9 @@
-﻿using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Products;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// 낱개 판매가는 계산대에서 실제로 주고받는 돈이라 소수점 두 자리를 넘길 수 없다.

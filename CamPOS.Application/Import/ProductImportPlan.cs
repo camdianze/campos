@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Import;
+namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 등록할 상품 하나와 그 상품이 온 행 번호.

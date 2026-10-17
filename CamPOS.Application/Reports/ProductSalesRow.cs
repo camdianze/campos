@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Reports;
+﻿namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 상품별 판매 순위 한 줄. 현재 기간과 직전 기간을 나란히 담는다.

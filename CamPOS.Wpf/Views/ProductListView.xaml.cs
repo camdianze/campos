@@ -3,16 +3,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using Lightweight_Digital_Inventory_Management___POS_System.Shell;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Products;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Wpf.Shell;
+using CamPOS.Wpf.ViewModels;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 public partial class ProductListView : UserControl
 {

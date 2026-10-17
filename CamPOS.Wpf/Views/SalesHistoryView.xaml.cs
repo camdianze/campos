@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
-using PharmaPOS.Application.Inventory;
-using Lightweight_Digital_Inventory_Management___POS_System.Shell;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using CamPOS.Application.Inventory;
+using CamPOS.Wpf.Shell;
+using CamPOS.Wpf.ViewModels;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 public partial class SalesHistoryView : UserControl
 {

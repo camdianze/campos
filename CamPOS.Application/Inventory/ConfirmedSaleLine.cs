@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 저장이 끝난 판매 한 줄과, 그때 만들어진 거래 ID.

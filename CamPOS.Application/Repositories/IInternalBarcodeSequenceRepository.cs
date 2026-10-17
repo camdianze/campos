@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Repositories;
+﻿namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// Internal Barcode Sequence 테이블에서 다음 순번을 채번하는 인터페이스.

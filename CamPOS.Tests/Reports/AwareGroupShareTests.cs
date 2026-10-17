@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Reports;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Reports;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Reports;
+namespace CamPOS.Tests.Reports;
 
 /// <summary>
 /// 등급별 비중. 요약 카드의 ACCESS 비중도 이 목록에서 나오므로,

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.PasswordPolicy;
+﻿namespace CamPOS.Application.PasswordPolicy;
 
 /// <summary>
 /// 비밀번호 규칙을 검사하는 인터페이스.

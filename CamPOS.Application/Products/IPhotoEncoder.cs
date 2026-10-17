@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Products;
+﻿namespace CamPOS.Application.Products;
 
 /// <summary>
 /// 원본 이미지를 저장할 형태로 줄이고 다시 압축한다.

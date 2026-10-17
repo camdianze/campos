@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>Expiry 우선순위 분류 전, Repository가 반환하는 원본 데이터.</summary>
 public class ExpiryCandidate

@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 시드 CSV 한 줄을 파싱한 결과.

@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Repositories;
+﻿using CamPOS.Application.Repositories;
 
-namespace PharmaPOS.Tests.Receipts;
+namespace CamPOS.Tests.Receipts;
 
 /// <summary>
 /// 메모리 위의 App_Setting. 설정 서비스의 규칙만 확인하려는 것이라

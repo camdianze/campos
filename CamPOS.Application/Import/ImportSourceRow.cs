@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Import;
+﻿namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 파일에서 읽어낸 한 행. 파일 형식(CSV/Excel)은 여기까지만 관여하고,

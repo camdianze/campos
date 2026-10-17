@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 백업/내보내기/복원 시도 결과.

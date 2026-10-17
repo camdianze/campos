@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 환불 시도 결과.

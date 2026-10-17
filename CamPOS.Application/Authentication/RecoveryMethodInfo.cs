@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Authentication;
+﻿namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// 아이디 입력 후, 그 계정에 사용 가능한 복구 수단을 화면에 알려주기 위한 정보.

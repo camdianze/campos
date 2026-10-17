@@ -1,9 +1,9 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Inventory;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
 
-namespace PharmaPOS.Tests.Inventory;
+namespace CamPOS.Tests.Inventory;
 
 /// <summary>
 /// 재고 이력 화면. 이 화면의 값어치는 입고와 조정이 한 목록에 시간순으로 섞여 나온다는

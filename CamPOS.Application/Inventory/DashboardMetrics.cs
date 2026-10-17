@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 관리자 대시보드(SCR-ADMIN-015)에 표시할 6개 지표.

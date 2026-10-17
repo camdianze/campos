@@ -1,6 +1,6 @@
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Reports;
+namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 달력 한 칸, 즉 하루치 매출.

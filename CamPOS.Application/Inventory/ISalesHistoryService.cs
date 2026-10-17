@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// F-06 부속 기능인 판매 내역 조회를 담당하는 인터페이스. (Screen SCR-SALES-007)

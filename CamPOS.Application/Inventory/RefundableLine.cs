@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 환불 화면에 띄울 "판매된 줄 하나"와, 그 줄이 지금까지 얼마나 환불됐는지.

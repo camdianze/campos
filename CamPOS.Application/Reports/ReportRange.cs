@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Reports;
+﻿namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 리포트가 집계할 기간과, 그와 비교할 직전 기간.

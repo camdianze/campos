@@ -1,12 +1,12 @@
-﻿using PharmaPOS.Application.Parsing;
+﻿using CamPOS.Application.Parsing;
 using System.Collections.ObjectModel;
 using System.Windows;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Repositories;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Repositories;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Wpf.Views;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 // 배치별 그룹핑을 위한 모델
 public class ProductInventoryGroup

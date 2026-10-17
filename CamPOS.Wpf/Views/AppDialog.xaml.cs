@@ -1,8 +1,8 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 /// <summary>
 /// 앱 테마에 맞춘 공용 알림/확인 창.
@@ -41,7 +41,7 @@ public partial class AppDialog : Window
         {
             // 소유 창을 지정해야 가운데 정렬되고, 뒤 창을 가리지 않는다.
             // 시작 화면처럼 아직 창이 없을 때를 대비해 없으면 화면 중앙에 띄운다.
-            Owner = Application.Current?.MainWindow is { IsLoaded: true } main ? main : null
+            Owner = System.Windows.Application.Current?.MainWindow is { IsLoaded: true } main ? main : null
         };
 
         if (dialog.Owner is null)

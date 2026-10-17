@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 환불(F-06 부속)에 필요한 데이터 접근.

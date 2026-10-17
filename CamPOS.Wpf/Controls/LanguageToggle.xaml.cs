@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
+using CamPOS.Wpf.Services;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Controls;
+namespace CamPOS.Wpf.Controls;
 
 /// <summary>
 /// EN / ខ្មែរ 토글. 크메르어가 있는 화면마다 같은 자리에 하나씩 둔다.

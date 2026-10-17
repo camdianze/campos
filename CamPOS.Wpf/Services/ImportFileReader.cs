@@ -5,9 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
 using ClosedXML.Excel;
-using PharmaPOS.Application.Import;
+using CamPOS.Application.Import;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 임포트 파일(CSV/Excel)을 행 목록으로 읽어 들인다.

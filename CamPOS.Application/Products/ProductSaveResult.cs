@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Products;
+﻿namespace CamPOS.Application.Products;
 
 /// <summary>
 /// 상품 저장(등록/수정) 시도 결과.

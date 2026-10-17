@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Domain.Entities;
+namespace CamPOS.Domain.Entities;
 
 /// <summary>
 /// WHO AWaRe 분류표의 한 행. 시드 파일(seeds/aware_2025.csv)에서 적재된다.

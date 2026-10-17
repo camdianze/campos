@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Authentication;
+namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// F-14 사용자 관리 로직을 담당하는 인터페이스. (Screen SCR-USER-016)

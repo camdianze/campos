@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Parsing;
+using CamPOS.Application.Parsing;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// 숫자를 적고 읽는 규칙이 PC의 Windows 지역 설정에 끌려가면 안 된다.

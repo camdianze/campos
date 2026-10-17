@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Receipts;
+﻿namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 달러와 리엘을 섞어 받은 현금 한 건을 계산한다.

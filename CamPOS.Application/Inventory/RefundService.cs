@@ -1,8 +1,8 @@
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// IRefundService의 구현체.

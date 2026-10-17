@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
-using PharmaPOS.Application.Inventory;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using CamPOS.Application.Inventory;
+using CamPOS.Wpf.ViewModels;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 /// <summary>
 /// 판매 내역에서 고른 거래 하나를 환불하는 창.

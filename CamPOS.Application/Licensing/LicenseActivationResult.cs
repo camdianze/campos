@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Licensing;
+﻿namespace PharmaPOS.Application.Licensing;
 
 /// <summary>
 /// 라이선스 활성화 시도 결과. 이 앱의 다른 서비스들과 같은 결과 객체 규칙을 따른다

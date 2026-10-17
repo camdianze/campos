@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 그려진 복약안내 용지. 프린터 어댑터는 이 줄들을 고정폭 글꼴로 그대로 찍는다.

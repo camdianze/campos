@@ -14,11 +14,11 @@
        운영 개인키가 저장소에 없어 테스트가 진짜 코드를 만들 수 없고,
        그러면 만료 판정을 테스트로 고정할 수 없다. -->
   <ItemGroup>
-    <InternalsVisibleTo Include="PharmaPOS.Tests" />
+    <InternalsVisibleTo Include="CamPOS.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />
+    <ProjectReference Include="..\CamPOS.Domain\CamPOS.Domain.csproj" />
   </ItemGroup>
 
 </Project>

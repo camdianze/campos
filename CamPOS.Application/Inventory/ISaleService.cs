@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// F-06 POS 판매 확정 로직을 담당하는 인터페이스. (Screen SCR-POS-005)

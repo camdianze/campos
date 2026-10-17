@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>재고 이력 조회 결과. 날짜 검증 실패와 조회 실패를 구분한다.</summary>
 public class StockHistoryQueryResult

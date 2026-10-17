@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// DB 백업/복원, CSV/Excel 내보내기를 담당하는 인터페이스. (Screen SCR-BACKUP-018)

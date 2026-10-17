@@ -1,7 +1,7 @@
-using System.Globalization;
-using PharmaPOS.Application.Repositories;
+﻿using System.Globalization;
+using CamPOS.Application.Repositories;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증 번호를 발급한다. 형식은 {prefix}-{YYYYMMDD}-{0001}.

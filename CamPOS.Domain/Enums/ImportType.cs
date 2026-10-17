@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// 초기 재고 임포트의 종류. 같은 파일이라도 종류가 다르면 따로 기록한다 —

@@ -1,7 +1,7 @@
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Settings;
+﻿using CamPOS.Application.Receipts;
+using CamPOS.Application.Settings;
 
-namespace PharmaPOS.Tests.Receipts;
+namespace CamPOS.Tests.Receipts;
 
 /// <summary>
 /// 저장 전 검증. 여기서 못 걸린 값은 전부 종이에서 드러난다.

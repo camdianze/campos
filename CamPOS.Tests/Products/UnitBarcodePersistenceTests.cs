@@ -1,10 +1,10 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// 낱개 바코드가 실제로 SQLite에 저장되고 다시 읽히는지, 그리고 그 값으로 검색이

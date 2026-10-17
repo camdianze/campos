@@ -1,8 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Converters;
+namespace CamPOS.Wpf.Converters;
 
 /// <summary>
 /// 0~1 사이의 값을 Grid 칸의 별(*) 너비로 바꾼다.

@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.Entities;
+﻿namespace CamPOS.Domain.Entities;
 
 /// <summary>
 /// 복약안내 출력 이력 한 줄. 스튜어드십 지표 집계용이다.

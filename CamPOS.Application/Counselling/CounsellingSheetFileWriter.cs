@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// ICounsellingSheetFileWriter의 구현체.

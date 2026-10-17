@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>재고 이력(Stock_Transaction) 조회.</summary>
 public interface IStockHistoryRepository

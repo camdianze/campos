@@ -1,7 +1,7 @@
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Counselling;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 public class AntibioticMatchingServiceTests
 {

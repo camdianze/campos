@@ -1,14 +1,14 @@
 ﻿using System.Collections.ObjectModel;
-using PharmaPOS.Application.Sync;
+using CamPOS.Application.Sync;
 using System.Windows;
-using PharmaPOS.Application.Inventory;
+using CamPOS.Application.Inventory;
 using PharmaPOS.Application.Licensing;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.Services;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Shell;
+namespace CamPOS.Wpf.Shell;
 
 public class MainShellViewModel : ViewModelBase
 {

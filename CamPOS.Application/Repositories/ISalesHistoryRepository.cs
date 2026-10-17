@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 판매 내역 조회를 담당하는 인터페이스. (Screen SCR-SALES-007)

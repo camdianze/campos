@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 복합 문자 계열은 자소 결합 때문에 별도 처리가 필요하다는 표시.

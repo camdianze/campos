@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 알림(F-09)의 원본 데이터 조회를 담당하는 인터페이스.

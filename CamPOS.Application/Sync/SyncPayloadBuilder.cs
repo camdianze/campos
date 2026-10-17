@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Repositories;
+﻿using CamPOS.Application.Repositories;
 
-namespace PharmaPOS.Application.Sync;
+namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// 보낼 묶음을 만든다. 서버로 보내지는 않는다 — 1단계에서는 이 결과를 파일로 적어

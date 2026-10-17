@@ -1,9 +1,9 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// XAML에서 바로 쓰는 화면 문구. <c>Content="{svc:Loc ui.common.back, ← Back}"</c>

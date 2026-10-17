@@ -1,7 +1,7 @@
-using System.Globalization;
-using PharmaPOS.Domain.Enums;
+﻿using System.Globalization;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Reports;
+namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 항생제 판매 추이의 한 달치.

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Sync;
+﻿namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// 이 PC가 서버로 보내기 위해 알아야 하는 것 전부. 세 개뿐이다.

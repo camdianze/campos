@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Authentication;
+namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// 로그인 시도 결과. 성공 시 AuthenticatedUser에 값이 들어있고,

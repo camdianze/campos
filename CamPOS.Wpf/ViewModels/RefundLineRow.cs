@@ -1,7 +1,7 @@
-using PharmaPOS.Application.Inventory;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+﻿using CamPOS.Application.Inventory;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 환불 창의 한 줄. 판매된 줄 하나와, 이번에 얼마나 되돌릴지를 들고 있다.

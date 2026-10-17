@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 알림 화면(SCR-ALERT-014)에 표시할 통합 알림 항목.

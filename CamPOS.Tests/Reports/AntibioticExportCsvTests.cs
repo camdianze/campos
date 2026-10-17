@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Reports;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Reports;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Reports;
+namespace CamPOS.Tests.Reports;
 
 /// <summary>
 /// AMR 연구에 제출하는 항생제 파일.

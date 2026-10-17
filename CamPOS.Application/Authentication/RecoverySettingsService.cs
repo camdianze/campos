@@ -1,9 +1,9 @@
-﻿using PharmaPOS.Application.PasswordPolicy;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Security;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.PasswordPolicy;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Security;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Authentication;
+namespace CamPOS.Application.Authentication;
 
 /// <summary>IRecoverySettingsService의 구현체.</summary>
 public class RecoverySettingsService : IRecoverySettingsService

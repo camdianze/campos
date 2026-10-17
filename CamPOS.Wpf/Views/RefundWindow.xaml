@@ -1,4 +1,4 @@
-﻿<Window x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.RefundWindow"
+﻿<Window x:Class="CamPOS.Wpf.Views.RefundWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Refund"

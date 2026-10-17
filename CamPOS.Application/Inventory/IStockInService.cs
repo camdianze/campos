@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// F-05 입고 등록 로직을 담당하는 인터페이스. (Screen SCR-STOCKIN-009)

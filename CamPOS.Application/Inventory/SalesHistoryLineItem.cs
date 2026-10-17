@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 판매 내역 화면(SCR-SALES-007)에 표시할 조인된 판매 라인 데이터.

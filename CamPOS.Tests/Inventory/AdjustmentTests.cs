@@ -1,9 +1,9 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Inventory;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
 
-namespace PharmaPOS.Tests.Inventory;
+namespace CamPOS.Tests.Inventory;
 
 /// <summary>
 /// 재고 조정. 실제 SQLite에 대고 서비스와 리포지터리를 함께 돌린다.

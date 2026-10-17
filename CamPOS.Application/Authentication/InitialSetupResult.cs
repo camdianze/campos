@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Authentication;
+﻿namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// 초기 시설 설정 시도 결과.

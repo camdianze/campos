@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>복약안내 용지를 어디로 내보낼지.</summary>
 public enum CounsellingOutput

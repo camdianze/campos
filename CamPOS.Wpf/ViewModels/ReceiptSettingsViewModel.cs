@@ -1,14 +1,14 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Settings;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Wpf.Views;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Settings;
+using CamPOS.Domain.Enums;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 관리자 대시보드의 영수증 설정 구역 ViewModel.

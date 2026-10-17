@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Receipts;
+﻿namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증에서 쓰는 리소스 키. 접두어는 전부 "receipt." 로 통일한다.

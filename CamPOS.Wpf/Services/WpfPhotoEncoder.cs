@@ -1,8 +1,8 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows.Media.Imaging;
-using PharmaPOS.Application.Products;
+using CamPOS.Application.Products;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 상품 사진을 저장할 형태로 줄이고 JPEG로 다시 압축한다.

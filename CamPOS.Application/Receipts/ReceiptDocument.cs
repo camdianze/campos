@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Receipts;
+﻿namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 그려진 영수증. 감열지에 그대로 보낼 고정폭 텍스트 줄들이다.

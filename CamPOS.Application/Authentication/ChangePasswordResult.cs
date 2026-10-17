@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Authentication;
+﻿namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// 비밀번호 변경 시도 결과.

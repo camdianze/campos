@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 판매 내역 조회 시도 결과. 날짜 검증 실패를 구분하기 위한 결과 타입.

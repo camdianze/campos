@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Import;
-using PharmaPOS.Application.Receipts;
+﻿using CamPOS.Application.Import;
+using CamPOS.Application.Receipts;
 
-namespace PharmaPOS.Tests.Import;
+namespace CamPOS.Tests.Import;
 
 /// <summary>
 /// 파일에 낱개가가 없을 때 박스가에서 뽑아 넣는 기능.

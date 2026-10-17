@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Receipts;
+﻿namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증에 어느 언어를 찍을지.

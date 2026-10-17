@@ -1,15 +1,15 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Products;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
 // 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
-using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
+using InventoryEntity = CamPOS.Domain.Entities.Inventory;
 
-namespace PharmaPOS.Application.Import;
+namespace CamPOS.Application.Import;
 
 /// <summary>
 /// IInitialImportService의 구현체.

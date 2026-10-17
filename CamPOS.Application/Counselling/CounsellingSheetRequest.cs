@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 복약안내 용지 한 장을 그리는 데 필요한 입력.

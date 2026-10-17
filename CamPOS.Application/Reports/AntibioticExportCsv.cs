@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace PharmaPOS.Application.Reports;
+namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// AMR 연구에 제출하는 항생제 내보내기 파일을 만든다.

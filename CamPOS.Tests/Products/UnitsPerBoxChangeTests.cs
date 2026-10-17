@@ -1,12 +1,12 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Products;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// 상품의 박스당 개수가 바뀌면 재고가 따라가야 한다. 실제 SQLite에 대고 돌린다.

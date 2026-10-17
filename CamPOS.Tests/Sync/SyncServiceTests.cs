@@ -1,9 +1,9 @@
-﻿using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Security;
-using PharmaPOS.Application.Settings;
-using PharmaPOS.Application.Sync;
+﻿using CamPOS.Application.Repositories;
+using CamPOS.Application.Security;
+using CamPOS.Application.Settings;
+using CamPOS.Application.Sync;
 
-namespace PharmaPOS.Tests.Sync;
+namespace CamPOS.Tests.Sync;
 
 /// <summary>
 /// 워터마크를 언제 적느냐가 이 기능의 전부다.

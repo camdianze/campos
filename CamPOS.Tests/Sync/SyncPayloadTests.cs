@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Sync;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
+using CamPOS.Application.Sync;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
 
-namespace PharmaPOS.Tests.Sync;
+namespace CamPOS.Tests.Sync;
 
 /// <summary>
 /// 서버로 나가는 묶음에 무엇이 들어가고 무엇이 빠지는지를 고정한다.

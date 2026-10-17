@@ -1,15 +1,15 @@
-﻿using PharmaPOS.Application.Parsing;
+﻿using CamPOS.Application.Parsing;
 using System.IO;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
-using PharmaPOS.Application.Products;
+using CamPOS.Application.Products;
 using System.Globalization;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using CamPOS.Application.Receipts;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 상품 등록/수정 화면(SCR-PROD-012)의 ViewModel.

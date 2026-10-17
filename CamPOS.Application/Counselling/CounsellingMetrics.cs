@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 항생제 스튜어드십 지표. 기간을 잘라 집계한다.

@@ -1,8 +1,8 @@
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
+﻿using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 판매 영수증을 Windows 인쇄 파이프라인으로 출력한다.

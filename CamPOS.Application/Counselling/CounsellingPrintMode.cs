@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 복약안내 용지 출력 기본 동작.

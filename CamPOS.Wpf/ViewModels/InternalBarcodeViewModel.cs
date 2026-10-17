@@ -1,9 +1,9 @@
-﻿using PharmaPOS.Application.Parsing;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Domain.Entities;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+﻿using CamPOS.Application.Parsing;
+using CamPOS.Application.Products;
+using CamPOS.Domain.Entities;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 내부 바코드 생성/출력 화면(SCR-BARCODE-013)의 ViewModel.

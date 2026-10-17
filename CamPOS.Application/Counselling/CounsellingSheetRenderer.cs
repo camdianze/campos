@@ -1,8 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 복약안내 용지를 고정폭 텍스트로 그린다.

@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Reports;
+namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 항생제 성분·용량별 판매 한 줄.

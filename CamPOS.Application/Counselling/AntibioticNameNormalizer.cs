@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 성분명(generic_name)을 AWaRe 시드 데이터와 맞춰보기 위한 정규화 함수.

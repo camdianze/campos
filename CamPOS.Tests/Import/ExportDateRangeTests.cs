@@ -1,9 +1,9 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Inventory;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
 
-namespace PharmaPOS.Tests.Import;
+namespace CamPOS.Tests.Import;
 
 /// <summary>
 /// Import / Export 화면의 내보내기 기간.

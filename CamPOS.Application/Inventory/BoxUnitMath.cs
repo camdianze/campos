@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 한 배치의 재고를 "총 낱개 / 안 뜯은 박스 / 헐어 놓은 낱개"로 들고 있는 값.

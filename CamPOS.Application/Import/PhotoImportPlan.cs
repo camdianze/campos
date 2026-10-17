@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Import;
+namespace CamPOS.Application.Import;
 
 /// <summary>사진 한 장과 그 사진이 붙을 상품.</summary>
 public sealed record PhotoImportMatch(string FileName, Product Product, bool ReplacesExistingPhoto);

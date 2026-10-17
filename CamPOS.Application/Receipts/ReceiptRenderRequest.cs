@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증 한 장을 그리는 데 필요한 모든 것.

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Authentication;
+﻿namespace CamPOS.Application.Authentication;
 
 /// <summary>F-01 부속 기능: 관리자 본인 비밀번호 복구 로직을 담당하는 인터페이스.</summary>
 public interface IPasswordRecoveryService

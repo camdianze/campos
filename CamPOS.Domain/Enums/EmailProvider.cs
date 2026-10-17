@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// 비밀번호 복구 이메일 발송에 사용할 제공자.

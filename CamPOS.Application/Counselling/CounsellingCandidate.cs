@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 복약안내 용지를 뽑을 준비가 끝난 한 건.

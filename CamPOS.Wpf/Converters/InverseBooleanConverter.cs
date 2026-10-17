@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Converters;
+namespace CamPOS.Wpf.Converters;
 
 /// <summary>
 /// bool 값을 반전시키는 컨버터. CanEditUnitPrice(true=편집가능)를

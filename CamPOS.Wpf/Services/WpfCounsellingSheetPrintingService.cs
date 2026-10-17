@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Counselling;
+﻿using CamPOS.Application.Counselling;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 복약안내 용지를 Windows 인쇄 파이프라인으로 출력한다.

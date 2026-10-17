@@ -1,12 +1,12 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Settings;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Settings;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 /// <summary>
 /// 실제 SQLite 파일에 대고 도는 통합 테스트.

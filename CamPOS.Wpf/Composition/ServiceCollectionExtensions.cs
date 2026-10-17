@@ -1,23 +1,23 @@
-﻿using PharmaPOS.Application.Sync;
+﻿using CamPOS.Application.Sync;
 using Microsoft.Extensions.DependencyInjection;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Import;
-using PharmaPOS.Application.Inventory;
+using CamPOS.Application.Authentication;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Import;
+using CamPOS.Application.Inventory;
 using PharmaPOS.Application.Licensing;
-using PharmaPOS.Application.PasswordPolicy;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Security;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
-using PharmaPOS.Application.Security;
+using CamPOS.Application.PasswordPolicy;
+using CamPOS.Application.Products;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Reports;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Security;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Wpf.Services;
+using CamPOS.Wpf.ViewModels;
+using CamPOS.Application.Security;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Composition;
+namespace CamPOS.Wpf.Composition;
 
 /// <summary>
 /// 앱 전체의 의존성 등록을 한 곳에 모아둔 확장 메서드.

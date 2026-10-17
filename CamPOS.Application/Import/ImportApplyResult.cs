@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Import;
+﻿namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 임포트를 실제로 반영한 결과.

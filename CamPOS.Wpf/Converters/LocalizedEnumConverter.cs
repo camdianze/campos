@@ -1,8 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows.Data;
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
+using CamPOS.Wpf.Services;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Converters;
+namespace CamPOS.Wpf.Converters;
 
 /// <summary>
 /// 화면에 그대로 찍히는 열거형 값을 현재 언어로 옮긴다.

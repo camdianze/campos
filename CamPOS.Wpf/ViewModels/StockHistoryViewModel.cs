@@ -1,12 +1,12 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
-using PharmaPOS.Application;
-using PharmaPOS.Application.Inventory;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using CamPOS.Application;
+using CamPOS.Application.Inventory;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 재고 이력 화면의 ViewModel. 입고·조정·판매·환불이 한 목록에 시간순으로 섞여 나온다.

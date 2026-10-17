@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// IAdjustmentService의 구현체.

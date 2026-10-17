@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Security;
+﻿namespace CamPOS.Application.Security;
 
 /// <summary>
 /// 이메일 앱 비밀번호처럼 민감한 값을 암호화/복호화하는 인터페이스.

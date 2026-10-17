@@ -1,11 +1,11 @@
-﻿using PharmaPOS.Application.Parsing;
+﻿using CamPOS.Application.Parsing;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
-using PharmaPOS.Application.Inventory;
+using CamPOS.Wpf.ViewModels;
+using CamPOS.Application.Inventory;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 public partial class PosSaleView : UserControl
 {

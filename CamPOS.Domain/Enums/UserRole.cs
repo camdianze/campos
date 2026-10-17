@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// 시스템에 로그인하는 사용자의 역할.

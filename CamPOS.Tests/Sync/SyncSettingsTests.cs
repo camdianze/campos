@@ -1,9 +1,9 @@
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Security;
-using PharmaPOS.Application.Settings;
-using PharmaPOS.Application.Sync;
+﻿using CamPOS.Application.Repositories;
+using CamPOS.Application.Security;
+using CamPOS.Application.Settings;
+using CamPOS.Application.Sync;
 
-namespace PharmaPOS.Tests.Sync;
+namespace CamPOS.Tests.Sync;
 
 /// <summary>
 /// 서버 연결 설정. 여기서 틀리면 화면에는 아무 이상이 없고 전송만 거부된다.

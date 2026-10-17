@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// AWaRe 시드 파일을 참조 테이블로 적재한다. 앱 시작 시 한 번 호출한다.

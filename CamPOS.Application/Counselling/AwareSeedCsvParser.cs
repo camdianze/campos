@@ -1,7 +1,7 @@
-using System.Text;
-using PharmaPOS.Domain.Enums;
+﻿using System.Text;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// AWaRe 시드 CSV 파서.

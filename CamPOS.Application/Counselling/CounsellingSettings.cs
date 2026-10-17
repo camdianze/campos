@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 복약안내 기능의 설정값 묶음.

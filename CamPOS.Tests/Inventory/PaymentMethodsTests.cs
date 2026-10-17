@@ -1,7 +1,7 @@
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Inventory;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Inventory;
+namespace CamPOS.Tests.Inventory;
 
 /// <summary>
 /// 계산대에서 받는 결제수단.

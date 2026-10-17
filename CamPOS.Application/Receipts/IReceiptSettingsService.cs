@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증 설정을 읽고 저장한다.

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Authentication;
+﻿namespace CamPOS.Application.Authentication;
 
 /// <summary>비밀번호 복구 각 단계(질문 검증/OTP 검증/비밀번호 재설정)의 시도 결과.</summary>
 public class PasswordRecoveryResult

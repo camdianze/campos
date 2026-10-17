@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using System.Net.Mail;
 using System.Net.NetworkInformation;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Security;
+namespace CamPOS.Application.Security;
 
 /// <summary>IEmailSendingService의 SMTP 구현체.</summary>
 public class SmtpEmailSendingService : IEmailSendingService

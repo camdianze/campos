@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Products;
+﻿namespace CamPOS.Application.Products;
 
 /// <summary>
 /// 라벨 출력 결과.

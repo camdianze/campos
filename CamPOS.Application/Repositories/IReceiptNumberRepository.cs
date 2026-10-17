@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Repositories;
+﻿namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 영수증 일련번호 저장소.

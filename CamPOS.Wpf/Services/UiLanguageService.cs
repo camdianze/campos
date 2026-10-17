@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Repositories;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Repositories;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 화면 글자의 언어. 영어가 기본이고, 크메르어는 덧씌우는 층이다.

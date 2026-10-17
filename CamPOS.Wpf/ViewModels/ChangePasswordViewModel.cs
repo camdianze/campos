@@ -1,9 +1,9 @@
 ﻿using System.Windows.Media;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Domain.Entities;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using CamPOS.Application.Authentication;
+using CamPOS.Domain.Entities;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 비밀번호 변경 화면(SCR-AUTH-002)의 ViewModel.

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Import;
+﻿namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 임포트 파일의 컬럼 정의.

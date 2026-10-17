@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// Stock_Transaction의 거래 유형.

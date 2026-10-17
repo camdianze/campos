@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// WHO AWaRe 참조 데이터 접근. 앱은 이 데이터를 조회만 하고,

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Reports;
+﻿namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 관리자 리포트(기간별 매출, 상품별 순위, 항생제 성분별 판매) 조회를 담당한다.

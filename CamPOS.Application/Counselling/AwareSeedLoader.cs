@@ -1,9 +1,9 @@
-using System.Security.Cryptography;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Settings;
-using PharmaPOS.Domain.Entities;
+﻿using System.Security.Cryptography;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Settings;
+using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// IAwareSeedLoader의 구현체.

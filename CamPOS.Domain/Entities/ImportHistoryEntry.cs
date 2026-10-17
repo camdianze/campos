@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Domain.Entities;
+namespace CamPOS.Domain.Entities;
 
 /// <summary>
 /// 임포트 1회의 기록. 같은 파일을 두 번 넣어 재고가 두 배가 되는 사고를 막는 것이 목적이라

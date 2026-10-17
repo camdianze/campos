@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Receipts;
+﻿namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 판매 영수증 설정값 묶음.

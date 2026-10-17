@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Reports;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Reports;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Reports;
+namespace CamPOS.Tests.Reports;
 
 /// <summary>
 /// 복약안내 출력률. 리포트 요약 카드가 이 값 하나로 "안내가 실제로 전달되고 있는가"를

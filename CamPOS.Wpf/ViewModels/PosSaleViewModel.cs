@@ -1,23 +1,23 @@
-﻿using PharmaPOS.Application.Parsing;
+﻿using CamPOS.Application.Parsing;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Windows;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Wpf.Views;
 
 // 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
-using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
+using InventoryEntity = CamPOS.Domain.Entities.Inventory;
 
 
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
+using CamPOS.Wpf.Services;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 한 줄을 박스로 파는지 낱개로 파는지. 화면 전용 선택값이라 Domain에는 두지 않는다.

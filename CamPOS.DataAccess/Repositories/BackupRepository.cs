@@ -2,15 +2,15 @@
 using System.Text;
 using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.Domain.Entities;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.Domain.Entities;
 
 // 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
-using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
+using InventoryEntity = CamPOS.Domain.Entities.Inventory;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// IBackupRepository의 SQLite 구현체.

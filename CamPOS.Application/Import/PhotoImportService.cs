@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
+using CamPOS.Application.Products;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Import;
+namespace CamPOS.Application.Import;
 
 public interface IPhotoImportService
 {

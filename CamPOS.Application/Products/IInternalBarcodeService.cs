@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Products;
+﻿namespace CamPOS.Application.Products;
 
 /// <summary>
 /// F-03 내부 바코드 생성/출력 로직을 담당하는 인터페이스. (Screen SCR-BARCODE-013)

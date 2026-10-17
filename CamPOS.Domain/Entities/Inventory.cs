@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Domain.Entities;
+﻿namespace CamPOS.Domain.Entities;
 
 /// <summary>
 /// PRD의 Inventory 테이블에 대응하는 엔티티.

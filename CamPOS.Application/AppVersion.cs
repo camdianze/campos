@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application;
+﻿namespace CamPOS.Application;
 
 /// <summary>
 /// 앱 버전. 화면에 찍는 것과 내보낸 파일에 남기는 것이 갈라지지 않도록 한 곳에 둔다.

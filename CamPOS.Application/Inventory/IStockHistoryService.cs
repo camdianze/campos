@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>재고 이력 조회 서비스.</summary>
 public interface IStockHistoryService

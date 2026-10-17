@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Security;
+﻿namespace CamPOS.Application.Security;
 
 /// <summary>
 /// 비밀번호 해싱 및 검증을 담당하는 인터페이스.

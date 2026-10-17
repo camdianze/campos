@@ -1,6 +1,6 @@
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 재고 이력 화면에 표시할 Stock_Transaction 한 줄.

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Settings;
+﻿namespace CamPOS.Application.Settings;
 
 /// <summary>
 /// App_Setting 테이블에서 쓰는 키 이름. 문자열을 여기저기 흩뿌리지 않기 위해 한곳에 모은다.

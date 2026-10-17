@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Authentication;
+namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// F-02 초기 시설 설정 로직을 담당하는 인터페이스.

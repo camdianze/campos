@@ -1,9 +1,9 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>IStockHistoryRepository의 SQLite 구현체.</summary>
 public class StockHistoryRepository : IStockHistoryRepository

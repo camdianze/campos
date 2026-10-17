@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Security;
+﻿namespace CamPOS.Application.Security;
 
 /// <summary>
 /// BCrypt.Net-Next 라이브러리를 이용한 IPasswordHasher 구현체.

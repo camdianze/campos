@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.ReportsView"
+﻿<UserControl x:Class="CamPOS.Wpf.Views.ReportsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:converters="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters"
+             xmlns:converters="clr-namespace:CamPOS.Wpf.Converters"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="1000" d:DesignHeight="700">

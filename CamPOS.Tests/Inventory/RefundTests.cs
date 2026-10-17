@@ -1,10 +1,10 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using PharmaPOS.Domain.Enums;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Inventory;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Inventory;
+namespace CamPOS.Tests.Inventory;
 
 /// <summary>
 /// 환불의 통합 테스트. 실제 SQLite 파일에 판매를 하나 만들고 그것을 환불한다.

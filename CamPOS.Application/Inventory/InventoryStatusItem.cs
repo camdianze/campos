@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 재고 현황 화면(SCR-INV-008)에 표시할 조인된 데이터.

@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Domain.Entities;
-using PharmaPOS.Application.Products;
+﻿using CamPOS.Domain.Entities;
+using CamPOS.Application.Products;
 
-namespace PharmaPOS.Application.Products;
+namespace CamPOS.Application.Products;
 
 /// <summary>
 /// F-03 상품 등록/수정 로직을 담당하는 인터페이스.

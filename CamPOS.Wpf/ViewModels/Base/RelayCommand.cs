@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+namespace CamPOS.Wpf.ViewModels.Base;
 
 /// <summary>
 /// XAML의 Button.Command 등에 바인딩할 수 있는 ICommand 구현체.

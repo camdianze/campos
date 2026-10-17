@@ -1,7 +1,7 @@
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Products;
+namespace CamPOS.Application.Products;
 
 public interface IProductPhotoService
 {

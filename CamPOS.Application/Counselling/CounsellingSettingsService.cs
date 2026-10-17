@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Settings;
+﻿using CamPOS.Application.Repositories;
+using CamPOS.Application.Settings;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// ICounsellingSettingsService의 구현체.

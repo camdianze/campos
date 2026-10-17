@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// AwareGroup의 표준 코드 문자열 변환.

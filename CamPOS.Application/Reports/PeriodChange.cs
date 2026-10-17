@@ -1,6 +1,6 @@
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Reports;
+namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 증감 방향. 색을 정하는 쪽이 서식 문자열을 되짚어 읽지 않게 따로 내준다.

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
-namespace PharmaPOS.Application.Sync;
+namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// ISyncClient의 HTTP 구현. SMTP 발송이 Application에 있는 것과 같은 자리다 —

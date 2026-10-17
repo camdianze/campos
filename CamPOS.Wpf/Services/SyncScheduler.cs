@@ -1,7 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
-using PharmaPOS.Application.Sync;
+﻿using Microsoft.Extensions.DependencyInjection;
+using CamPOS.Application.Sync;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 자동 전송의 시계. 로그인한 뒤에 한 번 시작하고, 앱이 살아 있는 동안 계속 돈다.

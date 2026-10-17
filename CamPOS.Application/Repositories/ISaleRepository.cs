@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// POS 판매(Sale Cart) 데이터 저장을 담당하는 인터페이스.

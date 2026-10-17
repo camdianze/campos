@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Import;
+﻿using CamPOS.Application.Import;
 
-namespace PharmaPOS.Tests.Import;
+namespace CamPOS.Tests.Import;
 
 /// <summary>
 /// 리엘로 정한 가격은 그 금액을 그대로 기억한다.
@@ -120,7 +120,7 @@ public class RielPriceMemoryTests
         // 줄 금액은 센트에서 끊긴다(SaleLineItem과 같은 규칙).
         var lineTotal = decimal.Round(usd * quantity, 2, MidpointRounding.AwayFromZero);
 
-        Assert.Equal(expected, PharmaPOS.Application.Receipts.RielConverter.ToRiel(lineTotal, 4100m, 100));
+        Assert.Equal(expected, CamPOS.Application.Receipts.RielConverter.ToRiel(lineTotal, 4100m, 100));
     }
 
     /// <summary>

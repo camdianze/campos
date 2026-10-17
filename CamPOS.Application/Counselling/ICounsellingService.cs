@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 판매 확정 이후의 복약안내 흐름을 담당한다.

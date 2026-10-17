@@ -1,7 +1,7 @@
 ﻿// ─────────────────────────────────────────────────────────────────────────────
 // 이 파일은 두 저장소에 같은 내용으로 존재한다.
 //
-//   CamPOS          PharmaPOS.Application/Licensing/   코드를 검증한다
+//   CamPOS          CamPOS.Application/Licensing/   코드를 검증한다
 //   라이선스 발급 도구  src/CamPos.Licensing/              코드를 만든다
 //
 // 한쪽만 고치면 새로 발급한 코드가 고객 PC에서 거부된다. 발급도, 대장 기록도,

@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// ISaleRepository에 전달하는 판매 라인 하나의 저장용 데이터.

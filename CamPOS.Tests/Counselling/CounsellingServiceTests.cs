@@ -1,10 +1,10 @@
-﻿using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 public class CounsellingServiceTests
 {

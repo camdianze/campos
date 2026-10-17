@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using System.Text;
-using PharmaPOS.Application.Inventory;
+using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 판매 영수증을 고정폭 텍스트로 그린다.

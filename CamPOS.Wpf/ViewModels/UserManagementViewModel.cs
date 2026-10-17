@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application.Authentication;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Wpf.Views;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 사용자 관리 화면(SCR-USER-016)의 ViewModel.

@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using Microsoft.Win32;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Repositories;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Repositories;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 항생제 복약안내(AMR) 설정 화면의 ViewModel.

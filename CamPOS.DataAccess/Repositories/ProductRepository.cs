@@ -1,11 +1,11 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// IProductRepository의 SQLite 구현체.

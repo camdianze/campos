@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Authentication;
+namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// F-01 비밀번호 변경 로직을 담당하는 인터페이스.

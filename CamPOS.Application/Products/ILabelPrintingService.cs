@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Products;
+﻿namespace CamPOS.Application.Products;
 
 /// <summary>
 /// 라벨 한 장에 들어갈 내용. 막대를 어떻게 그릴지는 여기서 정하지 않는다.

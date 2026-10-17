@@ -1,7 +1,7 @@
-using System.Text.RegularExpressions;
-using PharmaPOS.Application.Settings;
+﻿using System.Text.RegularExpressions;
+using CamPOS.Application.Settings;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 저장 전에 설정값을 검사한다.

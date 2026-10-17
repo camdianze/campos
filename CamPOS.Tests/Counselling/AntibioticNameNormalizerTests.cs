@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Counselling;
+﻿using CamPOS.Application.Counselling;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 public class AntibioticNameNormalizerTests
 {

@@ -1,9 +1,9 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.Domain.Entities;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// IStockInRepository의 SQLite 구현체.

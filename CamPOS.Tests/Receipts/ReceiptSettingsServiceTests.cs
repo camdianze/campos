@@ -1,8 +1,8 @@
-﻿using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Settings;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Receipts;
+using CamPOS.Application.Settings;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Receipts;
+namespace CamPOS.Tests.Receipts;
 
 /// <summary>
 /// 설정 읽기·저장 규칙. 읽기는 어떤 이유로도 실패하지 않아야 하고,

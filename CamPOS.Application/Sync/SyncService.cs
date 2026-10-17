@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Settings;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Settings;
 
-namespace PharmaPOS.Application.Sync;
+namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// 한 번의 동기화. 묶음을 만들고, 보내고, <b>서버가 확인해 준 뒤에만</b> 어디까지

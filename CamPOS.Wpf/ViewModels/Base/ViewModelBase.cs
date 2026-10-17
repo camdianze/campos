@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+namespace CamPOS.Wpf.ViewModels.Base;
 
 /// <summary>
 /// 모든 ViewModel의 공통 부모 클래스.

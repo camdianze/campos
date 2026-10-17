@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Products;
+﻿namespace CamPOS.Application.Products;
 
 /// <summary>
 /// Code 128-B 인코더. 바코드 라벨의 막대 굵기 배열을 만든다.

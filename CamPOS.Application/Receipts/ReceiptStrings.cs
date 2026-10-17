@@ -1,6 +1,6 @@
-using System.Text;
+﻿using System.Text;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증 문구의 영어 레이어.

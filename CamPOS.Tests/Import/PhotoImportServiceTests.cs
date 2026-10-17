@@ -1,10 +1,10 @@
-﻿using PharmaPOS.Application.Import;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Import;
+using CamPOS.Application.Products;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Import;
+namespace CamPOS.Tests.Import;
 
 /// <summary>
 /// 사진 폴더를 상품에 붙이는 규칙.

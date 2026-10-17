@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Authentication;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+﻿using CamPOS.Application.Authentication;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 아이디 찾기 화면의 ViewModel.

@@ -1,11 +1,11 @@
 ﻿using System.Globalization;
 using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Reports;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// IReportRepository의 SQLite 구현체.

@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>복약안내 용지 분량.</summary>
 public enum CounsellingSheetFormat

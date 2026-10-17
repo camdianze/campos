@@ -1,8 +1,8 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using PharmaPOS.Application.Security;
+using CamPOS.Application.Security;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// IRecoveryDataProtector의 Windows DPAPI 구현체.

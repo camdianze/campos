@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Repositories;
+﻿using CamPOS.Application.Repositories;
 
-namespace PharmaPOS.Application.Products;
+namespace CamPOS.Application.Products;
 
 /// <summary>
 /// IInternalBarcodeService의 구현체.

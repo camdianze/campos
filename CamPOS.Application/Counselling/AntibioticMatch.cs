@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Counselling;
+namespace CamPOS.Application.Counselling;
 
 /// <summary>판매 상품을 AWaRe 참조 데이터와 맞춰본 결과.</summary>
 public enum AntibioticMatchOutcome

@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Receipts;
+﻿using CamPOS.Application.Receipts;
 
-namespace PharmaPOS.Tests.Receipts;
+namespace CamPOS.Tests.Receipts;
 
 /// <summary>
 /// 리엘 환산 규칙. 캄보디아에는 소액 동전이 유통되지 않아 반올림 단위가

@@ -2,19 +2,23 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using PharmaPOS.Application.Counselling;
+using CamPOS.Application.Counselling;
 using PharmaPOS.Application.Licensing;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
-using Lightweight_Digital_Inventory_Management___POS_System.Composition;
-using Lightweight_Digital_Inventory_Management___POS_System.Shell;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
+using CamPOS.Wpf.Composition;
+using CamPOS.Wpf.Shell;
+using CamPOS.Wpf.Views;
 
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
+using CamPOS.Wpf.Services;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System;
+namespace CamPOS.Wpf;
 
-public partial class App : Application
+// 기반 클래스를 전체 이름으로 적는다. 이 네임스페이스(CamPOS.Wpf) 안에서 그냥
+// Application이라고 쓰면 WPF의 Application이 아니라 네임스페이스 CamPOS.Application이
+// 먼저 잡힌다 — 프로젝트 이름이 Application이어서 생기는 충돌이고, 이름을 바꾸는
+// 것보다 여기 한 줄을 길게 쓰는 편이 싸다.
+public partial class App : System.Windows.Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 

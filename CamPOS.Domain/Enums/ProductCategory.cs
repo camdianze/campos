@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// 상품이 의약품인지 아닌지. 다른 enum들과 같이 이름 그대로 TEXT로 저장한다.

@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 재고 조정 화면(SCR-ADJ-010)에서 배치를 선택할 때 쓰는 요약 정보.

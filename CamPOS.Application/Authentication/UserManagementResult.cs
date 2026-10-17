@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Authentication;
+﻿namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// 사용자 관리(생성/역할변경/비활성화/비밀번호초기화) 시도 결과.

@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Import;
+namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 수기로 관리하던 약국의 실사 파일 하나로 상품과 재고를 차례로 들여오는 기능.

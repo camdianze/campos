@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Repositories;
+﻿using CamPOS.Application.Repositories;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>IStockHistoryService의 구현체.</summary>
 public class StockHistoryService : IStockHistoryService

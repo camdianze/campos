@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
 
-namespace PharmaPOS.Tests.Receipts;
+namespace CamPOS.Tests.Receipts;
 
 /// <summary>
 /// 영수증 렌더링. 여기서 확인하는 것들은 전부 "종이가 나온 뒤에야 드러나는" 문제다.

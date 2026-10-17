@@ -1,7 +1,7 @@
-using System.IO;
-using PharmaPOS.Application.Import;
+﻿using System.IO;
+using CamPOS.Application.Import;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 사용자가 고른 폴더를 사진 임포트의 입력으로 삼는다.

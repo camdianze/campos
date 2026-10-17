@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Receipts;
+﻿namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// 영수증 날짜와 일련번호 주기는 프놈펜 시간으로 고정한다.

@@ -1,12 +1,12 @@
-﻿using PharmaPOS.Application.Parsing;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Parsing;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
+using CamPOS.Wpf.Views;
+using CamPOS.Domain.Enums;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// PosSaleViewModel의 나머지 절반: 결제(Payment) 및 판매 확정(Confirm Sale) 관련 로직.

@@ -1,7 +1,7 @@
 ﻿using System.Text.Encodings.Web;
 using System.Text.Json;
 
-namespace PharmaPOS.Application.Sync;
+namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// 동기화 JSON을 쓰는 규칙. 미리보기 파일과 실제 전송이 <b>같은 것</b>을 써야 한다 —

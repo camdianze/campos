@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Import;
+namespace CamPOS.Application.Import;
 
 /// <summary>파일의 가격 칸을 어느 통화로 읽을지.</summary>
 public enum ImportPriceCurrency

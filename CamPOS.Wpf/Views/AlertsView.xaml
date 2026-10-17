@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="Lightweight_Digital_Inventory_Management___POS_System.Views.AlertsView"
+﻿<UserControl x:Class="CamPOS.Wpf.Views.AlertsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:svc="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Services"
-             xmlns:ctl="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Controls"
+             xmlns:svc="clr-namespace:CamPOS.Wpf.Services"
+             xmlns:ctl="clr-namespace:CamPOS.Wpf.Controls"
              mc:Ignorable="d"
              Background="White"
              d:DesignWidth="750" d:DesignHeight="500">

@@ -1,9 +1,9 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Sync;
-using PharmaPOS.DataAccess.Database;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Sync;
+using CamPOS.DataAccess.Database;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// ISyncRepository의 SQLite 구현체.

@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Import;
+﻿namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 사진 임포트가 읽을 파일 묶음. 보통은 사용자가 고른 폴더다.

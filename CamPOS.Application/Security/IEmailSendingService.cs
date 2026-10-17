@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Security;
+namespace CamPOS.Application.Security;
 
 /// <summary>비밀번호 복구 인증코드(OTP)를 이메일로 발송하는 인터페이스.</summary>
 public interface IEmailSendingService

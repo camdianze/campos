@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Inventory;
+﻿using CamPOS.Application.Inventory;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 재고 현황 조회를 담당하는 인터페이스. (Screen SCR-INV-008, SCR-ADJ-010)

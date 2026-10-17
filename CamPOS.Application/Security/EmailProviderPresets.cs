@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Security;
+namespace CamPOS.Application.Security;
 
 /// <summary>Gmail/Outlook의 SMTP 서버 주소·포트 고정값.</summary>
 public static class EmailProviderPresets

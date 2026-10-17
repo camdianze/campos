@@ -1,14 +1,14 @@
-﻿using PharmaPOS.Application.Import;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Application.Import;
+using CamPOS.Application.Products;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Repositories;
+using CamPOS.Domain.Entities;
+using CamPOS.Domain.Enums;
 
 // 테스트 프로젝트에도 Inventory라는 이름의 네임스페이스가 있어 엔티티가 가려진다.
-using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
+using InventoryEntity = CamPOS.Domain.Entities.Inventory;
 
-namespace PharmaPOS.Tests.Import;
+namespace CamPOS.Tests.Import;
 
 /// <summary>
 /// 초기 재고 임포트의 판정 규칙 테스트.

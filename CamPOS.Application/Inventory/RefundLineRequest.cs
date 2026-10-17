@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 화면이 요청하는 "이 판매 줄을 이만큼 환불해 달라". 금액은 담지 않는다 —

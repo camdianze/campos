@@ -1,10 +1,10 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
-using PharmaPOS.Application.Reports;
+using CamPOS.Application.Reports;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Converters;
+namespace CamPOS.Wpf.Converters;
 
 /// <summary>
 /// 증감 방향을 글자색으로 바꾼다. 상승은 붉게, 하락은 파랗게, 변화 없음은 흐리게.
@@ -23,8 +23,8 @@ public class ChangeDirectionToBrushConverter : IValueConverter
             _ => "MutedTextBrush"
         };
 
-        // 디자이너에서는 Application.Current가 없다. 그때도 화면이 뜨도록 회색으로 둔다.
-        return Application.Current?.TryFindResource(key) as Brush ?? Brushes.Gray;
+        // 디자이너에서는 System.Windows.Application.Current가 없다. 그때도 화면이 뜨도록 회색으로 둔다.
+        return System.Windows.Application.Current?.TryFindResource(key) as Brush ?? Brushes.Gray;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

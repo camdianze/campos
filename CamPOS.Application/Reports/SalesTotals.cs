@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Reports;
+﻿namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// 한 기간의 매출 요약.

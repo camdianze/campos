@@ -1,8 +1,8 @@
 ﻿using System.Windows;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Domain.Entities;
+using CamPOS.Application.Authentication;
+using CamPOS.Domain.Entities;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 public partial class ResetPasswordWindow : Window
 {

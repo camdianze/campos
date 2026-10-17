@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Reports;
+﻿using CamPOS.Application.Reports;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 리포트 집계 조회를 담당하는 인터페이스.

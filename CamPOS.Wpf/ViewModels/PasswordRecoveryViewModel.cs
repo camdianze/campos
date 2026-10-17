@@ -1,7 +1,7 @@
-﻿using PharmaPOS.Application.Authentication;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+﻿using CamPOS.Application.Authentication;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 로그인 화면의 "Forgot Password?"에서 진입하는 복구 화면의 ViewModel.

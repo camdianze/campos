@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 
-namespace PharmaPOS.DataAccess.Database;
+namespace CamPOS.DataAccess.Database;
 
 /// <summary>
 /// SQLite 데이터베이스 연결을 생성하는 팩토리 클래스.

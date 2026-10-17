@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Reports;
+namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// AWaRe 등급 하나가 기간 내 항생제 판매에서 차지하는 몫.

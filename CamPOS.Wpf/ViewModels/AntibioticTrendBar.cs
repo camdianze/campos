@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Reports;
+using CamPOS.Domain.Enums;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 추이 그래프의 막대 하나. 한 달치를 AWaRe 등급으로 나눠 쌓은 높이를 담는다.

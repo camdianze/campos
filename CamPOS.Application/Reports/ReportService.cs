@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Application.Repositories;
+﻿using CamPOS.Application.Repositories;
 
-namespace PharmaPOS.Application.Reports;
+namespace CamPOS.Application.Reports;
 
 /// <summary>
 /// IReportService의 구현체. 집계 자체는 SQL이 하고, 여기서는 기간 검증과 순위 부여만 맡는다.

@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Repositories;
+﻿namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 앱 전역 설정 키-값 저장소.

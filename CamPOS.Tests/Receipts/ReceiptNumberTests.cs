@@ -1,9 +1,9 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Receipts;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
 
-namespace PharmaPOS.Tests.Receipts;
+namespace CamPOS.Tests.Receipts;
 
 /// <summary>
 /// 영수증 번호 발급. 실제 SQLite에 대고 돈다 — 번호 중복은 스키마와 트랜잭션이

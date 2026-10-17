@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// WHO AWaRe 분류 그룹.

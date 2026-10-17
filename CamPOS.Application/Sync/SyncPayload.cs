@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PharmaPOS.Application.Sync;
+namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// 서버로 보내는 한 묶음.

@@ -1,16 +1,16 @@
-﻿using PharmaPOS.Application.Sync;
+﻿using CamPOS.Application.Sync;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Domain.Entities;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using CamPOS.Application.Authentication;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
+using CamPOS.Domain.Entities;
+using CamPOS.Wpf.ViewModels;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 public partial class UserManagementView : UserControl
 {

@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Counselling;
+﻿using CamPOS.Application.Counselling;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 /// <summary>
 /// 화면 라벨과 인쇄물은 검수(review_status)를 다르게 다룬다.

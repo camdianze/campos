@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// 저장 계층에 넘기는 환불 한 줄. 원장에 남길 행(Transaction)과,

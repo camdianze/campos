@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Settings;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Settings;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Receipts;
+namespace CamPOS.Application.Receipts;
 
 /// <summary>
 /// IReceiptSettingsService의 구현체.

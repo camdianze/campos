@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Authentication;
+﻿namespace CamPOS.Application.Authentication;
 
 /// <summary>복구 정보(보안질문/이메일) 등록/수정 시도 결과.</summary>
 public class RecoverySettingsResult

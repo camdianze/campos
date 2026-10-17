@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Import;
+﻿namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 건너뛴 행 하나와 그 사유. 미리보기와 결과 화면이 같은 목록을 쓴다 —

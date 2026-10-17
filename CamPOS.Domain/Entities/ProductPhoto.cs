@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.Entities;
+﻿namespace CamPOS.Domain.Entities;
 
 /// <summary>
 /// 상품 사진 한 장.

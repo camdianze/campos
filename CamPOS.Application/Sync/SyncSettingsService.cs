@@ -1,8 +1,8 @@
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Security;
-using PharmaPOS.Application.Settings;
+﻿using CamPOS.Application.Repositories;
+using CamPOS.Application.Security;
+using CamPOS.Application.Settings;
 
-namespace PharmaPOS.Application.Sync;
+namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// 서버 연결 설정을 App_Setting에서 읽고 쓴다.

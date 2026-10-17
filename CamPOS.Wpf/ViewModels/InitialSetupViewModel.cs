@@ -1,8 +1,8 @@
-﻿using PharmaPOS.Application.Authentication;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+﻿using CamPOS.Application.Authentication;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 초기 시설 설정 화면(SCR-SETUP-003)의 ViewModel.

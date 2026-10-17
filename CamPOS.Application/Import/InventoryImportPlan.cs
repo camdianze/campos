@@ -1,10 +1,10 @@
-﻿using PharmaPOS.Application.Inventory;
-using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Application.Inventory;
+using CamPOS.Domain.Entities;
 
 // 엔티티 이름(Inventory)이 Application의 네임스페이스와 같아 그냥 쓰면 네임스페이스로 읽힌다.
-using InventoryEntity = PharmaPOS.Domain.Entities.Inventory;
+using InventoryEntity = CamPOS.Domain.Entities.Inventory;
 
-namespace PharmaPOS.Application.Import;
+namespace CamPOS.Application.Import;
 
 /// <summary>
 /// 임포트로 만들 배치 하나. 수량은 언제나 <b>낱개</b> 기준이다 —

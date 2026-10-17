@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using PharmaPOS.Application.Licensing;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 활성화 기록을 %APPDATA%\PharmaPOS\license.dat에 DPAPI로 암호화해 남긴다.

@@ -1,12 +1,12 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Domain.Entities;
-using Lightweight_Digital_Inventory_Management___POS_System.Shell;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using CamPOS.Application.Authentication;
+using CamPOS.Domain.Entities;
+using CamPOS.Wpf.Shell;
+using CamPOS.Wpf.ViewModels;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 /// <summary>
 /// 계정 관련 기능을 모아둔 화면. 셸 상단의 My Page 버튼에서 들어온다.

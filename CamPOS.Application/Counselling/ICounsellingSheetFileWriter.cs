@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Counselling;
+﻿namespace CamPOS.Application.Counselling;
 
 /// <summary>
 /// 복약안내 용지를 파일로 저장한다. 프린터를 거치지 않고 내용을 확인하는 용도다.

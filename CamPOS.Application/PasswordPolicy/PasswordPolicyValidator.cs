@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.PasswordPolicy;
+﻿namespace CamPOS.Application.PasswordPolicy;
 
 /// <summary>
 /// IPasswordPolicyValidator의 구현체.

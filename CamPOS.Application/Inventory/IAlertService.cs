@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// F-09 재고 알림 로직을 담당하는 인터페이스. (Screen SCR-ALERT-014)

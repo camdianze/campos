@@ -1,8 +1,8 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text.Json;
 using PharmaPOS.Application.Licensing;
 
-namespace PharmaPOS.Tests.Licensing;
+namespace CamPOS.Tests.Licensing;
 
 /// <summary>
 /// 기한 판정.

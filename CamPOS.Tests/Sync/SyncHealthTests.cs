@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Sync;
+﻿using CamPOS.Application.Sync;
 
-namespace PharmaPOS.Tests.Sync;
+namespace CamPOS.Tests.Sync;
 
 /// <summary>
 /// 상단 바 배지를 띄울지 정하는 판단.

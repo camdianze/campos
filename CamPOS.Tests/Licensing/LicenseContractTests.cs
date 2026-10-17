@@ -2,7 +2,7 @@
 using System.Text.Json;
 using PharmaPOS.Application.Licensing;
 
-namespace PharmaPOS.Tests.Licensing;
+namespace CamPOS.Tests.Licensing;
 
 /// <summary>
 /// 라이선스 코드 형식의 계약 검사.

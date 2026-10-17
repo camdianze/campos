@@ -3,16 +3,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Repositories;
-using Lightweight_Digital_Inventory_Management___POS_System.Shell;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Repositories;
+using CamPOS.Wpf.Shell;
+using CamPOS.Wpf.ViewModels;
 
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
+using CamPOS.Wpf.Services;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Views;
+namespace CamPOS.Wpf.Views;
 
 public partial class InventoryStatusView : UserControl
 {

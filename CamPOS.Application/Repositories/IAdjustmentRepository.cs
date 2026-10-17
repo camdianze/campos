@@ -1,6 +1,6 @@
-using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 재고 조정(Adjustment) 데이터 저장을 담당하는 인터페이스.

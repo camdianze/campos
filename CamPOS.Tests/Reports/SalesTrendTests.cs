@@ -1,9 +1,9 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Reports;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
 
-namespace PharmaPOS.Tests.Reports;
+namespace CamPOS.Tests.Reports;
 
 /// <summary>
 /// 월별 순매출 집계. 실제 SQLite에 대고 돈다 — 환불 상계와 달 구분은

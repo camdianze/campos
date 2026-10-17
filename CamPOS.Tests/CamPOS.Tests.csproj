@@ -25,9 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />
-    <ProjectReference Include="..\PharmaPOS.Application\PharmaPOS.Application.csproj" />
-    <ProjectReference Include="..\PharmaPOS.DataAccess\PharmaPOS.DataAccess.csproj" />
+    <ProjectReference Include="..\CamPOS.Domain\CamPOS.Domain.csproj" />
+    <ProjectReference Include="..\CamPOS.Application\CamPOS.Application.csproj" />
+    <ProjectReference Include="..\CamPOS.DataAccess\CamPOS.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

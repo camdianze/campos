@@ -4,13 +4,13 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using Microsoft.Win32;
-using PharmaPOS.Application;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application;
+using CamPOS.Application.Inventory;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Wpf.Views;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 판매 내역 화면(SCR-SALES-007)의 ViewModel.

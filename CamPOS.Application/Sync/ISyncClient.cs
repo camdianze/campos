@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Sync;
+﻿namespace CamPOS.Application.Sync;
 
 /// <summary>
 /// 묶음 하나를 서버로 보낸다. 보내는 일 말고는 아무것도 하지 않는다 —

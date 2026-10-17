@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Application.Authentication;
+namespace CamPOS.Application.Authentication;
 
 /// <summary>
 /// 로그인한 관리자 본인의 비밀번호 복구 정보(보안질문/이메일)를 등록/수정하는 인터페이스.

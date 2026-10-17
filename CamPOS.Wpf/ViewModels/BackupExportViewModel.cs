@@ -5,16 +5,16 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using Microsoft.Win32;
-using PharmaPOS.Application;
-using PharmaPOS.Application.Import;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Sync;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application;
+using CamPOS.Application.Import;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Sync;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.Services;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Wpf.Views;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// Data Center 화면의 ViewModel.
@@ -944,7 +944,7 @@ public class BackupExportViewModel : ViewModelBase
             Process.Start(exePath);
         }
 
-        Application.Current.Shutdown();
+        System.Windows.Application.Current.Shutdown();
     }
 
     // ── 사진 가져오기 ───────────────────────────────────────────────────────

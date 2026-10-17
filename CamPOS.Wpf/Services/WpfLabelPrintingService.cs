@@ -4,9 +4,9 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PharmaPOS.Application.Products;
+using CamPOS.Application.Products;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Services;
+namespace CamPOS.Wpf.Services;
 
 /// <summary>
 /// 바코드 라벨을 기본 프린터로 출력한다. 영수증·복약안내와 같은 경로(ThermalTextPrinter)를 쓴다.

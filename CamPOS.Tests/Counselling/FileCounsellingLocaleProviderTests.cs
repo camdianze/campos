@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Counselling;
+﻿using CamPOS.Application.Counselling;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 /// <summary>
 /// 로케일 로더 테스트. 임시 폴더에 실제 파일을 써서 읽힌다.

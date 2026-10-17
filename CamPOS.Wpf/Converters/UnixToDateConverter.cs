@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Converters;
+namespace CamPOS.Wpf.Converters;
 
 public class UnixToDateConverter : IValueConverter
 {

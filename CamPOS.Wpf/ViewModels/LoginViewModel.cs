@@ -1,9 +1,9 @@
 ﻿using System.IO;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Domain.Entities;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using CamPOS.Application.Authentication;
+using CamPOS.Domain.Entities;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 public class LoginViewModel : ViewModelBase
 {

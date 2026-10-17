@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System
+namespace CamPOS.Wpf
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

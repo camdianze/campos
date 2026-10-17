@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// F-08 재고 조정 로직을 담당하는 인터페이스. (Screen SCR-ADJ-010)

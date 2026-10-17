@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// POS 판매 시 결제수단. Screen SCR-POS-005, 3.1절.

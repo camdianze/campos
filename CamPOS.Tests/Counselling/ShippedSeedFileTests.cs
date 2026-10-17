@@ -1,10 +1,10 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using PharmaPOS.Domain.Enums;
+using CamPOS.Application.Counselling;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Counselling;
+namespace CamPOS.Tests.Counselling;
 
 /// <summary>
 /// 저장소에 동봉된 실제 WHO AWaRe 2025 시드 파일을 그대로 적재해서 확인한다.
@@ -47,13 +47,13 @@ public class ShippedSeedFileTests : IDisposable
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
 
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PharmaPOS.slnx")))
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "CamPOS.slnx")))
         {
             directory = directory.Parent;
         }
 
         Assert.NotNull(directory);
-        return Path.Combine(directory!.FullName, "PharmaPOS.Wpf", "seeds", "aware_2025.csv");
+        return Path.Combine(directory!.FullName, "CamPOS.Wpf", "seeds", "aware_2025.csv");
     }
 
     private async Task<AwareSeedLoadResult> LoadSeedAsync()

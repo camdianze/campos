@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Products;
+﻿namespace CamPOS.Application.Products;
 
 /// <summary>
 /// 내부 바코드 생성/조회 결과.

@@ -1,7 +1,7 @@
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Domain.Entities;
+﻿using CamPOS.Application.Counselling;
+using CamPOS.Domain.Entities;
 
-namespace PharmaPOS.Application.Repositories;
+namespace CamPOS.Application.Repositories;
 
 /// <summary>
 /// 복약안내 출력 이력 저장 및 지표 집계.

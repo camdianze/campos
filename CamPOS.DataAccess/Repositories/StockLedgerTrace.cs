@@ -1,6 +1,6 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// 원장 한 줄에 "그 배치의 재고가 직전·직후에 얼마였는지"를 남긴다.

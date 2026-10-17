@@ -2,11 +2,11 @@
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 관리자 대시보드 화면(SCR-ADMIN-015)의 ViewModel.

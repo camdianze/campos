@@ -1,6 +1,6 @@
-using PharmaPOS.Application.Products;
+﻿using CamPOS.Application.Products;
 
-namespace PharmaPOS.Tests.Products;
+namespace CamPOS.Tests.Products;
 
 /// <summary>
 /// Code 128-B 인코더. 틀려도 화면에서는 멀쩡한 막대로 보이고 스캐너에서만 조용히 실패하는

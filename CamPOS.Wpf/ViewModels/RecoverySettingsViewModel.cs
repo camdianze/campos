@@ -1,9 +1,9 @@
-﻿using PharmaPOS.Application.Parsing;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Domain.Enums;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+﻿using CamPOS.Application.Parsing;
+using CamPOS.Application.Authentication;
+using CamPOS.Domain.Enums;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// Account Recovery Settings 화면의 ViewModel.

@@ -1,10 +1,10 @@
-using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
-using PharmaPOS.Domain.Enums;
+﻿using Microsoft.Data.Sqlite;
+using CamPOS.Application.Reports;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
+using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Tests.Reports;
+namespace CamPOS.Tests.Reports;
 
 /// <summary>
 /// 항생제 판매 추이 집계. 실제 SQLite에 대고 돈다 — 달 구분과 빈 달 채우기는

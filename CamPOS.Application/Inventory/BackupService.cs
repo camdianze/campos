@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Repositories;
+using CamPOS.Application.Repositories;
 
-namespace PharmaPOS.Application.Inventory;
+namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// IBackupService의 구현체.

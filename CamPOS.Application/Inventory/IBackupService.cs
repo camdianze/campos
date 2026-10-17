@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Application.Inventory;
+﻿namespace CamPOS.Application.Inventory;
 
 /// <summary>
 /// F-11 백업/내보내기/복원 로직을 담당하는 인터페이스. (Screen SCR-BACKUP-018)

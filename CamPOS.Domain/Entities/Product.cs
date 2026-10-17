@@ -1,6 +1,6 @@
-﻿using PharmaPOS.Domain.Enums;
+﻿using CamPOS.Domain.Enums;
 
-namespace PharmaPOS.Domain.Entities;
+namespace CamPOS.Domain.Entities;
 
 /// <summary>
 /// PRD의 Product Master 테이블에 대응하는 엔티티.

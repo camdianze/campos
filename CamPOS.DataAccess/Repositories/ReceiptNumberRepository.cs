@@ -1,8 +1,8 @@
-using System.Globalization;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.DataAccess.Database;
+﻿using System.Globalization;
+using CamPOS.Application.Repositories;
+using CamPOS.DataAccess.Database;
 
-namespace PharmaPOS.DataAccess.Repositories;
+namespace CamPOS.DataAccess.Repositories;
 
 /// <summary>
 /// IReceiptNumberRepository의 SQLite 구현체.

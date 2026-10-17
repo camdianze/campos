@@ -1,9 +1,9 @@
 ﻿using Microsoft.Data.Sqlite;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.DataAccess.Database;
-using PharmaPOS.DataAccess.Repositories;
+using CamPOS.Application.Reports;
+using CamPOS.DataAccess.Database;
+using CamPOS.DataAccess.Repositories;
 
-namespace PharmaPOS.Tests.Reports;
+namespace CamPOS.Tests.Reports;
 
 /// <summary>
 /// 매출 달력이 읽는 일별 집계. 실제 SQLite에 대고 돈다.

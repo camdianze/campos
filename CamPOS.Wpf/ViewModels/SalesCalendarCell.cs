@@ -1,7 +1,7 @@
-using System.Globalization;
-using PharmaPOS.Application.Reports;
+﻿using System.Globalization;
+using CamPOS.Application.Reports;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 매출 달력의 칸 하나.

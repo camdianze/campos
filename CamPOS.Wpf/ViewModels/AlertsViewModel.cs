@@ -2,11 +2,11 @@
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
-using PharmaPOS.Application;
-using PharmaPOS.Application.Inventory;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
+using CamPOS.Application;
+using CamPOS.Application.Inventory;
+using CamPOS.Wpf.ViewModels.Base;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>
 /// 알림 화면(SCR-ALERT-014)의 ViewModel.

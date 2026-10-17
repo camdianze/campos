@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Controls;
+namespace CamPOS.Wpf.Controls;
 
 /// <summary>
 /// 비밀번호 칸 + 눈 버튼. 화면의 <c>PasswordBox</c>를 통째로 대신한다.

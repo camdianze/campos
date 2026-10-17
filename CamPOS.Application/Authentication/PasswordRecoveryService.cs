@@ -1,8 +1,8 @@
-﻿using PharmaPOS.Application.PasswordPolicy;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Security;
+﻿using CamPOS.Application.PasswordPolicy;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Security;
 
-namespace PharmaPOS.Application.Authentication;
+namespace CamPOS.Application.Authentication;
 
 /// <summary>IPasswordRecoveryService의 구현체.</summary>
 public class PasswordRecoveryService : IPasswordRecoveryService

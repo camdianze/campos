@@ -1,22 +1,22 @@
-﻿using PharmaPOS.Application.Sync;
+﻿using CamPOS.Application.Sync;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
-using PharmaPOS.Application.Authentication;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application.Inventory;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.PasswordPolicy;
-using PharmaPOS.Application.Products;
-using PharmaPOS.Application.Reports;
-using PharmaPOS.Application.Repositories;
-using PharmaPOS.Application.Security;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application.Authentication;
+using CamPOS.Application.Counselling;
+using CamPOS.Application.Inventory;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.PasswordPolicy;
+using CamPOS.Application.Products;
+using CamPOS.Application.Reports;
+using CamPOS.Application.Repositories;
+using CamPOS.Application.Security;
+using CamPOS.Wpf.ViewModels;
+using CamPOS.Wpf.Views;
 
-using Lightweight_Digital_Inventory_Management___POS_System.Services;
+using CamPOS.Wpf.Services;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.Shell;
+namespace CamPOS.Wpf.Shell;
 
 public partial class MainShellView : UserControl
 {

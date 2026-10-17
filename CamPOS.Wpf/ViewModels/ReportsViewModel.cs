@@ -3,14 +3,14 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
-using PharmaPOS.Application.Counselling;
-using PharmaPOS.Application;
-using PharmaPOS.Application.Receipts;
-using PharmaPOS.Application.Reports;
-using Lightweight_Digital_Inventory_Management___POS_System.ViewModels.Base;
-using Lightweight_Digital_Inventory_Management___POS_System.Views;
+using CamPOS.Application.Counselling;
+using CamPOS.Application;
+using CamPOS.Application.Receipts;
+using CamPOS.Application.Reports;
+using CamPOS.Wpf.ViewModels.Base;
+using CamPOS.Wpf.Views;
 
-namespace Lightweight_Digital_Inventory_Management___POS_System.ViewModels;
+namespace CamPOS.Wpf.ViewModels;
 
 /// <summary>상품 순위의 정렬 기준.</summary>
 public enum ProductSortOption

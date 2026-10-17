@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
-using PharmaPOS.Application.Import;
-using PharmaPOS.Application.Parsing;
+using CamPOS.Application.Import;
+using CamPOS.Application.Parsing;
 
-namespace PharmaPOS.Tests.Reports;
+namespace CamPOS.Tests.Reports;
 
 /// <summary>
 /// 파일로 나가는 숫자는 PC의 지역 설정을 따라가면 안 된다.

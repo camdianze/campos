@@ -1,11 +1,11 @@
-﻿<Application x:Class="Lightweight_Digital_Inventory_Management___POS_System.App"
+﻿<Application x:Class="CamPOS.Wpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-             xmlns:conv="clr-namespace:Lightweight_Digital_Inventory_Management___POS_System.Converters">
+             xmlns:conv="clr-namespace:CamPOS.Wpf.Converters">
     <Application.Resources>
 
-        <!-- 제품 이름과 버전은 여기 있지 않다. PharmaPOS.Application의 AppVersion 상수를 쓴다 —
+        <!-- 제품 이름과 버전은 여기 있지 않다. CamPOS.Application의 AppVersion 상수를 쓴다 —
              화면뿐 아니라 내보낸 파일 이름과 리포트 머리글에도 같은 값이 들어가야 하는데,
              XAML 리소스는 Application 계층에서 읽을 수 없었다. 버전을 올릴 곳은 그 상수 하나다. -->
 

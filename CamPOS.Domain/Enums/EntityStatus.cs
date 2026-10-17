@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Domain.Enums;
+﻿namespace CamPOS.Domain.Enums;
 
 /// <summary>
 /// 사용자(Users) 및 시설(Facility)의 활성/비활성 상태.

@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace PharmaPOS.Application.Parsing;
+namespace CamPOS.Application.Parsing;
 
 /// <summary>
 /// 사람이 칸에 적어 넣은 숫자를 읽는다. <b>언제나 InvariantCulture</b>다.
