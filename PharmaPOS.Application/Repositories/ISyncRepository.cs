@@ -51,6 +51,23 @@ public interface ISyncRepository
     /// </summary>
     Task<int> CountPendingAsync(string facilityId);
 
+    // ── 사진 ─────────────────────────────────────────────────────────────
+    // 사진은 원장과 달리 rowid 워터마크로 고를 수 없다. 덧붙기만 하는 것이
+    // 아니라 같은 제품의 사진이 바뀌기 때문이다. 그래서 "지금 사진의 해시"와
+    // "마지막으로 올린 사진의 해시"를 비교해 고른다.
+
+    /// <summary>
+    /// 아직 올리지 않았거나 올린 뒤에 바뀐 사진. 바이트까지 함께 읽으므로
+    /// 한 번에 많이 가져오지 않는다 — 장당 수백 KB다.
+    /// </summary>
+    Task<IReadOnlyList<SyncPhoto>> GetPhotosToUploadAsync(int limit);
+
+    /// <summary>올라간 사진을 "올림"으로 표시한다. 전송이 확인된 뒤에만 부른다.</summary>
+    Task MarkPhotoUploadedAsync(string productId, string sha256);
+
+    /// <summary>아직 안 올린 사진 수. 바이트는 읽지 않는다.</summary>
+    Task<int> CountPhotosToUploadAsync();
+
     Task<long> GetPositionAsync(string stream);
 
     /// <summary>한 묶음이 서버에 들어간 뒤에만 부른다. 보내기 전에 올리면 그 구간을 잃는다.</summary>

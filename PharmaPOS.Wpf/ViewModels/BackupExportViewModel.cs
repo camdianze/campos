@@ -309,13 +309,15 @@ public class BackupExportViewModel : ViewModelBase
                 : "Last sent " + last.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
 
             var pending = await _syncService.CountPendingAsync(_facilityId);
+            var photos = await _syncService.CountPhotosPendingAsync();
 
-            SyncPendingText = pending switch
+            SyncPendingText = (pending, photos) switch
             {
-                < 0 => string.Empty,
-                0 => "Nothing waiting.",
-                1 => "1 row waiting to be sent.",
-                _ => $"{pending:N0} rows waiting to be sent.",
+                (< 0, _) or (_, < 0) => string.Empty,
+                (0, 0) => "Nothing waiting.",
+                (_, 0) => $"{pending:N0} rows waiting to be sent.",
+                (0, _) => $"{photos:N0} photos waiting to be sent.",
+                _ => $"{pending:N0} rows and {photos:N0} photos waiting to be sent.",
             };
         }
         catch

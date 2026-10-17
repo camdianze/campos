@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using PharmaPOS.Application.Repositories;
 using PharmaPOS.Application.Settings;
 
@@ -24,6 +24,12 @@ public sealed class SyncService
     /// 한 번에 최대 1만 행이고, 남으면 화면이 몇 개 남았는지 말한다.
     /// </summary>
     public const int MaxBatchesPerRun = 20;
+
+    /// <summary>
+    /// 한 번 눌렀을 때 올릴 사진의 최대 장수. 장당 수백 KB라 원장보다 훨씬 느리고,
+    /// 느린 회선에서 끝이 안 보이는 작업이 되면 안 된다. 남으면 화면이 말한다.
+    /// </summary>
+    public const int MaxPhotosPerRun = 50;
 
     private readonly SyncPayloadBuilder _builder;
     private readonly ISyncRepository _repository;
@@ -122,16 +128,107 @@ public sealed class SyncService
             }
         }
 
+        // ── 사진 ──
+        // 원장이 먼저다. 사진은 늦게 올라가도 재고와 매출은 맞지만, 그 반대는
+        // 아니다 — 느린 회선에서 사진을 먼저 올리다 시간이 다 가면 그날 판매가
+        // 서버에 없다.
+        var photos = await UploadPhotosAsync(settings, cancellationToken);
+
         await RecordLastSuccessAsync();
 
         var pending = await CountPendingSafelyAsync(facilityId);
 
-        return SyncRunResult.Success(sent, pending, siteId);
+        return SyncRunResult.Success(sent, pending, siteId, photos.Uploaded, await CountPhotosSafelyAsync());
+    }
+
+    /// <summary>
+    /// 바뀐 사진을 올린다. 한 장이 실패해도 나머지는 계속 간다 — 사진 하나 때문에
+    /// 나머지 사진이 전부 밀릴 이유가 없고, 실패한 것은 표시를 안 하므로 다음에
+    /// 다시 선택된다.
+    ///
+    /// <b>올렸다는 표시는 서버가 답한 뒤에만</b> 한다. 원장의 워터마크와 같은 규칙이다.
+    /// </summary>
+    private async Task<(int Uploaded, int Failed)> UploadPhotosAsync(
+        SyncSettings settings, CancellationToken cancellationToken)
+    {
+        var uploaded = 0;
+        var failed = 0;
+
+        try
+        {
+            // 바이트까지 읽으므로 한 번에 조금씩 가져온다.
+            for (var taken = 0; taken < MaxPhotosPerRun; taken += PhotoBatch)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var photos = await _repository.GetPhotosToUploadAsync(PhotoBatch);
+
+                if (photos.Count == 0)
+                {
+                    break;
+                }
+
+                foreach (var photo in photos)
+                {
+                    var result = await _client.UploadPhotoAsync(settings, photo, cancellationToken);
+
+                    if (!result.IsSuccess)
+                    {
+                        failed++;
+                        continue;
+                    }
+
+                    // 서버가 "이미 있다"고 한 경우도 표시한다. 안 하면 그 사진을
+                    // 매번 다시 올린다.
+                    await _repository.MarkPhotoUploadedAsync(photo.ProductId, photo.Sha256);
+
+                    if (!result.Skipped)
+                    {
+                        uploaded++;
+                    }
+                }
+
+                // 전부 실패했다면 다음 묶음도 같은 이유로 실패한다. 회선이 끊긴
+                // 상태에서 50장을 하나씩 시도하며 기다릴 이유가 없다.
+                if (failed >= photos.Count)
+                {
+                    break;
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            // 사진을 못 올린 것으로 원장 전송까지 실패로 만들지 않는다.
+        }
+
+        return (uploaded, failed);
+    }
+
+    private const int PhotoBatch = 10;
+
+    private async Task<int> CountPhotosSafelyAsync()
+    {
+        try
+        {
+            return await _repository.CountPhotosToUploadAsync();
+        }
+        catch
+        {
+            return -1;
+        }
     }
 
     /// <summary>화면에 적을 "밀린 행 수". 못 세어도 동기화를 실패로 만들지 않는다.</summary>
     public async Task<int> CountPendingAsync(string facilityId) =>
         await CountPendingSafelyAsync(facilityId);
+
+    /// <summary>아직 안 올린 사진 수. 바이트는 읽지 않는다.</summary>
+    public async Task<int> CountPhotosPendingAsync() =>
+        await CountPhotosSafelyAsync();
 
     public async Task<DateTimeOffset?> GetLastSuccessAsync()
     {
@@ -207,9 +304,19 @@ public sealed class SyncRunResult
 
     public string SiteId { get; private init; } = string.Empty;
 
-    public static SyncRunResult Success(int sent, int pending, string siteId) =>
-        new(true, false, Describe(sent, pending, siteId))
-        { SentRows = sent, PendingRows = pending, SiteId = siteId };
+    /// <summary>이번에 올린 사진 수.</summary>
+    public int UploadedPhotos { get; private init; }
+
+    /// <summary>아직 안 올린 사진 수. 셀 수 없었으면 -1.</summary>
+    public int PendingPhotos { get; private init; }
+
+    public static SyncRunResult Success(
+        int sent, int pending, string siteId, int uploadedPhotos = 0, int pendingPhotos = 0) =>
+        new(true, false, Describe(sent, pending, siteId, uploadedPhotos, pendingPhotos))
+        {
+            SentRows = sent, PendingRows = pending, SiteId = siteId,
+            UploadedPhotos = uploadedPhotos, PendingPhotos = pendingPhotos,
+        };
 
     public static SyncRunResult Partial(int sent, int pending, string reason) =>
         new(false, true, $"{sent:N0} rows were sent, then it stopped: {reason}")
@@ -218,17 +325,23 @@ public sealed class SyncRunResult
     public static SyncRunResult Failure(string message) =>
         new(false, false, message) { PendingRows = -1 };
 
-    private static string Describe(int sent, int pending, string siteId)
+    private static string Describe(
+        int sent, int pending, string siteId, int uploadedPhotos, int pendingPhotos)
     {
         var who = siteId.Length > 0 ? $" ({siteId})" : string.Empty;
+        var photos = uploadedPhotos > 0 ? $", {uploadedPhotos:N0} photos" : string.Empty;
 
-        if (pending > 0)
+        if (pending > 0 || pendingPhotos > 0)
         {
-            return $"{sent:N0} rows sent{who}. {pending:N0} still waiting — press Synchronize again.";
+            var waiting = pendingPhotos > 0 && pending > 0
+                ? $"{pending:N0} rows and {pendingPhotos:N0} photos"
+                : pending > 0 ? $"{pending:N0} rows" : $"{pendingPhotos:N0} photos";
+
+            return $"{sent:N0} rows{photos} sent{who}. {waiting} still waiting — press Synchronize again.";
         }
 
-        return sent > 0
-            ? $"{sent:N0} rows sent{who}. Everything is up to date."
+        return sent > 0 || uploadedPhotos > 0
+            ? $"{sent:N0} rows{photos} sent{who}. Everything is up to date."
             : $"Everything is already up to date{who}.";
     }
 }

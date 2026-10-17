@@ -495,16 +495,25 @@ public class ProductRepository : IProductRepository
     {
         using var connection = _connectionFactory.CreateOpenConnection();
 
+        // 해시는 호출자가 아니라 여기서 찍는다. updated_at과 같은 이유 —
+        // 사진을 바꾸고 해시를 깜빡하면 그 사진은 영영 서버로 올라가지 않고,
+        // 화면에는 아무 표시도 나지 않는다.
+        var digest = photo is null or { Length: 0 }
+            ? null
+            : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(photo)).ToLowerInvariant();
+
         using var command = connection.CreateCommand();
         command.CommandText = """
             UPDATE Product_Master
             SET photo = $photo,
-                photo_updated_at = $updatedAt
+                photo_updated_at = $updatedAt,
+                photo_sha256 = $sha256
             WHERE product_id = $productId;
             """;
         command.Parameters.AddWithValue("$productId", productId);
         command.Parameters.AddWithValue("$photo", (object?)photo ?? DBNull.Value);
         command.Parameters.AddWithValue("$updatedAt", (object?)updatedAt ?? DBNull.Value);
+        command.Parameters.AddWithValue("$sha256", (object?)digest ?? DBNull.Value);
 
         await command.ExecuteNonQueryAsync();
     }

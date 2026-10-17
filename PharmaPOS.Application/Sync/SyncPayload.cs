@@ -161,6 +161,24 @@ public sealed class SyncCounsellingLog
 }
 
 /// <summary>Sync_State의 스트림 이름. 문자열을 흩어 두면 오타가 조용히 동기화를 멈춘다.</summary>
+/// <summary>
+/// 올릴 사진 한 장. 묶음(JSON)에 들어가지 않고 따로 올라간다 — 장당 수백 KB라
+/// base64로 싣는 순간 묶음 하나가 수십 MB가 되고, 한 장이 실패하면 그 안의
+/// 원장 행까지 전부 다시 보내야 한다.
+/// </summary>
+public sealed class SyncPhoto
+{
+    public required string ProductId { get; init; }
+
+    /// <summary>JPEG 바이트. ProductPhotoService가 800px로 줄여 둔 것이다.</summary>
+    public required byte[] Bytes { get; init; }
+
+    /// <summary>이 바이트의 SHA-256. 서버가 같은 것을 또 받지 않도록 하는 열쇠다.</summary>
+    public required string Sha256 { get; init; }
+
+    public long? PhotoUpdatedAt { get; init; }
+}
+
 public static class SyncStreams
 {
     public const string Transactions = "stock_transaction";

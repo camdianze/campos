@@ -1,5 +1,6 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -73,6 +74,75 @@ public sealed class HttpSyncClient : ISyncClient
         catch (Exception exception)
         {
             return SyncSendResult.Failure("Sync failed: " + exception.Message);
+        }
+    }
+
+    public async Task<SyncPhotoResult> UploadPhotoAsync(
+        SyncSettings settings, SyncPhoto photo, CancellationToken cancellationToken = default)
+    {
+        if (!settings.IsConfigured)
+        {
+            return SyncPhotoResult.Failure("This computer is not connected to a server yet.");
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, settings.PhotoEndpoint);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.PublishableKey);
+            request.Headers.TryAddWithoutValidation("apikey", settings.PublishableKey);
+            request.Headers.TryAddWithoutValidation("x-campos-token", settings.Token);
+            request.Headers.TryAddWithoutValidation("x-campos-product-id", photo.ProductId);
+            request.Headers.TryAddWithoutValidation("x-campos-sha256", photo.Sha256);
+
+            if (photo.PhotoUpdatedAt is { } updatedAt)
+            {
+                request.Headers.TryAddWithoutValidation(
+                    "x-campos-photo-updated-at", updatedAt.ToString(CultureInfo.InvariantCulture));
+            }
+
+            // ProductPhotoService가 JPEG로 다시 인코딩해 두므로 항상 image/jpeg다.
+            request.Content = new ByteArrayContent(photo.Bytes);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+
+            using var response = await _http.SendAsync(request, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return SyncPhotoResult.Failure(DescribeFailure((int)response.StatusCode, body));
+            }
+
+            return ReadBool(body, "skipped")
+                ? SyncPhotoResult.AlreadyThere()
+                : SyncPhotoResult.Uploaded();
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return SyncPhotoResult.Failure("The server did not answer in time while sending a photo.");
+        }
+        catch (OperationCanceledException)
+        {
+            return SyncPhotoResult.Failure("Sync was cancelled.");
+        }
+        catch (Exception exception)
+        {
+            return SyncPhotoResult.Failure("The photo could not be sent: " + exception.Message);
+        }
+    }
+
+    private static bool ReadBool(string body, string field)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+
+            return document.RootElement.TryGetProperty(field, out var value)
+                && value.ValueKind == JsonValueKind.True;
+        }
+        catch
+        {
+            return false;
         }
     }
 

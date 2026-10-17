@@ -266,6 +266,139 @@ public class SyncRepository : ISyncRepository
         return result is null or DBNull ? 0 : Convert.ToInt32(result);
     }
 
+    // ── 사진 ─────────────────────────────────────────────────────────────
+
+    public async Task<IReadOnlyList<SyncPhoto>> GetPhotosToUploadAsync(int limit)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+
+        // photo_sha256이 비어 있는 행도 집는다 — 이 컬럼이 생기기 전에 넣은
+        // 사진들이다. 바이트를 읽어 그 자리에서 해시를 채운다.
+        command.CommandText = """
+            SELECT product_id, photo, photo_sha256, photo_updated_at
+            FROM Product_Master
+            WHERE photo IS NOT NULL
+              AND (photo_sha256 IS NULL
+                   OR photo_synced_sha256 IS NULL
+                   OR photo_sha256 <> photo_synced_sha256)
+            ORDER BY product_id
+            LIMIT $limit;
+            """;
+        command.Parameters.AddWithValue("$limit", limit);
+
+        using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<SyncPhoto>();
+        var backfill = new List<(string ProductId, string Sha256)>();
+
+        while (await reader.ReadAsync())
+        {
+            var productId = reader.GetString(0);
+            var bytes = (byte[])reader.GetValue(1);
+
+            if (bytes.Length == 0)
+            {
+                continue;
+            }
+
+            var stored = reader.IsDBNull(2) ? null : reader.GetString(2);
+            var digest = stored ?? Hash(bytes);
+
+            if (stored is null)
+            {
+                backfill.Add((productId, digest));
+            }
+
+            rows.Add(new SyncPhoto
+            {
+                ProductId = productId,
+                Bytes = bytes,
+                Sha256 = digest,
+                PhotoUpdatedAt = reader.IsDBNull(3) ? null : reader.GetInt64(3),
+            });
+        }
+
+        reader.Close();
+
+        // 채워 넣은 해시는 저장해 둔다. 다음부터는 바이트를 다시 읽지 않아도
+        // 바뀌었는지 알 수 있다.
+        foreach (var (productId, digest) in backfill)
+        {
+            using var update = connection.CreateCommand();
+            update.CommandText =
+                "UPDATE Product_Master SET photo_sha256 = $sha256 WHERE product_id = $productId;";
+            update.Parameters.AddWithValue("$sha256", digest);
+            update.Parameters.AddWithValue("$productId", productId);
+            await update.ExecuteNonQueryAsync();
+        }
+
+        // 해시를 채우고 나니 이미 올린 것과 같아진 행은 보낼 필요가 없다.
+        return rows.Count == 0 ? rows : await DropAlreadyUploadedAsync(connection, rows);
+    }
+
+    private static async Task<IReadOnlyList<SyncPhoto>> DropAlreadyUploadedAsync(
+        SqliteConnection connection, List<SyncPhoto> rows)
+    {
+        var keep = new List<SyncPhoto>();
+
+        foreach (var photo in rows)
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText =
+                "SELECT photo_synced_sha256 FROM Product_Master WHERE product_id = $productId;";
+            command.Parameters.AddWithValue("$productId", photo.ProductId);
+
+            var synced = await command.ExecuteScalarAsync();
+
+            if (synced is null or DBNull || (string)synced != photo.Sha256)
+            {
+                keep.Add(photo);
+            }
+        }
+
+        return keep;
+    }
+
+    public async Task MarkPhotoUploadedAsync(string productId, string sha256)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            UPDATE Product_Master
+            SET photo_synced_sha256 = $sha256
+            WHERE product_id = $productId;
+            """;
+        command.Parameters.AddWithValue("$sha256", sha256);
+        command.Parameters.AddWithValue("$productId", productId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task<int> CountPhotosToUploadAsync()
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+
+        // 바이트는 건드리지 않는다. 수백 장을 세자고 수십 MB를 읽을 이유가 없다.
+        command.CommandText = """
+            SELECT COUNT(*) FROM Product_Master
+            WHERE photo IS NOT NULL
+              AND (photo_sha256 IS NULL
+                   OR photo_synced_sha256 IS NULL
+                   OR photo_sha256 <> photo_synced_sha256);
+            """;
+
+        var result = await command.ExecuteScalarAsync();
+
+        return result is null or DBNull ? 0 : Convert.ToInt32(result);
+    }
+
+    private static string Hash(byte[] bytes) =>
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+
     public async Task<long> GetPositionAsync(string stream)
     {
         using var connection = _connectionFactory.CreateOpenConnection();

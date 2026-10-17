@@ -1,4 +1,4 @@
-namespace PharmaPOS.Application.Sync;
+﻿namespace PharmaPOS.Application.Sync;
 
 /// <summary>
 /// 이 PC가 서버로 보내기 위해 알아야 하는 것 전부. 세 개뿐이다.
@@ -21,6 +21,9 @@ public sealed class SyncSettings
 
     /// <summary>실제로 POST할 주소. 함수 이름 <c>sync</c>는 서버 쪽에서 고정이다.</summary>
     public string Endpoint => ServerUrl.TrimEnd('/') + "/functions/v1/sync";
+
+    /// <summary>사진을 올릴 주소. 묶음과 싣는 것이 달라 함수가 따로 있다.</summary>
+    public string PhotoEndpoint => ServerUrl.TrimEnd('/') + "/functions/v1/sync-photo";
 
     /// <summary>
     /// 붙여넣은 주소를 쓸 수 있는 꼴로 다듬는다.

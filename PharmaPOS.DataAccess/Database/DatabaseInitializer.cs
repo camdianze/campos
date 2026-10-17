@@ -136,6 +136,8 @@ public class DatabaseInitializer
         // 대신 저장 전에 줄이고 다시 압축해서 장당 수백 KB로 묶는다(ProductPhotoService).
         AddColumnIfMissing(connection, "Product_Master", "photo", "BLOB");
         AddColumnIfMissing(connection, "Product_Master", "photo_updated_at", "INTEGER");
+        AddColumnIfMissing(connection, "Product_Master", "photo_sha256", "TEXT");
+        AddColumnIfMissing(connection, "Product_Master", "photo_synced_sha256", "TEXT");
 
         // 개발 중 잠깐 있었던 반대 방향 컬럼(박스가를 따로 받던 것)을 치운다.
         // 배포된 DB에는 없던 컬럼이라 지워도 잃을 데이터가 없다.
@@ -342,7 +344,17 @@ public class DatabaseInitializer
                 cost_price_khr      REAL,
                 unit_price_khr      REAL,
                 photo               BLOB,
-                photo_updated_at    INTEGER
+                photo_updated_at    INTEGER,
+
+                -- 지금 저장된 사진의 SHA-256과, 서버에 마지막으로 올린 사진의 것.
+                -- 둘이 다르면 올릴 것이 있다는 뜻이고, 같으면 건너뛴다.
+                --
+                -- 서버에 물어보지 않고 "무엇을 올렸는지"를 여기서 기억하는 이유:
+                -- 동기화 함수에는 읽는 길이 아예 없다. 토큰이 새어도 남의 데이터를
+                -- 가져갈 수 없는 것이 그 덕분인데, 사진 목록을 받아오려고 읽기를
+                -- 열면 그 성질이 사라진다.
+                photo_sha256        TEXT,
+                photo_synced_sha256 TEXT
             );
             CREATE UNIQUE INDEX IF NOT EXISTS idx_product_barcode
                 ON Product_Master(barcode) WHERE barcode IS NOT NULL;

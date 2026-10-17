@@ -145,6 +145,82 @@ public class SyncServiceTests
         Assert.Equal(10, await repository.CountPendingAsync(Facility));
     }
 
+    // ── 사진 ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 원장과 같은 규칙이다 — 서버가 답하기 전에 "올림"으로 표시하면 그 사진은
+    /// 다시 선택되지 않고, 서버에는 영영 없다.
+    /// </summary>
+    [Fact]
+    public async Task APhotoThatFailedToUploadIsNotMarkedAsUploaded()
+    {
+        var repository = new FakeSyncRepository(transactions: 0);
+        repository.Photos.Add(NewPhoto("p1", "aaa"));
+
+        var client = FakeSyncClient.ThatSucceeds();
+        client.PhotosFail = true;
+
+        await NewService(repository, client).RunAsync(Facility);
+
+        Assert.Empty(repository.MarkedUploaded);
+        Assert.Equal(1, await repository.CountPhotosToUploadAsync());
+    }
+
+    [Fact]
+    public async Task AnUploadedPhotoIsMarkedAndNotSentAgain()
+    {
+        var repository = new FakeSyncRepository(transactions: 0);
+        repository.Photos.Add(NewPhoto("p1", "aaa"));
+
+        var client = FakeSyncClient.ThatSucceeds();
+        var service = NewService(repository, client);
+
+        await service.RunAsync(Facility);
+        Assert.Equal(1, client.PhotoUploads);
+
+        await service.RunAsync(Facility);
+        Assert.Equal(1, client.PhotoUploads);
+    }
+
+    /// <summary>
+    /// 서버가 "이미 같은 것이 있다"고 답한 것도 표시해야 한다. 표시하지 않으면
+    /// 그 사진을 동기화할 때마다 다시 올린다 — 매번 성공하므로 아무 표시도 나지
+    /// 않고, 약국의 회선만 쓴다.
+    /// </summary>
+    [Fact]
+    public async Task APhotoTheServerAlreadyHadIsStillMarked()
+    {
+        var repository = new FakeSyncRepository(transactions: 0);
+        repository.Photos.Add(NewPhoto("p1", "aaa"));
+
+        var client = FakeSyncClient.ThatSucceeds();
+        client.PhotosAlreadyThere = true;
+
+        await NewService(repository, client).RunAsync(Facility);
+
+        Assert.Single(repository.MarkedUploaded);
+        Assert.Equal(0, await repository.CountPhotosToUploadAsync());
+    }
+
+    /// <summary>한 장이 실패해도 나머지는 간다.</summary>
+    [Fact]
+    public async Task OnePhotoFailingDoesNotStopTheLedgerFromBeingSent()
+    {
+        var repository = new FakeSyncRepository(transactions: 2);
+        repository.Photos.Add(NewPhoto("p1", "aaa"));
+
+        var client = FakeSyncClient.ThatSucceeds();
+        client.PhotosFail = true;
+
+        var result = await NewService(repository, client).RunAsync(Facility);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, await repository.GetPositionAsync(SyncStreams.Transactions));
+    }
+
+    private static SyncPhoto NewPhoto(string productId, string sha256) =>
+        new() { ProductId = productId, Bytes = [1, 2, 3], Sha256 = sha256 };
+
     // ── 마지막 성공 시각 ────────────────────────────────────────────────
 
     [Fact]
@@ -252,6 +328,26 @@ public class SyncServiceTests
             Task.FromResult(_transactions.Count(
                 t => t.RowId > (_positions.TryGetValue(SyncStreams.Transactions, out var p) ? p : 0)));
 
+        public List<SyncPhoto> Photos { get; } = new();
+
+        public List<(string ProductId, string Sha256)> MarkedUploaded { get; } = new();
+
+        public Task<IReadOnlyList<SyncPhoto>> GetPhotosToUploadAsync(int limit) =>
+            Task.FromResult<IReadOnlyList<SyncPhoto>>(Photos
+                .Where(p => !MarkedUploaded.Any(m => m.ProductId == p.ProductId && m.Sha256 == p.Sha256))
+                .Take(limit)
+                .ToList());
+
+        public Task MarkPhotoUploadedAsync(string productId, string sha256)
+        {
+            MarkedUploaded.Add((productId, sha256));
+            return Task.CompletedTask;
+        }
+
+        public Task<int> CountPhotosToUploadAsync() =>
+            Task.FromResult(Photos.Count(
+                p => !MarkedUploaded.Any(m => m.ProductId == p.ProductId && m.Sha256 == p.Sha256)));
+
         public Task<long> GetPositionAsync(string stream) =>
             Task.FromResult(_positions.TryGetValue(stream, out var p) ? p : 0L);
 
@@ -284,6 +380,27 @@ public class SyncServiceTests
 
         public static FakeSyncClient ThatSucceedsThenFails(int afterSends, string reason) =>
             new() { _succeeds = true, _failAfter = afterSends, _reason = reason };
+
+        public int PhotoUploads { get; private set; }
+
+        public bool PhotosFail { get; set; }
+
+        public bool PhotosAlreadyThere { get; set; }
+
+        public Task<SyncPhotoResult> UploadPhotoAsync(
+            SyncSettings settings, SyncPhoto photo, CancellationToken cancellationToken = default)
+        {
+            PhotoUploads++;
+
+            if (PhotosFail)
+            {
+                return Task.FromResult(SyncPhotoResult.Failure("no network"));
+            }
+
+            return Task.FromResult(PhotosAlreadyThere
+                ? SyncPhotoResult.AlreadyThere()
+                : SyncPhotoResult.Uploaded());
+        }
 
         public Task<SyncSendResult> SendAsync(
             SyncSettings settings, SyncPayload payload, CancellationToken cancellationToken = default)
