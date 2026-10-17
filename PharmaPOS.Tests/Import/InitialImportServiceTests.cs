@@ -136,6 +136,130 @@ public class InitialImportServiceTests
             throw new NotSupportedException();
     }
 
+    // ── 임포트는 값을 비울 수 없다 ───────────────────────────────────────
+    //
+    // 파일이 적어 온 칸만 바뀌고, 비어 있는 칸은 저장돼 있던 것을 그대로 둔다.
+    // 상품 하나의 두 번째 배치 행에는 상품명밖에 없고, 그 행이 앞서 저장된 값을
+    // 지워서는 안 되기 때문이다.
+    //
+    // 이 규칙이 실제로 깨져 있었다. 기존 상품을 갱신할 때 먼저 복사본을 만드는데,
+    // 복사할 칸 목록을 손으로 적어 두었더니 컬럼이 늘 때마다 거기 추가하는 것을
+    // 잊었다. 잊힌 칸은 기본값으로 저장되어 값이 지워졌다 — 낱개 판매가 꺼지고
+    // 리엘로 적어 둔 가격이 날아갔는데, 화면에는 아무 표시도 나지 않았고 약국은
+    // 계산대에서 낱개를 못 팔게 된 뒤에야 알았다.
+
+    /// <summary>
+    /// 이 테스트가 그 사고 자체다. 낱개 판매가 켜진 상품에 낱개가가 비어 있는 행이
+    /// 다시 들어온다 — 설문지를 고쳐 가며 몇 번 임포트하면 늘 생기는 일이다.
+    ///
+    /// 행에 <b>다른 칸 하나가 실제로 바뀌어</b> 있는 것이 중요하다. 바뀐 것이 전혀
+    /// 없으면 갱신 자체가 일어나지 않아 잘못된 복사본도 저장되지 않는다. 그래서
+    /// 이 사고는 "설문지를 조금 고쳐서 다시 올렸을 때"만 터졌고, 그만큼 원인을
+    /// 짚기 어려웠다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_DoesNotSwitchLooseSaleOffWhenTheRowHasNoLoosePrice()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(StoredLooseProduct());
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, productName: "IBUFEN", manufacturer: "MS", unitsPerBox: "100", safetyStock: "9")
+        });
+
+        var merged = Assert.Single(plan.ProductsToUpdate).Product;
+
+        Assert.True(merged.SellsLooseUnits);
+        Assert.Equal(0.075m, merged.UnitSellingPrice);
+    }
+
+    /// <summary>
+    /// 리엘로 적어 둔 가격은 약국이 실제로 정한 숫자라 달러 값에서 되돌릴 수 없다.
+    /// 지워지면 무엇이 원래 가격이었는지 추적할 길이 사라진다.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_KeepsRielPricesAcrossAReimport()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(StoredLooseProduct());
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, productName: "IBUFEN", manufacturer: "MS", unitsPerBox: "100", safetyStock: "9")
+        });
+
+        var merged = Assert.Single(plan.ProductsToUpdate).Product;
+
+        Assert.Equal(30000m, merged.SellingPriceKhr);
+        Assert.Equal(300m, merged.UnitSellingPriceKhr);
+    }
+
+    /// <summary>
+    /// 손으로 입력한 낱개 바코드. 비어 있으면 내부 바코드 + -EA로 파생되므로,
+    /// 지워져도 스캐너는 계속 뭔가를 읽는다 — 다른 코드를.
+    /// </summary>
+    [Fact]
+    public async Task PlanProducts_KeepsATypedUnitBarcode()
+    {
+        var harness = new Harness();
+        harness.Products.Products.Add(StoredLooseProduct());
+
+        var plan = await harness.Build().PlanProductsAsync(new[]
+        {
+            Row(2, productName: "IBUFEN", manufacturer: "MS", unitsPerBox: "100", safetyStock: "9")
+        });
+
+        var merged = Assert.Single(plan.ProductsToUpdate).Product;
+
+        Assert.Equal("INT-00000085", merged.InternalBarcode);
+        Assert.Equal("1234567890128", merged.UnitBarcodeOverride);
+    }
+
+    /// <summary>
+    /// 복사가 빠짐없는지 직접 본다. 위의 테스트들은 그때그때 떠오른 칸을 확인하는데,
+    /// 다음에 늘어날 컬럼은 아무도 떠올리지 못한다. 이것만은 저절로 따라온다.
+    /// </summary>
+    [Fact]
+    public void Copy_CarriesEveryStoredValue()
+    {
+        var original = StoredLooseProduct();
+        var copy = original.Copy();
+
+        foreach (var property in typeof(Product).GetProperties().Where(p => p.CanWrite))
+        {
+            Assert.Equal(property.GetValue(original), property.GetValue(copy));
+        }
+    }
+
+    private static Product StoredLooseProduct() => new()
+    {
+        ProductId = "p-ibufen",
+        ProductName = "IBUFEN",
+        Manufacturer = "MS",
+        Barcode = "8848003002605",
+        InternalBarcode = "INT-00000085",
+        UnitBarcodeOverride = "1234567890128",
+        GenericName = "Ibuprofen",
+        Strength = "400mg",
+        DosageForm = DosageForm.Tablet,
+        Unit = "Tablet",
+        CountryOfOrigin = "Cambodia",
+        AtcCode = "M01AE01",
+        IsCombination = false,
+        CostPrice = 5m,
+        SellingPrice = 7.5m,
+        SellingPriceKhr = 30000m,
+        CostPriceKhr = 20000m,
+        UnitsPerBox = 100,
+        SellsLooseUnits = true,
+        UnitSellingPrice = 0.075m,
+        UnitSellingPriceKhr = 300m,
+        SafetyStockLevel = 3,
+        Status = EntityStatus.Active,
+        CreatedAt = 1,
+    };
+
     private sealed class Harness
     {
         public FakeProductRepository Products { get; } = new();
