@@ -160,6 +160,7 @@ public class SyncRepository : ISyncRepository
                    batch_number, expiry_date, quantity,
                    selling_price_at_transaction, total_amount, payment_method,
                    reason, related_transaction_id, stock_before, stock_after,
+                   cost_price_at_transaction, exchange_rate_at_transaction,
                    transaction_time
             FROM Stock_Transaction
             WHERE facility_id = $facilityId
@@ -192,7 +193,9 @@ public class SyncRepository : ISyncRepository
                 RelatedTransactionId = Text(reader, 12),
                 StockBefore = reader.IsDBNull(13) ? null : reader.GetInt32(13),
                 StockAfter = reader.IsDBNull(14) ? null : reader.GetInt32(14),
-                TransactionTime = reader.GetInt64(15)
+                CostPriceAtTransaction = Money(reader, 15),
+                ExchangeRateAtTransaction = Money(reader, 16),
+                TransactionTime = reader.GetInt64(17)
             }));
         }
 

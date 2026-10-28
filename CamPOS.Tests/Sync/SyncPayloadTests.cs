@@ -150,6 +150,8 @@ public class SyncPayloadTests : IDisposable
     [InlineData("safety_stock_level")]
     [InlineData("transaction_time")]
     [InlineData("stock_before")]
+    [InlineData("cost_price_at_transaction")]
+    [InlineData("exchange_rate_at_transaction")]
     public async Task PropertiesAreNamedLikeTheServerColumns(string column)
     {
         Assert.Contains($"\"{column}\"", await BuildJsonAsync(), StringComparison.Ordinal);

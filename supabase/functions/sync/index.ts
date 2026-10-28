@@ -58,6 +58,7 @@ const ALLOWED: Record<string, { table: string; key: string; columns: string[] }>
       "batch_number", "expiry_date", "quantity",
       "selling_price_at_transaction", "total_amount", "payment_method",
       "reason", "related_transaction_id", "stock_before", "stock_after",
+      "cost_price_at_transaction", "exchange_rate_at_transaction",
       "transaction_time",
     ],
   },

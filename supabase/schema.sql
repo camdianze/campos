@@ -208,6 +208,21 @@ create table if not exists public.stock_transaction (
     stock_before                  integer,
     stock_after                   integer,
 
+    -- 거래가 일어난 그 순간의 원가와 환율. 둘 다 그때만 알 수 있는 값이라
+    -- 여기 적지 않으면 나중에 어떤 계산으로도 되살릴 수 없다.
+    --
+    -- 원가: 상품 마스터의 cost_price는 <b>현재</b> 값이고 매입가가 오르면
+    -- 덮어써진다. 그것으로 작년 매출의 마진을 내면 틀린 숫자가 나오는데,
+    -- 그럴듯해 보여서 틀린 줄을 모른다.
+    -- NULL은 "모름"이다 — 종이 장부만 쓰던 약국의 상품은 원가가 0으로
+    -- 저장되어 있고, 그것을 그대로 적으면 마진이 100%로 계산된다.
+    --
+    -- 환율: 판매 금액은 달러로만 남는다. 환율을 적지 않으면 지난달 매출을
+    -- 오늘 환율로 환산하게 되고, 환율이 오르면 판매가 한 건도 안 늘었는데
+    -- 과거가 커 보인다. 리엘이 실제로 오간 돈이므로 이 열이 그 기록이다.
+    cost_price_at_transaction     numeric,
+    exchange_rate_at_transaction  numeric,
+
     transaction_time              bigint not null,
 
     server_received_at            timestamptz not null default now(),
@@ -303,6 +318,20 @@ revoke all on all tables in schema public from anon, authenticated;
 
 alter default privileges in schema public
     revoke all on tables from anon, authenticated;
+
+-- ── 이미 만들어진 프로젝트에 열 붙이기 ────────────────────────────────────────
+-- create table if not exists는 이미 있는 표에 아무것도 하지 않으므로, 열이 늘면
+-- 그것만 따로 붙여야 한다. 앱의 AddColumnIfMissing과 같은 방식이고, 같은 이유로
+-- 이 파일을 통째로 다시 Run 하는 것이 유일한 적용 방법이 된다 —
+-- "이번엔 어느 줄만 실행하면 되나"를 사람이 판단하게 두면 언젠가 틀린다.
+--
+-- 서버가 앱보다 <b>먼저</b>다. 서버는 모르는 이름이 오면 묶음 전체를 거부하므로,
+-- 순서를 뒤집으면 그 약국의 동기화가 멈춘다.
+alter table public.stock_transaction
+    add column if not exists cost_price_at_transaction    numeric;
+alter table public.stock_transaction
+    add column if not exists exchange_rate_at_transaction numeric;
+
 
 alter table public.issuer_secret     enable row level security;
 alter table public.license_issuance  enable row level security;

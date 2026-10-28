@@ -125,6 +125,15 @@ public class AdjustmentRepository : IAdjustmentRepository
                 connection, dbTransaction, transaction.TransactionId,
                 expectedCurrentQuantity, stockAfter);
 
+            // 조정에도 원가를 남긴다. 유통기한이 지나 버린 재고가 얼마어치였는지는
+            // 이 값 없이는 셀 수 없고, 폐기 손실은 약국이 가장 먼저 알고 싶어 하는
+            // 숫자 중 하나다. 조정에는 금액 열이 없으므로 여기 말고 적을 자리도 없다.
+            await LedgerPriceSnapshot.RecordAsync(
+                connection, dbTransaction, transaction.TransactionId,
+                await LedgerPriceSnapshot.ReadCostPriceAsync(
+                    connection, dbTransaction, transaction.ProductId),
+                await LedgerPriceSnapshot.ReadExchangeRateAsync(connection, dbTransaction));
+
             dbTransaction.Commit();
             return true;
         }

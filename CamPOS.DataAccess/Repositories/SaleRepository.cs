@@ -23,6 +23,11 @@ public class SaleRepository : ISaleRepository
 
         try
         {
+            // 환율은 판매 한 건에 하나다. 줄마다 읽을 이유가 없고, 같은 트랜잭션
+            // 안이라 그 사이에 바뀌지도 않는다.
+            var exchangeRate = await LedgerPriceSnapshot.ReadExchangeRateAsync(
+                connection, dbTransaction);
+
             foreach (var line in lines)
             {
                 // 저장 직전 재고 재확인 (Add to Cart 시점 이후 다른 판매가
@@ -124,6 +129,15 @@ public class SaleRepository : ISaleRepository
                 await StockLedgerTrace.RecordAsync(
                     connection, dbTransaction, line.Transaction.TransactionId,
                     currentStock.TotalUnits, stockAfter);
+
+                // 판 시점의 원가와 환율. 상품 마스터의 원가는 매입가가 오르면
+                // 덮어써지므로, 여기 남기지 않으면 이 판매의 마진은 영영 알 수 없다.
+                var costPrice = await LedgerPriceSnapshot.ReadCostPriceAsync(
+                    connection, dbTransaction, line.Transaction.ProductId);
+
+                await LedgerPriceSnapshot.RecordAsync(
+                    connection, dbTransaction, line.Transaction.TransactionId,
+                    costPrice, exchangeRate);
             }
 
             dbTransaction.Commit();

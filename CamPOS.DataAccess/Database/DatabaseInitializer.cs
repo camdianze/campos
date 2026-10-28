@@ -174,6 +174,20 @@ public class DatabaseInitializer
         AddColumnIfMissing(connection, "Stock_Transaction", "stock_before", "INTEGER");
         AddColumnIfMissing(connection, "Stock_Transaction", "stock_after", "INTEGER");
 
+        // 거래가 일어난 그 순간의 원가와 환율. 둘 다 그 순간에만 알 수 있는 값이라,
+        // 여기 적어 두지 않으면 나중에 어떤 계산으로도 되살릴 수 없다 —
+        // stock_before/after와 같은 종류의 값이고, 같은 이유로 NULL을 0으로 바꾸지 않는다.
+        //
+        // 원가: Product_Master.cost_price는 현재 값이고 매입가가 오르면 덮어써진다.
+        // 그것으로 작년 매출의 마진을 내면 틀린 숫자가 나오는데, 그럴듯해 보여서
+        // 틀린 줄을 모른다. 0은 "원가 모름"(종이 장부만 쓰던 약국)이므로 NULL로 적는다 —
+        // 0을 그대로 두면 마진이 100%로 계산된다.
+        //
+        // 환율: 금액은 달러로만 남으므로, 환율이 없으면 지난달 매출을 오늘 환율로
+        // 환산하게 되고 환율이 오르면 판매가 안 늘었는데 과거가 커 보인다.
+        AddColumnIfMissing(connection, "Stock_Transaction", "cost_price_at_transaction", "REAL");
+        AddColumnIfMissing(connection, "Stock_Transaction", "exchange_rate_at_transaction", "REAL");
+
         using var indexCommand = connection.CreateCommand();
         indexCommand.CommandText = """
             CREATE INDEX IF NOT EXISTS idx_stock_transaction_related
@@ -572,6 +586,8 @@ public class DatabaseInitializer
                 related_transaction_id        TEXT,
                 stock_before                  INTEGER,
                 stock_after                   INTEGER,
+                cost_price_at_transaction     REAL,
+                exchange_rate_at_transaction  REAL,
                 transaction_time              INTEGER NOT NULL,
                 FOREIGN KEY (facility_id) REFERENCES Facility(facility_id),
                 FOREIGN KEY (product_id) REFERENCES Product_Master(product_id),

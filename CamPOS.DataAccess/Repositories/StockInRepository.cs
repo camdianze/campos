@@ -135,6 +135,14 @@ public class StockInRepository : IStockInRepository
             await StockLedgerTrace.RecordAsync(
                 connection, dbTransaction, transaction.TransactionId, stockBefore, stockAfter);
 
+            // 들어온 시점의 원가. 판매 쪽 값과 짝을 이뤄야 배치 단위 마진을 낼 수 있고,
+            // 이 행이 그 배치의 매입가를 아는 유일한 자리다.
+            await LedgerPriceSnapshot.RecordAsync(
+                connection, dbTransaction, transaction.TransactionId,
+                await LedgerPriceSnapshot.ReadCostPriceAsync(
+                    connection, dbTransaction, transaction.ProductId),
+                await LedgerPriceSnapshot.ReadExchangeRateAsync(connection, dbTransaction));
+
             dbTransaction.Commit();
         }
         catch

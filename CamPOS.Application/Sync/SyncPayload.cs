@@ -143,6 +143,22 @@ public sealed class SyncTransaction
     /// <inheritdoc cref="StockBefore"/>
     public int? StockAfter { get; init; }
 
+    /// <summary>
+    /// 이 거래가 일어난 순간의 원가. 상품의 <b>현재</b> 원가가 아니다 — 매입가가 오르면
+    /// 상품 마스터의 값은 덮어써지고, 그것으로 과거 마진을 내면 틀린 숫자가 나온다.
+    ///
+    /// null은 "모름"이다. 원가 0으로 저장된 상품(종이 장부만 쓰던 약국)과 이 열이
+    /// 생기기 전의 행이 여기 해당한다. 0으로 보내면 마진이 100%로 계산된다.
+    /// </summary>
+    public decimal? CostPriceAtTransaction { get; init; }
+
+    /// <summary>
+    /// 이 거래가 일어난 순간의 1 USD당 리엘. 금액은 달러로만 남으므로, 이 값이 없으면
+    /// 지난달 매출을 오늘 환율로 환산하게 되고 환율이 오르면 판매가 한 건도 안 늘었는데
+    /// 과거가 커 보인다. 리엘이 실제로 오간 돈이라 이 열이 그 기록이다.
+    /// </summary>
+    public decimal? ExchangeRateAtTransaction { get; init; }
+
     public required long TransactionTime { get; init; }
 }
 

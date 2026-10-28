@@ -173,6 +173,12 @@ public class RefundRepository : IRefundRepository
 
                 await StockLedgerTrace.RecordAsync(
                     connection, dbTransaction, line.Transaction.TransactionId, stockBefore, stockAfter);
+
+                // 원가와 환율은 원 판매가 들고 있던 값을 그대로 옮긴다. 수량과 금액이
+                // 음수로 상쇄되듯 이 둘도 같은 값이라야 상쇄된다.
+                await LedgerPriceSnapshot.CopyFromOriginalAsync(
+                    connection, dbTransaction,
+                    line.Transaction.TransactionId, originalTransactionId);
             }
 
             dbTransaction.Commit();
