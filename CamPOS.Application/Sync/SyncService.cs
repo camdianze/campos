@@ -157,6 +157,7 @@ public sealed class SyncService
 
             sent += result.Accepted.TryGetValue(SyncStreams.Transactions, out var transactions) ? transactions : 0;
             sent += result.Accepted.TryGetValue(SyncStreams.CounsellingLogs, out var counselling) ? counselling : 0;
+            sent += result.Accepted.TryGetValue(SyncStreams.UsageEvents, out var usage) ? usage : 0;
             siteId = result.SiteId;
             batches++;
 

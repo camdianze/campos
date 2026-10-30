@@ -86,6 +86,13 @@ public partial class App : System.Windows.Application
         var databaseInitializer = Services.GetRequiredService<DatabaseInitializer>();
         databaseInitializer.Initialize();
 
+        // 앱이 켜졌다. 아직 로그인 전이라 이 줄의 역할은 비어 있고, 그것이 맞다 —
+        // 누가 켰는지는 모르는 것이 사실이다. 표가 만들어진 직후라야 적을 수 있다.
+        _ = Services.GetRequiredService<CamPOS.Application.Usage.IUsageRecorder>()
+            .RecordAsync(
+                CamPOS.Application.Usage.UsageEventNames.AppStarted,
+                CamPOS.Application.Usage.UsageOutcome.Success);
+
         // AWaRe 시드 적재. 실패해도 앱은 그대로 뜬다 —
         // 참조 데이터가 없으면 복약안내가 안 나올 뿐, 판매를 막아서는 안 된다.
         // 적재 상태는 설정 화면에서 확인한다.

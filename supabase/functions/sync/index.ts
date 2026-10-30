@@ -70,6 +70,15 @@ const ALLOWED: Record<string, { table: string; key: string; columns: string[] }>
       "printed", "skip_reason", "locale", "source_version", "created_at",
     ],
   },
+  usage_events: {
+    table: "usage_events",
+    key: "site_id,event_id",
+    // 여섯 개뿐이다. user_id는 일부러 없다 — 있으면 app_user와 이어져
+    // 직원 실명 단위 기록이 되고, 약국에게 한 약속이 거짓이 된다.
+    columns: [
+      "event_id", "occurred_at", "role", "event_name", "outcome", "app_version",
+    ],
+  },
 };
 
 const TOP_LEVEL = new Set([

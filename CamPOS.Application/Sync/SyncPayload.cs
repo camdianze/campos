@@ -27,6 +27,7 @@ public sealed class SyncPayload
     public IReadOnlyList<SyncUser> Users { get; init; } = [];
     public IReadOnlyList<SyncTransaction> Transactions { get; init; } = [];
     public IReadOnlyList<SyncCounsellingLog> CounsellingLogs { get; init; } = [];
+    public IReadOnlyList<SyncUsageEvent> UsageEvents { get; init; } = [];
 
     /// <summary>
     /// 이 묶음을 성공적으로 보냈을 때 Sync_State에 적을 위치.
@@ -45,7 +46,8 @@ public sealed class SyncPayload
     /// </summary>
     [JsonIgnore]
     public int RowCount =>
-        Products.Count + Inventory.Count + Users.Count + Transactions.Count + CounsellingLogs.Count;
+        Products.Count + Inventory.Count + Users.Count + Transactions.Count
+        + CounsellingLogs.Count + UsageEvents.Count;
 }
 
 /// <summary>
@@ -176,6 +178,28 @@ public sealed class SyncCounsellingLog
     public required long CreatedAt { get; init; }
 }
 
+/// <summary>
+/// 기능 사용 기록 한 줄. <b>여섯 칸이 전부다.</b>
+///
+/// 없는 것이 요점이다: 환자, 입력한 글자, 금액, 상품 이름, 화면, 키 입력, 그리고
+/// <b>누가 눌렀는지</b>. user_id를 담으면 이미 올라가 있는 app_user와 이어져 직원
+/// 실명 단위 기록이 되는데, 성과 지표에 필요한 것은 "관리자와 직원이 각각 얼마나
+/// 쓰는가"까지다. 속성이 없으면 실수로 채울 수도 없다 — SyncUser와 같은 방어이고,
+/// 같은 이유로 UsageEventTests가 칸 수를 고정한다.
+/// </summary>
+public sealed class SyncUsageEvent
+{
+    public required string EventId { get; init; }
+    public required long OccurredAt { get; init; }
+
+    /// <summary>그 시점의 역할. 로그인 전에는 null이다.</summary>
+    public string? Role { get; init; }
+
+    public required string EventName { get; init; }
+    public required string Outcome { get; init; }
+    public string? AppVersion { get; init; }
+}
+
 /// <summary>Sync_State의 스트림 이름. 문자열을 흩어 두면 오타가 조용히 동기화를 멈춘다.</summary>
 /// <summary>
 /// 올릴 사진 한 장. 묶음(JSON)에 들어가지 않고 따로 올라간다 — 장당 수백 KB라
@@ -200,4 +224,5 @@ public static class SyncStreams
     public const string Transactions = "stock_transaction";
     public const string CounsellingLogs = "counselling_log";
     public const string Photos = "product_photo";
+    public const string UsageEvents = "usage_events";
 }

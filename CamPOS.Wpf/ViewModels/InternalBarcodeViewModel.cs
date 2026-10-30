@@ -1,4 +1,5 @@
-﻿using CamPOS.Application.Parsing;
+﻿using CamPOS.Application.Usage;
+using CamPOS.Application.Parsing;
 using CamPOS.Application.Products;
 using CamPOS.Domain.Entities;
 using CamPOS.Wpf.ViewModels.Base;
@@ -11,6 +12,7 @@ namespace CamPOS.Wpf.ViewModels;
 public class InternalBarcodeViewModel : ViewModelBase
 {
     private readonly IInternalBarcodeService _internalBarcodeService;
+    private readonly IUsageRecorder _usageRecorder;
 
     private readonly Product _selectedProduct;
 
@@ -88,9 +90,13 @@ public class InternalBarcodeViewModel : ViewModelBase
 
     public event Action? NavigateBack;
 
-    public InternalBarcodeViewModel(IInternalBarcodeService internalBarcodeService, Product selectedProduct)
+    public InternalBarcodeViewModel(
+        IInternalBarcodeService internalBarcodeService,
+        IUsageRecorder usageRecorder,
+        Product selectedProduct)
     {
         _internalBarcodeService = internalBarcodeService;
+        _usageRecorder = usageRecorder;
         _selectedProduct = selectedProduct;
         _internalBarcode = selectedProduct.InternalBarcode ?? string.Empty;
 
@@ -133,6 +139,10 @@ public class InternalBarcodeViewModel : ViewModelBase
 
         var result = await _internalBarcodeService.PrintLabelAsync(
             _selectedProduct.ProductId, quantity);
+
+        _ = _usageRecorder.RecordAsync(
+            UsageEventNames.LabelPrinted,
+            result.IsSuccess ? UsageOutcome.Success : UsageOutcome.Failure);
 
         Message = result.Message!;
     }

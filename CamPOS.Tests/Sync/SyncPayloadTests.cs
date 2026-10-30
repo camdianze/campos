@@ -175,7 +175,8 @@ public class SyncPayloadTests : IDisposable
             new[]
             {
                 "app_version", "client_time", "counselling_logs",
-                "inventory", "positions", "products", "transactions", "users"
+                "inventory", "positions", "products", "transactions",
+                "usage_events", "users"
             },
             names);
     }

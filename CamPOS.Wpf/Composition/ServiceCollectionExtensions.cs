@@ -12,6 +12,7 @@ using CamPOS.Application.Receipts;
 using CamPOS.Application.Reports;
 using CamPOS.Application.Repositories;
 using CamPOS.Application.Security;
+using CamPOS.Application.Usage;
 using CamPOS.DataAccess.Database;
 using CamPOS.DataAccess.Repositories;
 using CamPOS.Wpf.Services;
@@ -81,6 +82,16 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IImportHistoryRepository, ImportHistoryRepository>();
         services.AddTransient<IReportRepository, ReportRepository>();
         services.AddTransient<ISyncRepository, SyncRepository>();
+        services.AddTransient<IUsageEventRepository, UsageEventRepository>();
+
+        // 기록기는 Singleton이다 — 로그인한 역할을 들고 있어야 하기 때문이다.
+        // 저장소는 Transient라 생성자로 받지 않고 팩토리로 매번 받는다: Singleton이
+        // Transient를 붙잡으면 그 하나가 앱이 꺼질 때까지 살아남는다.
+        services.AddSingleton<IUsageRecorder>(provider => new UsageRecorder(
+            provider.GetRequiredService<IUsageEventRepository>,
+            // CamPOS.Wpf 안에서 맨 Application은 System.Windows.Application보다
+            // 네임스페이스 CamPOS.Application에 먼저 걸린다. 전체 이름으로 쓴다.
+            CamPOS.Application.AppVersion.Number));
         services.AddTransient<IBackupRepository>(sp => new BackupRepository(
      sp.GetRequiredService<SqliteConnectionFactory>(), dbFilePath));
         // Application 서비스

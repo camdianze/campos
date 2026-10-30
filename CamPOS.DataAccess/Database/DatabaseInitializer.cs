@@ -31,6 +31,7 @@ public class DatabaseInitializer
         CreateReceiptCounterTable(connection);
         CreateReceiptNumberTable(connection);
         CreateSyncStateTable(connection);
+        CreateUsageEventTable(connection);
 
         ApplyMigrations(connection);
     }
@@ -297,6 +298,42 @@ public class DatabaseInitializer
     /// 그래서 Stock_Transaction을 <b>통째로 다시 만드는 마이그레이션은 금지</b>다.
     /// ALTER TABLE ADD COLUMN은 rowid를 보존하지만 테이블 재생성은 번호를 바꾼다.
     /// </summary>
+    /// <summary>
+    /// 기능 사용 기록. 약국이 어떤 기능을 얼마나 쓰는지만 남기고, 서버로 올라가
+    /// 성과 지표가 된다.
+    ///
+    /// <b>칸은 여섯이고, 늘리는 것은 동의서를 고치는 일이다.</b> 약국은 계약할 때
+    /// "무엇이 기록되는가"를 읽고 서명한다 — 칸이 하나 늘면 그 문장이 조용히
+    /// 거짓이 되고, 기록은 쌓이고 나면 되돌릴 수 없다. UsageEventTests가 칸 수를
+    /// 고정하고 docs/usage-events-consent.md가 약국에게 한 약속이다.
+    ///
+    /// 여기 <b>없는</b> 것: 환자, 입력한 글자, 금액, 상품 이름, 화면, 키 입력,
+    /// 그리고 누가 눌렀는지. 마지막 것이 특히 일부러다 — user_id를 두면 이미
+    /// 올라가 있는 app_user와 이어져 직원 실명 단위 기록이 되는데, 성과 지표에
+    /// 필요한 것은 role까지다.
+    ///
+    /// Stock_Transaction과 같은 규칙으로 <b>덧붙기만 하고 고치지 않는다.</b>
+    /// 워터마크가 rowid이므로 이 표를 다시 만들면(CREATE TABLE ... AS SELECT)
+    /// 전부 다시 보내거나 일부를 건너뛴다.
+    /// </summary>
+    private static void CreateUsageEventTable(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Usage_Event (
+                event_id     TEXT PRIMARY KEY,
+                occurred_at  INTEGER NOT NULL,
+                role         TEXT,
+                event_name   TEXT NOT NULL,
+                outcome      TEXT NOT NULL,
+                app_version  TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_usage_event_time
+                ON Usage_Event(occurred_at);
+            """;
+        command.ExecuteNonQuery();
+    }
+
     private static void CreateSyncStateTable(SqliteConnection connection)
     {
         using var command = connection.CreateCommand();

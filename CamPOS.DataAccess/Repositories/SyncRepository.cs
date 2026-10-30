@@ -242,6 +242,49 @@ public class SyncRepository : ISyncRepository
         return rows;
     }
 
+    /// <summary>
+    /// 사용 기록. 시설로 거르지 않는 유일한 스트림인데, 표에 facility_id가 없기
+    /// 때문이다 — PC 한 대가 약국 하나이므로 거를 것이 없고, 서버에서는 토큰이
+    /// 정한 site_id가 붙는다.
+    /// </summary>
+    public async Task<IReadOnlyList<(long RowId, SyncUsageEvent Row)>> GetUsageEventsAfterAsync(
+        long afterRowId, int limit)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+
+        using var command = connection.CreateCommand();
+
+        // 여섯 칸을 이름으로 적는다. SELECT *로 두면 누군가 칸을 더했을 때 그것이
+        // 그대로 서버로 나가고, 약국에게 한 약속이 조용히 깨진다.
+        command.CommandText = """
+            SELECT rowid, event_id, occurred_at, role, event_name, outcome, app_version
+            FROM Usage_Event
+            WHERE rowid > $afterRowId
+            ORDER BY rowid
+            LIMIT $limit;
+            """;
+        command.Parameters.AddWithValue("$afterRowId", afterRowId);
+        command.Parameters.AddWithValue("$limit", limit);
+
+        using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<(long, SyncUsageEvent)>();
+
+        while (await reader.ReadAsync())
+        {
+            rows.Add((reader.GetInt64(0), new SyncUsageEvent
+            {
+                EventId = reader.GetString(1),
+                OccurredAt = reader.GetInt64(2),
+                Role = Text(reader, 3),
+                EventName = reader.GetString(4),
+                Outcome = reader.GetString(5),
+                AppVersion = Text(reader, 6)
+            }));
+        }
+
+        return rows;
+    }
+
     public async Task<int> CountPendingAsync(string facilityId)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
@@ -258,11 +301,15 @@ public class SyncRepository : ISyncRepository
                         (SELECT position FROM Sync_State WHERE stream = $transactions), 0)))
               + (SELECT COUNT(*) FROM Counselling_Log
                   WHERE rowid > (SELECT COALESCE(
-                        (SELECT position FROM Sync_State WHERE stream = $counselling), 0)));
+                        (SELECT position FROM Sync_State WHERE stream = $counselling), 0)))
+              + (SELECT COUNT(*) FROM Usage_Event
+                  WHERE rowid > (SELECT COALESCE(
+                        (SELECT position FROM Sync_State WHERE stream = $usage), 0)));
             """;
         command.Parameters.AddWithValue("$facilityId", facilityId);
         command.Parameters.AddWithValue("$transactions", SyncStreams.Transactions);
         command.Parameters.AddWithValue("$counselling", SyncStreams.CounsellingLogs);
+        command.Parameters.AddWithValue("$usage", SyncStreams.UsageEvents);
 
         var result = await command.ExecuteScalarAsync();
 

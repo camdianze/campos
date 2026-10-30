@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using CamPOS.Application.Usage;
+using System.Globalization;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
@@ -19,6 +20,7 @@ public class SalesHistoryViewModel : ViewModelBase
 {
     private readonly ISalesHistoryService _salesHistoryService;
     private readonly IReceiptPrintingService _receiptPrintingService;
+    private readonly IUsageRecorder _usageRecorder;
     private readonly string _facilityId;
 
     /// <summary>환불 창을 만들 때 필요하다 — 시설과 "환불을 누른 사람"을 함께 넘겨야 한다.</summary>
@@ -95,11 +97,13 @@ public class SalesHistoryViewModel : ViewModelBase
     public SalesHistoryViewModel(
         ISalesHistoryService salesHistoryService,
         IReceiptPrintingService receiptPrintingService,
+        IUsageRecorder usageRecorder,
         string facilityId,
         string userId)
     {
         _salesHistoryService = salesHistoryService;
         _receiptPrintingService = receiptPrintingService;
+        _usageRecorder = usageRecorder;
         _facilityId = facilityId;
         UserId = userId;
 
@@ -262,6 +266,10 @@ public class SalesHistoryViewModel : ViewModelBase
             Username = SelectedLine.Username,
             PaymentMethod = SelectedLine.PaymentMethod
         });
+
+        _ = _usageRecorder.RecordAsync(
+            UsageEventNames.ReceiptPrinted,
+            printResult.IsSuccess ? UsageOutcome.Success : UsageOutcome.Failure);
 
         Message = printResult.IsSuccess
             ? string.Empty

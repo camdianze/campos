@@ -352,6 +352,10 @@ public class SyncServiceTests
             long afterRowId, int limit) =>
             Task.FromResult<IReadOnlyList<(long, SyncCounsellingLog)>>([]);
 
+        public Task<IReadOnlyList<(long RowId, SyncUsageEvent Row)>> GetUsageEventsAfterAsync(
+            long afterRowId, int limit) =>
+            Task.FromResult<IReadOnlyList<(long, SyncUsageEvent)>>([]);
+
         public Task<int> CountPendingAsync(string facilityId) =>
             Task.FromResult(_transactions.Count(
                 t => t.RowId > (_positions.TryGetValue(SyncStreams.Transactions, out var p) ? p : 0)));

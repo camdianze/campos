@@ -12,6 +12,7 @@ using CamPOS.Application.Inventory;
 using CamPOS.Application.Products;
 using CamPOS.Application.Receipts;
 using CamPOS.Application.Reports;
+using CamPOS.Application.Usage;
 using CamPOS.Application.Repositories;
 using CamPOS.Wpf.Shell;
 using CamPOS.Wpf.ViewModels;
@@ -176,7 +177,11 @@ public partial class AdminDashboardView : UserControl
             App.Services.GetRequiredService<SyncSettingsService>(),
             App.Services.GetRequiredService<ISyncClient>(),
             App.Services.GetRequiredService<SyncService>(),
+            App.Services.GetRequiredService<IUsageRecorder>(),
             currentUser.FacilityId, currentUser.UserId);
+
+        _ = App.Services.GetRequiredService<IUsageRecorder>()
+            .RecordAsync(UsageEventNames.DataCenter, UsageOutcome.Shown);
 
         var backupExportView = new BackupExportView();
         backupExportView.AttachViewModel(backupExportViewModel);
@@ -195,6 +200,7 @@ public partial class AdminDashboardView : UserControl
 
         var salesHistoryViewModel = new SalesHistoryViewModel(
             salesHistoryService, receiptPrintingService,
+            App.Services.GetRequiredService<IUsageRecorder>(),
             App.CurrentShellViewModel!.CurrentUser.FacilityId,
             App.CurrentShellViewModel.CurrentUser.UserId);
 

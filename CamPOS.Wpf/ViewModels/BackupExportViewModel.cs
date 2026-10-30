@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using CamPOS.Application.Usage;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -37,6 +38,7 @@ public class BackupExportViewModel : ViewModelBase
     private const int MaxIssueLinesInDialog = 15;
 
     private readonly IBackupService _backupService;
+    private readonly IUsageRecorder _usageRecorder;
     private readonly IInitialImportService _initialImportService;
     private readonly IPhotoImportService _photoImportService;
     private readonly string _facilityId;
@@ -316,6 +318,10 @@ public class BackupExportViewModel : ViewModelBase
         {
             var result = await _syncService.RunAsync(_facilityId);
 
+            _ = _usageRecorder.RecordAsync(
+                UsageEventNames.SyncManual,
+                result.IsSuccess ? UsageOutcome.Success : UsageOutcome.Failure);
+
             SyncStatusMessage = result.IsSuccess ? result.Message : "Not sent. " + result.Message;
 
             await RefreshSyncStateAsync();
@@ -525,9 +531,11 @@ public class BackupExportViewModel : ViewModelBase
         SyncSettingsService syncSettingsService,
         ISyncClient syncClient,
         SyncService syncService,
+        IUsageRecorder usageRecorder,
         string facilityId,
         string userId)
     {
+        _usageRecorder = usageRecorder;
         _backupService = backupService;
         _initialImportService = initialImportService;
         _photoImportService = photoImportService;
@@ -810,6 +818,12 @@ public class BackupExportViewModel : ViewModelBase
 
     private void ShowApplyResult(string title, ImportApplyResult result, string unitLabel)
     {
+        // 임포트는 부분 성공이 보통이다 — 몇 줄 실패했다고 실패로 적으면
+        // 오류율이 임포트 한 번에 휘둘린다. 한 줄도 못 넣은 경우만 실패다.
+        _ = _usageRecorder.RecordAsync(
+            UsageEventNames.ImportCompleted,
+            result.SuccessCount > 0 ? UsageOutcome.Success : UsageOutcome.Failure);
+
         var summary = new StringBuilder();
         summary.AppendLine($"Imported : {result.SuccessCount} {unitLabel}");
         summary.AppendLine($"Failed   : {result.FailureCount}");
@@ -881,6 +895,10 @@ public class BackupExportViewModel : ViewModelBase
         Message = string.Empty;
 
         var result = await _backupService.CreateDatabaseBackupAsync(ExportFolder);
+
+        _ = _usageRecorder.RecordAsync(
+            UsageEventNames.BackupCreated,
+            result.IsSuccess ? UsageOutcome.Success : UsageOutcome.Failure);
 
         Message = result.IsSuccess ? result.Message ?? "Backup created successfully." : result.Message!;
     }

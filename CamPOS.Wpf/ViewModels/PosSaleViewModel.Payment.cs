@@ -1,4 +1,5 @@
-﻿using CamPOS.Application.Parsing;
+﻿using CamPOS.Application.Usage;
+using CamPOS.Application.Parsing;
 using CamPOS.Wpf.ViewModels.Base;
 using CamPOS.Application.Counselling;
 using CamPOS.Application.Inventory;
@@ -278,6 +279,7 @@ public partial class PosSaleViewModel
 
         if (result.IsSuccess)
         {
+            _ = _usageRecorder.RecordAsync(UsageEventNames.SaleCompleted, UsageOutcome.Success);
             await PrintReceiptAndCompleteAsync(result.ConfirmedLines);
         }
         else if (result.RequiresConfirmation)
@@ -289,6 +291,9 @@ public partial class PosSaleViewModel
         }
         else
         {
+            // 확인을 더 받아야 하는 경우(RequiresConfirmation)는 실패가 아니다 —
+            // 여기에 적으면 "원가 이하 판매입니까?"를 누른 것이 오류율에 섞인다.
+            _ = _usageRecorder.RecordAsync(UsageEventNames.SaleCompleted, UsageOutcome.Failure);
             Message = result.Message!;
         }
     }
@@ -335,11 +340,21 @@ public partial class PosSaleViewModel
                 ChangeDue = changeDue
             });
 
+            _ = _usageRecorder.RecordAsync(
+                UsageEventNames.ReceiptPrinted,
+                printResult.IsSuccess ? UsageOutcome.Success : UsageOutcome.Failure);
+
             if (!printResult.IsSuccess)
             {
                 // 판매가 끝났다는 말이 먼저 와야 한다. 계산대에서는 이 줄만 보고 판단한다.
                 Message = "Sale completed. The receipt did not print — check the printer.";
             }
+        }
+        else
+        {
+            // 설정이 Never이거나 Ask에서 거절했다. 실패가 아니므로 오류율에 섞으면
+            // 안 되고, 그래서 Skipped가 따로 있다.
+            _ = _usageRecorder.RecordAsync(UsageEventNames.ReceiptPrinted, UsageOutcome.Skipped);
         }
 
         await HandleAntibioticCounsellingAsync(confirmedLines);

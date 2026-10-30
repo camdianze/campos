@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using CamPOS.Application.Usage;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
@@ -14,6 +15,7 @@ namespace CamPOS.Wpf.ViewModels;
 public class AlertsViewModel : ViewModelBase
 {
     private readonly IAlertService _alertService;
+    private readonly IUsageRecorder _usageRecorder;
     private readonly string _facilityId;
 
     private AlertTypeFilter _selectedTypeFilter = AlertTypeFilter.All;
@@ -30,6 +32,19 @@ public class AlertsViewModel : ViewModelBase
         {
             if (SetProperty(ref _selectedTypeFilter, value))
             {
+                // 유통기한과 안전재고는 한 화면의 두 필터다. 어느 쪽을 골라 봤는지가
+                // "알림을 확인했다"에 해당한다 — All은 둘 다 본 것이라 적지 않는다.
+                if (value == AlertTypeFilter.Expiry)
+                {
+                    _ = _usageRecorder.RecordAsync(
+                        UsageEventNames.ExpiryAlertOpened, UsageOutcome.Shown);
+                }
+                else if (value == AlertTypeFilter.LowStock)
+                {
+                    _ = _usageRecorder.RecordAsync(
+                        UsageEventNames.LowStockAlertOpened, UsageOutcome.Shown);
+                }
+
                 _ = ReloadAsync();
             }
         }
@@ -81,9 +96,11 @@ public class AlertsViewModel : ViewModelBase
     /// <summary>상품 목록으로 넘어가 달라는 요청(상품 ID). 화면 전환은 코드 비하인드가 한다.</summary>
     public event Action<string>? NavigateToProduct;
 
-    public AlertsViewModel(IAlertService alertService, string facilityId)
+    public AlertsViewModel(
+        IAlertService alertService, IUsageRecorder usageRecorder, string facilityId)
     {
         _alertService = alertService;
+        _usageRecorder = usageRecorder;
         _facilityId = facilityId;
 
         ViewInventoryCommand = new RelayCommand(_ => ExecuteViewInventory());

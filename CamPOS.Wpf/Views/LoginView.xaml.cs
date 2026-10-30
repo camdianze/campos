@@ -4,6 +4,7 @@ using PharmaPOS.Application.Licensing;
 using System.Windows.Controls;
 using CamPOS.Application.Authentication;
 using CamPOS.Application.Inventory;
+using CamPOS.Application.Usage;
 using CamPOS.Domain.Entities;
 using CamPOS.Wpf.Shell;
 using CamPOS.Wpf.ViewModels;
@@ -38,6 +39,12 @@ public partial class LoginView : UserControl
 
     private async void OnLoginSucceeded(User loggedInUser)
     {
+        // 이후의 모든 기록이 이 역할을 달고 나간다. 로그인 직후가 유일하게
+        // 역할을 아는 자리이고, 자동 전송 시계를 거는 자리와 같다.
+        var usage = App.Services.GetRequiredService<IUsageRecorder>();
+        usage.StartSession(loggedInUser.Role);
+        _ = usage.RecordAsync(UsageEventNames.Login, UsageOutcome.Success);
+
         var alertService = App.Services.GetRequiredService<IAlertService>();
         var uiLanguage = App.Services.GetRequiredService<UiLanguageService>();
         // 라이선스 상태는 로그인 시점에 한 번 읽는다. 배지가 필요한지 여기서 정해진다.

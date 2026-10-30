@@ -1,4 +1,5 @@
 ﻿using CamPOS.Application.Sync;
+using CamPOS.Application.Usage;
 using CamPOS.Application.Updates;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
@@ -41,6 +42,11 @@ public partial class MainShellView : UserControl
         if (parentWindow is MainWindow mainWindow)
         {
             App.CurrentShellViewModel = null;
+
+            // 역할을 잊는다. 잊지 않으면 다음 사람이 로그인하기 전까지의 기록이
+            // 떠난 사람의 역할을 달고 나간다.
+            App.Services.GetRequiredService<IUsageRecorder>().EndSession();
+
             mainWindow.Content = new LoginView();
         }
     }
@@ -52,6 +58,15 @@ public partial class MainShellView : UserControl
         if (parentWindow is not null)
             parentWindow.Content = new MyPageView(shellViewModel.CurrentUser);
     }
+
+    /// <summary>
+    /// 화면을 열었다고 한 줄 적는다. 기다리지 않는 이유는 기록이 화면 전환을
+    /// 늦출 이유가 없기 때문이고, 그래도 되는 이유는 RecordAsync가 절대 던지지
+    /// 않기 때문이다.
+    /// </summary>
+    private static void Opened(string screen) =>
+        _ = App.Services.GetRequiredService<IUsageRecorder>()
+            .RecordAsync(screen, UsageOutcome.Shown);
 
     // ── 알림 팝업 ─────────────────────────────────────────────────────────
 
@@ -70,10 +85,14 @@ public partial class MainShellView : UserControl
         if (DataContext is not MainShellViewModel shellViewModel) return;
 
         var alertService = App.Services.GetRequiredService<IAlertService>();
-        var alertsViewModel = new AlertsViewModel(alertService, shellViewModel.CurrentUser.FacilityId);
+        var alertsViewModel = new AlertsViewModel(
+            alertService,
+            App.Services.GetRequiredService<IUsageRecorder>(),
+            shellViewModel.CurrentUser.FacilityId);
 
         var alertsView = new AlertsView();
         alertsView.AttachViewModel(alertsViewModel);
+        Opened(UsageEventNames.Alerts);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
@@ -89,6 +108,7 @@ public partial class MainShellView : UserControl
     private void OnProductsClick(object sender, RoutedEventArgs e)
     {
         var productListView = ProductListView.Create();
+        Opened(UsageEventNames.Products);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
@@ -97,6 +117,8 @@ public partial class MainShellView : UserControl
 
     private void OnInventoryClick(object sender, RoutedEventArgs e)
     {
+        Opened(UsageEventNames.Inventory);
+
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
             parentWindow.Content = new InventoryStatusView();
@@ -120,6 +142,7 @@ public partial class MainShellView : UserControl
             shellViewModel.CurrentUser.FacilityId);
 
         var reportsView = new ReportsView();
+        Opened(UsageEventNames.Reports);
         reportsView.AttachViewModel(reportsViewModel);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
@@ -159,6 +182,7 @@ public partial class MainShellView : UserControl
             productRepository, inventoryRepository, saleService, receiptPrintingService,
             App.Services.GetRequiredService<IReceiptSettingsService>(),
             counsellingService,
+            App.Services.GetRequiredService<IUsageRecorder>(),
             shellViewModel.CurrentUser.FacilityId, shellViewModel.CurrentUser.UserId,
             shellViewModel.CurrentUser.Username,
             shellViewModel.CurrentUser.Role,
@@ -166,6 +190,7 @@ public partial class MainShellView : UserControl
 
         var posSaleView = new PosSaleView();
         posSaleView.AttachViewModel(posSaleViewModel);
+        Opened(UsageEventNames.Sales);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)

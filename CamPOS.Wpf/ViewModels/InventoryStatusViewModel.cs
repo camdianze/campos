@@ -1,4 +1,5 @@
-﻿using CamPOS.Application.Parsing;
+﻿using CamPOS.Application.Usage;
+using CamPOS.Application.Parsing;
 using System.Collections.ObjectModel;
 using System.Windows;
 using CamPOS.Application.Inventory;
@@ -59,6 +60,7 @@ public class InventoryStatusViewModel : ViewModelBase
     private readonly IInventoryRepository _inventoryRepository;
     private readonly IAdjustmentService _adjustmentService;
     private readonly IStockInService _stockInService;
+    private readonly IUsageRecorder _usageRecorder;
     private readonly string _facilityId;
     private readonly string _userId;
 
@@ -284,12 +286,14 @@ public class InventoryStatusViewModel : ViewModelBase
         IInventoryRepository inventoryRepository,
         IAdjustmentService adjustmentService,
         IStockInService stockInService,
+        IUsageRecorder usageRecorder,
         string facilityId,
         string userId)
     {
         _inventoryRepository = inventoryRepository;
         _adjustmentService = adjustmentService;
         _stockInService = stockInService;
+        _usageRecorder = usageRecorder;
         _facilityId = facilityId;
         _userId = userId;
 
@@ -408,6 +412,10 @@ public class InventoryStatusViewModel : ViewModelBase
 
     private void ExecuteOpenStockInPanel()
     {
+        // 입고는 독립 화면이 아니라 이 화면 안의 패널이다. 패널을 연 것이
+        // "입고 화면을 열었다"에 해당한다.
+        _ = _usageRecorder.RecordAsync(UsageEventNames.StockIn, UsageOutcome.Shown);
+
         Message = string.Empty;
 
         if (StockInSource is null)
@@ -461,6 +469,10 @@ public class InventoryStatusViewModel : ViewModelBase
         var result = await _stockInService.SaveStockInAsync(
             _facilityId, source.ProductId, _userId,
             StockInBatchNumber, StockInExpiryDate, StockInDate, quantity);
+
+        _ = _usageRecorder.RecordAsync(
+            UsageEventNames.StockInSaved,
+            result.IsSuccess ? UsageOutcome.Success : UsageOutcome.Failure);
 
         if (!result.IsSuccess)
         {
@@ -660,6 +672,8 @@ public class InventoryStatusViewModel : ViewModelBase
 
         if (result.IsSuccess)
         {
+            _ = _usageRecorder.RecordAsync(UsageEventNames.AdjustmentSaved, UsageOutcome.Success);
+
             IsAdjustmentPanelVisible = false;
             ResetAdjustmentForm();
 

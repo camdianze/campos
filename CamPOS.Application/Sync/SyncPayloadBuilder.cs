@@ -42,6 +42,9 @@ public sealed class SyncPayloadBuilder
         var counselling = await _repository.GetCounsellingLogsAfterAsync(
             counsellingFrom, BatchRows);
 
+        var usage = await _repository.GetUsageEventsAfterAsync(
+            await _repository.GetPositionAsync(SyncStreams.UsageEvents), BatchRows);
+
         // 담은 것이 있을 때만 위치를 적는다. 빈 묶음에 옛 위치를 적으면 뜻은 같지만,
         // "이 묶음이 어디까지 책임지는가"가 흐려진다.
         var positions = new Dictionary<string, long>();
@@ -56,6 +59,11 @@ public sealed class SyncPayloadBuilder
             positions[SyncStreams.CounsellingLogs] = counselling[^1].RowId;
         }
 
+        if (usage.Count > 0)
+        {
+            positions[SyncStreams.UsageEvents] = usage[^1].RowId;
+        }
+
         return new SyncPayload
         {
             AppVersion = AppVersion.Display,
@@ -65,6 +73,7 @@ public sealed class SyncPayloadBuilder
             Users = includeCatalogue ? await _repository.GetUsersAsync(facilityId) : [],
             Transactions = transactions.Select(t => t.Row).ToList(),
             CounsellingLogs = counselling.Select(c => c.Row).ToList(),
+            UsageEvents = usage.Select(u => u.Row).ToList(),
             Positions = positions
         };
     }

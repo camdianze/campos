@@ -290,6 +290,24 @@ Server-side design and the step-by-step setup live in [supabase/README.md](supab
 
 **Money is synced raw and in full**, including `selling_price_khr` and friends. This is the opposite of the antibiotic CSV rule, and deliberately so: that file leaves the pharmacy for a research body, while this goes to the owner's own server, and the later processing is a separate Python step. Prices arrive in unconstrained `numeric` columns — `numeric(12,2)` would round, and the four-decimal values are the ones that make riel come back out whole.
 
+## Usage events (v2 only)
+
+`Usage_Event` records which features a pharmacy uses, syncs with everything else, and feeds the metric views in [supabase/metrics.sql](supabase/metrics.sql). It exists so Camdianz can answer whether a pilot pharmacy is still using CamPOS, which screens earn their place, and where it breaks — questions that were previously answered by asking the pharmacy, which is both unreliable and a favour to ask.
+
+**Six columns, and adding a seventh means editing the consent form first.** [docs/usage-events-consent.md](docs/usage-events-consent.md) is what the pharmacy reads and signs, and it lists exactly what is written down. A column is one line of code; the document is something a person has to remember, so left to memory the two will diverge — and recorded data cannot be un-recorded. `UsageEventTests` pins the column list, the property list on `UsageEvent`, and the event names, so the code cannot drift away from the promise on its own.
+
+**There is no `user_id`, deliberately.** `app_user` is already synced, so a user id would join straight to a named member of staff, and nothing in a performance indicator needs that — `role` answers "do the staff use it, or only the owner?", which is the actual question. That line is drawn on the side that cannot be undone later. `role` is stamped at the time because `app_user.role` is overwritten when someone is promoted, the same reasoning as the cost snapshot above; it is null before login, which is true rather than tidy.
+
+**Errors are an `outcome`, not an event name.** `save_failed` tells you something failed but not *what*, so a per-feature error rate cannot be built from it; `receipt_printed`/`failure` says both. `skipped` is separate from `failure` because declining to print a receipt is not a fault and must not land in the error rate. The 22 names live in `UsageEventNames` and anything outside the set is silently dropped — a free-form string makes the consent list an unverifiable promise, and a one-character typo would remove a feature from the metrics with nothing on screen to show it.
+
+**Recording never reaches the caller.** `IUsageRecorder` returns no result and swallows everything, so a full disk cannot stop a sale at the counter; `_ = RecordAsync(...)` is safe for the same reason. The rule sits in Application where `UsageEventTests` holds it. `UsageRecorder` is the one Singleton that keeps session state — the logged-in role — which bends CLAUDE.md's no-ambient-session rule on purpose: the value is write-only, it reaches a log column and nothing else, and threading it through seven ViewModels would cost more than it protects. **Nothing but the recorder may read it.**
+
+**Automatic sync is not recorded**, only `sync_manual`. A row every 30 minutes is noise, not a signal, and "is this pharmacy reaching the server?" is already answered by `sync_batch` — which is what `metric_last_sync` reads.
+
+**`metric_expiry_response` measures less than its name suggests.** With no product id in the event, it can only say that an adjustment or refund happened in the same pharmacy within 7 days of the alert list being opened — association, not cause. A pharmacy that adjusts stock daily scores 100%. The view's comment says so; fixing it properly would mean putting a product id in the event, which is a change to the consent form.
+
+Volume is roughly 130–430 rows a day, so 7–24 MB a year. That is comparable to the photos in the same `.db`, and the backup is one file over a slow line, so **decide at the 12-month mark whether to prune synced rows older than a year.** Deleting rows is safe for the `rowid` watermark; rebuilding the table is not.
+
 ## Automatic updates (v2 only)
 
 The pharmacy is never asked and never told. CamPOS checks once at startup in the background, downloads only, and installs when the app is closed — no prompt, no progress bar, no notice when it fails. A question about installing an update is not one to ask at a till, and a slow line must never hold up opening the app. [supabase/releases-bucket.md](supabase/releases-bucket.md) sets the storage up and [supabase/README.md](supabase/README.md) holds the release procedure; what follows is what is easy to break from the code side.

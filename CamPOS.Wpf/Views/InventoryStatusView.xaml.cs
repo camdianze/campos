@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CamPOS.Application.Usage;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -40,6 +41,7 @@ public partial class InventoryStatusView : UserControl
             App.Services.GetRequiredService<IInventoryRepository>(),
             App.Services.GetRequiredService<IAdjustmentService>(),
             App.Services.GetRequiredService<IStockInService>(),
+            App.Services.GetRequiredService<IUsageRecorder>(),
             shellViewModel?.CurrentUser.FacilityId ?? string.Empty,
             shellViewModel?.CurrentUser.UserId ?? string.Empty);
     }
@@ -138,6 +140,9 @@ public partial class InventoryStatusView : UserControl
             return;
         }
 
+        _ = App.Services.GetRequiredService<IUsageRecorder>()
+            .RecordAsync(UsageEventNames.Sales, UsageOutcome.Shown);
+
         var posSaleViewModel = new PosSaleViewModel(
             App.Services.GetRequiredService<IProductRepository>(),
             App.Services.GetRequiredService<IInventoryRepository>(),
@@ -145,6 +150,7 @@ public partial class InventoryStatusView : UserControl
             App.Services.GetRequiredService<IReceiptPrintingService>(),
             App.Services.GetRequiredService<IReceiptSettingsService>(),
             App.Services.GetRequiredService<ICounsellingService>(),
+            App.Services.GetRequiredService<IUsageRecorder>(),
             shellViewModel.CurrentUser.FacilityId,
             shellViewModel.CurrentUser.UserId,
             shellViewModel.CurrentUser.Username,

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CamPOS.Application.Usage;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -78,6 +79,7 @@ public partial class ProductListView : UserControl
 
         alertsView.AttachViewModel(new AlertsViewModel(
             App.Services.GetRequiredService<IAlertService>(),
+            App.Services.GetRequiredService<IUsageRecorder>(),
             App.CurrentShellViewModel?.CurrentUser.FacilityId ?? string.Empty));
 
         return alertsView;
@@ -138,7 +140,8 @@ public partial class ProductListView : UserControl
     private void OnNavigateToPrintBarcode(Product product)
     {
         var barcodeService = App.Services.GetRequiredService<IInternalBarcodeService>();
-        var barcodeViewModel = new InternalBarcodeViewModel(barcodeService, product);
+        var barcodeViewModel = new InternalBarcodeViewModel(
+            barcodeService, App.Services.GetRequiredService<IUsageRecorder>(), product);
 
         var barcodeView = new InternalBarcodeView();
         barcodeView.AttachViewModel(barcodeViewModel);

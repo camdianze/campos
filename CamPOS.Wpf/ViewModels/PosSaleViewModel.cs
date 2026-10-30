@@ -1,4 +1,5 @@
-﻿using CamPOS.Application.Parsing;
+﻿using CamPOS.Application.Usage;
+using CamPOS.Application.Parsing;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -41,6 +42,7 @@ public partial class PosSaleViewModel : ViewModelBase
     private readonly IReceiptPrintingService _receiptPrintingService;
     private readonly IReceiptSettingsService _receiptSettingsService;
     private readonly ICounsellingService _counsellingService;
+    private readonly IUsageRecorder _usageRecorder;
     private readonly string _facilityId;
     private readonly string _userId;
 
@@ -243,6 +245,7 @@ public partial class PosSaleViewModel : ViewModelBase
         IReceiptPrintingService receiptPrintingService,
         IReceiptSettingsService receiptSettingsService,
         ICounsellingService counsellingService,
+        IUsageRecorder usageRecorder,
         string facilityId,
         string userId,
         string username,
@@ -262,6 +265,7 @@ public partial class PosSaleViewModel : ViewModelBase
         _receiptPrintingService = receiptPrintingService;
         _receiptSettingsService = receiptSettingsService;
         _counsellingService = counsellingService;
+        _usageRecorder = usageRecorder;
         _facilityId = facilityId;
         _userId = userId;
         _username = username;

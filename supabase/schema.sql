@@ -259,6 +259,44 @@ create table if not exists public.counselling_log (
 create index if not exists counselling_log_time_idx
     on public.counselling_log(site_id, created_at);
 
+-- ── 기능 사용 기록 ────────────────────────────────────────────────────────
+-- 약국이 어떤 기능을 얼마나 쓰는지. 캄디언즈가 성과 지표로 읽는다.
+--
+-- <b>열은 여섯 개뿐이고, 늘리려면 동의서를 먼저 고쳐야 한다.</b> 약국은 계약할 때
+-- "무엇이 기록되는가"를 읽고 서명하는데, 열이 하나 늘면 그 문장이 조용히 거짓이
+-- 된다 — 기록은 쌓이고 나면 되돌릴 수 없으므로, 늘리는 쪽이 항상 설명보다 빠르다.
+-- PC 쪽 UsageEventTests가 열 개수를 고정하고, docs/usage-events-consent.md가
+-- 약국에게 하는 약속이다.
+--
+-- <b>누가 눌렀는지는 적지 않는다.</b> user_id를 적으면 이미 올라가 있는 app_user와
+-- 이어져 직원 실명 단위 기록이 되고, 그것은 성과 지표에 필요하지 않다. role만
+-- 남기므로 "관리자와 직원이 각각 얼마나 쓰는가"는 나오고 "누가 무엇을 했는가"는
+-- 나오지 않는다. 그 선은 되돌릴 수 없는 쪽에 그어 두는 편이 낫다.
+--
+-- role은 그 시점의 역할이다. app_user의 역할은 직원이 승진하면 덮어써지므로,
+-- 과거 기록을 지금의 역할로 읽으면 틀린다 — 원가 스냅샷과 같은 이유다.
+create table if not exists public.usage_events (
+    site_id             text not null references public.site(site_id),
+    event_id            text not null,
+
+    occurred_at         bigint not null,
+    role                text,
+    event_name          text not null,
+    outcome             text not null,
+    app_version         text,
+
+    server_received_at  timestamptz not null default now(),
+
+    primary key (site_id, event_id)
+);
+
+create index if not exists usage_events_time_idx
+    on public.usage_events(site_id, occurred_at);
+
+create index if not exists usage_events_name_idx
+    on public.usage_events(site_id, event_name);
+
+
 -- ── 제품 사진 (5단계) ──────────────────────────────────────────────────────
 -- 사진은 지금 올리지 않지만 자리를 미리 만든다. 사진은 Storage에 두고 여기에는
 -- 그 경로만 적는다 — bytea로 넣으면 제품 한 행을 읽을 때마다 이미지가 따라온다.
@@ -343,4 +381,5 @@ alter table public.inventory         enable row level security;
 alter table public.app_user          enable row level security;
 alter table public.stock_transaction enable row level security;
 alter table public.counselling_log   enable row level security;
+alter table public.usage_events      enable row level security;
 alter table public.product_photo     enable row level security;

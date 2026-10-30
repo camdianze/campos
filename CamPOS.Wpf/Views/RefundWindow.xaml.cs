@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.Extensions.DependencyInjection;
+using CamPOS.Application.Usage;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using CamPOS.Application.Inventory;
@@ -155,6 +157,10 @@ public partial class RefundWindow : Window
             requests,
             ReasonInput.Text,
             returnToStock);
+
+        _ = App.Services.GetRequiredService<IUsageRecorder>().RecordAsync(
+            UsageEventNames.RefundSaved,
+            result.IsSuccess ? UsageOutcome.Success : UsageOutcome.Failure);
 
         if (!result.IsSuccess)
         {

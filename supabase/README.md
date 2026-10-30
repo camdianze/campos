@@ -12,6 +12,7 @@
 | `new-token.ps1` | PC용 토큰 하나를 만들고, 붙여넣을 SQL을 출력한다. |
 | `test-upload.ps1` | 미리보기 파일을 실제로 보내 서버를 확인한다. |
 | `check.sql` | 서버에 무엇이 들어와 있는지 한눈에. 전송할 때마다 다시 Run. |
+| `metrics.sql` | 성과 지표 뷰 여섯 개와 읽기 전용 역할. `schema.sql` 다음에 Run. |
 | `releases-bucket.md` | 업데이트 보관소 버킷 만들기 (한 번만). |
 | `licenses.sql` | 라이선스와 토큰이 서버에 어떻게 들어와 있는지. |
 
@@ -326,3 +327,53 @@ values (42, 'KH-0002', '두 번째 약국', '2027-10-01');
 **오프라인 활성화는 깨지지 않는다.** 활성화는 그대로 두고 "서버 연결"을 그다음 단계로 둔다. 동기화는 인터넷이 있어야 돌아가는 기능이므로 거기서 인터넷을 요구하는 비용은 0이다.
 
 지금 손으로 만드는 토큰은 버려지지 않는다 — **서버는 토큰이 어디서 왔는지 보지 않는다.** `site_token`에 줄이 있으면 통과다. 자동 발급은 그 줄을 사람 대신 코드가 넣는 것뿐이다.
+
+
+---
+
+# 성과 지표 읽기
+
+`metrics.sql`이 만드는 뷰 여섯 개가 지표의 전부다. 파이썬이든 Streamlit이든
+나중의 웹 화면이든 **이 뷰만** 읽는다.
+
+| 뷰 | 답하는 질문 |
+|---|---|
+| `metric_active_days` | 이 약국이 한 달에 며칠이나 장사에 썼나 |
+| `metric_feature_use` | 어떤 기능을 얼마나, 전체의 몇 %나 |
+| `metric_expiry_response` | 유통기한 알림을 본 뒤 7일 안에 재고를 움직였나 |
+| `metric_role_mix` | 관리자만 쓰나, 직원도 쓰나 |
+| `metric_error_rate` | 어느 기능이 얼마나 실패하나 |
+| `metric_last_sync` | 어느 약국이 조용해졌나 |
+
+## 왜 표가 아니라 뷰인가
+
+표에는 RLS가 켜져 있고 정책이 하나도 없어서 아무도 직접 못 읽는다. 뷰는 소유자
+권한으로 돌기 때문에 표를 읽을 수 있고, 읽는 쪽에는 뷰만 열어 준다 — 지표를 보는
+사람이 약국 원장을 통째로 긁어 갈 길은 열지 않는다.
+
+집계를 한 벌만 두는 이유도 있다. 읽는 쪽이 각자 집계하면 같은 질문에 숫자가 둘
+생기고, 어느 쪽이 맞는지 아무도 모르게 된다.
+
+## 읽기 전용 계정 만들기
+
+1. `metrics.sql` 안의 `create role` 주석을 보고, **긴 무작위 비밀번호로 바꿔**
+   SQL Editor에서 한 번 실행한다.
+2. 그다음 `metrics.sql` 전체를 Run 한다. 뷰가 만들어지고 권한이 붙는다.
+3. 비밀번호는 비밀번호 관리자에 둔다. **저장소에 넣지 않는다.**
+
+접속 문자열은 콘솔의 **Project Settings → Database → Connection string**에서
+가져와 사용자 이름과 비밀번호만 바꾼다.
+
+```python
+import os, pandas as pd, sqlalchemy
+
+engine = sqlalchemy.create_engine(os.environ["CAMPOS_METRICS_DSN"])
+pd.read_sql("select * from metric_active_days order by month desc", engine)
+```
+
+비밀번호는 환경 변수로 넘긴다. 코드에 적으면 그 코드가 가는 곳마다 따라간다.
+
+## 뷰를 고칠 때
+
+`metrics.sql`을 고쳐서 통째로 다시 Run 한다. 콘솔에서 직접 고치면 저장소의 파일과
+갈라지고, 프로젝트를 새로 만들 때 그 수정이 없다 — `check.sql`과 같은 규칙이다.

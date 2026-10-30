@@ -41,6 +41,10 @@ public interface ISyncRepository
     Task<IReadOnlyList<(long RowId, SyncCounsellingLog Row)>> GetCounsellingLogsAfterAsync(
         long afterRowId, int limit);
 
+    /// <inheritdoc cref="GetTransactionsAfterAsync"/>
+    Task<IReadOnlyList<(long RowId, SyncUsageEvent Row)>> GetUsageEventsAfterAsync(
+        long afterRowId, int limit);
+
     /// <summary>어디까지 보냈는지. 보낸 적이 없으면 0.</summary>
     /// <summary>
     /// 아직 보내지 않은 원장·상담 행을 합해서 센다.
