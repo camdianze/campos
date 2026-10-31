@@ -353,6 +353,17 @@
                             <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,8"
                                        Text="Sends every 30 minutes on its own. Turning it off does not stop the button above."/>
 
+                            <!-- 약국이 "장사 기록은 보내고 싶지 않다"고 할 때 끈다.
+                                 끄면 전송이 멈추는 것이 아니라 담기는 것이 줄어든다 —
+                                 통로는 하나다. 꺼 둔 동안의 원장은 지워지지 않고
+                                 PC에 그대로 남아, 다시 켜면 전부 올라간다. -->
+                            <CheckBox Content="Send products, stock and sales"
+                                      IsChecked="{Binding IsPharmacyDataOn}"
+                                      IsEnabled="{Binding IsSyncIdle}"
+                                      Margin="0,0,0,2"/>
+                            <TextBlock Style="{StaticResource PanelHint}" Margin="0,0,0,8"
+                                       Text="Turning this off keeps your records on this computer. Nothing already sent is removed."/>
+
                             <TextBlock Text="{Binding SyncLastSuccessText}"
                                        Style="{StaticResource PanelHint}" TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding SyncPendingText}"

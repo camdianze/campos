@@ -268,6 +268,164 @@ public class SyncServiceTests
 
     // ── 받침대 ──────────────────────────────────────────────────────────
 
+    // ── 약국 데이터와 사용 기록의 분리 ──────────────────────────────────
+
+    /// <summary>
+    /// "매출은 보내고 싶지 않다"는 약국. 사용 기록은 이용 조건이므로 그대로 가고,
+    /// 나머지는 하나도 실리지 않아야 한다. 둘을 한 스위치에 묶어 두면 그런 약국에게서
+    /// 아무것도 받지 못한다 — 이 테스트가 그 분리를 지킨다.
+    /// </summary>
+    [Fact]
+    public async Task WithPharmacyDataOff_OnlyUsageEventsAreSent()
+    {
+        var repository = new FakeSyncRepository(transactions: 3, products: 2, usageEvents: 4);
+        var client = FakeSyncClient.ThatSucceeds();
+        var settings = new FakeSettings();
+        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
+
+        var service = NewService(repository, client, settings: settings);
+
+        var result = await service.RunAsync(Facility);
+
+        Assert.True(result.IsSuccess);
+
+        var payload = client.LastPayload!;
+        Assert.Equal(4, payload.UsageEvents.Count);
+        Assert.Empty(payload.Transactions);
+        Assert.Empty(payload.Products);
+        Assert.Empty(payload.Inventory);
+        Assert.Empty(payload.Users);
+        Assert.Empty(payload.CounsellingLogs);
+    }
+
+    /// <summary>
+    /// 보내지 않은 원장의 워터마크는 제자리여야 한다. 움직이면 그 행들은 다시
+    /// 선택되지 않고, 약국이 마음을 바꿔 켜도 그동안의 것이 영영 올라가지 않는다.
+    /// </summary>
+    [Fact]
+    public async Task WithPharmacyDataOff_TheLedgerWatermarkStaysPut()
+    {
+        var repository = new FakeSyncRepository(transactions: 3, usageEvents: 2);
+        var settings = new FakeSettings();
+        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
+
+        var service = NewService(repository, FakeSyncClient.ThatSucceeds(), settings: settings);
+
+        await service.RunAsync(Facility);
+
+        Assert.Equal(0, await repository.GetPositionAsync(SyncStreams.Transactions));
+        Assert.Equal(2, await repository.GetPositionAsync(SyncStreams.UsageEvents));
+    }
+
+    /// <summary>껐다 켜면 그동안 쌓인 것이 전부 올라간다. 잃는 것은 없다.</summary>
+    [Fact]
+    public async Task TurningPharmacyDataBackOn_SendsWhatPiledUp()
+    {
+        var repository = new FakeSyncRepository(transactions: 3, usageEvents: 1);
+        var settings = new FakeSettings();
+        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
+
+        var service = NewService(repository, FakeSyncClient.ThatSucceeds(), settings: settings);
+        await service.RunAsync(Facility);
+
+        settings.Values[AppSettingKeys.SyncPharmacyData] = "true";
+        var client = FakeSyncClient.ThatSucceeds();
+        var reopened = NewService(repository, client, settings: settings);
+
+        await reopened.RunAsync(Facility);
+
+        Assert.Equal(3, client.LastPayload!.Transactions.Count);
+        Assert.Equal(3, await repository.GetPositionAsync(SyncStreams.Transactions));
+    }
+
+    /// <summary>
+    /// 사용 기록만 보내는 약국에 보낼 것이 없으면 요청 자체를 하지 않는다.
+    /// 카탈로그가 실리지 않으므로 빈 묶음을 보낼 이유가 없고, 30분마다 빈 행만
+    /// 쌓이면 sync_batch에서 "이 약국이 살아 있나"를 읽을 수 없게 된다.
+    /// </summary>
+    [Fact]
+    public async Task WithPharmacyDataOffAndNothingToSend_NoRequestIsMade()
+    {
+        var repository = new FakeSyncRepository(transactions: 5, usageEvents: 0);
+        var client = FakeSyncClient.ThatSucceeds();
+        var settings = new FakeSettings();
+        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
+
+        var service = NewService(repository, client, settings: settings);
+
+        await service.RunAsync(Facility);
+
+        Assert.Equal(0, client.Sends);
+    }
+
+    /// <summary>
+    /// 자동 전송이 꺼진 약국에서도 시계는 돌고, 사용 기록은 올라간다.
+    /// 시계가 넘기는 것이 allowPharmacyData: false다.
+    /// </summary>
+    [Fact]
+    public async Task WithAutomaticOff_TheTimerStillSendsUsageEvents()
+    {
+        var repository = new FakeSyncRepository(transactions: 3, usageEvents: 2);
+        var client = FakeSyncClient.ThatSucceeds();
+        var service = NewService(repository, client);
+
+        await service.RunAsync(Facility, allowPharmacyData: false);
+
+        Assert.Equal(2, client.LastPayload!.UsageEvents.Count);
+        Assert.Empty(client.LastPayload!.Transactions);
+    }
+
+    /// <summary>
+    /// 설정이 켜져 있어도 호출이 거절하면 사용 기록만 간다. 둘 중 하나라도
+    /// 아니라고 하면 약국 데이터는 실리지 않는다.
+    /// </summary>
+    [Fact]
+    public async Task PharmacyDataNeedsBothTheSettingAndTheCaller()
+    {
+        var repository = new FakeSyncRepository(transactions: 2, usageEvents: 1);
+        var client = FakeSyncClient.ThatSucceeds();
+        var settings = new FakeSettings();
+        settings.Values[AppSettingKeys.SyncPharmacyData] = "true";
+
+        var service = NewService(repository, client, settings: settings);
+
+        await service.RunAsync(Facility, allowPharmacyData: false);
+
+        Assert.Empty(client.LastPayload!.Transactions);
+    }
+
+    /// <summary>
+    /// 설정이 없으면 켜진 것으로 읽는다. 읽을 수 없는 설정이 전송을 멈추게 하면,
+    /// 그 약국의 데이터는 조용히 안 올라간다.
+    /// </summary>
+    [Fact]
+    public async Task WithNoSettingStored_PharmacyDataIsSent()
+    {
+        var repository = new FakeSyncRepository(transactions: 2);
+        var client = FakeSyncClient.ThatSucceeds();
+
+        await NewService(repository, client).RunAsync(Facility);
+
+        Assert.Equal(2, client.LastPayload!.Transactions.Count);
+    }
+
+    /// <summary>
+    /// 보내지 않기로 한 원장은 "밀린 것"이 아니다. 세면 영영 줄지 않는 숫자가
+    /// 남고, 상단 바 배지가 그것을 고장으로 읽어 계속 경고한다 — 그러면 진짜
+    /// 고장 때 아무도 보지 않는다.
+    /// </summary>
+    [Fact]
+    public async Task WithPharmacyDataOff_TheLedgerIsNotCountedAsPending()
+    {
+        var repository = new FakeSyncRepository(transactions: 7, usageEvents: 0);
+        var settings = new FakeSettings();
+        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
+
+        var service = NewService(repository, FakeSyncClient.ThatSucceeds(), settings: settings);
+
+        Assert.Equal(0, await service.CountPendingAsync(Facility));
+    }
+
     private static SyncService NewService(
         FakeSyncRepository repository,
         FakeSyncClient client,
@@ -294,12 +452,24 @@ public class SyncServiceTests
     private sealed class FakeSyncRepository : ISyncRepository
     {
         private readonly List<(long RowId, SyncTransaction Row)> _transactions = new();
+        private readonly List<(long RowId, SyncUsageEvent Row)> _usage = new();
         private readonly int _products;
         private readonly Dictionary<string, long> _positions = new();
 
-        public FakeSyncRepository(int transactions, int products = 0)
+        public FakeSyncRepository(int transactions, int products = 0, int usageEvents = 0)
         {
             _products = products;
+
+            for (var i = 1; i <= usageEvents; i++)
+            {
+                _usage.Add((i, new SyncUsageEvent
+                {
+                    EventId = "e" + i,
+                    OccurredAt = 0,
+                    EventName = "sales",
+                    Outcome = "shown",
+                }));
+            }
 
             for (var i = 1; i <= transactions; i++)
             {
@@ -354,9 +524,17 @@ public class SyncServiceTests
 
         public Task<IReadOnlyList<(long RowId, SyncUsageEvent Row)>> GetUsageEventsAfterAsync(
             long afterRowId, int limit) =>
-            Task.FromResult<IReadOnlyList<(long, SyncUsageEvent)>>([]);
+            Task.FromResult<IReadOnlyList<(long, SyncUsageEvent)>>(
+                _usage.Where(r => r.RowId > afterRowId).Take(limit).ToList());
 
-        public Task<int> CountPendingAsync(string facilityId) =>
+        public Task<int> CountPendingAsync(string facilityId, bool includePharmacyData = true) =>
+            includePharmacyData ? CountEverythingPending() : CountUsagePending();
+
+        private Task<int> CountUsagePending() =>
+            Task.FromResult(_usage.Count(
+                r => r.RowId > (_positions.TryGetValue(SyncStreams.UsageEvents, out var p) ? p : 0)));
+
+        private Task<int> CountEverythingPending() =>
             Task.FromResult(_transactions.Count(
                 t => t.RowId > (_positions.TryGetValue(SyncStreams.Transactions, out var p) ? p : 0)));
 

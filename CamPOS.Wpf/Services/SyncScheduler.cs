@@ -89,10 +89,13 @@ public sealed class SyncScheduler : IDisposable
             // 매번 새로 받는다. SyncService는 Transient이고, 설정은 그사이 바뀔 수 있다.
             var sync = _services.GetRequiredService<SyncService>();
 
-            if (!await sync.IsAutomaticAsync())
-            {
-                return;
-            }
+            // 자동 전송이 꺼져 있어도 시계는 돈다. 꺼진 것은 <b>약국 데이터</b>이고,
+            // 사용 기록은 이용 조건이라 약국이 끄는 값이 아니다 — 그래서 여기서
+            // 돌아가지 않고, 무엇을 담을지만 넘긴다.
+            //
+            // 보낼 사용 기록이 없으면 SyncService가 요청 자체를 하지 않으므로,
+            // 꺼 둔 약국의 회선에 30분마다 빈 요청이 가지는 않는다.
+            var allowPharmacyData = await sync.IsAutomaticAsync();
 
             // 결과는 보지 않는다. 실패는 조용히 지나가고 다음 주기에 다시 시도한다 —
             // 인터넷이 잠깐 끊긴 약국에서 팝업이 하루 종일 뜨면 안 되고, 며칠째
@@ -100,7 +103,7 @@ public sealed class SyncScheduler : IDisposable
             //
             // 워터마크는 서버가 확인해 준 만큼만 올라가므로, 실패한 전송이 행을
             // 건너뛰게 만들지 않는다.
-            await sync.RunAsync(facilityId, cancellationToken);
+            await sync.RunAsync(facilityId, cancellationToken, allowPharmacyData);
         }
         catch (OperationCanceledException)
         {

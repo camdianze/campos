@@ -285,11 +285,27 @@ public class SyncRepository : ISyncRepository
         return rows;
     }
 
-    public async Task<int> CountPendingAsync(string facilityId)
+    public async Task<int> CountPendingAsync(string facilityId, bool includePharmacyData = true)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
 
         using var command = connection.CreateCommand();
+
+        if (!includePharmacyData)
+        {
+            // 원장은 보내지 않기로 한 약국이다. 세면 영영 줄지 않는 숫자가 남는다.
+            command.CommandText = """
+                SELECT COUNT(*) FROM Usage_Event
+                 WHERE rowid > (SELECT COALESCE(
+                       (SELECT position FROM Sync_State WHERE stream = $usage), 0));
+                """;
+            command.Parameters.AddWithValue("$usage", SyncStreams.UsageEvents);
+
+            var usageOnly = await command.ExecuteScalarAsync();
+
+            return usageOnly is null or DBNull ? 0 : Convert.ToInt32(usageOnly);
+        }
+
 
         // 고르는 기준은 보낼 때와 같아야 한다 — rowid다. 여기만 transaction_time을
         // 쓰면 화면의 숫자와 실제로 보내지는 행이 어긋난다.

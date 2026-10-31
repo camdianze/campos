@@ -53,7 +53,12 @@ public interface ISyncRepository
     /// 표시다. 자동 동기화가 조용히 실패하면 앱은 평소와 똑같아 보이는데, 밀린
     /// 수가 늘어나는 것만은 눈에 보인다.
     /// </summary>
-    Task<int> CountPendingAsync(string facilityId);
+    /// <param name="includePharmacyData">
+    /// 약국 데이터 전송을 끈 약국에서는 false다. 그 행들은 보내지 않기로 했으므로
+    /// "밀린 것"이 아니다 — 세면 영영 줄지 않는 숫자가 화면에 남고, 상단 바
+    /// 배지가 그것을 고장으로 읽어 계속 경고한다.
+    /// </param>
+    Task<int> CountPendingAsync(string facilityId, bool includePharmacyData = true);
 
     // ── 사진 ─────────────────────────────────────────────────────────────
     // 사진은 원장과 달리 rowid 워터마크로 고를 수 없다. 덧붙기만 하는 것이

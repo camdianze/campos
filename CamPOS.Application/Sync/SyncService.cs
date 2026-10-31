@@ -71,8 +71,18 @@ public sealed class SyncService
         _settings = settings;
     }
 
+    /// <param name="allowPharmacyData">
+    /// 약국 데이터를 담아도 되는 호출인가. 자동 전송이 꺼진 약국에서 시계가
+    /// 도는 경우가 false다 — 그때도 <b>사용 기록은 간다</b>. 그것은 이용 조건이고
+    /// 약국이 고르는 값이 아니다.
+    ///
+    /// 실제로 담기는지는 <c>sync.pharmacyData</c> 설정과 함께 정해진다. 둘 중
+    /// 하나라도 아니라고 하면 사용 기록만 간다.
+    /// </param>
     public async Task<SyncRunResult> RunAsync(
-        string facilityId, CancellationToken cancellationToken = default)
+        string facilityId,
+        CancellationToken cancellationToken = default,
+        bool allowPharmacyData = true)
     {
         if (!await OneAtATime.WaitAsync(0, cancellationToken))
         {
@@ -81,7 +91,10 @@ public sealed class SyncService
 
         try
         {
-            return await RunOnceAsync(facilityId, cancellationToken);
+            var includePharmacyData =
+                allowPharmacyData && await IsPharmacyDataEnabledAsync();
+
+            return await RunOnceAsync(facilityId, includePharmacyData, cancellationToken);
         }
         finally
         {
@@ -90,7 +103,7 @@ public sealed class SyncService
     }
 
     private async Task<SyncRunResult> RunOnceAsync(
-        string facilityId, CancellationToken cancellationToken)
+        string facilityId, bool includePharmacyData, CancellationToken cancellationToken)
     {
         SyncSettings settings;
 
@@ -122,18 +135,35 @@ public sealed class SyncService
             {
                 // 첫 묶음에만 상품·재고·직원을 싣는다. 두 번째부터는 원장만 —
                 // 같은 수백 개의 상품을 묶음마다 다시 올릴 이유가 없다.
-                payload = await _builder.BuildAsync(facilityId, includeCatalogue: round == 0);
+                payload = await _builder.BuildAsync(
+                    facilityId,
+                    includeCatalogue: round == 0,
+                    includePharmacyData: includePharmacyData);
             }
             catch (Exception exception)
             {
                 return SyncRunResult.Failure("The data to send could not be read: " + exception.Message);
             }
 
-            var hasLedgerRows = payload.Transactions.Count > 0 || payload.CounsellingLogs.Count > 0;
+            // 사용 기록도 세야 한다. 빼 두면 사용 기록만 500건 넘게 밀렸을 때
+            // 둘째 바퀴에서 멈춰 버리고, 나머지는 다음 전송까지 그대로 남는다.
+            var hasRowsToSend =
+                payload.Transactions.Count > 0
+                || payload.CounsellingLogs.Count > 0
+                || payload.UsageEvents.Count > 0;
+
+            // 사용 기록만 보내는 약국에서는 보낼 것이 없으면 아예 보내지 않는다.
+            // 카탈로그가 실리지 않으므로 빈 묶음을 보낼 이유가 없고, 30분마다
+            // sync_batch에 빈 행만 쌓으면 "이 약국이 살아 있나"를 그 표에서
+            // 읽을 수 없게 된다.
+            if (!includePharmacyData && !hasRowsToSend)
+            {
+                break;
+            }
 
             // 첫 바퀴는 원장이 비어 있어도 보낸다 — 상품과 재고는 매번 전체를
             // 올리므로, 판매가 없던 날에도 카탈로그 수정은 서버에 닿아야 한다.
-            if (round > 0 && !hasLedgerRows)
+            if (round > 0 && !hasRowsToSend)
             {
                 break;
             }
@@ -146,7 +176,10 @@ public sealed class SyncService
                 // 다시 선택되지 않는다.
                 return batches == 0
                     ? SyncRunResult.Failure(result.Message)
-                    : SyncRunResult.Partial(sent, await CountPendingSafelyAsync(facilityId), result.Message);
+                    : SyncRunResult.Partial(
+                        sent,
+                        await CountPendingSafelyAsync(facilityId, includePharmacyData),
+                        result.Message);
             }
 
             // ── 서버가 확인했다. 이제 적는다. ──
@@ -161,7 +194,10 @@ public sealed class SyncService
             siteId = result.SiteId;
             batches++;
 
-            if (!hasLedgerRows)
+            // 이 바퀴에서 보낼 행이 더 없었으면 멈춘다. 사용 기록도 여기 포함돼야
+            // 한다 — 빼 두면 사용 기록이 한 묶음(500건)을 넘게 밀렸을 때 나머지가
+            // 다음 전송까지 남는다.
+            if (!hasRowsToSend)
             {
                 break;
             }
@@ -175,7 +211,7 @@ public sealed class SyncService
 
         await RecordLastSuccessAsync();
 
-        var pending = await CountPendingSafelyAsync(facilityId);
+        var pending = await CountPendingSafelyAsync(facilityId, includePharmacyData);
 
         return SyncRunResult.Success(sent, pending, siteId, photos.Uploaded, await CountPhotosSafelyAsync());
     }
@@ -273,9 +309,15 @@ public sealed class SyncService
         }
     }
 
-    /// <summary>화면에 적을 "밀린 행 수". 못 세어도 동기화를 실패로 만들지 않는다.</summary>
+    /// <summary>
+    /// 화면에 적을 "밀린 행 수". 못 세어도 동기화를 실패로 만들지 않는다.
+    ///
+    /// 약국 데이터를 끈 약국에서는 사용 기록만 센다. 보내지 않기로 한 원장을
+    /// 세면 영영 줄지 않는 숫자가 화면에 남고, 상단 바 배지가 그것을 고장으로
+    /// 읽어 계속 경고한다.
+    /// </summary>
     public async Task<int> CountPendingAsync(string facilityId) =>
-        await CountPendingSafelyAsync(facilityId);
+        await CountPendingSafelyAsync(facilityId, await IsPharmacyDataEnabledAsync());
 
     /// <summary>아직 안 올린 사진 수. 바이트는 읽지 않는다.</summary>
     public async Task<int> CountPhotosPendingAsync() =>
@@ -308,6 +350,34 @@ public sealed class SyncService
     }
 
     /// <summary>
+    /// 약국 데이터를 보내도 되나. 설정이 없으면 켜진 것으로 읽는다 — 거절은
+    /// 약국이 분명히 밝힌 경우에만이고, 읽을 수 없는 설정이 전송을 멈추게
+    /// 해서는 안 된다(자동 전송 설정과 같은 규칙이다).
+    /// </summary>
+    public async Task<bool> IsPharmacyDataEnabledAsync()
+    {
+        try
+        {
+            var stored = await _settings.GetAsync(AppSettingKeys.SyncPharmacyData);
+
+            return stored is null || stored.Length == 0
+                || !bool.TryParse(stored, out var on) || on;
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
+    public async Task SetPharmacyDataAsync(bool on)
+    {
+        await _settings.SetAsync(
+            AppSettingKeys.SyncPharmacyData,
+            on ? "true" : "false",
+            "bool");
+    }
+
+    /// <summary>
     /// 상단 바 배지를 띄울지 정하는 판단. 로그인할 때 한 번 읽는다.
     /// </summary>
     public async Task<SyncHealth> GetHealthAsync(string facilityId)
@@ -320,7 +390,10 @@ public sealed class SyncService
                 settings.IsConfigured,
                 await IsAutomaticAsync(),
                 await GetLastSuccessAsync(),
-                await CountPendingSafelyAsync(facilityId) + await CountPhotosSafelyAsync());
+                // 보내지 않기로 한 원장은 밀린 것이 아니다. 세면 배지가
+                // 영영 경고한 채로 남고, 그러면 진짜 고장 때 아무도 안 본다.
+                await CountPendingSafelyAsync(facilityId, await IsPharmacyDataEnabledAsync())
+                    + await CountPhotosSafelyAsync());
         }
         catch
         {
@@ -361,11 +434,12 @@ public sealed class SyncService
         }
     }
 
-    private async Task<int> CountPendingSafelyAsync(string facilityId)
+    private async Task<int> CountPendingSafelyAsync(
+        string facilityId, bool includePharmacyData = true)
     {
         try
         {
-            return await _repository.CountPendingAsync(facilityId);
+            return await _repository.CountPendingAsync(facilityId, includePharmacyData);
         }
         catch
         {
