@@ -29,6 +29,6 @@ public sealed class UsageEvent
 
     public required string Outcome { get; init; }
 
-    /// <summary>"1.28"처럼 숫자만. 버전별로 기능 사용이 어떻게 달라졌는지 본다.</summary>
+    /// <summary>"2.0"처럼 숫자만. 버전별로 기능 사용이 어떻게 달라졌는지 본다.</summary>
     public string? AppVersion { get; init; }
 }

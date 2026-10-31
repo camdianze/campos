@@ -107,4 +107,4 @@ rather than the wording.
 
 ---
 
-*Last updated: 2026-10-30 · CamPOS v1.28*
+*Last updated: 2026-11-01 · CamPOS v2.0*
