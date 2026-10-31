@@ -241,6 +241,85 @@ limit 50;
 
 
 -- ════════════════════════════════════════════════════════════════════════════
+-- 11b. 사용 흔적 — 22개 전부, 안 쓴 것까지
+-- ════════════════════════════════════════════════════════════════════════════
+-- usage_events를 그냥 group by 하면 <b>일어난 것만</b> 나온다. 정작 알고 싶은 것은
+-- "아무도 리포트를 열지 않았다" 쪽이므로, 이름 22개를 먼저 깔고 왼쪽 조인한다.
+--
+-- 0으로 남는 줄이 이 쿼리의 요점이다. 기능이 안 쓰이는 이유는 셋 중 하나이고
+-- 셋이 전부 다른 일이다 — 필요가 없거나, 찾지 못하거나, 눌렀는데 안 되거나.
+--
+-- 이름은 UsageEventNames의 고정 목록이다. 거기 없는 이름은 기록되지 않으므로
+-- 아래 목록과 어긋날 수 없다 — 늘리려면 동의서부터 고쳐야 한다.
+with catalogue(ord, grp, event_name) as (
+    values
+        (1, '화면', 'sales'),
+        (1, '화면', 'products'),
+        (1, '화면', 'inventory'),
+        (1, '화면', 'stock_in'),
+        (1, '화면', 'alerts'),
+        (1, '화면', 'reports'),
+        (1, '화면', 'sales_history'),
+        (1, '화면', 'stock_history'),
+        (1, '화면', 'data_center'),
+
+        (2, '행동', 'sale_completed'),
+        (2, '행동', 'receipt_printed'),
+        (2, '행동', 'stock_in_saved'),
+        (2, '행동', 'adjustment_saved'),
+        (2, '행동', 'refund_saved'),
+        (2, '행동', 'label_printed'),
+        (2, '행동', 'import_completed'),
+        (2, '행동', 'backup_created'),
+        (2, '행동', 'sync_manual'),
+
+        (3, '알림', 'expiry_alert_opened'),
+        (3, '알림', 'low_stock_alert_opened'),
+
+        (4, '기본', 'app_started'),
+        (4, '기본', 'login')
+)
+select
+    c.grp                                                        as "묶음",
+    c.event_name                                                 as "기능",
+    count(u.event_id)                                            as "전체",
+    count(u.event_id) filter (where u.outcome = 'shown')         as "열림",
+    count(u.event_id) filter (where u.outcome = 'success')       as "성공",
+    count(u.event_id) filter (where u.outcome = 'failure')       as "실패",
+    count(u.event_id) filter (where u.outcome = 'skipped')       as "건너뜀",
+    coalesce(
+        to_char(to_timestamp(max(u.occurred_at) / 1000) at time zone 'Asia/Phnom_Penh',
+                'MM-DD HH24:MI'),
+        '-')                                                     as "마지막"
+from catalogue c
+left join public.usage_events u on u.event_name = c.event_name
+-- 약국이 여럿이면 여기에 조건을 더한다:  and u.site_id = 'KH-0001'
+group by c.ord, c.grp, c.event_name
+order by c.ord, count(u.event_id) desc, c.event_name;
+
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- 11c. 한 번도 안 쓴 기능만
+-- ════════════════════════════════════════════════════════════════════════════
+-- 위 쿼리에서 0인 줄만 뽑는다. 파일럿 보고서에 "이 기능은 쓰이지 않았다"를
+-- 적을 때 쓴다.
+select c.event_name as "한 번도 안 쓴 기능"
+from (values
+        ('sales'),('products'),('inventory'),('stock_in'),('alerts'),('reports'),
+        ('sales_history'),('stock_history'),('data_center'),
+        ('sale_completed'),('receipt_printed'),('stock_in_saved'),('adjustment_saved'),
+        ('refund_saved'),('label_printed'),('import_completed'),('backup_created'),
+        ('sync_manual'),
+        ('expiry_alert_opened'),('low_stock_alert_opened'),
+        ('app_started'),('login')
+     ) as c(event_name)
+where not exists (
+    select 1 from public.usage_events u where u.event_name = c.event_name
+)
+order by 1;
+
+
+-- ════════════════════════════════════════════════════════════════════════════
 -- 12. 사용 흔적 — 지표 뷰
 -- ════════════════════════════════════════════════════════════════════════════
 -- metrics.sql이 만든 여섯 개. 집계는 여기 한 벌만 두고, 읽는 쪽이 각자
