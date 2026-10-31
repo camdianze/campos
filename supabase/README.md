@@ -13,6 +13,7 @@
 | `test-upload.ps1` | 미리보기 파일을 실제로 보내 서버를 확인한다. |
 | `check.sql` | 서버에 무엇이 들어와 있는지 한눈에. 전송할 때마다 다시 Run. |
 | `metrics.sql` | 성과 지표 뷰 여섯 개와 읽기 전용 역할. `schema.sql` 다음에 Run. |
+| `explore.sql` | 모아 둔 데이터를 들여다보는 쿼리 모음. 블록을 골라 실행한다. |
 | `releases-bucket.md` | 업데이트 보관소 버킷 만들기 (한 번만). |
 | `licenses.sql` | 라이선스와 토큰이 서버에 어떻게 들어와 있는지. |
 
