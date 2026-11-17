@@ -147,13 +147,25 @@ public sealed class HttpSyncClient : ISyncClient
     }
 
     /// <summary>
-    /// 서버가 보낸 사유를 그대로 전한다. 함수가 돌려주는 문구는 사람이 읽을
-    /// 영어이고, 무엇을 고쳐야 하는지 이미 말하고 있다 — 여기서 "동기화 실패"로
-    /// 뭉개면 그 정보가 사라진다.
+    /// 화면에 적을 한 줄. 서버가 보낸 사유를 쓰되, <b>쓸 만한 모양일 때만</b> 쓴다.
+    ///
+    /// 함수가 돌려주는 문구는 사람이 읽을 영어이고 무엇을 고쳐야 하는지 이미
+    /// 말하고 있으므로, 여기서 "동기화 실패"로 뭉개면 그 정보가 사라진다. 그래서
+    /// 그대로 전하는 것이 기본이다.
+    ///
+    /// 다만 <b>서버의 오류 메시지 안에 다른 서버의 오류 페이지가 들어 있을 수
+    /// 있다.</b> Supabase가 깨어나는 중이면 Edge Function은 떠 있는데 그 뒤의
+    /// 데이터베이스가 아직 아니고, 드라이버가 받은 Cloudflare의 521 HTML 한 쪽이
+    /// 함수의 메시지에 이어 붙어 정상적인 JSON으로 돌아온다. 파싱은 성공하므로
+    /// "JSON이 아니면 버린다"는 검사로는 걸리지 않는다.
+    ///
+    /// 약국 화면에 HTML이 쏟아지는 것은 그 자체로 고장처럼 보이고, 무엇을 해야
+    /// 하는지도 말해 주지 않는다. 그래서 <see cref="Tidy"/>로 한 줄만 남기고,
+    /// 태그가 섞여 있으면 통째로 버린 뒤 상태 코드로 설명한다.
     /// </summary>
-    private static string DescribeFailure(int status, string body)
+    internal static string DescribeFailure(int status, string body)
     {
-        var served = ReadErrorField(body);
+        var served = Tidy(ReadErrorField(body));
 
         if (served.Length > 0)
         {
@@ -164,9 +176,54 @@ public sealed class HttpSyncClient : ISyncClient
         {
             401 => "The server refused this computer. Check the device token.",
             404 => "The sync function was not found at that address. Check the server address.",
+
+            // 502·503·504는 게이트웨이, 521은 Cloudflare가 "뒤쪽 서버가 안 떴다"는
+            // 뜻이다. 무료 플랜 프로젝트가 잠들었다 깨어나는 동안 전부 나올 수 있고,
+            // 약국이 할 일은 똑같다 — 몇 분 기다렸다 다시.
+            502 or 503 or 504 or 521 or 522 or 523 or 524 =>
+                "The server is not answering yet. It may be starting up — try again in a few minutes.",
+
+            >= 500 => $"The server had a problem (code {status}). Try again in a few minutes.",
             _ => $"The server returned {status}.",
         };
     }
+
+    /// <summary>화면에 내보낼 만한 한 줄인가. 아니면 빈 문자열.</summary>
+    /// <remarks>
+    /// 버리는 기준은 <b>태그가 보이는가</b>이다. 길이로만 자르면 HTML의 첫 200자가
+    /// 그대로 나가고, 그것은 오류 메시지가 아니라 깨진 화면으로 읽힌다.
+    /// </remarks>
+    internal static string Tidy(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return string.Empty;
+        }
+
+        // 첫 줄만. 여러 줄짜리 서버 오류는 뒤쪽이 스택 추적인 경우가 많다.
+        var line = message
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault(string.Empty)
+            .Trim();
+
+        if (line.Length == 0 || LooksLikeMarkup(line) || LooksLikeMarkup(message))
+        {
+            return string.Empty;
+        }
+
+        const int limit = 200;
+
+        return line.Length <= limit ? line : line[..limit].TrimEnd() + "…";
+    }
+
+    private static bool LooksLikeMarkup(string text) =>
+        text.Contains("<!DOCTYPE", StringComparison.OrdinalIgnoreCase)
+        || text.Contains("<html", StringComparison.OrdinalIgnoreCase)
+        || text.Contains("<head", StringComparison.OrdinalIgnoreCase)
+        || text.Contains("<body", StringComparison.OrdinalIgnoreCase)
+        || text.Contains("<div", StringComparison.OrdinalIgnoreCase)
+        || text.Contains("<span", StringComparison.OrdinalIgnoreCase)
+        || text.Contains("<script", StringComparison.OrdinalIgnoreCase);
 
     private static string ReadErrorField(string body)
     {

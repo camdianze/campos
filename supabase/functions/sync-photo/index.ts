@@ -33,6 +33,36 @@ function fail(status: number, message: string) {
   });
 }
 
+/// 드라이버가 돌려준 사유를 <b>화면에 내보낼 만한 한 줄</b>로 줄인다.
+///
+/// 이것이 있는 이유: 프로젝트가 잠들었다 깨어나는 동안 이 함수는 떠 있고 그 뒤의
+/// 데이터베이스는 아직이어서, 드라이버가 받은 Cloudflare의 521 오류 <b>페이지</b>가
+/// error.message에 통째로 들어온다. 그대로 이어 붙이면 정상적인 JSON 안에 HTML 한
+/// 쪽이 실려 약국 화면에 그려진다 — 오류 메시지가 아니라 망가진 화면으로 읽힌다.
+///
+/// 전문은 console.error로 남기므로 Supabase 로그에서 그대로 볼 수 있다. 약국 화면에
+/// 없는 것이지 어디에도 없는 것이 아니다.
+function brief(what: string, detail: unknown): string {
+  // Supabase가 돌려주는 오류는 Error가 아니라 { message, code, ... } 객체다.
+  const full =
+    detail === null || detail === undefined
+      ? ""
+      : typeof detail === "object" && "message" in detail
+        ? String((detail as { message: unknown }).message ?? "")
+        : String(detail);
+
+  console.error(what, full);
+
+  const line = (full.split(/[\r\n]+/)[0] ?? "").trim();
+  const looksLikeMarkup = /<!DOCTYPE|<html|<head|<body|<div|<span|<script/i.test(full);
+
+  if (line.length === 0 || looksLikeMarkup) {
+    return what;
+  }
+
+  return what + ": " + (line.length <= 200 ? line : line.slice(0, 200).trimEnd() + "\u2026");
+}
+
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest))
@@ -111,7 +141,7 @@ Deno.serve(async (request) => {
     .maybeSingle();
 
   if (tokenError) {
-    return fail(500, "The server could not check this device: " + tokenError.message);
+    return fail(500, brief("The server could not check this device", tokenError));
   }
 
   if (!registration) {
@@ -165,7 +195,7 @@ Deno.serve(async (request) => {
     .upload(path, bytes, { contentType, upsert: true });
 
   if (uploadError) {
-    return fail(500, "The photo could not be stored: " + uploadError.message);
+    return fail(500, brief("The photo could not be stored", uploadError));
   }
 
   const { error: rowError } = await db.from("product_photo").upsert({
@@ -181,7 +211,7 @@ Deno.serve(async (request) => {
   if (rowError) {
     // 파일은 올라갔는데 표가 비면, 다음 전송에서 같은 사진을 다시 올린다.
     // 덮어쓰기라 쌓이지 않으므로 그 재시도는 해롭지 않다.
-    return fail(500, "The photo was stored but not recorded: " + rowError.message);
+    return fail(500, brief("The photo was stored but not recorded", rowError));
   }
 
   return new Response(

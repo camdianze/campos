@@ -107,4 +107,4 @@ rather than the wording.
 
 ---
 
-*Last updated: 2026-11-17 · CamdiansRX v2.0*
+*Last updated: 2026-11-17 · CamdiansRX v2.1*

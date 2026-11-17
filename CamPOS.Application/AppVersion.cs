@@ -9,7 +9,7 @@
 /// </summary>
 public static class AppVersion
 {
-    public const string Number = "2.0";
+    public const string Number = "2.1";
 
     /// <summary>화면에 그대로 찍는 표기.</summary>
     public const string Display = "CamdiansRX v." + Number;

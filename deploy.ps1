@@ -41,7 +41,7 @@ if ($previous -ne $Version) {
         Set-Content $appVersion -Encoding UTF8 -NoNewline
 }
 
-# Velopack은 3자리 SemVer를 요구한다. 화면에는 "CamdiansRX v.2.0"으로 두 자리가 나가는데,
+# Velopack은 3자리 SemVer를 요구한다. 화면에는 "CamdiansRX v.2.1"으로 두 자리가 나가는데,
 # 약국이 읽을 숫자에 의미 없는 .0을 붙일 이유가 없어서다. 패키지 쪽만 채워 준다 —
 # 둘 다 AppVersion.Number에서 나오므로 어긋날 수가 없다.
 $packVersion = if ($Version -match '^\d+\.\d+$') { "$Version.0" } else { $Version }
