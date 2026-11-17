@@ -300,6 +300,80 @@ public class AppDataMigrationTests : IDisposable
         Assert.False(File.Exists(Path.Combine(_current, AppDataMigration.NoticeFileName)));
     }
 
+    // ── 이름이 바뀌어도 이어지는 것 ─────────────────────────────────────
+
+    /// <summary>
+    /// 사용 기록과 <b>어디까지 보냈는지</b>가 함께 건너와야 한다.
+    ///
+    /// 둘 다 같은 데이터베이스 안에 있으므로 따로 챙길 일이 없어 보이지만, 그것이
+    /// 바로 확인해 둘 이유다 — 어긋나면 둘 중 한 가지로 조용히 실패한다. 기록만
+    /// 오고 워터마크가 0으로 돌아가면 이미 서버에 있는 것을 전부 다시 보내고,
+    /// 워터마크만 오고 기록이 비면 그 사이의 사용이 영영 올라가지 않는다.
+    ///
+    /// 이름이 바뀔 때마다 데이터 폴더가 따라 바뀌므로, 이 확인은 이름을 바꿀 때마다
+    /// 다시 해야 하는 종류다.
+    /// </summary>
+    [Fact]
+    public void UsageEventsAndTheirWatermarkSurviveTheMove()
+    {
+        Directory.CreateDirectory(_legacy);
+
+        var legacyDatabase = Path.Combine(_legacy, LegacyDb);
+        var factory = new SqliteConnectionFactory(legacyDatabase);
+        new DatabaseInitializer(factory).Initialize();
+
+        using (var connection = factory.CreateOpenConnection())
+        {
+            Execute(connection, """
+                INSERT INTO Usage_Event (event_id, occurred_at, role, event_name, outcome, app_version)
+                VALUES ('e1', 100, 'Administrator', 'sales',          'shown',   '2.0'),
+                       ('e2', 200, 'Administrator', 'sale_completed', 'success', '2.0'),
+                       ('e3', 300, 'Administrator', 'receipt_printed','success', '2.0');
+
+                INSERT INTO Sync_State (stream, position, updated_at) VALUES ('usage_events', 2, 300);
+                """);
+        }
+
+        SqliteConnection.ClearAllPools();
+
+        Assert.True(Run().DidMigrate);
+
+        var moved = new SqliteConnectionFactory(Path.Combine(_current, CurrentDb));
+        using var after = moved.CreateOpenConnection();
+
+        Assert.Equal(3, Scalar(after, "SELECT COUNT(*) FROM Usage_Event;"));
+
+        // 워터마크가 그대로여야 한다. 0으로 돌아가면 서버에 이미 있는 두 건을 다시 보낸다.
+        Assert.Equal(2, Scalar(after, "SELECT position FROM Sync_State WHERE stream = 'usage_events';"));
+
+        // 새 기록은 뒤에 붙는다 — rowid 워터마크가 그것을 고를 수 있어야 한다.
+        Execute(after, """
+            INSERT INTO Usage_Event (event_id, occurred_at, role, event_name, outcome, app_version)
+            VALUES ('e4', 400, 'Administrator', 'login', 'success', '2.1');
+            """);
+
+        Assert.Equal(1, Scalar(after,
+            "SELECT COUNT(*) FROM Usage_Event WHERE rowid > 2 AND event_id = 'e4';"));
+
+        SqliteConnection.ClearAllPools();
+    }
+
+    /// <summary>
+    /// 라이선스와 동기화 토큰도 같이 와야 한다. 둘 다 DPAPI로 묶여 있고 파일일
+    /// 뿐이지만, 빠지면 약국은 활성화 화면부터 다시 만난다.
+    /// </summary>
+    [Fact]
+    public void TheLicenceAndTheSyncTokenComeAcrossToo()
+    {
+        SeedLegacy();
+        File.WriteAllText(Path.Combine(_legacy, "license.dat"), "licence-bytes");
+
+        Run();
+
+        Assert.True(File.Exists(Path.Combine(_current, "license.dat")));
+        Assert.Equal("licence-bytes", File.ReadAllText(Path.Combine(_current, "license.dat")));
+    }
+
     // ── 실제 데이터베이스 검사 ──────────────────────────────────────────
 
     [Fact]
@@ -401,6 +475,14 @@ public class AppDataMigrationTests : IDisposable
         SqliteConnection.ClearAllPools();
 
         return name;
+    }
+
+    private static long Scalar(SqliteConnection connection, string sql)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        return Convert.ToInt64(command.ExecuteScalar());
     }
 
     private void SeedCurrent(string contents)

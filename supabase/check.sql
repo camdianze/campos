@@ -38,3 +38,28 @@ union all select '가장 최근 원장 시각 (프놈펜)',
        to_char(to_timestamp(max(transaction_time) / 1000) at time zone 'Asia/Phnom_Penh',
                'MM-DD HH24:MI')
   from public.stock_transaction;
+
+
+-- ── 약국별 최근 7일 기능 사용 ──────────────────────────────────────────────
+-- 배포 직후와 파일럿 중에 제일 자주 보게 되는 쿼리다. 어느 약국이 무엇을 쓰고
+-- 있는지, 그리고 <b>무엇이 0인지</b>가 한 화면에 나온다.
+--
+-- 0으로 남은 기능은 셋 중 하나다 — 필요가 없거나, 찾지 못하거나, 눌렀는데 안
+-- 되거나. 마지막 것만 실패 칸이 말해 주므로, 실패가 0인데 사용도 0이면 앞의 둘이다.
+--
+-- 날짜 경계는 프놈펜 자정이다. 앱의 모든 날짜가 그렇고, UTC로 자르면 저녁 늦게
+-- 쓴 것이 다음 날로 넘어간다.
+select
+    u.site_id                                                   as "약국",
+    u.event_name                                                as "기능",
+    count(*)                                                    as "횟수",
+    count(*) filter (where u.outcome = 'failure')               as "실패",
+    count(distinct (to_timestamp(u.occurred_at / 1000)
+                    at time zone 'Asia/Phnom_Penh')::date)      as "쓴 날",
+    to_char(max(to_timestamp(u.occurred_at / 1000))
+            at time zone 'Asia/Phnom_Penh', 'MM-DD HH24:MI')    as "마지막"
+from public.usage_events u
+where to_timestamp(u.occurred_at / 1000)
+      > now() - interval '7 days'
+group by u.site_id, u.event_name
+order by u.site_id, count(*) desc;
