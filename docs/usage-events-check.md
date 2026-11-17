@@ -6,7 +6,10 @@
 약국에게 하는 약속은 [usage-events-consent.md](usage-events-consent.md)이고,
 코드가 그것을 지키는지는 `UsageEventTests`가 본다.
 
-*점검 2026-11-17 · CamdiansRX v2.1 · 22/22 연결됨*
+*점검 2026-11-17 · CamdiansRX v2.1 · 28/28 연결됨*
+
+> ⚠ **동의서가 아직 이 여섯 개를 담고 있지 않다.** `admin_dashboard` `user_management` `receipt_settings` `counselling_settings` `product_scanned` `product_searched` — 약국이 읽기 전에 반영해야 한다.
+
 
 ---
 
@@ -26,6 +29,48 @@
 
 > `stock_in`은 독립 화면이 아니라 재고·상품 화면 **안의 패널**이다. 패널을 연 것이
 > 화면을 연 것에 해당한다.
+
+## 관리자 화면 (4) — `outcome = shown`
+
+| 이벤트 | 기록되는 위치 | 테스트 |
+|---|---|---|
+| `admin_dashboard` | `Shell/MainShellView.xaml.cs` (OnAdminDashboardClick) | 이름·형식 |
+| `user_management` | `Views/AdminDashboardView.xaml.cs` (직원 관리 열기) | 이름·형식 |
+| `receipt_settings` | `Views/AdminDashboardView.xaml.cs` (`Expanded` 핸들러) | 이름·형식 |
+| `counselling_settings` | `Shell/MainShellView.xaml.cs` (OnCounsellingSettingsClick) | 이름·형식 |
+
+> 영수증 설정은 독립 화면이 아니라 대시보드 안의 섹션이다. **펼친 것**이 화면을
+> 연 것에 해당한다.
+
+> 이 넷이 0인 약국은 제품을 일과에는 넣었는데 관리는 안 하고 있다는 뜻이다 —
+> 설정이 비어 있는 채로 쓰이는 약국을 찾는 길이기도 하다.
+
+## 상품을 어떻게 찾았나 (2) — `success` / `failure`
+
+| 이벤트 | 기록되는 위치 | 테스트 |
+|---|---|---|
+| `product_scanned` | `ViewModels/PosSaleViewModel.cs` (`RecordHowItWasFound`) | 이름·형식 |
+| `product_searched` | 같은 곳 | 이름·형식 |
+
+세 가지에 답한다:
+
+| 질문 | 읽는 법 |
+|---|---|
+| 스캐너를 실제로 쓰나 | `product_scanned`가 0이면 안 쓰거나 고장 |
+| 바코드가 등록돼 있나 | `product_scanned`의 `failure` 비율 |
+| 검색이 더 빠른가 | 둘의 비율 |
+
+가운데 것이 지금은 알 길이 없는 값이다 — 찍었는데 안 나오는 상품은 화면에
+`Product not found`만 뜨고 아무 데도 남지 않는다.
+
+> **무엇을 찾았는지는 적지 않는다.** 찾는 일이 일어났다는 사실과 찾았는지 여부뿐이고,
+> 상품 정보는 기록에 없다.
+
+> **못 찾았을 때 둘 중 어느 쪽이었는지는 입력의 모양으로 가른다** — 숫자 8자 이상
+> 이거나 `INT-`로 시작하면 바코드로 친다. 손으로 코드를 친 경우가 섞일 수 있지만,
+> 이 값은 한 줄씩이 아니라 비율로 읽는 것이라 그 정도는 견딘다. 정확히 가르려면
+> 스캐너가 보냈는지를 알아야 하는데, 키보드로 들어오는 입력에서는 알 수 없다.
+
 
 ## 행동 (9) — `success` / `failure`
 

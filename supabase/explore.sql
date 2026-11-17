@@ -241,10 +241,10 @@ limit 50;
 
 
 -- ════════════════════════════════════════════════════════════════════════════
--- 11b. 사용 흔적 — 22개 전부, 안 쓴 것까지
+-- 11b. 사용 흔적 — 28개 전부, 안 쓴 것까지
 -- ════════════════════════════════════════════════════════════════════════════
 -- usage_events를 그냥 group by 하면 <b>일어난 것만</b> 나온다. 정작 알고 싶은 것은
--- "아무도 리포트를 열지 않았다" 쪽이므로, 이름 22개를 먼저 깔고 왼쪽 조인한다.
+-- "아무도 리포트를 열지 않았다" 쪽이므로, 이름 28개를 먼저 깔고 왼쪽 조인한다.
 --
 -- 0으로 남는 줄이 이 쿼리의 요점이다. 기능이 안 쓰이는 이유는 셋 중 하나이고
 -- 셋이 전부 다른 일이다 — 필요가 없거나, 찾지 못하거나, 눌렀는데 안 되거나.
@@ -263,21 +263,29 @@ with catalogue(ord, grp, event_name) as (
         (1, '화면', 'stock_history'),
         (1, '화면', 'data_center'),
 
-        (2, '행동', 'sale_completed'),
-        (2, '행동', 'receipt_printed'),
-        (2, '행동', 'stock_in_saved'),
-        (2, '행동', 'adjustment_saved'),
-        (2, '행동', 'refund_saved'),
-        (2, '행동', 'label_printed'),
-        (2, '행동', 'import_completed'),
-        (2, '행동', 'backup_created'),
-        (2, '행동', 'sync_manual'),
+        (2, '관리', 'admin_dashboard'),
+        (2, '관리', 'user_management'),
+        (2, '관리', 'receipt_settings'),
+        (2, '관리', 'counselling_settings'),
 
-        (3, '알림', 'expiry_alert_opened'),
-        (3, '알림', 'low_stock_alert_opened'),
+        (3, '행동', 'sale_completed'),
+        (3, '행동', 'receipt_printed'),
+        (3, '행동', 'stock_in_saved'),
+        (3, '행동', 'adjustment_saved'),
+        (3, '행동', 'refund_saved'),
+        (3, '행동', 'label_printed'),
+        (3, '행동', 'import_completed'),
+        (3, '행동', 'backup_created'),
+        (3, '행동', 'sync_manual'),
 
-        (4, '기본', 'app_started'),
-        (4, '기본', 'login')
+        (4, '찾기', 'product_scanned'),
+        (4, '찾기', 'product_searched'),
+
+        (5, '알림', 'expiry_alert_opened'),
+        (5, '알림', 'low_stock_alert_opened'),
+
+        (6, '기본', 'app_started'),
+        (6, '기본', 'login')
 )
 select
     c.grp                                                        as "묶음",
@@ -306,6 +314,8 @@ order by c.ord, count(u.event_id) desc, c.event_name;
 select c.event_name as "한 번도 안 쓴 기능"
 from (values
         ('sales'),('products'),('inventory'),('stock_in'),('alerts'),('reports'),
+        ('admin_dashboard'),('user_management'),('receipt_settings'),('counselling_settings'),
+        ('product_scanned'),('product_searched'),
         ('sales_history'),('stock_history'),('data_center'),
         ('sale_completed'),('receipt_printed'),('stock_in_saved'),('adjustment_saved'),
         ('refund_saved'),('label_printed'),('import_completed'),('backup_created'),

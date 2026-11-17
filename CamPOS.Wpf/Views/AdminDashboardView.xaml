@@ -146,7 +146,8 @@
                  전송보다 먼저 두는 이유: 동기화에서 제일 위험한 것은 무엇을 보내는가이고,
                  한 번 보낸 것은 되돌릴 수 없다. 눈으로 확인한 뒤에 전송을 붙인다. -->
             <Expander Grid.Row="3" x:Name="ReceiptSettingsSection"
-                      Margin="6,0,6,20" IsExpanded="False">
+                      Margin="6,0,6,20" IsExpanded="False"
+                      Expanded="OnReceiptSettingsExpanded">
                 <Expander.Header>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🧾  Receipt Settings" FontWeight="SemiBold" FontSize="14"/>

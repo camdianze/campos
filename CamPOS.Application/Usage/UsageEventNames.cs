@@ -27,6 +27,17 @@ public static class UsageEventNames
     public const string Products = "products";
     public const string DataCenter = "data_center";
 
+    // 관리자 화면. 약국 주인만 여는 자리라, 여기가 0이면 제품이 일과에는
+    // 들어갔는데 관리는 안 되고 있다는 뜻이다 — 설정이 비어 있는 채로 쓰이는
+    // 약국을 찾는 길이기도 하다.
+    public const string AdminDashboard = "admin_dashboard";
+    public const string UserManagement = "user_management";
+
+    /// <summary>대시보드 안의 영수증 설정 섹션을 펼쳤다. 독립 화면이 아니다.</summary>
+    public const string ReceiptSettings = "receipt_settings";
+
+    public const string CounsellingSettings = "counselling_settings";
+
     // ── 행동 ────────────────────────────────────────────────────────────────
     // 성공하면 Success, 실패하면 Failure. 실패를 별도 이름으로 두지 않는 이유는
     // UsageOutcome에 적어 두었다.
@@ -40,6 +51,22 @@ public static class UsageEventNames
     public const string ReceiptPrinted = "receipt_printed";
     public const string LabelPrinted = "label_printed";
     public const string ImportCompleted = "import_completed";
+
+    // ── 상품을 어떻게 찾았나 ────────────────────────────────────────────────
+    // 스캐너를 실제로 쓰는지, 바코드가 등록돼 있는지, 검색이 더 빠른지 — 셋을
+    // 한 쌍으로 답한다.
+    //
+    // <b>무엇을 찾았는지는 적지 않는다.</b> 찾는 일이 일어났다는 사실과 찾았는지
+    // 여부만 남으므로, 상품 정보는 여전히 기록에 없다.
+
+    /// <summary>
+    /// 바코드로 찾았다. <c>failure</c>는 <b>찍었는데 없는 상품</b>이고, 그것이
+    /// 바코드가 등록되지 않았다는 유일한 신호다.
+    /// </summary>
+    public const string ProductScanned = "product_scanned";
+
+    /// <summary>이름이나 일부 글자로 찾았다.</summary>
+    public const string ProductSearched = "product_searched";
 
     // ── 알림 ────────────────────────────────────────────────────────────────
     // 알림 화면은 유통기한과 안전재고를 함께 보여주고 필터로 나눈다. 화면을 연 것은
@@ -64,8 +91,11 @@ public static class UsageEventNames
         Sales, StockIn, Inventory, Alerts, Reports,
         SalesHistory, StockHistory, Products, DataCenter,
 
+        AdminDashboard, UserManagement, ReceiptSettings, CounsellingSettings,
+
         SaleCompleted, StockInSaved, AdjustmentSaved, RefundSaved,
         BackupCreated, SyncManual, ReceiptPrinted, LabelPrinted, ImportCompleted,
+        ProductScanned, ProductSearched,
 
         ExpiryAlertOpened, LowStockAlertOpened,
 

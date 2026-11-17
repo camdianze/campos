@@ -160,6 +160,8 @@ public partial class MainShellView : UserControl
             App.Services.GetRequiredService<ICounsellingLocaleProvider>(),
             App.Services.GetRequiredService<ICounsellingLogRepository>());
 
+        Opened(UsageEventNames.CounsellingSettings);
+
         var view = new CounsellingSettingsView();
         view.AttachViewModel(viewModel);
 
@@ -208,6 +210,8 @@ public partial class MainShellView : UserControl
             App.Services.GetRequiredService<IUpdateService>(),
             App.Services.GetRequiredService<IAppSettingRepository>(),
             shellViewModel.CurrentUser.FacilityId);
+
+        Opened(UsageEventNames.AdminDashboard);
 
         var dashboardView = new AdminDashboardView();
         dashboardView.AttachViewModel(dashboardViewModel);

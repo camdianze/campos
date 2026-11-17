@@ -327,6 +327,8 @@ public partial class PosSaleViewModel : ViewModelBase
             SearchResults.Add(product);
         }
 
+        RecordHowItWasFound(scannedTerm, scanned is not null, results.Count > 0);
+
         if (results.Count == 0)
         {
             Message = "Product not found.";
@@ -376,6 +378,43 @@ public partial class PosSaleViewModel : ViewModelBase
     /// 찍은 값이 이 상품의 바코드 자체인지. 이름이 걸린 것과 구분하기 위한 것이다.
     /// 박스 쪽 코드와 낱개 쪽 코드를 모두 본다 — 접미사를 떼기 전의 값이 들어온다.
     /// </summary>
+    /// <summary>
+    /// 상품을 <b>어떻게</b> 찾았는지 한 줄 남긴다. 무엇을 찾았는지는 적지 않는다 —
+    /// 찾는 일이 일어났다는 사실과 찾았는지 여부뿐이고, 상품 정보는 기록에 없다.
+    ///
+    /// 세 가지에 답하려고 둔다: 스캐너를 실제로 쓰는가, 바코드가 등록돼 있는가,
+    /// 검색이 더 빠른가. 둘째가 특히 지금은 알 길이 없다 — 찍었는데 안 나오는
+    /// 상품은 화면에 "Product not found"만 뜨고 아무 데도 남지 않는다.
+    ///
+    /// 못 찾았을 때 둘 중 어느 쪽이었는지는 입력의 <b>모양</b>으로 가른다. 스캐너는
+    /// 숫자를 길게 내보내므로 그것을 바코드로 친다. 손으로 코드를 친 경우가 섞일
+    /// 수 있지만, 이 값은 한 줄씩 읽는 것이 아니라 비율로 읽는 것이라 그 정도는
+    /// 견딘다 — 정확히 가르려면 스캐너가 보냈는지를 알아야 하고, 키보드로
+    /// 들어오는 입력에서 그것은 알 수 없다.
+    /// </summary>
+    private void RecordHowItWasFound(string term, bool matchedABarcode, bool foundAnything)
+    {
+        if (matchedABarcode)
+        {
+            _ = _usageRecorder.RecordAsync(UsageEventNames.ProductScanned, UsageOutcome.Success);
+            return;
+        }
+
+        var name = LooksLikeABarcode(term)
+            ? UsageEventNames.ProductScanned
+            : UsageEventNames.ProductSearched;
+
+        _ = _usageRecorder.RecordAsync(
+            name, foundAnything ? UsageOutcome.Success : UsageOutcome.Failure);
+    }
+
+    /// <summary>
+    /// 스캐너가 보낸 것처럼 보이는가. 숫자만 여덟 자 이상이거나 발급 번호 꼴이다.
+    /// </summary>
+    private static bool LooksLikeABarcode(string term) =>
+        term.StartsWith(Product.GeneratedBarcodePrefix, StringComparison.OrdinalIgnoreCase)
+        || (term.Length >= 8 && term.All(char.IsAsciiDigit));
+
     private static bool IsExactBarcodeMatch(Product product, string scannedTerm) =>
         IsBoxBarcodeMatch(product, scannedTerm) || IsUnitBarcodeMatch(product, scannedTerm);
 

@@ -251,6 +251,43 @@ public class UsageEventTests : IDisposable
     }
 
     /// <summary>
+    /// <b>기록되는 이름의 전부.</b> 이 목록을 고치는 것은 약국에게 한 약속을
+    /// 고치는 일이므로, docs/usage-events-consent.md를 먼저 고쳐야 한다.
+    ///
+    /// 개수만 세지 않고 이름을 하나씩 적어 두는 이유: 개수만 맞추면 하나를 빼고
+    /// 하나를 더한 변경이 그냥 지나간다.
+    /// </summary>
+    [Fact]
+    public void TheRecordedNamesAreExactlyThese()
+    {
+        string[] expected =
+        [
+            // 화면 열기
+            "sales", "products", "inventory", "stock_in", "alerts", "reports",
+            "sales_history", "stock_history", "data_center",
+
+            // 관리자 화면
+            "admin_dashboard", "user_management", "receipt_settings", "counselling_settings",
+
+            // 행동
+            "sale_completed", "receipt_printed", "stock_in_saved", "adjustment_saved",
+            "refund_saved", "label_printed", "import_completed", "backup_created",
+            "sync_manual",
+
+            // 상품을 어떻게 찾았나
+            "product_scanned", "product_searched",
+
+            // 알림
+            "expiry_alert_opened", "low_stock_alert_opened",
+
+            // 기본
+            "app_started", "login",
+        ];
+
+        Assert.Equal(expected.Order(), UsageEventNames.All.Order());
+    }
+
+    /// <summary>
     /// 이름은 영문 snake_case로 고정이다. 서버 쿼리와 동의서가 이 글자 그대로를
     /// 적으므로, 대문자나 공백이 섞이면 양쪽이 조용히 어긋난다.
     /// </summary>

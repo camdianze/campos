@@ -94,6 +94,14 @@ public partial class AdminDashboardView : UserControl
     /// 대시보드 ViewModel에 스무 개 넘는 설정 속성을 얹으면 지표 화면과 설정 화면이
     /// 한 클래스에 섞인다.
     /// </summary>
+    /// <summary>
+    /// 영수증 설정은 독립 화면이 아니라 이 대시보드 안의 섹션이다. 펼친 것이
+    /// 화면을 연 것에 해당한다.
+    /// </summary>
+    private void OnReceiptSettingsExpanded(object sender, System.Windows.RoutedEventArgs e) =>
+        _ = App.Services.GetRequiredService<IUsageRecorder>()
+            .RecordAsync(UsageEventNames.ReceiptSettings, UsageOutcome.Shown);
+
     private void AttachReceiptSettings()
     {
         if (App.CurrentShellViewModel is not { } shellViewModel)
@@ -261,6 +269,9 @@ public partial class AdminDashboardView : UserControl
             userRepository, userManagementService,
             App.CurrentShellViewModel!.CurrentUser.FacilityId,
             App.CurrentShellViewModel!.CurrentUser.UserId);
+
+        _ = App.Services.GetRequiredService<IUsageRecorder>()
+            .RecordAsync(UsageEventNames.UserManagement, UsageOutcome.Shown);
 
         var userManagementView = new UserManagementView();
         userManagementView.AttachViewModel(userManagementViewModel);
