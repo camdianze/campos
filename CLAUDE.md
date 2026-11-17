@@ -39,6 +39,8 @@ dotnet publish CamPOS.Wpf -p:PublishProfile=FolderProfile
 
 The WPF project is `CamPOS.Wpf` and its `RootNamespace` matches, so build output and the published executable are `CamPOS.dll` / `CamPOS.exe`. One collision came out of that naming: inside `CamPOS.Wpf`, a bare `Application` resolves to the **namespace** `CamPOS.Application` before it reaches `System.Windows.Application`, so `App`'s base class and every `Application.Current` are written in full. Spelling it out in five places is cheaper than renaming a project over it.
 
+**Test classes do not run in parallel** (`CamPOS.Tests/xunit.runner.json`, `parallelizeTestCollections: false`). Nineteen classes call `SqliteConnection.ClearAllPools()`, which is process-global: one class clearing pools flushes another class's open WAL mid-test. That surfaced as `ACommittedSaleSittingInTheWalSurvives` failing about one run in eight — the only test that *depends* on a WAL staying unflushed, so the only visible victim, while the same race could silently alter any of the others. The suite goes from 6s to 19s and that is the right trade for a result that means something.
+
 No linter is configured. Verification is: `dotnet build`, `dotnet test`, plus running the app. The build emits `CS0105` duplicate-using warnings (`ServiceCollectionExtensions.cs`, `LoginView.xaml.cs`) — pre-existing, harmless.
 
 `CamPOS.Tests` (xUnit) covers the antibiotic counselling feature only — matching, locale fallback, sheet rendering, the counselling orchestration, and SQLite schema/migration/seed-loading integration. **The rest of the codebase has no tests.** It exists because the counselling matching rules (salt-form stripping, spelling variants, the topical/systemic split) are the kind of logic that fails silently in production.

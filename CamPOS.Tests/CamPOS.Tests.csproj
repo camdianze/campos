@@ -23,6 +23,9 @@
        한쪽이 코드 형식을 건드리면 양쪽 테스트가 함께 깨져서, 고객 PC가 아니라 빌드에서 잡힌다. -->
   <ItemGroup>
     <None Include="..\license-vectors.json" CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- 테스트 클래스를 병렬로 돌리지 않는다는 설정. 출력 폴더에 있어야 러너가 읽는다. -->
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
