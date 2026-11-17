@@ -7,9 +7,12 @@ using System.Text;
 namespace CamPOS.Tests.Startup;
 
 /// <summary>
-/// 내부 이름이 바뀌면서 데이터 폴더가 <c>%APPDATA%\PharmaPOS</c>에서
-/// <c>%APPDATA%\CamPOS</c>로 옮겨졌다. 이미 쓰고 있던 약국이 새 버전을 켰을 때
-/// 판매 기록·라이선스·동기화 설정이 그대로 보여야 한다.
+/// 이름이 두 번 바뀌면서 데이터 폴더도 두 번 옮겨졌다:
+/// <c>PharmaPOS</c>(v1.26, 약국) → <c>CamPOS</c>(v1.27~2.0, 개발 PC) →
+/// <c>CamdiansRX</c>(지금). 이미 쓰고 있던 약국이 새 버전을 켰을 때 판매 기록·
+/// 라이선스·동기화 설정이 그대로 보여야 한다.
+///
+/// 약국은 <c>PharmaPOS</c>에서 <b>곧장</b> 온다 — 중간 이름은 약국에 나간 적이 없다.
 ///
 /// 여기서 틀리면 약국의 데이터가 사라진다. 그래서 테스트가 실제 파일과 실제
 /// SQLite에 대고 돈다 — 복사가 되었는지는 흉내로 알 수 없다.
@@ -17,17 +20,21 @@ namespace CamPOS.Tests.Startup;
 public class AppDataMigrationTests : IDisposable
 {
     private const string LegacyDb = "pharmapos.db";
-    private const string CurrentDb = "campos.db";
+    private const string CamPosDb = "campos.db";
+    private const string CurrentDb = "camdiansrx.db";
 
     private readonly string _root;
     private readonly string _legacy;
+    private readonly string _camPos;
     private readonly string _current;
 
     public AppDataMigrationTests()
     {
-        _root = Path.Combine(Path.GetTempPath(), "campos-migration-tests", Guid.NewGuid().ToString());
+        _root = Path.Combine(
+            Path.GetTempPath(), "camdiansrx-migration-tests", Guid.NewGuid().ToString());
         _legacy = Path.Combine(_root, "PharmaPOS");
-        _current = Path.Combine(_root, "CamPOS");
+        _camPos = Path.Combine(_root, "CamPOS");
+        _current = Path.Combine(_root, "CamdiansRX");
         Directory.CreateDirectory(_root);
     }
 
@@ -174,7 +181,7 @@ public class AppDataMigrationTests : IDisposable
         File.WriteAllText(Path.Combine(_legacy, "license.dat"), "licence");
 
         var result = AppDataMigration.Run(
-            _legacy, _current, LegacyDb, CurrentDb, verifyDatabase: _ => false);
+            Sources, _current, CurrentDb, verifyDatabase: _ => false);
 
         Assert.False(result.IsSuccess);
         Assert.False(File.Exists(Path.Combine(_current, CurrentDb)));
@@ -191,9 +198,106 @@ public class AppDataMigrationTests : IDisposable
         SeedLegacy();
 
         var result = AppDataMigration.Run(
-            _legacy, _current, LegacyDb, CurrentDb, verifyDatabase: _ => false);
+            Sources, _current, CurrentDb, verifyDatabase: _ => false);
 
         Assert.Contains("previous version", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // ── 옛 폴더가 둘일 때 ───────────────────────────────────────────────
+
+    /// <summary>
+    /// 약국이 겪는 경로. v1.26에서 곧장 올라오므로 중간 이름은 없다.
+    /// 이 테스트가 21일 배포의 요점이다.
+    /// </summary>
+    [Fact]
+    public void APharmacyComesStraightFromPharmaPos()
+    {
+        SeedLegacy();
+        File.WriteAllText(Path.Combine(_legacy, "license.dat"), "licence");
+
+        var result = Run();
+
+        Assert.True(result.DidMigrate);
+        Assert.Equal(_legacy, result.SourceFolder);
+        Assert.True(File.Exists(Path.Combine(_current, CurrentDb)));
+        Assert.True(File.Exists(Path.Combine(_current, "license.dat")));
+    }
+
+    /// <summary>
+    /// 개발 PC에는 둘 다 있다 — 앞선 이전이 옛 폴더를 지우지 않기 때문이다.
+    /// 보통은 나중 이름(CamPOS)이 더 새것이다.
+    /// </summary>
+    [Fact]
+    public void WithBothOldFoldersTheOneUsedLastWins()
+    {
+        SeedLegacy();
+        SeedCamPos();
+
+        TouchDatabase(_legacy, LegacyDb, DateTime.UtcNow.AddDays(-30));
+        TouchDatabase(_camPos, CamPosDb, DateTime.UtcNow.AddMinutes(-5));
+
+        var result = Run();
+
+        Assert.Equal(_camPos, result.SourceFolder);
+        Assert.Equal("CAMPOS", ReadProductName(Path.Combine(_current, CurrentDb)));
+    }
+
+    /// <summary>
+    /// <b>이 경우가 이 규칙이 있는 이유다.</b> 새 버전을 한 번 켜 봤다가 v1.26으로
+    /// 돌아가 장사를 계속한 PC에서는 옛 이름 쪽이 더 새것이다. 이름의 순서로
+    /// 골랐다면 그 사이의 판매가 전부 사라진다.
+    /// </summary>
+    [Fact]
+    public void WhenTheOlderNameWasUsedMoreRecentlyItWins()
+    {
+        SeedLegacy();
+        SeedCamPos();
+
+        TouchDatabase(_camPos, CamPosDb, DateTime.UtcNow.AddDays(-30));
+        TouchDatabase(_legacy, LegacyDb, DateTime.UtcNow.AddMinutes(-5));
+
+        var result = Run();
+
+        Assert.Equal(_legacy, result.SourceFolder);
+        Assert.Equal("IBUFEN", ReadProductName(Path.Combine(_current, CurrentDb)));
+    }
+
+    /// <summary>
+    /// WAL에만 쓰인 거래는 <c>.db</c>의 시각을 올리지 않는다. 본 파일만 보면
+    /// 방금 장사한 폴더가 오래된 것으로 읽히고, 그래서 버려진다.
+    /// </summary>
+    [Fact]
+    public void AFolderWhoseWalIsNewerCountsAsRecentlyUsed()
+    {
+        SeedLegacy();
+        SeedCamPos();
+
+        var old = DateTime.UtcNow.AddDays(-30);
+        TouchDatabase(_camPos, CamPosDb, DateTime.UtcNow.AddDays(-1));
+        TouchDatabase(_legacy, LegacyDb, old);
+
+        // 본 파일은 오래됐지만 WAL은 방금이다 — 커밋만 되고 체크포인트 전인 상태.
+        var wal = Path.Combine(_legacy, LegacyDb + "-wal");
+        File.WriteAllText(wal, "wal");
+        File.SetLastWriteTimeUtc(wal, DateTime.UtcNow.AddMinutes(-1));
+
+        Assert.Equal(_legacy, Run().SourceFolder);
+    }
+
+    /// <summary>
+    /// 앞선 이전이 남긴 쪽지는 따라오지 않는다. 새 폴더에 "이 폴더는 옮겨졌다"는
+    /// 글이 들어 있으면 읽는 사람이 거꾸로 이해한다.
+    /// </summary>
+    [Fact]
+    public void TheNoteLeftByAnEarlierMoveIsNotCopiedForward()
+    {
+        SeedCamPos();
+        File.WriteAllText(Path.Combine(_camPos, "MOVED-TO-CamPOS.txt"), "old note");
+
+        Run();
+
+        Assert.False(File.Exists(Path.Combine(_current, "MOVED-TO-CamPOS.txt")));
+        Assert.False(File.Exists(Path.Combine(_current, AppDataMigration.NoticeFileName)));
     }
 
     // ── 실제 데이터베이스 검사 ──────────────────────────────────────────
@@ -246,8 +350,15 @@ public class AppDataMigrationTests : IDisposable
 
     // ── 받침대 ──────────────────────────────────────────────────────────
 
+    /// <summary>앱이 넘기는 것과 같은 순서 — CamPOS가 앞, PharmaPOS가 뒤.</summary>
     private AppDataMigrationResult Run() =>
-        AppDataMigration.Run(_legacy, _current, LegacyDb, CurrentDb, SqliteDatabaseCheck.CanOpen);
+        AppDataMigration.Run(Sources, _current, CurrentDb, SqliteDatabaseCheck.CanOpen);
+
+    private AppDataSource[] Sources =>
+    [
+        new AppDataSource(_camPos, CamPosDb),
+        new AppDataSource(_legacy, LegacyDb),
+    ];
 
     private void SeedLegacy()
     {
@@ -258,6 +369,38 @@ public class AppDataMigrationTests : IDisposable
         Execute(connection, "CREATE TABLE product (id INTEGER, name TEXT);");
         Execute(connection, "INSERT INTO product VALUES (1, 'IBUFEN');");
         SqliteConnection.ClearAllPools();
+    }
+
+    /// <summary>중간 이름의 폴더. 상품 이름으로 어느 쪽에서 왔는지 구분한다.</summary>
+    private void SeedCamPos()
+    {
+        Directory.CreateDirectory(_camPos);
+
+        using var connection = new SqliteConnection($"Data Source={Path.Combine(_camPos, CamPosDb)}");
+        connection.Open();
+        Execute(connection, "CREATE TABLE product (id INTEGER, name TEXT);");
+        Execute(connection, "INSERT INTO product VALUES (1, 'CAMPOS');");
+        SqliteConnection.ClearAllPools();
+    }
+
+    private static void TouchDatabase(string folder, string databaseName, DateTime writtenAtUtc)
+    {
+        SqliteConnection.ClearAllPools();
+        File.SetLastWriteTimeUtc(Path.Combine(folder, databaseName), writtenAtUtc);
+    }
+
+    private static string ReadProductName(string database)
+    {
+        using var connection = new SqliteConnection($"Data Source={database}");
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT name FROM product LIMIT 1;";
+        var name = (string)command.ExecuteScalar()!;
+
+        SqliteConnection.ClearAllPools();
+
+        return name;
     }
 
     private void SeedCurrent(string contents)

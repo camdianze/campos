@@ -210,9 +210,9 @@ where table_name = 'app_user';   -- site_id, user_id, username, role, status, se
 | 파일 | 무엇 |
 |---|---|
 | `RELEASES-{채널}` | **목록.** 이것이 기준이다 |
-| `CamPOS-{버전}-{채널}-full.nupkg` | 전체 (~7 MB) |
-| `CamPOS-{버전}-{채널}-delta.nupkg` | 변경분 (~2 MB). 있으면 이쪽이 먼저 쓰인다 |
-| `CamPOS-{채널}-Setup.exe` | **첫 설치용.** 약국에 처음 깔 때만 |
+| `CamdiansRX-{버전}-{채널}-full.nupkg` | 전체 (~7 MB) |
+| `CamdiansRX-{버전}-{채널}-delta.nupkg` | 변경분 (~2 MB). 있으면 이쪽이 먼저 쓰인다 |
+| `CamdiansRX-{채널}-Setup.exe` | **첫 설치용.** 약국에 처음 깔 때만 |
 | `releases.{채널}.json` / `assets.{채널}.json` | 메타 |
 
 `Portable.zip`은 안 올려도 된다 — 설치 없이 쓰는 용도이고 업데이트가 안 된다.

@@ -31,30 +31,37 @@ public partial class App : System.Windows.Application
         base.OnStartup(e);
 
         var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var appDataFolder = Path.Combine(roaming, "CamPOS");
+        var appDataFolder = Path.Combine(roaming, "CamdiansRX");
 
-        // 내부 이름이 바뀌기 전에 쓰던 폴더. 이미 운영 중인 PC가 새 버전을 켰을 때
+        // 이름이 바뀌기 전에 쓰던 폴더들. 이미 운영 중인 PC가 새 버전을 켰을 때
         // 판매 기록·라이선스·동기화 설정이 그대로 보여야 하므로, 데이터베이스를
         // 열기 전에 옮긴다. 복사이고, 옛 폴더는 남는다.
+        //
+        // 둘 다 있을 수 있다 — 앞선 이전이 옛 폴더를 지우지 않기 때문이다.
+        // 어느 쪽을 가져올지는 AppDataMigration.PickSource가 정한다:
+        // <b>마지막으로 쓰인 데이터베이스</b>가 이긴다.
         var migration = AppDataMigration.Run(
-            legacyFolder: Path.Combine(roaming, "PharmaPOS"),
+            sources:
+            [
+                new AppDataSource(Path.Combine(roaming, "CamPOS"), "campos.db"),
+                new AppDataSource(Path.Combine(roaming, "PharmaPOS"), "pharmapos.db"),
+            ],
             currentFolder: appDataFolder,
-            legacyDatabaseName: "pharmapos.db",
-            currentDatabaseName: "campos.db",
+            currentDatabaseName: "camdiansrx.db",
             verifyDatabase: SqliteDatabaseCheck.CanOpen);
 
         if (!migration.IsSuccess)
         {
             MessageBox.Show(
                 migration.Message,
-                "CamPOS",
+                "CamdiansRX",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
 
         Directory.CreateDirectory(appDataFolder);
 
-        var dbFilePath = Path.Combine(appDataFolder, "campos.db");
+        var dbFilePath = Path.Combine(appDataFolder, "camdiansrx.db");
         var licenseFilePath = Path.Combine(appDataFolder, "license.dat");
 
         // AWaRe 참조 데이터와 복약안내 로케일 파일은 두 곳에서 찾는다.

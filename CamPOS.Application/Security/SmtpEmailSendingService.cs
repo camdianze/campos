@@ -25,7 +25,7 @@ public class SmtpEmailSendingService : IEmailSendingService
             using var message = new MailMessage
             {
                 From = new MailAddress(senderEmail),
-                Subject = "CamPOS Password Recovery Code",
+                Subject = "CamdiansRX Password Recovery Code",
                 Body = $"Your password recovery code is: {otpCode}\n\nThis code will expire in 10 minutes.",
                 IsBodyHtml = false
             };
@@ -56,8 +56,8 @@ public class SmtpEmailSendingService : IEmailSendingService
             using var message = new MailMessage
             {
                 From = new MailAddress(senderEmail),
-                Subject = "CamPOS Username Recovery",
-                Body = $"Your CamPOS username is: {username}",
+                Subject = "CamdiansRX Username Recovery",
+                Body = $"Your CamdiansRX username is: {username}",
                 IsBodyHtml = false
             };
             message.To.Add(recipientEmail);

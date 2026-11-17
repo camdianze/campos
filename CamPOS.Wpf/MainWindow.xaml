@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CamPOS.Wpf"
         mc:Ignorable="d"
-        Title="CamPOS"
+        Title="CamdiansRX"
         WindowState="Maximized"
         FontFamily="Segoe UI, pack://application:,,,/Fonts/#Siemreap"
         Height="800" Width="1280">

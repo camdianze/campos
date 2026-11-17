@@ -95,7 +95,7 @@ public class LicenseService : ILicenseService
         if (payload.Version != LicensePayload.CurrentVersion)
         {
             return LicenseActivationResult.Failure(
-                "This license code requires a newer version of CamPOS.");
+                "This license code requires a newer version of CamdiansRX.");
         }
 
         if (!IsSignatureValid(payload, signature))

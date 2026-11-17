@@ -12,7 +12,7 @@ public static class AppVersion
     public const string Number = "2.0";
 
     /// <summary>화면에 그대로 찍는 표기.</summary>
-    public const string Display = "CamPOS v." + Number;
+    public const string Display = "CamdiansRX v." + Number;
 
     /// <summary>
     /// 파일 이름에 넣는 형태. 공백과 점 앞의 v를 붙여 두어

@@ -63,7 +63,7 @@ public sealed class HttpSyncRegistrationService : ISyncRegistrationService
         catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return SyncRegistrationResult.Failure(
-                "The server did not answer in time. CamPOS works without this — set it up later in Data Center.");
+                "The server did not answer in time. CamdiansRX works without this — set it up later in Data Center.");
         }
         catch (Exception exception)
         {

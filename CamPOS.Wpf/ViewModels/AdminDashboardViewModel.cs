@@ -203,7 +203,7 @@ public class AdminDashboardViewModel : ViewModelBase
 
             UpdateDownloaded = status.DownloadedVersion is null
                 ? "Nothing"
-                : status.DownloadedVersion + " — installs when CamPOS is closed";
+                : status.DownloadedVersion + " — installs when CamdiansRX is closed";
 
             UpdateChannel = status.Channel;
             UpdateMessage = status.LastMessage;

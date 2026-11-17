@@ -15,7 +15,7 @@ public class LicenseActivationViewModel : ViewModelBase
 
     private string _licenseCode = string.Empty;
     private string _errorMessage = string.Empty;
-    private string _title = "Activate CamPOS";
+    private string _title = "Activate CamdiansRX";
     private string _introduction =
         "Enter the license code that came with your copy. This is a one-time step and works without an internet connection.";
 
@@ -74,7 +74,7 @@ public class LicenseActivationViewModel : ViewModelBase
             return;
         }
 
-        Title = "Renew CamPOS";
+        Title = "Renew CamdiansRX";
         Introduction =
             $"This license expired on {status.ExpiryDisplay}. Enter a renewal code to continue. "
             + "Your data is untouched and will be there as soon as the new code is accepted.";

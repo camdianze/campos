@@ -1,4 +1,4 @@
-# CamPOS
+# CamdiansRX
 
 소규모 약국·보건시설을 위한 **재고 관리 및 POS(판매 시점 관리) 데스크톱 애플리케이션**입니다.
 
@@ -106,7 +106,7 @@ dotnet run --project CamPOS.Wpf
 dotnet publish CamPOS.Wpf -p:PublishProfile=FolderProfile
 ```
 
-게시 결과물은 `CamPOS.exe` 입니다.
+게시 결과물은 `CamdiansRX.exe` 입니다.
 
 ### 최초 실행
 
@@ -119,7 +119,7 @@ dotnet publish CamPOS.Wpf -p:PublishProfile=FolderProfile
 데이터베이스는 첫 실행 시 아래 경로에 자동 생성됩니다.
 
 ```
-%APPDATA%\CamPOS\campos.db
+%APPDATA%\CamdiansRX\camdiansrx.db
 ```
 
 이 폴더를 삭제하면 앱이 초기 설정 상태로 돌아갑니다. 개발 중 초기화가 필요할 때 사용하세요.

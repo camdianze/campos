@@ -283,7 +283,7 @@ public static class ReceiptRenderer
         lines.Add(Rule('=', width));
 
         // 제품명은 상표라서 번역하지 않는다. 약품명과 같은 이유다.
-        AppendCentered(lines, "CamPOS", width);
+        AppendCentered(lines, "CamdiansRX", width);
         AppendCentered(lines, text.Primary(ReceiptStringKeys.BrandTagline), width);
     }
 

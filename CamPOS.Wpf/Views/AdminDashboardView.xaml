@@ -481,7 +481,7 @@
                 <Border Style="{StaticResource Card}" Margin="0,10,0,0">
                     <StackPanel>
                         <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,14"
-                                   Text="CamPOS checks for a new version when it starts, downloads it in the background, and installs it the next time it is closed. Nothing interrupts a sale, and nothing is asked."/>
+                                   Text="CamdiansRX checks for a new version when it starts, downloads it in the background, and installs it the next time it is closed. Nothing interrupts a sale, and nothing is asked."/>
 
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
