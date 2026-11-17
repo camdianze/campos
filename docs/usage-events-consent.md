@@ -1,21 +1,5 @@
 # How CamdiansRX records the way you use it
 
-> ## ⚠ THIS DOCUMENT IS OUT OF DATE — DO NOT SIGN IT YET
->
-> Six events were added to CamdiansRX on 2026-11-17 and are **not** in the list
-> below, so the sentence "these are the only things CamdiansRX writes down" is
-> currently false:
->
-> `admin_dashboard` · `user_management` · `receipt_settings` ·
-> `counselling_settings` · `product_scanned` · `product_searched`
->
-> The first four record that an admin screen was opened. The last two record
-> that a product was looked up and whether it was found — **not which product**.
-> Nothing about the six changes what is written down about people, medicines,
-> money or typed text; the six columns are unchanged.
->
-> This wording must be brought up to date before any pharmacy reads or signs it.
-
 *Draft wording for the pilot agreement and the consent form. Written to be read by
 the pharmacy, in plain English. Camdianz reviews and a lawyer checks before signing.*
 
