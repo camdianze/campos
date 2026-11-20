@@ -260,7 +260,7 @@
                     </Button>
 
                     <Button Content="{svc:Loc ui.common.save, Save}"
-                            Background="#BF5B92E5" Foreground="White" FontWeight="SemiBold"
+                            Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="SemiBold"
                             BorderThickness="0" Height="36" MinWidth="96" Cursor="Hand"
                             Command="{Binding SaveStockInCommand}">
                         <Button.Template>

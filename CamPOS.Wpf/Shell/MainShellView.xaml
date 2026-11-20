@@ -102,7 +102,7 @@
                                 <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#DBEAFE"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimarySelectedBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
