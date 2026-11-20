@@ -20,7 +20,27 @@ public class CounsellingMetrics
     public int UnmatchedCount { get; init; }
 
     public int PrintedCount { get; init; }
+
+    /// <summary>
+    /// 안내가 나가지 않은 건수 전체. 아래 두 값을 합친 것이지만 <b>꼭 같지는 않다</b> —
+    /// 이유를 적지 않은 채 기록된 행이 있을 수 있어서다(skip_reason이 NULL).
+    /// 그래서 이 값을 둘의 합으로 계산하지 않고 따로 센다.
+    /// </summary>
     public int SkippedCount { get; init; }
+
+    /// <summary>
+    /// 약사가 Skip을 눌렀다. 판단이고 고장이 아니므로 오류로 읽히면 안 된다.
+    /// </summary>
+    public int PharmacistSkippedCount { get; init; }
+
+    /// <summary>
+    /// 인쇄가 실패했다 — 프린터를 봐야 한다는 뜻이다.
+    ///
+    /// 약사가 건너뛴 것과 한 칸에 담아 두면 "안 준 것"과 "줄 수 없었던 것"을
+    /// 가를 수 없고, 출력률이 낮은 이유가 사람인지 기계인지 모르게 된다.
+    /// 전자는 설명해서 풀 일이고 후자는 고쳐야 할 일이라 할 일이 전혀 다르다.
+    /// </summary>
+    public int PrintFailedCount { get; init; }
 
     /// <summary>항생제 판매 비중.</summary>
     public double AntibioticShare =>

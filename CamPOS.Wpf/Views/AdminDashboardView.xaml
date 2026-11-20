@@ -136,7 +136,7 @@
                 <Button Content="👥  User Management"     Style="{StaticResource PrimaryBtn}"   Height="40" Margin="6" Command="{Binding UserManagementCommand}"/>
                 <Button Content="📊  Inventory Overview"  Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding InventoryOverviewCommand}"/>
                 <Button Content="🛒  Sales History"       Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding SalesHistoryCommand}"/>
-                <Button Content="📈  Reports"             Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding ReportsCommand}"/>
+                <Button Content="📈  Sales Analysis"      Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding SalesAnalysisCommand}"/>
                 <Button Content="🗄️  Data Center"     Style="{StaticResource SecondaryBtn}" Height="40" Margin="6" Command="{Binding BackupExportCommand}"/>
             </UniformGrid>
 

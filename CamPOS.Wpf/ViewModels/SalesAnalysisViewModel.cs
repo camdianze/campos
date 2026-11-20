@@ -1,9 +1,8 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
-using CamPOS.Application.Counselling;
 using CamPOS.Application;
 using CamPOS.Application.Receipts;
 using CamPOS.Application.Reports;
@@ -20,28 +19,21 @@ public enum ProductSortOption
 }
 
 /// <summary>
-/// 관리자 리포트 화면의 ViewModel.
-/// 기간을 고르면 매출 요약 · 상품별 순위 · 항생제 성분별 판매를 함께 보여주고,
-/// 각 값에 직전 기간 대비 증감을 붙인다.
+/// 매출 분석 화면의 ViewModel (History → Analysis).
+///
+/// 항생제 리포트에서 갈라져 나온 쪽이다. 한 화면에 있던 동안 왼쪽은 약국 전체 매출,
+/// 오른쪽은 항생제였는데, 두 축을 한 화면에 두면 기간을 고를 때마다 둘 다 다시 읽히는
+/// 것 말고는 공유하는 것이 없었다. 더 중요한 차이는 <b>나가는 곳</b>이다 — 항생제 쪽은
+/// 연구기관에 제출되고 이쪽은 약국이 자기 장부로 쓴다.
+///
+/// 그래서 접근 권한도 다르다. 이 화면은 <b>관리자 전용</b>이다(갈라지기 전 Reports 화면이
+/// 그랬다). 매출을 직원에게 여는 것은 별개의 결정이고, 화면을 나누는 작업이 곁다리로
+/// 해 버릴 일이 아니다.
 /// </summary>
-public class ReportsViewModel : ViewModelBase
+public class SalesAnalysisViewModel : ReportPeriodViewModelBase
 {
-    private readonly IReportService _reportService;
-    private readonly ICounsellingSettingsService _counsellingSettingsService;
     private readonly IReceiptSettingsService _receiptSettingsService;
-    private readonly string _facilityId;
 
-    /// <summary>
-    /// 연구기관이 부여한 사이트 코드. 항생제 파일에만 실린다.
-    /// 설정 화면(Antibiotic Counselling)에서 바뀔 수 있으므로 리포트를 읽을 때마다 다시 읽는다.
-    /// </summary>
-    private string _researchSiteCode = string.Empty;
-
-    private DateTime? _dateFrom;
-    private DateTime? _dateTo;
-    private ReportData? _report;
-    private string _message = string.Empty;
-    private bool _isLoading;
     private ProductSortOption _selectedSort = ProductSortOption.Amount;
 
     /// <summary>
@@ -49,16 +41,13 @@ public class ReportsViewModel : ViewModelBase
     /// </summary>
     private IReadOnlyList<ProductSalesRow> _loadedProducts = Array.Empty<ProductSalesRow>();
 
-    /// <summary>가장 높은 달의 판매 수량. 막대 높이의 기준이자 세로축 눈금이다.</summary>
-    private int _trendMax;
-
-    /// <summary>가장 높은 달의 순매출. 위와 같은 역할이다.</summary>
+    /// <summary>가장 높은 달의 순매출. 막대 높이의 기준이자 세로축 눈금이다.</summary>
     private decimal _salesTrendMax;
 
     /// <summary>달력이 지금 보여주는 달의 1일. 고른 기간과는 별개로 ◀ ▶로 움직인다.</summary>
     private DateTime _calendarMonth;
 
-    /// <summary>달력이 아니라 12개월 그래프를 보고 있는지. 왼쪽 아래 패널은 둘 중 하나다.</summary>
+    /// <summary>달력이 아니라 12개월 그래프를 보고 있는지. 아래 패널은 둘 중 하나다.</summary>
     private bool _isCalendarVisible;
 
     /// <summary>달력의 그 달 합계. 칸을 다 더한 값이라 세로로 훑지 않아도 된다.</summary>
@@ -72,15 +61,8 @@ public class ReportsViewModel : ViewModelBase
     private bool _showRiel;
 
     public ObservableCollection<ProductSalesRow> Products { get; } = new();
-    public ObservableCollection<AntibioticSalesRow> Antibiotics { get; } = new();
 
-    /// <summary>요약 카드의 ACCESS 비중 아래에 네 등급을 따로 늘어놓는다.</summary>
-    public ObservableCollection<AwareGroupShare> GroupShares { get; } = new();
-
-    /// <summary>최근 12개월 항생제 판매 추이의 막대들.</summary>
-    public ObservableCollection<AntibioticTrendBar> TrendBars { get; } = new();
-
-    /// <summary>최근 12개월 순매출 추이의 막대들. 항생제 추이와 같은 창을 쓴다.</summary>
+    /// <summary>최근 12개월 순매출 추이의 막대들.</summary>
     public ObservableCollection<SalesTrendBar> SalesTrendBars { get; } = new();
 
     /// <summary>
@@ -103,113 +85,14 @@ public class ReportsViewModel : ViewModelBase
 
     public IReadOnlyList<ProductSortOption> AvailableSorts { get; } = Enum.GetValues<ProductSortOption>();
 
-    public DateTime? DateFrom
-    {
-        get => _dateFrom;
-        set => SetProperty(ref _dateFrom, value);
-    }
-
-    public DateTime? DateTo
-    {
-        get => _dateTo;
-        set => SetProperty(ref _dateTo, value);
-    }
-
-    /// <summary>집계 결과. 요약 카드들이 여기서 값을 꺼내 쓴다.</summary>
-    public ReportData? Report
-    {
-        get => _report;
-        private set
-        {
-            if (SetProperty(ref _report, value))
-            {
-                OnPropertyChanged(nameof(PeriodLabel));
-                OnPropertyChanged(nameof(ComparisonLabel));
-                OnPropertyChanged(nameof(CounsellingPrintRateDisplay));
-                OnPropertyChanged(nameof(CounsellingSummary));
-                OnPropertyChanged(nameof(HasAntibioticData));
-                OnPropertyChanged(nameof(TrendPeriodLabel));
-                OnPropertyChanged(nameof(HasTrendData));
-                OnPropertyChanged(nameof(TrendMaxDisplay));
-                OnPropertyChanged(nameof(HasSalesTrendData));
-                OnPropertyChanged(nameof(SalesTrendMaxDisplay));
-                OnPropertyChanged(nameof(SalesAmountInRiel));
-            }
-        }
-    }
-
-    public bool IsLoading
-    {
-        get => _isLoading;
-        private set => SetProperty(ref _isLoading, value);
-    }
-
-    public string Message
-    {
-        get => _message;
-        set => SetProperty(ref _message, value);
-    }
-
-    public string PeriodLabel => Report is null ? string.Empty : Report.Range.Label;
-
-    /// <summary>무엇과 비교한 값인지 화면에 분명히 적어 둔다. 이게 없으면 증감을 신뢰할 수 없다.</summary>
-    public string ComparisonLabel
-    {
-        get
-        {
-            if (Report is null)
-            {
-                return string.Empty;
-            }
-
-            var what = Report.Range.IsWholeCalendarMonth ? "previous month" : "previous period";
-            return $"compared with the {what}: {Report.Range.PreviousLabel}";
-        }
-    }
-
-    /// <summary>
-    /// 복약안내 출력률. 항생제를 판 줄 중 몇 %에 안내가 나갔는지다.
-    ///
-    /// 이 자리에 있던 ACCESS 비중은 바로 아래 등급별 비율이 네 등급과 함께
-    /// 더 자세히 보여준다. 같은 숫자를 두 번 두는 대신, 화면 어디에도 한 값으로
-    /// 없던 출력률을 여기 둔다 — 안내가 실제로 전달되고 있는지가 이 기능의 핵심이다.
-    /// </summary>
-    public string CounsellingPrintRateDisplay =>
-        Report?.CounsellingPrintRatePercent is { } rate
-            ? rate.ToString("0.#", CultureInfo.InvariantCulture) + "%"
-            : "—";
-
-    public string CounsellingSummary =>
-        Report is null
-            ? string.Empty
-            : $"{Report.CounsellingPrintedCount} printed / {Report.AntibioticSaleCount} antibiotic sales";
-
-    /// <summary>항생제 표가 비어 있을 때 안내 문구를 대신 보여주기 위한 값.</summary>
-    public bool HasAntibioticData => Antibiotics.Count > 0;
-
     /// <summary>
     /// 추이 그래프가 덮는 구간. 고른 기간과 다르다는 사실을 화면에 적어 두지 않으면
-    /// 표의 합과 그래프의 합이 왜 다른지 알 수 없다.
+    /// 카드의 금액과 그래프의 합이 왜 다른지 알 수 없다.
     /// </summary>
-    public string TrendPeriodLabel
-    {
-        get
-        {
-            if (TrendBars.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            return $"{TrendBars[0].FullLabel} ~ {TrendBars[^1].FullLabel}";
-        }
-    }
-
-    /// <summary>세로축 눈금. 가장 높은 달이 몇 개였는지 적어야 막대 높이를 숫자로 읽을 수 있다.</summary>
-    public string TrendMaxDisplay =>
-        _trendMax == 0 ? string.Empty : _trendMax.ToString("N0", CultureInfo.InvariantCulture);
-
-    /// <summary>1년 내내 항생제 판매가 없으면 빈 그래프 대신 안내 문구를 보여준다.</summary>
-    public bool HasTrendData => _trendMax > 0;
+    public string TrendPeriodLabel =>
+        SalesTrendBars.Count == 0
+            ? string.Empty
+            : $"{SalesTrendBars[0].FullLabel} ~ {SalesTrendBars[^1].FullLabel}";
 
     /// <summary>매출 그래프의 세로축 눈금.</summary>
     public string SalesTrendMaxDisplay =>
@@ -246,33 +129,10 @@ public class ReportsViewModel : ViewModelBase
         ? $"1 USD = {_exchangeRate.ToString("N0", CultureInfo.InvariantCulture)} {RielConverter.RielSymbol}"
         : string.Empty;
 
-    /// <summary>화면을 열 때 한 번 읽는다. 못 읽으면 리엘 줄 없이 종전대로 나온다.</summary>
-    private async Task LoadCurrencySettingsAsync()
-    {
-        try
-        {
-            var settings = await _receiptSettingsService.GetAsync();
-
-            _exchangeRate = settings.ExchangeRate;
-            _rielRounding = settings.RielRounding;
-            _showRiel = settings.ShowRiel;
-        }
-        catch (Exception)
-        {
-            _showRiel = false;
-        }
-
-        OnPropertyChanged(nameof(IsRielShown));
-        OnPropertyChanged(nameof(ExchangeRateNote));
-        OnPropertyChanged(nameof(SalesAmountInRiel));
-        OnPropertyChanged(nameof(CalendarTotalInRiel));
-    }
-
     // ── 매출 달력 ────────────────────────────────────────────────────────────
     //
-    // 왼쪽 아래 자리를 12개월 그래프와 나눠 쓴다. 같은 주제(약국 전체의 시간별 매출)를
+    // 아래 자리를 12개월 그래프와 나눠 쓴다. 같은 주제(약국 전체의 시간별 매출)를
     // 다른 배율로 본 것이라, 둘을 따로 놓기보다 한 자리에서 바꿔 보는 편이 맞다.
-    // 오른쪽의 항생제 그래프와 가로축을 맞춰 둔 구조도 그대로 남는다.
 
     /// <summary>달력을 보고 있는지. false면 12개월 그래프다.</summary>
     public bool IsCalendarVisible
@@ -310,30 +170,13 @@ public class ReportsViewModel : ViewModelBase
     /// <summary>날짜 칸을 누르면 그 하루를 기간으로 삼고 리포트를 다시 돌린다.</summary>
     public RelayCommand SelectDayCommand { get; }
 
-    public RelayCommand RefreshCommand { get; }
-    public RelayCommand ThisMonthCommand { get; }
-    public RelayCommand LastMonthCommand { get; }
-    public RelayCommand ExportCommand { get; }
-    public RelayCommand BackCommand { get; }
-
-    public event Action? NavigateBack;
-
-    public ReportsViewModel(
+    public SalesAnalysisViewModel(
         IReportService reportService,
-        ICounsellingSettingsService counsellingSettingsService,
         IReceiptSettingsService receiptSettingsService,
         string facilityId)
+        : base(reportService, facilityId)
     {
-        _reportService = reportService;
-        _counsellingSettingsService = counsellingSettingsService;
         _receiptSettingsService = receiptSettingsService;
-        _facilityId = facilityId;
-
-        RefreshCommand = new RelayCommand(async _ => await LoadAsync());
-        ThisMonthCommand = new RelayCommand(async _ => await SelectMonthAsync(0));
-        LastMonthCommand = new RelayCommand(async _ => await SelectMonthAsync(-1));
-        ExportCommand = new RelayCommand(_ => ExecuteExport());
-        BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());
 
         ShowCalendarCommand = new RelayCommand(async _ => await ShowCalendarAsync());
         ShowTrendCommand = new RelayCommand(_ => IsCalendarVisible = false);
@@ -342,16 +185,34 @@ public class ReportsViewModel : ViewModelBase
             async _ => await MoveCalendarAsync(1), _ => CanGoToNextMonth);
         SelectDayCommand = new RelayCommand(async cell => await SelectDayAsync(cell as SalesCalendarCell));
 
-        // 처음 열면 이번 달 1일부터 오늘까지.
-        var today = DateTime.Today;
-        _dateFrom = new DateTime(today.Year, today.Month, 1);
-        _dateTo = today;
-        _calendarMonth = _dateFrom.Value;
+        _calendarMonth = DateFrom ?? DateTime.Today;
 
         // 환율은 리포트와 별개로 읽는다. 금액은 달러로 저장돼 있고 리엘은 화면 환산이라,
         // 리포트 조회가 통화 설정을 기다릴 이유가 없다.
         _ = LoadCurrencySettingsAsync();
         _ = LoadAsync();
+    }
+
+    /// <summary>화면을 열 때 한 번 읽는다. 못 읽으면 리엘 줄 없이 종전대로 나온다.</summary>
+    private async Task LoadCurrencySettingsAsync()
+    {
+        try
+        {
+            var settings = await _receiptSettingsService.GetAsync();
+
+            _exchangeRate = settings.ExchangeRate;
+            _rielRounding = settings.RielRounding;
+            _showRiel = settings.ShowRiel;
+        }
+        catch (Exception)
+        {
+            _showRiel = false;
+        }
+
+        OnPropertyChanged(nameof(IsRielShown));
+        OnPropertyChanged(nameof(ExchangeRateNote));
+        OnPropertyChanged(nameof(SalesAmountInRiel));
+        OnPropertyChanged(nameof(CalendarTotalInRiel));
     }
 
     /// <summary>
@@ -385,7 +246,7 @@ public class ReportsViewModel : ViewModelBase
         OnPropertyChanged(nameof(CalendarMonthLabel));
         NextMonthCommand.RaiseCanExecuteChanged();
 
-        var result = await _reportService.GetDailySalesAsync(_facilityId, _calendarMonth);
+        var result = await ReportService.GetDailySalesAsync(FacilityId, _calendarMonth);
 
         CalendarCells.Clear();
         _calendarTotal = 0;
@@ -395,7 +256,7 @@ public class ReportsViewModel : ViewModelBase
         {
             Message = result.Message!;
             OnPropertyChanged(nameof(CalendarTotalLabel));
-        OnPropertyChanged(nameof(CalendarTotalInRiel));
+            OnPropertyChanged(nameof(CalendarTotalInRiel));
             return;
         }
 
@@ -427,9 +288,9 @@ public class ReportsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 그 하루를 기간으로 삼는다. 따로 팝업을 띄우지 않는 이유: 매출 카드·상품 순위·
-    /// 항생제 표가 모두 그 날 기준으로 바뀌므로, 팝업 하나보다 보이는 것이 많다.
-    /// 줄 단위 내역은 판매 이력 화면이 이미 하는 일이라 여기서 되풀이하지 않는다.
+    /// 그 하루를 기간으로 삼는다. 따로 팝업을 띄우지 않는 이유: 매출 카드와 상품 순위가
+    /// 모두 그 날 기준으로 바뀌므로 팝업 하나보다 보이는 것이 많다. 줄 단위 내역은
+    /// 판매 이력 화면이 이미 하는 일이라 여기서 되풀이하지 않는다.
     /// </summary>
     private async Task SelectDayAsync(SalesCalendarCell? cell)
     {
@@ -444,63 +305,11 @@ public class ReportsViewModel : ViewModelBase
         await LoadAsync();
     }
 
-    /// <summary>달 단위 프리셋. 달 전체를 고르면 비교 대상이 자동으로 전월이 된다.</summary>
-    private async Task SelectMonthAsync(int monthOffset)
+    protected override async Task OnReportLoadedAsync(ReportData data)
     {
-        var target = DateTime.Today.AddMonths(monthOffset);
-        var start = new DateTime(target.Year, target.Month, 1);
-
-        DateFrom = start;
-
-        // 이번 달은 아직 안 끝났으므로 오늘까지만 본다. 지난달은 말일까지 전부.
-        DateTo = monthOffset == 0
-            ? DateTime.Today
-            : start.AddMonths(1).AddDays(-1);
-
-        await LoadAsync();
-    }
-
-    public async Task LoadAsync()
-    {
-        IsLoading = true;
-        Message = string.Empty;
-
-        var result = await _reportService.GetReportAsync(_facilityId, DateFrom, DateTo);
-
-        // 설정 화면에서 바뀌었을 수 있으므로 매번 다시 읽는다.
-        // 읽지 못해도 리포트는 보여줘야 한다 — 내보낼 때 출처가 빠질 뿐이다.
-        _researchSiteCode = (await _counsellingSettingsService.GetAsync()).ResearchSiteCode;
-
-        IsLoading = false;
-
-        if (!result.IsSuccess)
-        {
-            Message = result.Message!;
-            return;
-        }
-
-        var data = result.Data!;
-
         _loadedProducts = data.Products;
         ApplySorting();
 
-        // 비중의 분모. 표에 실린 줄들의 수량 합이라 화면의 비중을 다 더하면 100%가 된다.
-        var totalAntibioticQuantity = data.Antibiotics.Sum(r => r.Quantity);
-
-        Antibiotics.Clear();
-        foreach (var row in data.Antibiotics)
-        {
-            row.TotalQuantityInPeriod = totalAntibioticQuantity;
-            Antibiotics.Add(row);
-        }
-
-        GroupShares.Clear();
-        foreach (var share in data.GroupShares)
-        {
-            GroupShares.Add(share);
-        }
-
-        BuildTrendBars(data.AntibioticTrend);
         BuildSalesTrendBars(data.SalesTrend);
 
         // 달력을 켜 둔 채 기간을 바꿨으면 달력도 그 달로 따라간다. 화면에 보이는 달과
@@ -516,33 +325,18 @@ public class ReportsViewModel : ViewModelBase
                 await LoadCalendarAsync();
             }
         }
-
-        Report = data;
-        OnPropertyChanged(nameof(HasAntibioticData));
-
-        // 기간을 고를 때 화면이 비어 보이는 이유를 분명히 알려 준다.
-        Message = data.Current.TransactionCount == 0
-            ? $"No sales in {data.Range.Label}."
-            : string.Empty;
     }
 
-    /// <summary>
-    /// 월별 집계를 막대 높이로 옮긴다.
-    ///
-    /// 기준(_trendMax)은 가장 높은 달의 총량이다. 등급별 최댓값이 아니라 총량으로 잡는
-    /// 이유: 막대가 쌓여 올라가므로 총량이 곧 막대의 높이이고, 그걸 넘는 기준을 쓰면
-    /// 그래프 위쪽이 늘 비어 보인다.
-    /// </summary>
-    private void BuildTrendBars(IReadOnlyList<AntibioticTrendPoint> trend)
+    protected override void OnReportPropertiesChanged()
     {
-        _trendMax = trend.Count == 0 ? 0 : trend.Max(p => p.TotalQuantity);
-
-        TrendBars.Clear();
-        foreach (var point in trend)
-        {
-            TrendBars.Add(AntibioticTrendBar.From(point, _trendMax));
-        }
+        OnPropertyChanged(nameof(TrendPeriodLabel));
+        OnPropertyChanged(nameof(HasSalesTrendData));
+        OnPropertyChanged(nameof(SalesTrendMaxDisplay));
+        OnPropertyChanged(nameof(SalesAmountInRiel));
     }
+
+    protected override string EmptyPeriodMessage(ReportData data) =>
+        data.Current.TransactionCount == 0 ? $"No sales in {data.Range.Label}." : string.Empty;
 
     /// <summary>
     /// 월별 순매출을 막대 높이로 옮긴다.
@@ -591,25 +385,21 @@ public class ReportsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 매출과 항생제를 각각 다른 파일로 내보낸다.
+    /// 약국의 매출 파일만 쓴다.
     ///
-    /// 파일을 나누는 것은 보기 좋으라고가 아니라 <b>두 파일이 가는 곳이 다르기 때문</b>이다.
-    /// 항생제 파일은 AMR 연구에 의무 제출되어 약국 밖으로 나간다. 매출 파일은 약국이
-    /// 자기 장부로 쓰는 것이고, 매출액은 약국이 남에게 넘기기를 꺼리는 정보다.
-    /// 둘이 한 파일에 있으면 의무 제출을 하려다 영업 정보까지 함께 넘기게 되고,
-    /// 그 사실을 알아차린 약국은 제출 자체를 꺼리게 된다.
+    /// <b>이 파일은 약국 밖으로 나가지 않는다.</b> 항생제 파일은 AMR 연구에 의무
+    /// 제출되는데, 매출액이 거기 함께 실리면 약국이 제출 자체를 꺼리게 된다. 그래서
+    /// 두 파일은 따로이고, 이제는 화면도 따로다.
     ///
-    /// 그래서 <b>항생제 파일에는 금액이 들어가지 않는다</b>. 그 파일을 만드는 코드는
-    /// 주석만으로 규칙을 지킬 수 없어 테스트가 닿는 Application 쪽(AntibioticExportCsv)에 있다.
-    ///
-    /// 폴더를 고르고 데이터셋마다 파일을 하나씩 쓰는 방식은 Import/Export 화면의
-    /// 내보내기와 같다. 이 저장소에 이미 있는 방식을 따른 것이다.
+    /// 성분별 항생제 <b>매출액</b>은 여기 있다 — 항생제 파일에서 뺀 값이고, 상품 순위만으로는
+    /// 알 수 없다(상품 여러 개가 한 성분인 경우가 흔하다). 화면에 표가 없어도 파일에는
+    /// 남긴다. 지우면 약국이 그 값을 볼 곳이 없어진다.
     /// </summary>
-    private void ExecuteExport()
+    protected override void ExecuteExport()
     {
         Message = string.Empty;
 
-        if (Report is null || (Products.Count == 0 && Antibiotics.Count == 0))
+        if (Report is null || Products.Count == 0)
         {
             Message = "No data to export.";
             return;
@@ -622,17 +412,15 @@ public class ReportsViewModel : ViewModelBase
             return;
         }
 
-        var salesFileName = $"report_sales_{AppVersion.FileTag}_{Report.Range.From:yyyyMMdd}_{Report.Range.To:yyyyMMdd}.csv";
-        var antibioticsFileName = $"report_antibiotics_{AppVersion.FileTag}_{Report.Range.From:yyyyMMdd}_{Report.Range.To:yyyyMMdd}.csv";
-
-        var salesPath = Path.Combine(dialog.FolderName, salesFileName);
-        var antibioticsPath = Path.Combine(dialog.FolderName, antibioticsFileName);
+        var fileName =
+            $"report_sales_{AppVersion.FileTag}_{Report.Range.From:yyyyMMdd}_{Report.Range.To:yyyyMMdd}.csv";
+        var path = Path.Combine(dialog.FolderName, fileName);
 
         // 파일 이름이 기간으로 정해지므로 같은 기간을 두 번 내보내면 덮어쓴다.
         // 폴더를 고르는 방식에는 저장 대화상자의 덮어쓰기 경고가 없어 여기서 대신 묻는다.
-        if ((File.Exists(salesPath) || File.Exists(antibioticsPath))
+        if (File.Exists(path)
             && !AppDialog.Confirm(
-                "Overwrite Files",
+                "Overwrite File",
                 "A report for this period is already in that folder.\n\nReplace it?",
                 confirmText: "Replace",
                 cancelText: "Cancel"))
@@ -643,9 +431,7 @@ public class ReportsViewModel : ViewModelBase
 
         try
         {
-            File.WriteAllText(salesPath, BuildSalesCsv(Report), Encoding.UTF8);
-            File.WriteAllText(
-                antibioticsPath, AntibioticExportCsv.Build(Report, _researchSiteCode), Encoding.UTF8);
+            File.WriteAllText(path, BuildSalesCsv(Report), Encoding.UTF8);
         }
         catch (UnauthorizedAccessException)
         {
@@ -658,21 +444,9 @@ public class ReportsViewModel : ViewModelBase
             return;
         }
 
-        // 파일이 두 개라 어느 것이 생겼는지 이름을 적어 준다.
-        Message = $"Exported {salesFileName} and {antibioticsFileName}.";
-
-        // 사이트 코드가 없으면 받는 쪽이 어느 약국 것인지 알 수 없다.
-        // 내보내기를 막지는 않되(자기 확인용으로 뽑을 수 있다), 제출 전에 알려 준다.
-        if (string.IsNullOrWhiteSpace(_researchSiteCode))
-        {
-            Message += " No research site code is set, so the antibiotic file cannot be attributed."
-                + " Set it in Antibiotic Counselling settings before submitting it.";
-        }
+        Message = $"Exported {fileName}.";
     }
 
-    /// <summary>
-    /// 약국 전체 매출. 화면 왼쪽 칸에 해당한다.
-    /// </summary>
     private string BuildSalesCsv(ReportData report)
     {
         var builder = new StringBuilder();
@@ -697,12 +471,11 @@ public class ReportsViewModel : ViewModelBase
 
         // 성분별 항생제 매출. 항생제 파일에서 뺀 금액이 여기 있다 —
         // 그 파일은 약국 밖으로 나가지만 이 파일은 약국이 갖는다.
-        // 상품 순위만으로는 알 수 없는 값이라(상품 여러 개가 한 성분인 경우가 흔하다)
-        // 옮기지 않고 지우면 약국이 볼 곳이 없어진다.
+        // 화면에 이 표가 없어도(항생제 리포트로 갔다) 파일에는 그대로 남긴다.
         builder.AppendLine();
         builder.AppendLine("AntibioticRevenue");
         builder.AppendLine("Ingredient,Strength,AwareGroup,Quantity,Amount");
-        foreach (var row in Antibiotics)
+        foreach (var row in report.Antibiotics)
         {
             builder.AppendLine(CultureInfo.InvariantCulture, $"{Escape(row.Ingredient)},{Escape(row.Strength)},{row.AwareGroup}," +
                 $"{row.Quantity},{row.Amount:0.00}");
@@ -720,8 +493,8 @@ public class ReportsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 두 파일 모두 맨 위에 기간을 적는다. 파일 하나만 열어도 언제 것인지
-    /// 알 수 있어야 하고, 파일 이름은 옮기다 보면 바뀐다.
+    /// 파일 맨 위에 기간을 적는다. 파일 하나만 열어도 언제 것인지 알 수 있어야 하고,
+    /// 파일 이름은 옮기다 보면 바뀐다.
     /// </summary>
     private static void AppendPeriodHeader(StringBuilder builder, ReportData report)
     {

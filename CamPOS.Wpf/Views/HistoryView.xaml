@@ -63,16 +63,19 @@
                    Style="{StaticResource Caption}" FontSize="14"
                    Margin="0,0,0,24"/>
 
-        <!-- 카드 2개 -->
+        <!-- 카드 3개. 세 번째(Analysis)는 관리자 전용이다 — 갈라지기 전 Reports 화면이
+             그랬고, 화면을 나누는 작업이 매출을 직원에게 여는 결정까지 곁다리로
+             해 버릴 일은 아니다. -->
         <Grid Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- Sale History -->
             <Button Grid.Column="0" Style="{StaticResource HistoryCardBtn}"
-                    Margin="0,0,16,0" Width="380" Click="OnSaleHistoryClick">
+                    Margin="0,0,12,0" Width="310" Click="OnSaleHistoryClick">
                 <Grid>
                     <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
                                 Margin="30,26,0,0">
@@ -92,7 +95,7 @@
 
             <!-- Stock History -->
             <Button Grid.Column="1" Style="{StaticResource HistoryCardBtn}"
-                    Margin="16,0,0,0" Width="380" Click="OnStockHistoryClick">
+                    Margin="6,0,6,0" Width="310" Click="OnStockHistoryClick">
                 <Grid>
                     <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
                                 Margin="30,26,0,0">
@@ -107,6 +110,42 @@
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,40,0,0"/>
+                </Grid>
+            </Button>
+
+            <!-- Analysis (매출 분석). 관리자만.
+                 기본 ToolTip은 비활성 컨트롤에서 안 뜨므로 ShowOnDisabled를 켠다. -->
+            <Button Grid.Column="2" Style="{StaticResource HistoryCardBtn}"
+                    Margin="12,0,0,0" Width="310" Click="OnAnalysisClick"
+                    IsEnabled="{Binding IsAdministrator, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    ToolTip="Administrators only."
+                    ToolTipService.ShowOnDisabled="True">
+                <Grid>
+                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"
+                                Margin="30,26,0,0">
+                        <TextBlock Text="Analysis"
+                                   FontSize="26" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextBrush}"/>
+                        <TextBlock Text="Sales totals, product ranking and trends"
+                                   Style="{StaticResource Caption}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+                    <TextBlock FontSize="76"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Margin="0,40,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="📈"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsAdministrator, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                        <Setter Property="Text" Value="🔒"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </Grid>
             </Button>
         </Grid>

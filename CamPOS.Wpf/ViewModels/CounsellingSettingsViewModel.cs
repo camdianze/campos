@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using CamPOS.Wpf.ViewModels.Base;
 using CamPOS.Application.Counselling;
 using CamPOS.Application.Repositories;
+using CamPOS.Domain.Enums;
 
 namespace CamPOS.Wpf.ViewModels;
 
@@ -26,6 +27,7 @@ public class CounsellingSettingsViewModel : ViewModelBase
     private readonly ICounsellingSettingsService _settingsService;
     private readonly ICounsellingLocaleProvider _localeProvider;
     private readonly ICounsellingLogRepository _logRepository;
+    private readonly UserRole _actingRole;
 
     private CounsellingPrintMode _printMode = CounsellingPrintMode.Always;
     private CounsellingSheetFormat _sheetFormat = CounsellingSheetFormat.Full;
@@ -137,11 +139,13 @@ public class CounsellingSettingsViewModel : ViewModelBase
     public CounsellingSettingsViewModel(
         ICounsellingSettingsService settingsService,
         ICounsellingLocaleProvider localeProvider,
-        ICounsellingLogRepository logRepository)
+        ICounsellingLogRepository logRepository,
+        UserRole actingRole)
     {
         _settingsService = settingsService;
         _localeProvider = localeProvider;
         _logRepository = logRepository;
+        _actingRole = actingRole;
 
         SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync());
         BackCommand = new RelayCommand(_ => NavigateBack?.Invoke());
@@ -252,13 +256,17 @@ public class CounsellingSettingsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 저장 결과 문구를 서비스에서 받아 그대로 띄운다. 전에는 예외가 안 났으면
+    /// "Settings saved."를 여기서 적었는데, 저장이 거부될 수 있게 된 뒤로는 그 문장이
+    /// 거짓일 수 있다 — 거부는 예외가 아니다.
+    /// </summary>
     private async Task ExecuteSaveAsync()
     {
         Message = string.Empty;
 
-        try
-        {
-            await _settingsService.SaveAsync(new CounsellingSettings
+        var result = await _settingsService.SaveAsync(
+            new CounsellingSettings
             {
                 PrintMode = PrintMode,
                 SheetFormat = SheetFormat,
@@ -267,13 +275,9 @@ public class CounsellingSettingsViewModel : ViewModelBase
                 LocaleCode = SelectedLocale?.Code ?? string.Empty,
                 QrUrl = QrUrl?.Trim() ?? string.Empty,
                 ResearchSiteCode = ResearchSiteCode?.Trim() ?? string.Empty
-            });
+            },
+            _actingRole);
 
-            Message = "Settings saved.";
-        }
-        catch (Exception)
-        {
-            Message = "Settings could not be saved. Please try again.";
-        }
+        Message = result.Message;
     }
 }

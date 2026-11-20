@@ -6,7 +6,7 @@
 약국에게 하는 약속은 [usage-events-consent.md](usage-events-consent.md)이고,
 코드가 그것을 지키는지는 `UsageEventTests`가 본다.
 
-*점검 2026-11-17 · CamdiansRX v2.1 · 28/28 연결됨*
+*점검 2026-11-20 · CamdiansRX v2.1 · 28/28 연결됨*
 
 > ⚠ **동의서가 아직 이 여섯 개를 담고 있지 않다.** `admin_dashboard` `user_management` `receipt_settings` `counselling_settings` `product_scanned` `product_searched` — 약국이 읽기 전에 반영해야 한다.
 
@@ -22,13 +22,18 @@
 | `inventory` | `Shell/MainShellView.xaml.cs:120` | 이름·형식 |
 | `stock_in` | `ViewModels/InventoryStatusViewModel.cs:417` (패널 열기)<br>`ViewModels/ProductListViewModel.cs` | 이름·형식 |
 | `alerts` | `Shell/MainShellView.xaml.cs:95` | 이름·형식 |
-| `reports` | `Shell/MainShellView.xaml.cs:145` | **값까지** |
+| `reports` | `Shell/MainShellView.xaml.cs` (OnAntibioticReportClick)<br>`Views/HistoryView.xaml.cs` (Analysis) | **값까지** |
 | `sales_history` | `Views/HistoryView.xaml.cs:52` | 이름·형식 |
 | `stock_history` | `Views/HistoryView.xaml.cs:79` | 이름·형식 |
 | `data_center` | `Views/AdminDashboardView.xaml.cs:184` | 이름·형식 |
 
 > `stock_in`은 독립 화면이 아니라 재고·상품 화면 **안의 패널**이다. 패널을 연 것이
 > 화면을 연 것에 해당한다.
+
+> `reports`는 **두 화면**이 쓴다. 리포트 화면이 항생제 리포트와 매출 분석으로
+> 갈라졌지만 이름을 새로 만들지 않았다 — 지표에서 묻는 것("리포트를 보는가")은
+> 갈라지기 전과 같고, 이름을 더하면 동의서를 먼저 고쳐야 한다. 둘을 가려야 할
+> 이유가 생기면 그때 나눈다.
 
 ## 관리자 화면 (4) — `outcome = shown`
 

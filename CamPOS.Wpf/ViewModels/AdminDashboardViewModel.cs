@@ -84,7 +84,7 @@ public class AdminDashboardViewModel : ViewModelBase
     public RelayCommand UserManagementCommand { get; }
     public RelayCommand InventoryOverviewCommand { get; }
     public RelayCommand SalesHistoryCommand { get; }
-    public RelayCommand ReportsCommand { get; }
+    public RelayCommand SalesAnalysisCommand { get; }
     public RelayCommand BackupExportCommand { get; }
     public RelayCommand BackCommand { get; }
 
@@ -92,7 +92,7 @@ public class AdminDashboardViewModel : ViewModelBase
     public event Action? NavigateToUserManagement;
     public event Action? NavigateToInventoryOverview;
     public event Action? NavigateToSalesHistory;
-    public event Action? NavigateToReports;
+    public event Action? NavigateToSalesAnalysis;
     public event Action? NavigateToBackupExport;
     public event Action? NavigateBack;
 
@@ -255,7 +255,7 @@ public class AdminDashboardViewModel : ViewModelBase
         InventoryOverviewCommand = new RelayCommand(_ => NavigateToInventoryOverview?.Invoke());
         SalesHistoryCommand = new RelayCommand(_ => NavigateToSalesHistory?.Invoke());
 
-        ReportsCommand = new RelayCommand(_ => NavigateToReports?.Invoke());
+        SalesAnalysisCommand = new RelayCommand(_ => NavigateToSalesAnalysis?.Invoke());
         BackupExportCommand = new RelayCommand(_ => NavigateToBackupExport?.Invoke());
 
         CheckForUpdateCommand = new RelayCommand(async _ => await ExecuteCheckForUpdateAsync());

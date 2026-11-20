@@ -478,7 +478,7 @@
         <UniformGrid Grid.Row="3" Rows="1" Margin="50,0,50,24"
                      Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVis}}">
             <Button Content="{svc:Loc ui.nav.admin, ⚙️  Admin Dashboard}" Style="{StaticResource BottomCardBtnPrimary}" Click="OnAdminDashboardClick" Margin="0,0,6,0"/>
-            <Button Content="{svc:Loc ui.nav.reports, 📈  Reports}"         Style="{StaticResource BottomCardBtn}" Click="OnReportsClick"        Margin="3,0"/>
+            <Button Content="{svc:Loc ui.nav.reports, 🧫  Antibiotic Report}" Style="{StaticResource BottomCardBtn}" Click="OnAntibioticReportClick" Margin="3,0"/>
             <Button Content="{svc:Loc ui.nav.history, 📊  History}"         Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"        Margin="3,0"/>
             <Button Content="{svc:Loc ui.nav.counselling, 🧫  Counselling}"     Style="{StaticResource BottomCardBtn}" Click="OnCounsellingSettingsClick" Margin="6,0,0,0"/>
         </UniformGrid>
@@ -498,12 +498,11 @@
                     </Style.Triggers>
                 </Style>
             </UniformGrid.Style>
-            <!-- 잠긴 버튼. 기본 ToolTip은 비활성 컨트롤에서 안 뜨므로 ShowOnDisabled를 켠다. -->
-            <Button Content="{svc:Loc ui.nav.reports_locked, 🔒  Reports}"    Style="{StaticResource BottomCardBtn}"
-                    IsEnabled="False"
-                    ToolTip="Administrators only."
-                    ToolTipService.ShowOnDisabled="True"
-                    Margin="0,0,6,0"/>
+            <!-- 항생제 리포트는 직원도 쓴다. 금액이 빠진 뒤로 약국 영업 정보가 없고,
+                 안내가 실제로 나가고 있는지는 계산대에 선 사람이 봐야 하는 값이다.
+                 설정 저장만 관리자로 제한되고, 그 거부는 Application 계층에 있다.
+                 매출은 History → Analysis에 있으며 그쪽이 관리자 전용이다. -->
+            <Button Content="{svc:Loc ui.nav.reports, 🧫  Antibiotic Report}" Style="{StaticResource BottomCardBtn}" Click="OnAntibioticReportClick" Margin="0,0,6,0"/>
             <Button Content="{svc:Loc ui.nav.history, 📊  History}"    Style="{StaticResource BottomCardBtn}" Click="OnHistoryClick"    Margin="6,0,0,0"/>
         </UniformGrid>
 

@@ -70,11 +70,14 @@ public class CounsellingLogRepository : ICounsellingLogRepository
         }
 
         using var command = connection.CreateCommand();
+
+        // skip_reason까지 묶는다. 안내가 나가지 않은 이유가 약사의 판단인지 인쇄 실패인지는
+        // 할 일이 전혀 다른 두 가지라, 합산된 한 숫자로는 아무 결정도 내릴 수 없다.
         command.CommandText = """
-            SELECT aware_group, printed, COUNT(*)
+            SELECT aware_group, printed, skip_reason, COUNT(*)
             FROM Counselling_Log
             WHERE created_at >= $from AND created_at < $to
-            GROUP BY aware_group, printed;
+            GROUP BY aware_group, printed, skip_reason;
             """;
         command.Parameters.AddWithValue("$from", fromUtcMillis);
         command.Parameters.AddWithValue("$to", toUtcMillis);
@@ -86,6 +89,8 @@ public class CounsellingLogRepository : ICounsellingLogRepository
         var unmatched = 0;
         var printed = 0;
         var skipped = 0;
+        var pharmacistSkipped = 0;
+        var printFailed = 0;
 
         using (var reader = await command.ExecuteReaderAsync())
         {
@@ -93,7 +98,8 @@ public class CounsellingLogRepository : ICounsellingLogRepository
             {
                 var group = reader.GetString(0);
                 var wasPrinted = reader.GetInt32(1) != 0;
-                var count = reader.GetInt32(2);
+                var skipReason = reader.IsDBNull(2) ? null : reader.GetString(2);
+                var count = reader.GetInt32(3);
 
                 switch (group)
                 {
@@ -123,10 +129,22 @@ public class CounsellingLogRepository : ICounsellingLogRepository
                 if (wasPrinted)
                 {
                     printed += count;
+                    continue;
                 }
-                else
+
+                skipped += count;
+
+                // 이유가 적혀 있지 않은 행은 어느 쪽으로도 세지 않는다. 둘 중 하나로
+                // 밀어 넣으면 없는 근거를 만들어 내는 셈이고, 그래서 SkippedCount가
+                // 두 값의 합보다 클 수 있다 — 그 차이가 "이유를 모른다"는 사실이다.
+                switch (skipReason)
                 {
-                    skipped += count;
+                    case CounsellingService.SkipReasonPharmacist:
+                        pharmacistSkipped += count;
+                        break;
+                    case CounsellingService.SkipReasonPrintFailed:
+                        printFailed += count;
+                        break;
                 }
             }
         }
@@ -141,7 +159,9 @@ public class CounsellingLogRepository : ICounsellingLogRepository
             NotRecommendedCount = notRecommended,
             UnmatchedCount = unmatched,
             PrintedCount = printed,
-            SkippedCount = skipped
+            SkippedCount = skipped,
+            PharmacistSkippedCount = pharmacistSkipped,
+            PrintFailedCount = printFailed
         };
     }
 }

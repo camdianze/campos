@@ -40,7 +40,7 @@ public partial class AdminDashboardView : UserControl
         viewModel.NavigateToUserManagement += OnNavigateToUserManagement;
         viewModel.NavigateToInventoryOverview += OnNavigateToInventoryOverview;
         viewModel.NavigateToSalesHistory += OnNavigateToSalesHistory;
-        viewModel.NavigateToReports += OnNavigateToReports;
+        viewModel.NavigateToSalesAnalysis += OnNavigateToSalesAnalysis;
         viewModel.NavigateToBackupExport += OnNavigateToBackupExport;
         viewModel.NavigateBack += OnNavigateBackFromViewModel;
         DataContext = viewModel;
@@ -218,24 +218,31 @@ public partial class AdminDashboardView : UserControl
         parentWindow.Content = salesHistoryView;
     }
 
-    private void OnNavigateToReports()
+    /// <summary>
+    /// 매출 분석. 관리자 대시보드의 타일이고, 판매 이력 타일 바로 옆이다 —
+    /// 둘 다 약국의 돈을 보는 화면이다. 항생제 리포트는 홈 아래쪽 단추에 있다.
+    /// </summary>
+    private void OnNavigateToSalesAnalysis()
     {
         var parentWindow = System.Windows.Window.GetWindow(this) as MainWindow;
         if (parentWindow is null) return;
         if (!ConfirmLeavingUnsavedChanges()) return;
 
-        var reportService = App.Services.GetRequiredService<IReportService>();
-
-        var reportsViewModel = new ReportsViewModel(
-            reportService,
-            App.Services.GetRequiredService<ICounsellingSettingsService>(),
+        var viewModel = new SalesAnalysisViewModel(
+            App.Services.GetRequiredService<IReportService>(),
             App.Services.GetRequiredService<IReceiptSettingsService>(),
             App.CurrentShellViewModel!.CurrentUser.FacilityId);
 
-        var reportsView = new ReportsView();
-        reportsView.AttachViewModel(reportsViewModel);
+        var view = new SalesAnalysisView();
 
-        parentWindow.Content = reportsView;
+        // 홈으로 돌아간다. 대시보드에서 연 다른 화면들(판매 이력, Data Center)도
+        // 그렇게 하고 있어, 이 화면만 대시보드로 되돌리면 길마다 다르게 움직인다.
+        view.AttachViewModel(
+            viewModel,
+            onBack: () => parentWindow.Content =
+                new MainShellView { DataContext = App.CurrentShellViewModel });
+
+        parentWindow.Content = view;
     }
 
     private void OnNavigateToProductManagement()

@@ -1,5 +1,6 @@
 ﻿using CamPOS.Application.Repositories;
 using CamPOS.Application.Settings;
+using CamPOS.Domain.Enums;
 
 namespace CamPOS.Application.Counselling;
 
@@ -70,7 +71,28 @@ public class CounsellingSettingsService : ICounsellingSettingsService
         return settings;
     }
 
-    public async Task SaveAsync(CounsellingSettings settings)
+    public async Task<CounsellingSettingsSaveResult> SaveAsync(
+        CounsellingSettings settings, UserRole actingRole)
+    {
+        if (actingRole != UserRole.Administrator)
+        {
+            return CounsellingSettingsSaveResult.NotAdministrator();
+        }
+
+        try
+        {
+            await WriteAsync(settings);
+        }
+        catch (Exception)
+        {
+            return CounsellingSettingsSaveResult.Failure(
+                "Settings could not be saved. Please try again.");
+        }
+
+        return CounsellingSettingsSaveResult.Success();
+    }
+
+    private async Task WriteAsync(CounsellingSettings settings)
     {
         await _settingRepository.SetAsync(
             AppSettingKeys.CounsellingPrintMode, settings.PrintMode.ToString());

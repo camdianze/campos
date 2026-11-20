@@ -1,0 +1,606 @@
+<UserControl x:Class="CamPOS.Wpf.Views.AntibioticReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:CamPOS.Wpf.Converters"
+             mc:Ignorable="d"
+             Background="White"
+             d:DesignWidth="1366" d:DesignHeight="768">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:ChangeDirectionToBrushConverter x:Key="ChangeBrush"/>
+        <converters:AwareGroupToBrushConverter x:Key="AwareBrush"/>
+        <converters:FractionToStarConverter x:Key="FractionStar"/>
+
+        <!-- 표 안의 증감 칸. 방향에 따라 글자색이 갈린다. 컬럼마다 바인딩 경로가 달라
+             ElementStyle을 공유할 수 없어서, 색만 각 컬럼에서 지정한다. -->
+        <Style x:Key="ChangeCell" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Margin"     Value="0,0,0,8"/>
+        </Style>
+
+        <!-- 오른쪽 칸의 카드 세 장이 같은 테두리·같은 여백을 쓴다. -->
+        <Style x:Key="SidePanel" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin"  Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin"   Value="0,0,0,4"/>
+        </Style>
+
+        <!-- 출력 현황의 한 줄: 이름 왼쪽, 숫자 오른쪽. -->
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="12"/>
+            <Setter Property="Foreground"        Value="{StaticResource MutedTextBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize"            Value="13"/>
+            <Setter Property="FontWeight"          Value="SemiBold"/>
+            <Setter Property="Foreground"          Value="{StaticResource TextBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment"   Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="28,24,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- 제목 -->
+            <RowDefinition Height="Auto"/>   <!-- 기간 선택 -->
+            <RowDefinition Height="Auto"/>   <!-- 비교 기준 -->
+            <RowDefinition Height="*"/>      <!-- 좌: 판매 현황 / 우: 안내지 -->
+            <RowDefinition Height="Auto"/>   <!-- 하단 버튼 -->
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Antibiotic Report"
+                   Style="{StaticResource PageTitle}" Margin="0,0,0,14"/>
+
+        <!-- 기간 선택 -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <DatePicker Grid.Column="0" SelectedDate="{Binding DateFrom}" Height="36" Margin="0,0,6,0"/>
+            <DatePicker Grid.Column="1" SelectedDate="{Binding DateTo}"   Height="36" Margin="0,0,6,0"/>
+
+            <Button Grid.Column="2" Content="Apply" Style="{StaticResource PrimaryBtn}"
+                    Padding="16,0" Margin="0,0,6,0" Command="{Binding RefreshCommand}"/>
+            <Button Grid.Column="3" Content="This Month" Style="{StaticResource SecondaryBtn}"
+                    Padding="14,0" Margin="0,0,6,0" Command="{Binding ThisMonthCommand}"/>
+            <Button Grid.Column="4" Content="Last Month" Style="{StaticResource SecondaryBtn}"
+                    Padding="14,0" Command="{Binding LastMonthCommand}"/>
+        </Grid>
+
+        <!-- 무엇을 무엇과 비교한 값인지. 이게 없으면 증감 숫자를 신뢰할 수 없다. -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="{Binding PeriodLabel}" FontSize="13" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ComparisonLabel}" FontSize="12"
+                       Foreground="{StaticResource MutedTextBrush}"
+                       Margin="10,0,0,0" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- ── 좌우 ─────────────────────────────────────────────────────────
+             왼쪽은 무엇이 팔렸나, 오른쪽은 안내가 어떻게 나갔나.
+             오른쪽 칸은 1366x768에서도 들어가도록 폭을 고정하고 세로로 스크롤한다 —
+             비율로 두면 좁은 화면에서 미리보기가 48자 줄을 감당하지 못해 잘린다. -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"    MinWidth="520"/>
+                <ColumnDefinition Width="430"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ══ 왼쪽: 항생제 판매 현황 ══════════════════════════════════ -->
+            <Grid Grid.Column="0" Margin="0,0,14,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>   <!-- 등급별 비율 -->
+                    <RowDefinition Height="*"/>      <!-- 성분별 표 -->
+                    <RowDefinition Height="Auto"/>   <!-- 12개월 추이 -->
+                </Grid.RowDefinitions>
+
+                <!-- ── 등급별 비율 ──────────────────────────────────────────
+                     ACCESS가 낮을 때 남은 몫이 WATCH인지 RESERVE인지는 해야 할 일이
+                     전혀 다르다. 판매가 없는 등급도 0%로 남긴다 — 목록에서 빠지면
+                     "0이었다"와 "그런 등급이 없다"를 구분할 수 없다. -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                    <TextBlock Text="AWaRe Group Share" Style="{StaticResource SectionTitle}"/>
+
+                    <ItemsControl ItemsSource="{Binding GroupShares}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,7">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="128"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="56"/>
+                                        <ColumnDefinition Width="72"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- 색 점. 아래 추이 그래프와 같은 색이라 범례가 두 곳에서 같다. -->
+                                    <Border Grid.Column="0" Width="9" Height="9" CornerRadius="5"
+                                            Background="{Binding Group, Converter={StaticResource AwareBrush}}"
+                                            VerticalAlignment="Center" Margin="0,0,7,0"/>
+
+                                    <TextBlock Grid.Column="1" Text="{Binding Group}"
+                                               FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               VerticalAlignment="Center"/>
+
+                                    <!-- 막대를 픽셀이 아니라 두 칸의 별(*) 비율로 그린다.
+                                         남은 공간은 배치가 끝나야 정해지는 값이라 미리 계산할 수 없고,
+                                         이렇게 두면 창을 줄여도 비율이 그대로 유지된다. -->
+                                    <Border Grid.Column="2" Height="6" CornerRadius="3"
+                                            VerticalAlignment="Center" Margin="0,0,10,0"
+                                            Background="{StaticResource FieldBrush}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="{Binding Fraction, Converter={StaticResource FractionStar}}"/>
+                                                <ColumnDefinition Width="{Binding Remainder, Converter={StaticResource FractionStar}}"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" CornerRadius="3"
+                                                    Background="{Binding Group, Converter={StaticResource AwareBrush}}"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <TextBlock Grid.Column="3" Text="{Binding ShareDisplay}"
+                                               FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextBrush}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                                    <!-- 비중 옆의 실제 수량. 0.5%가 1개인지 500개인지는 비중만으로 알 수 없다. -->
+                                    <TextBlock Grid.Column="4" Text="{Binding QuantityDisplay, StringFormat={}{0} units}"
+                                               FontSize="11"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- ── 성분별 표 ────────────────────────────────────────────
+                     줄을 고르면 오른쪽 미리보기가 그 성분의 안내지로 바뀐다. -->
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Antibiotics by Ingredient"
+                               Style="{StaticResource SectionTitle}"/>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Antibiotics}"
+                              SelectedItem="{Binding SelectedAntibiotic}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              SelectionMode="Single"
+                              BorderThickness="1"
+                              BorderBrush="{StaticResource BorderBrushSoft}"
+                              RowBackground="White"
+                              AlternatingRowBackground="{StaticResource SubtleSurfaceBrush}"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="{StaticResource BorderBrushSoft}"
+                              RowHeight="32">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Ingredient" Binding="{Binding Ingredient}" Width="*"/>
+                            <DataGridTextColumn Header="Strength"   Binding="{Binding Strength}"   Width="70"/>
+                            <DataGridTextColumn Header="Group"      Binding="{Binding AwareGroup}" Width="90"/>
+                            <DataGridTextColumn Header="Qty"        Binding="{Binding Quantity}"   Width="50"/>
+                            <DataGridTextColumn Header="Qty vs prev" Binding="{Binding QuantityChange}" Width="85">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ChangeCell}">
+                                        <Setter Property="Foreground"
+                                                Value="{Binding QuantityDirection, Converter={StaticResource ChangeBrush}}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <!-- "6 / 8" = 판매 8건 중 6건에 복약안내가 나갔다는 뜻 -->
+                            <DataGridTextColumn Header="Counselled" Binding="{Binding CounsellingDisplay}" Width="80"/>
+                            <!-- 이 성분이 기간 내 항생제 판매에서 차지하는 비중.
+                                 분모는 이 표에 실린 줄들의 합이라 비중을 다 더하면 100%다. -->
+                            <DataGridTextColumn Header="Share"      Binding="{Binding QuantityShare}" Width="60"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- 표가 비면 왜 비었는지 알려 준다. 데이터가 없는 건지 기능을 안 쓴 건지 구분이 안 되기 때문이다. -->
+                    <TextBlock Grid.Row="2"
+                               Text="No antibiotic sales recorded in this period. This table is built from counselling records, so sales made before the counselling feature was in use do not appear."
+                               TextWrapping="Wrap" FontSize="12"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               Margin="0,8,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasAntibioticData}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+
+                <!-- ── 12개월 추이 ──────────────────────────────────────────
+                     등급으로 쌓아 올리는 이유: 총량이 그대로여도 WATCH·RESERVE 쪽으로
+                     옮겨가는 중이면 상황이 나빠지고 있는 것이다. 총량만 그리면 그 이동이
+                     보이지 않는다.
+
+                     차트 패키지를 쓰지 않는다. 이 저장소는 바코드도 사각형으로 직접 그리고
+                     있고, 막대 12개에 패키지 의존성을 더할 이유가 없다. -->
+                <Border Grid.Row="2" Style="{StaticResource Card}" Padding="18,14" Margin="0,12,0,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Antibiotic Sales, Last 12 Months"
+                                           Style="{StaticResource SectionTitle}" Margin="0"
+                                           VerticalAlignment="Center"/>
+                                <!-- 고른 기간과 다른 구간이라는 사실을 적어 둔다. 이게 없으면
+                                     표의 합과 그래프의 합이 왜 다른지 알 수 없다. -->
+                                <TextBlock Text="{Binding TrendPeriodLabel}"
+                                           Style="{StaticResource Caption}"
+                                           VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </StackPanel>
+
+                            <!-- 범례. 위 등급별 비율과 같은 목록·같은 색을 쓴다. -->
+                            <ItemsControl ItemsSource="{Binding GroupShares}" HorizontalAlignment="Right">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                                            <Border Width="9" Height="9" CornerRadius="5"
+                                                    Background="{Binding Group, Converter={StaticResource AwareBrush}}"
+                                                    VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBlock Text="{Binding Group}" FontSize="10"
+                                                       Foreground="{StaticResource MutedTextBrush}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+
+                        <Grid Visibility="{Binding HasTrendData, Converter={StaticResource BoolToVis}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 세로축. 가장 큰 달이 얼마였는지 적어야 막대 높이를 숫자로 읽을 수 있다.
+                                 행 높이 18/132/20은 막대 쪽과 같은 값이어야 기준선이 맞는다. -->
+                            <Grid Grid.Column="0" MinWidth="40" Margin="0,0,10,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="18"/>
+                                    <RowDefinition Height="132"/>
+                                    <RowDefinition Height="20"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="1" Text="{Binding TrendMaxDisplay}"
+                                           FontSize="10" Foreground="{StaticResource MutedTextBrush}"
+                                           HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                                <TextBlock Grid.Row="1" Text="0"
+                                           FontSize="10" Foreground="{StaticResource MutedTextBrush}"
+                                           HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                            </Grid>
+
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding TrendBars}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- Background를 투명으로 두는 이유: 색 없는 칸에는 마우스가
+                                             닿지 않아 툴팁이 뜨지 않는다. -->
+                                        <Grid Margin="3,0" Background="Transparent" ToolTip="{Binding Tooltip}">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="18"/>
+                                                <RowDefinition Height="132"/>
+                                                <RowDefinition Height="20"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Text="{Binding TotalDisplay}"
+                                                       FontSize="10" Foreground="{StaticResource MutedTextBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+
+                                            <!-- 아래에서부터 ACCESS·WATCH·RESERVE·NOT_RECOMMENDED 순으로 쌓는다.
+                                                 StackPanel의 자식은 위에서 아래로 놓이므로 순서가 뒤집혀 있다. -->
+                                            <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
+                                                <Border Height="{Binding NotRecommendedHeight}"
+                                                        Background="{StaticResource AwareNotRecommendedBrush}"/>
+                                                <Border Height="{Binding ReserveHeight}"
+                                                        Background="{StaticResource AwareReserveBrush}"/>
+                                                <Border Height="{Binding WatchHeight}"
+                                                        Background="{StaticResource AwareWatchBrush}"/>
+                                                <Border Height="{Binding AccessHeight}"
+                                                        Background="{StaticResource AwareAccessBrush}"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Row="2" Text="{Binding Label}"
+                                                       FontSize="10" Foreground="{StaticResource MutedTextBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+
+                        <TextBlock Text="No antibiotic sales in the last 12 months. This chart is built from counselling records, so sales made before the counselling feature was in use do not appear."
+                                   TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{StaticResource MutedTextBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasTrendData}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ══ 오른쪽: 안내지 ══════════════════════════════════════════
+                 좁은 화면에서는 세로로 스크롤한다. 미리보기를 줄여 맞추면 48자 줄이
+                 잘려서, 종이와 같은 모양을 보여준다는 이 패널의 목적이 사라진다. -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+
+                    <!-- ── 미리보기 ─────────────────────────────────────────
+                         실제 인쇄와 같은 CounsellingSheetRenderer로 그린다. 따로 그리면
+                         화면과 종이가 갈라지고, 그때부터 미리보기는 아무것도 보증하지 않는다.
+                         글꼴과 줄 간격도 인쇄 쪽을 따른다 — 줄 간격 1.75배(11 × 1.75 = 19.25)는
+                         크메르 자소가 위아래로 잘리지 않게 하는 값이다. -->
+                    <Border Style="{StaticResource SidePanel}">
+                        <StackPanel>
+                            <TextBlock Text="Counselling Sheet Preview" Style="{StaticResource SectionTitle}"/>
+
+                            <TextBlock Text="{Binding PreviewSubject}"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextBrush}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Margin="0,0,0,8"/>
+
+                            <Border Background="White"
+                                    BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
+                                    Padding="12,10"
+                                    Visibility="{Binding HasPreview, Converter={StaticResource BoolToVis}}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Auto"
+                                              MaxHeight="300">
+                                    <TextBlock Text="{Binding Preview}"
+                                               FontFamily="Consolas, Courier New, pack://application:,,,/Fonts/#Battambang, Khmer UI, Leelawadee UI"
+                                               FontSize="11"
+                                               LineHeight="19.25"
+                                               LineStackingStrategy="BlockLineHeight"
+                                               TextWrapping="NoWrap"/>
+                                </ScrollViewer>
+                            </Border>
+
+                            <TextBlock Text="No antibiotic sales in this period, so there is nothing to preview."
+                                       TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{StaticResource MutedTextBrush}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasPreview}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── 설정 ─────────────────────────────────────────────
+                         세 칸만 다룬다. 인쇄 방식(always/ask)과 출력 대상(프린터/파일)은
+                         기존 Counselling 설정 화면에 남아 있고 아래 링크로 간다.
+
+                         저장 거부는 Application 계층(ICounsellingSettingsService.SaveAsync)이
+                         한다. 아래 IsEnabled는 왜 못 누르는지 보여주는 것일 뿐이다. -->
+                    <Border Style="{StaticResource SidePanel}">
+                        <StackPanel>
+                            <TextBlock Text="Sheet Settings" Style="{StaticResource SectionTitle}"/>
+
+                            <TextBlock Text="{Binding SettingsPermissionNote}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,8">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CanEditSettings}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <TextBlock Text="Sheet length" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox Height="32" Margin="0,0,0,10"
+                                      IsEnabled="{Binding CanEditSettings}"
+                                      ItemsSource="{Binding AvailableSheetFormats}"
+                                      SelectedItem="{Binding SheetFormat}"/>
+
+                            <TextBlock Text="Local language" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox Height="32" Margin="0,0,0,10"
+                                      IsEnabled="{Binding CanEditSettings}"
+                                      ItemsSource="{Binding AvailableLocales}"
+                                      SelectedItem="{Binding SelectedLocale}"/>
+
+                            <TextBlock Text="More information address" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Height="32" Margin="0,0,0,12"
+                                     VerticalContentAlignment="Center"
+                                     IsEnabled="{Binding CanEditSettings}"
+                                     Text="{Binding QrUrl, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0" Content="Save"
+                                        Style="{StaticResource PrimaryBtn}" Padding="18,0"
+                                        IsEnabled="{Binding CanEditSettings}"
+                                        Command="{Binding SaveSettingsCommand}"/>
+
+                                <!-- 저장하지 않은 변경이 있다는 상태 표시. 나갈 때 확인을 받는다. -->
+                                <TextBlock Grid.Column="1" Text="Not saved yet"
+                                           VerticalAlignment="Center" Margin="10,0,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+
+                            <TextBlock Text="{Binding SettingsMessage}"
+                                       TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Margin="0,8,0,0"/>
+
+                            <Button Content="More settings →"
+                                    Style="{StaticResource LinkBtn}"
+                                    HorizontalAlignment="Left" Margin="0,10,0,0"
+                                    Command="{Binding MoreSettingsCommand}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── 출력 현황 ────────────────────────────────────────
+                         출력률과 인쇄 건수는 왼쪽과 같은 집계에서 온다 — 화면이 갈라졌다고
+                         숫자가 달라지지 않는다. 건너뜀의 이유만 Counselling_Log에서 따로 센다. -->
+                    <Border Style="{StaticResource SidePanel}">
+                        <StackPanel>
+                            <TextBlock Text="Counselling Output" Style="{StaticResource SectionTitle}"/>
+
+                            <TextBlock Text="{Binding PrintRateDisplay}"
+                                       FontSize="26" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding CounsellingSummary}"
+                                       Style="{StaticResource Caption}" Margin="0,2,0,12"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Pharmacist skipped"
+                                           Style="{StaticResource StatLabel}" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PharmacistSkippedDisplay}"
+                                           Style="{StaticResource StatValue}" Margin="0,0,0,6"/>
+
+                                <!-- 인쇄 실패는 프린터를 봐야 한다는 뜻이라 눈에 띄게 둔다.
+                                     약사가 건너뛴 것과 같은 색이면 사람 문제인지 기계 문제인지 모른다. -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Printing failed"
+                                           Style="{StaticResource StatLabel}" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PrintFailedDisplay}"
+                                           Margin="0,0,0,6"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"
+                                           FontSize="13" FontWeight="SemiBold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasPrintFailures}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Not classified"
+                                           Style="{StaticResource StatLabel}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding UnmatchedDisplay}"
+                                           Style="{StaticResource StatValue}"/>
+                            </Grid>
+
+                            <TextBlock Text="Printing failed for at least one sale. Check the printer — these customers were not given a sheet."
+                                       TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{StaticResource DangerBrush}"
+                                       Margin="0,10,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasPrintFailures}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- 하단: 뒤로 + 내보내기 + 메시지 -->
+        <Grid Grid.Row="4" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="← Back"
+                    Style="{StaticResource SecondaryBtn}"
+                    Padding="16,0" Command="{Binding BackCommand}"/>
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding Message}"
+                       Foreground="{StaticResource DangerBrush}"
+                       TextWrapping="Wrap" FontSize="13"
+                       VerticalAlignment="Center" Margin="12,0,12,0"/>
+
+            <Button Grid.Column="2" Content="Export CSV"
+                    Style="{StaticResource SecondaryBtn}"
+                    Padding="16,0" Command="{Binding ExportCommand}"/>
+        </Grid>
+    </Grid>
+</UserControl>

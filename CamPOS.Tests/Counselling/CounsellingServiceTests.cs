@@ -16,10 +16,16 @@ public class CounsellingServiceTests
 
         public Task<CounsellingSettings> GetAsync() => Task.FromResult(Settings);
 
-        public Task SaveAsync(CounsellingSettings settings)
+        public Task<CounsellingSettingsSaveResult> SaveAsync(
+            CounsellingSettings settings, UserRole actingRole)
         {
+            if (actingRole != UserRole.Administrator)
+            {
+                return Task.FromResult(CounsellingSettingsSaveResult.NotAdministrator());
+            }
+
             Settings = settings;
-            return Task.CompletedTask;
+            return Task.FromResult(CounsellingSettingsSaveResult.Success());
         }
 
         public Task<(int Count, string? SourceVersion)> GetReferenceDataStatusAsync()

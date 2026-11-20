@@ -129,25 +129,33 @@ public partial class MainShellView : UserControl
     /// 고른 배치 아래 패널로 들어가면서 여기서 따로 열 이유가 없어졌다.
     /// (관리자 대시보드에도 같은 화면으로 가는 입구가 있다.)
     /// </summary>
-    private void OnReportsClick(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// 항생제 리포트. 매출은 이 화면에 없다 — History → Analysis로 갔다.
+    ///
+    /// 직원도 열 수 있다. 금액이 빠진 뒤로는 약국 영업 정보가 들어 있지 않고,
+    /// 안내가 실제로 나가고 있는지는 계산대에 선 사람이 봐야 하는 값이다.
+    /// 오른쪽의 설정 저장만 관리자로 제한되며, 그 거부는 화면이 아니라
+    /// ICounsellingSettingsService가 한다.
+    /// </summary>
+    private void OnAntibioticReportClick(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainShellViewModel shellViewModel) return;
 
-        var reportService = App.Services.GetRequiredService<IReportService>();
-
-        var reportsViewModel = new ReportsViewModel(
-            reportService,
+        var viewModel = new AntibioticReportViewModel(
+            App.Services.GetRequiredService<IReportService>(),
             App.Services.GetRequiredService<ICounsellingSettingsService>(),
-            App.Services.GetRequiredService<IReceiptSettingsService>(),
-            shellViewModel.CurrentUser.FacilityId);
+            App.Services.GetRequiredService<ICounsellingLocaleProvider>(),
+            App.Services.GetRequiredService<ICounsellingLogRepository>(),
+            shellViewModel.CurrentUser.FacilityId,
+            shellViewModel.CurrentUser.Role);
 
-        var reportsView = new ReportsView();
+        var view = new AntibioticReportView();
         Opened(UsageEventNames.Reports);
-        reportsView.AttachViewModel(reportsViewModel);
+        view.AttachViewModel(viewModel);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
-            parentWindow.Content = reportsView;
+            parentWindow.Content = view;
     }
 
     /// <summary>
@@ -155,10 +163,13 @@ public partial class MainShellView : UserControl
     /// </summary>
     private void OnCounsellingSettingsClick(object sender, RoutedEventArgs e)
     {
+        if (DataContext is not MainShellViewModel shellViewModel) return;
+
         var viewModel = new CounsellingSettingsViewModel(
             App.Services.GetRequiredService<ICounsellingSettingsService>(),
             App.Services.GetRequiredService<ICounsellingLocaleProvider>(),
-            App.Services.GetRequiredService<ICounsellingLogRepository>());
+            App.Services.GetRequiredService<ICounsellingLogRepository>(),
+            shellViewModel.CurrentUser.Role);
 
         Opened(UsageEventNames.CounsellingSettings);
 
@@ -227,7 +238,8 @@ public partial class MainShellView : UserControl
 
         var historyView = new HistoryView(
             shellViewModel.CurrentUser.FacilityId,
-            shellViewModel.CurrentUser.UserId);
+            shellViewModel.CurrentUser.UserId,
+            shellViewModel.CurrentUser.Role);
 
         var parentWindow = Window.GetWindow(this) as MainWindow;
         if (parentWindow is not null)
