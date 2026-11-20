@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             Background="{StaticResource SubtleSurfaceBrush}"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="800" d:DesignHeight="560">
 
     <!-- 버튼/카드 스타일은 App.xaml 공통 테마에서 온다.
