@@ -92,16 +92,31 @@ if ($LASTEXITCODE -ne 0) { throw "패키지 만들기가 실패했습니다." }
 # ── 올릴 것 ─────────────────────────────────────────────────────────────
 Step "Supabase Storage의 releases/$Channel/ 에 올릴 파일"
 
+# 채널로 고른다. 수정 시각으로 고르면 안 된다 — vpk는 패키지를 만들 때 출력
+# 폴더에 있는 <b>모든 채널</b>의 색인 파일(RELEASES-*, *.json)을 다시 쓴다. 그래서
+# "방금 바뀐 것"에는 stable을 만들었는데도 RELEASES-test가 끼어들고, 그것을 그대로
+# stable/ 에 올리면 그 채널의 목록이 옛 패키지를 가리키게 된다.
+#
+# 시간 대신 이름으로 고르면 델타도 함께 잡힌다. 델타를 받으려면 서버에 직전
+# 버전의 full도 남아 있어야 하므로, 이 채널의 파일은 전부 올라가 있어야 한다.
 $files = Get-ChildItem $output -File |
-    Where-Object { $_.LastWriteTime -gt (Get-Date).AddMinutes(-10) } |
+    Where-Object {
+        $_.Name -like "*-$Channel-*" -or
+        $_.Name -eq "RELEASES-$Channel" -or
+        $_.Name -like "*.$Channel.json"
+    } |
     Sort-Object Length -Descending
 
+if (-not $files) { throw "releases 폴더에 $Channel 채널 파일이 없습니다." }
+
 $total = 0
+$fresh = (Get-Date).AddMinutes(-10)
 foreach ($f in $files) {
     $mb = $f.Length / 1MB
     $total += $mb
+    $age = if ($f.LastWriteTime -gt $fresh) { "  (새로 만듦)" } else { "" }
     $warn = if ($mb -gt 50) { "  <-- 50MB 초과!" } else { "" }
-    Write-Host ("   {0,-46} {1,7:N1} MB{2}" -f $f.Name, $mb, $warn) `
+    Write-Host ("   {0,-46} {1,7:N1} MB{2}{3}" -f $f.Name, $mb, $age, $warn) `
         -ForegroundColor $(if ($mb -gt 50) { "Red" } else { "White" })
 }
 
