@@ -87,6 +87,7 @@
                                    Margin="0,8,0,0"/>
                     </StackPanel>
                     <TextBlock Text="🛒" FontSize="76"
+                               Foreground="{StaticResource IconBrush}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,40,0,0"/>
@@ -107,6 +108,7 @@
                                    Margin="0,8,0,0"/>
                     </StackPanel>
                     <TextBlock Text="📦" FontSize="76"
+                               Foreground="{StaticResource IconBrush}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,40,0,0"/>
@@ -132,6 +134,7 @@
                                    Margin="0,8,0,0"/>
                     </StackPanel>
                     <TextBlock FontSize="76"
+                               Foreground="{StaticResource IconBrush}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,40,0,0">

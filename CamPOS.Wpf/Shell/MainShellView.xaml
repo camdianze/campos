@@ -196,6 +196,7 @@
                             <Border Background="{TemplateBinding Background}" CornerRadius="5">
                                 <Grid>
                                     <TextBlock Text="🔔" FontSize="13"
+                                           Foreground="{StaticResource IconBrush}"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"/>
                                     <!-- 알림 숫자 배지 -->
@@ -398,10 +399,11 @@
                                                FontSize="30" FontWeight="SemiBold"
                                                Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
-                                <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
-                                     WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
+                                <!-- 아이콘 색(Pantone 210 C)은 메인 색의 짝이다. 카드의 글자·테두리는
+                                     메인 색 쪽이고, 그림만 이 색을 쓴다.
+                                     WPF는 컬러 이모지를 글자색 한 톤으로 그리므로 색이 먹는다. -->
                                 <TextBlock Text="💊" FontSize="120"
-                                           Foreground="{StaticResource PrimaryBrush}"
+                                           Foreground="{StaticResource IconBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Margin="0,60,0,0"/>
                             </Grid>
@@ -428,10 +430,11 @@
                                                FontSize="30" FontWeight="SemiBold"
                                                Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
-                                <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
-                                     WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
+                                <!-- 아이콘 색(Pantone 210 C)은 메인 색의 짝이다. 카드의 글자·테두리는
+                                     메인 색 쪽이고, 그림만 이 색을 쓴다.
+                                     WPF는 컬러 이모지를 글자색 한 톤으로 그리므로 색이 먹는다. -->
                                 <TextBlock Text="📦" FontSize="120"
-                                           Foreground="{StaticResource PrimaryBrush}"
+                                           Foreground="{StaticResource IconBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Margin="0,60,0,0"/>
                             </Grid>
@@ -461,10 +464,11 @@
                                                FontSize="30" FontWeight="SemiBold"
                                                Foreground="{StaticResource TextBrush}"/>
                                 </StackPanel>
-                                <!-- 아이콘은 로그인 전 화면의 파란 면과 같은 색으로 맞춘다.
-                                     WPF는 컬러 이모지를 글자색 한 톤으로 그린다. -->
+                                <!-- 아이콘 색(Pantone 210 C)은 메인 색의 짝이다. 카드의 글자·테두리는
+                                     메인 색 쪽이고, 그림만 이 색을 쓴다.
+                                     WPF는 컬러 이모지를 글자색 한 톤으로 그리므로 색이 먹는다. -->
                                 <TextBlock Text="🛒" FontSize="120"
-                                           Foreground="{StaticResource PrimaryBrush}"
+                                           Foreground="{StaticResource IconBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Margin="0,60,0,0"/>
                             </Grid>

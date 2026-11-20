@@ -48,6 +48,18 @@
              직접 박혀 있던 값이 바로 이것이었다. -->
         <SolidColorBrush x:Key="PrimarySelectedBrush" Color="#D7E6DE"/>
 
+        <!-- 아이콘 색. Pantone 210 C이고, 메인 색과 같은 이유로 #F99FC9를 근사값으로 고정한다.
+             메인 색(녹색)의 짝으로 고른 것이라 아이콘에만 쓰고 글자나 테두리에는 쓰지 않는다.
+
+             이 브러시가 이모지에 통하는 것은 WPF가 컬러 글꼴(COLR/CPAL)을 지원하지 않기
+             때문이다. Segoe UI Emoji의 색 레이어를 버리고 글리프 윤곽만 한 톤으로 그리므로
+             이모지가 Foreground를 따른다 — 웹이나 WinUI였다면 이모지는 제 색으로 나오고
+             이 브러시는 아무 일도 하지 않았을 것이다.
+
+             흰 바탕과의 대비는 1.9:1로 낮다. 카드의 76~120px 아이콘은 장식이라 괜찮지만,
+             작은 글자 크기에 쓰면 읽히지 않는다 — 글자를 겸하는 자리에는 쓰지 말 것. -->
+        <SolidColorBrush x:Key="IconBrush"          Color="#F99FC9"/>
+
         <SolidColorBrush x:Key="DangerBrush"        Color="#DC2626"/>
         <SolidColorBrush x:Key="DangerHoverBrush"   Color="#B91C1C"/>
         <SolidColorBrush x:Key="DangerPressedBrush" Color="#991B1B"/>
