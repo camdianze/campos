@@ -198,7 +198,7 @@ Supabase SQL Editor에서 [check.sql](../supabase/check.sql)을 실행한다.
 ```
 USB/
   CamdiansRX-stable-Setup.exe          ← 설치 파일 (약 7 MB)
-  windowsdesktop-runtime-10.x-win-x64.exe  ← .NET 데스크톱 런타임 (약 55 MB)
+  windowsdesktop-runtime-10.0.15-win-x64.exe  ← .NET 데스크톱 런타임 (57 MB)
   pharmacy-guide.pdf                   ← 약국에 주는 안내 (선택)
 ```
 
@@ -216,8 +216,33 @@ USB/
 **설치 전에 먼저 실행**하면 그 대기가 없어진다. 한 번 깔면 이후 업데이트에는
 필요 없다.
 
-Microsoft의 .NET 10 다운로드 페이지에서 **Desktop Runtime / Windows / x64**를
-받는다.
+받는 주소는 고정 링크 하나다. 늘 그 시점의 최신 10.0 패치로 넘어간다.
+
+```
+https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe
+```
+
+PowerShell에서 받을 때는 `-UseBasicParsing`을 붙인다. 없으면 Internet Explorer
+엔진 초기화를 물으려다 비대화형 세션에서 그냥 실패한다.
+
+```powershell
+Invoke-WebRequest -Uri "https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe" `
+    -OutFile "windowsdesktop-runtime-win-x64.exe" -UseBasicParsing
+```
+
+**받은 뒤 서명을 확인한다.** 약국 PC에서 실행될 설치 파일이고, 링크 한 번으로
+받은 바이너리다.
+
+```powershell
+Get-AuthenticodeSignature .\windowsdesktop-runtime-win-x64.exe |
+    Select-Object Status, @{n='Signer';e={$_.SignerCertificate.Subject}}
+```
+
+`Status`가 `Valid`이고 `Signer`가 `CN=.NET, O=Microsoft Corporation`이어야 한다.
+
+끝자리(patch)는 달라도 된다 — 10.0 안에서는 앱이 더 높은 패치로 올라가 실행된다.
+2026-11-21 기준 받아지는 것은 **10.0.15**이고,
+SHA256은 `E61B030C1673EDFA3C0844502EFF83198C46AF9E7DF70DFC6E2EFC5B11EA513A`다.
 
 ### 설치할 때 뜨는 것
 
