@@ -7,7 +7,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignWidth="500" d:DesignHeight="480"
-             Background="White">
+             Background="{StaticResource PageBackgroundBrush}">
 
     <!-- 스타일은 전부 App.xaml 공통 테마에서 온다. 입력 칸은 암시적 스타일이라
          Style 지정 없이도 적용된다.

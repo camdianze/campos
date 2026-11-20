@@ -7,7 +7,7 @@
              xmlns:svc="clr-namespace:CamPOS.Wpf.Services"
              xmlns:ctl="clr-namespace:CamPOS.Wpf.Controls"
              mc:Ignorable="d"
-             Background="White"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="960" d:DesignHeight="600">
 
     <!--
@@ -144,14 +144,14 @@
                             <!-- SourceName="Row"가 없으면 자식 행에 마우스를 올려도 부모가 같이 밝아진다. -->
                             <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Row" Property="Background"
-                                        Value="{StaticResource PrimarySoftBrush}"/>
+                                        Value="{StaticResource AccentSoftBrush}"/>
                             </Trigger>
 
                             <!-- 선택 표시. 마우스오버 트리거보다 뒤에 있어야 골라 둔 행이
                                  다른 행을 가리키는 동안에도 계속 눈에 남는다. -->
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Row" Property="Background"
-                                        Value="{StaticResource PrimarySelectedBrush}"/>
+                                        Value="{StaticResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

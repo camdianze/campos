@@ -5,7 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:conv="clr-namespace:CamPOS.Wpf.Converters"
              mc:Ignorable="d"
-             Background="White"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="950" d:DesignHeight="550">
 
     <UserControl.Resources>

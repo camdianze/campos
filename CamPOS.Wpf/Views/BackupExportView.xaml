@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:CamPOS.Wpf.Converters"
              xmlns:ctl="clr-namespace:CamPOS.Wpf.Controls"
              mc:Ignorable="d"
-             Background="White"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="960" d:DesignHeight="700">
 
     <!--

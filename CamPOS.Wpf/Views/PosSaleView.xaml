@@ -7,7 +7,7 @@
              xmlns:svc="clr-namespace:CamPOS.Wpf.Services"
              xmlns:ctl="clr-namespace:CamPOS.Wpf.Controls"
              mc:Ignorable="d"
-             Background="White"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="1000" d:DesignHeight="700"
              PreviewTextInput="OnPreviewTextInput">
 

@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             Background="White"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="500" d:DesignHeight="650">
 
     <UserControl.Resources>
@@ -29,7 +29,7 @@
 
             <!-- 고른 상품을 맨 위에 띄운다. 재고 화면에서 상품을 누르고 넘어오면
                  검색칸을 다시 볼 일 없이 무엇을 조정하는 중인지 바로 보인다. -->
-            <Border Background="{StaticResource PrimarySoftBrush}"
+            <Border Background="{StaticResource AccentSoftBrush}"
                     CornerRadius="8" Padding="12,8" Margin="0,0,0,12"
                     Visibility="{Binding HasSelectedProduct, Converter={StaticResource BoolToVis}}">
                 <StackPanel>

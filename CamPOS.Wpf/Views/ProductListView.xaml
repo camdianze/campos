@@ -6,7 +6,7 @@
              xmlns:svc="clr-namespace:CamPOS.Wpf.Services"
              xmlns:ctl="clr-namespace:CamPOS.Wpf.Controls"
              mc:Ignorable="d"
-             Background="White"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="800" d:DesignHeight="550">
 
     <UserControl.Resources>

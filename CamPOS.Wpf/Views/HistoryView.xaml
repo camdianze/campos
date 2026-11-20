@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             Background="White"
+             Background="{StaticResource PageBackgroundBrush}"
              d:DesignWidth="800" d:DesignHeight="450">
 
     <UserControl.Resources>
@@ -32,10 +32,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimarySoftBrush}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentSoftBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimarySelectedBrush}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -87,7 +87,7 @@
                                    Margin="0,8,0,0"/>
                     </StackPanel>
                     <TextBlock Text="🛒" FontSize="76"
-                               Foreground="{StaticResource PrimaryBrush}"
+                               Foreground="{StaticResource IconBrush}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,40,0,0"/>
@@ -108,7 +108,7 @@
                                    Margin="0,8,0,0"/>
                     </StackPanel>
                     <TextBlock Text="📦" FontSize="76"
-                               Foreground="{StaticResource PrimaryBrush}"
+                               Foreground="{StaticResource IconBrush}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,40,0,0"/>
@@ -134,7 +134,7 @@
                                    Margin="0,8,0,0"/>
                     </StackPanel>
                     <TextBlock FontSize="76"
-                               Foreground="{StaticResource PrimaryBrush}"
+                               Foreground="{StaticResource IconBrush}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Margin="0,40,0,0">
