@@ -48,18 +48,19 @@
              직접 박혀 있던 값이 바로 이것이었다. -->
         <SolidColorBrush x:Key="PrimarySelectedBrush" Color="#D7E6DE"/>
 
-        <!-- 아이콘 색. 지금은 TextBrush와 같은 검정이지만 키를 따로 둔다 — 아이콘은
-             글자와 다른 역할이고, 이 색은 이미 두 번 바뀌었다(파랑 → 분홍 → 검정).
-             따로 두면 다음 변경도 이 한 줄이다.
+        <!-- 아이콘에는 따로 키를 두지 않는다. 한동안 IconBrush가 있었고 분홍·검정을
+             거쳐 다시 메인 색으로 돌아왔는데, 그 왕복이 말해 주는 것은 아이콘 색이
+             독립된 역할이 아니라 그냥 "메인 색"이라는 것이다. 값을 복사해 두면 메인
+             색을 바꿀 때 아이콘만 옛 색으로 남고, 그 상태는 화면을 열어 보기 전에는
+             드러나지 않는다 — 이 파일이 생기기 전의 Save 버튼이 그렇게 테마 하나를
+             통째로 건너뛰고 있었다. 그래서 아이콘은 PrimaryBrush를 그대로 참조한다.
 
-             #000000이 아니라 글자와 같은 #111827을 쓴다. 이 앱의 검정은 하나여야 하고,
-             순검정은 그림자(DropShadowEffect)에만 쓰고 있다.
+             아이콘을 메인 색과 다르게 하려면 그때 키를 만들면 된다. 지금 미리 만들어 두는
+             것은 쓰이지 않는 갈림길을 하나 남기는 일이다.
 
-             이 브러시가 이모지에 통하는 것은 WPF가 컬러 글꼴(COLR/CPAL)을 지원하지 않기
-             때문이다. Segoe UI Emoji의 색 레이어를 버리고 글리프 윤곽만 한 톤으로 그리므로
-             이모지가 Foreground를 따른다 — 웹이나 WinUI였다면 이모지는 제 색으로 나오고
-             이 브러시는 아무 일도 하지 않았을 것이다. -->
-        <SolidColorBrush x:Key="IconBrush"          Color="#111827"/>
+             이모지에 색이 먹는 것은 WPF가 컬러 글꼴(COLR/CPAL)을 지원하지 않기 때문이다.
+             Segoe UI Emoji의 색 레이어를 버리고 글리프 윤곽만 한 톤으로 그리므로 이모지가
+             Foreground를 따른다 — 웹이나 WinUI였다면 이모지는 제 색으로 나온다. -->
 
         <SolidColorBrush x:Key="DangerBrush"        Color="#DC2626"/>
         <SolidColorBrush x:Key="DangerHoverBrush"   Color="#B91C1C"/>
