@@ -300,11 +300,17 @@
 
                         <!-- 오른쪽: 무엇이 나가는지 -->
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="What gets sent" Style="{StaticResource FieldLabel}"/>
+                            <!-- 목록이 아니라 고지다. 무엇이 나가는지는 약국이 서명한
+                                 동의서가 항목까지 적고 있고, 이 자리에서 필요한 것은
+                                 "이 단추를 누르면 우리 서버에 남는다"는 사실 하나다.
+                                 회사 이름 철자는 동의서와 같아야 한다 — Camdians. -->
+                            <TextBlock Text="Information is stored on Camdians's server."
+                                       Style="{StaticResource PanelHint}" TextWrapping="Wrap"
+                                       Margin="0,0,0,8"/>
                             <!-- 보내는 버튼. 위의 미리보기와 생김새를 다르게 두는
                                  것은 둘의 무게가 다르기 때문이다 — 하나는 파일을
                                  쓰고, 하나는 되돌릴 수 없다. -->
-                            <Button Content="⬆  Synchronize"
+                            <Button Content="⬆  Send Data"
                                     Style="{StaticResource PrimaryBtn}"
                                     Padding="20,0" HorizontalAlignment="Stretch"
                                     Margin="0,0,0,8"

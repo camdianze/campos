@@ -1,7 +1,7 @@
 # How CamdiansRX records the way you use it
 
 *Draft wording for the pilot agreement and the consent form. Written to be read by
-the pharmacy, in plain English. Camdianz reviews and a lawyer checks before signing.*
+the pharmacy, in plain English. Camdians reviews and a lawyer checks before signing.*
 
 ---
 
@@ -59,9 +59,9 @@ This is the more important list.
 
 ## Who can see it
 
-Only Camdianz. The notes are sent to the Camdianz server together with the rest of
+Only Camdians. The notes are sent to the Camdians server together with the rest of
 your CamdiansRX data, over an encrypted connection, and are read by the small number of
-people at Camdianz who work on the software.
+people at Camdians who work on the software.
 
 They are not sold, not shared with other pharmacies, and not given to anyone else.
 
@@ -101,7 +101,7 @@ does for you.
 
 ## Questions
 
-Ask Camdianz at any time. If anything above turns out not to match what CamdiansRX
+Ask Camdians at any time. If anything above turns out not to match what CamdiansRX
 actually does, tell us — that is a fault on our side, and we will fix the software
 rather than the wording.
 

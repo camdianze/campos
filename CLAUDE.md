@@ -306,7 +306,7 @@ Server-side design and the step-by-step setup live in [supabase/README.md](supab
 
 ## Usage events (v2 only)
 
-`Usage_Event` records which features a pharmacy uses, syncs with everything else, and feeds the metric views in [supabase/metrics.sql](supabase/metrics.sql). It exists so Camdianz can answer whether a pilot pharmacy is still using CamdiansRX, which screens earn their place, and where it breaks — questions that were previously answered by asking the pharmacy, which is both unreliable and a favour to ask.
+`Usage_Event` records which features a pharmacy uses, syncs with everything else, and feeds the metric views in [supabase/metrics.sql](supabase/metrics.sql). It exists so Camdians can answer whether a pilot pharmacy is still using CamdiansRX, which screens earn their place, and where it breaks — questions that were previously answered by asking the pharmacy, which is both unreliable and a favour to ask.
 
 **Six columns, and adding a seventh means editing the consent form first.** [docs/usage-events-consent.md](docs/usage-events-consent.md) is what the pharmacy reads and signs, and it lists exactly what is written down. A column is one line of code; the document is something a person has to remember, so left to memory the two will diverge — and recorded data cannot be un-recorded. `UsageEventTests` pins the column list, the property list on `UsageEvent`, and the event names, so the code cannot drift away from the promise on its own.
 
