@@ -52,8 +52,16 @@
     <Resource Include="Fonts\Siemreap.ttf" />
     <Resource Include="Fonts\Battambang-Regular.ttf" />
     <Resource Include="Fonts\Battambang-Bold.ttf" />
+    <!-- 화면 본문 글꼴. 굵기마다 파일이 따로 있어야 한다 — WPF는 SemiBold 파일이
+         없으면 Regular를 굵게 흉내 내고(가짜 볼드), 이 앱은 SemiBold를 쉰 군데쯤 쓴다.
+         가변 글꼴(Inter-Variable)을 쓰지 않는 것도 같은 이유다. WPF는 가변 축을
+         지원하지 않아 기본 인스턴스인 Regular 한 벌만 나온다. -->
+    <Resource Include="Fonts\Inter-Regular.ttf" />
+    <Resource Include="Fonts\Inter-SemiBold.ttf" />
+    <Resource Include="Fonts\Inter-Bold.ttf" />
     <Content Include="Fonts\OFL-Battambang.txt" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Fonts\OFL-Siemreap.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fonts\OFL-Inter.txt" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
