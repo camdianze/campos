@@ -15,6 +15,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
+    <!-- 앱 아이콘. exe에 박히고, WPF 창은 지정이 없으면 exe의 아이콘을 쓰므로
+         제목 표시줄과 Alt+Tab까지 이것 하나로 덮인다. 설치 프로그램과 바로가기는
+         deploy.ps1이 같은 파일을 vpk에 넘겨 맞춘다.
+
+         브랜드 색과 Fonts/AbrilFatface-Regular.ttf에서 만들어진 것이다 —
+         색이 바뀌면 tools/make-icon.ps1을 다시 돌린다. -->
+    <ApplicationIcon>CamdiansRX.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

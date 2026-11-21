@@ -75,12 +75,19 @@ Step "Velopack 패키지"
 $signArgs = @()
 # $signArgs = @("--signParams", $signParams)
 
+# --icon은 설치 프로그램과 바로가기가 쓴다. exe 자체의 아이콘은 csproj의
+# ApplicationIcon이 이미 박아 두었지만, 설치 중에 보이는 창과 바탕화면 바로가기는
+# 패키지가 따로 들고 간다 — 빼면 그 둘만 Velopack 기본 아이콘으로 나온다.
+$icon = Join-Path $root "CamPOS.Wpf\CamdiansRX.ico"
+if (-not (Test-Path $icon)) { throw "아이콘이 없습니다: $icon  (tools\make-icon.ps1)" }
+
 & vpk pack `
     --packId CamdiansRX `
     --packVersion $packVersion `
     --packDir $publish `
     --mainExe CamdiansRX.exe `
     --packTitle "CamdiansRX" `
+    --icon $icon `
     --channel $Channel `
     --framework net10.0-x64-desktop `
     --runtime win-x64 `
