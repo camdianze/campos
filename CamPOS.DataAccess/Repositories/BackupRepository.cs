@@ -4,6 +4,7 @@ using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using CamPOS.Application.Inventory;
 using CamPOS.Application.Repositories;
+using CamPOS.Application.Settings;
 using CamPOS.DataAccess.Database;
 using CamPOS.Domain.Entities;
 
@@ -297,6 +298,10 @@ public class BackupRepository : IBackupRepository
 
     public async Task RestoreDatabaseAsync(string sourceDbPath)
     {
+        // 데이터가 아니라 이 PC에 속하는 설정을 먼저 꺼내 둔다. 이유는
+        // MachineBoundSettings에 적혀 있다 — 토큰이 여기 걸려 있다.
+        var carried = await ReadMachineSettingsAsync();
+
         using (var connection = _connectionFactory.CreateOpenConnection())
         {
             using var checkpointCommand = connection.CreateCommand();
@@ -313,6 +318,84 @@ public class BackupRepository : IBackupRepository
 
         DeleteIfExists(_dbFilePath + "-wal");
         DeleteIfExists(_dbFilePath + "-shm");
+
+        // 들어온 파일이 v1.26 것이면 App_Setting에 value_type·updated_by가 없다.
+        // 스키마를 먼저 맞추지 않으면 아래 쓰기가 "그런 열이 없다"로 실패한다.
+        // 앱은 복원 직후 다시 시작하면서 이것을 한 번 더 부르는데, 두 번 불러도
+        // 달라지는 것이 없다(CREATE TABLE IF NOT EXISTS와 열 존재 검사뿐이다).
+        new DatabaseInitializer(_connectionFactory).Initialize();
+
+        await WriteMachineSettingsAsync(carried);
+    }
+
+    /// <summary>
+    /// 복원을 건너 살아남아야 하는 설정을 읽는다. 없는 키는 결과에 들어오지 않는다 —
+    /// 저장된 적 없는 값을 빈 문자열로 되돌려 쓰면, 그 빈 문자열이 "지워졌다"가 아니라
+    /// "비우기로 했다"로 읽힌다(설정 하나하나가 그 둘을 구분한다).
+    /// </summary>
+    private async Task<Dictionary<string, string>> ReadMachineSettingsAsync()
+    {
+        var carried = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        try
+        {
+            using var connection = _connectionFactory.CreateOpenConnection();
+
+            foreach (var key in MachineBoundSettings.Keys)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText =
+                    "SELECT setting_value FROM App_Setting WHERE setting_key = $key;";
+                command.Parameters.AddWithValue("$key", key);
+
+                if (await command.ExecuteScalarAsync() is string value)
+                {
+                    carried[key] = value;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // 지금 데이터베이스를 못 읽는다고 복원을 막지는 않는다. 복원은 보통
+            // 그 데이터베이스가 망가졌을 때 하는 일이다.
+        }
+
+        return carried;
+    }
+
+    private async Task WriteMachineSettingsAsync(IReadOnlyDictionary<string, string> carried)
+    {
+        if (carried.Count == 0)
+        {
+            return;
+        }
+
+        using var connection = _connectionFactory.CreateOpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        foreach (var (key, value) in carried)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+
+            // 복원해 온 파일에도 같은 키가 있을 수 있다(백업을 뜬 PC의 값이다).
+            // 그쪽이 아니라 이 PC의 값이 남아야 하므로 덮어쓴다.
+            command.CommandText = """
+                INSERT INTO App_Setting (setting_key, setting_value, updated_at)
+                VALUES ($key, $value, $now)
+                ON CONFLICT(setting_key) DO UPDATE SET
+                    setting_value = excluded.setting_value,
+                    updated_at    = excluded.updated_at;
+                """;
+            command.Parameters.AddWithValue("$key", key);
+            command.Parameters.AddWithValue("$value", value);
+            command.Parameters.AddWithValue(
+                "$now", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        transaction.Commit();
     }
 
     private static void DeleteIfExists(string path)

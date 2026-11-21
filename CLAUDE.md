@@ -294,6 +294,22 @@ Server-side design and the step-by-step setup live in [supabase/README.md](supab
 
 **Three values connect a PC to a server, and only one is secret.** The address and the publishable key are identical for every pharmacy and ship with the app; the **device token** names one computer, so it is stored through the same DPAPI protector that guards the SMTP app password (`IRecoveryDataProtector` — the name predates this use). A database copied to another machine cannot decrypt it, which is the point, and when it cannot the screen reads "not connected" rather than throwing, because that is the intended outcome and not a fault. Two refusals in `SyncSettingsService` exist only because of how quietly they fail: a pasted `sb_secret_…` key is rejected in either field (it bypasses RLS entirely and, stored as a token, would simply be refused by the server with nothing naming the cause), and the address is normalised, because the Supabase console displays `https://x.supabase.co/rest/v1/` and that is what people copy — left alone it posts to `/rest/v1/functions/v1/sync` and returns 404 while the address on screen matches the console character for character. The saved token is put back into the field on open, or editing only the address and pressing Save erases it.
 
+**A restore must not take this computer's identity with it.** Restoring copies one
+database file over another, and the device token lives inside that file (`App_Setting`)
+while `license.dat` sits beside it in the folder. So a restore left the licence intact
+and destroyed the token: the app opened normally, sold normally, and simply stopped
+reaching the server — on a PC that had just been activated with a new licence, the
+backup being older than the sync feature. `BackupRepository.RestoreDatabaseAsync` now
+lifts the keys in [MachineBoundSettings](CamPOS.Application/Settings/MachineBoundSettings.cs)
+out before the copy and writes them back after, running `DatabaseInitializer` in between
+because a v1.26 backup's `App_Setting` has no `value_type` column to write into. The test
+for the rule is which keys are on that list: this computer's token, address and channel
+are, and the pharmacy's own settings are not — a shop name belongs to the data, and
+widening the list would make a restore half-apply. **The watermark is deliberately not
+carried**: how far we have sent is a fact about those rows, so it has to travel with
+them. Keeping this PC's would mark the restored rows as already sent and they would
+never go; being rewound is harmless, since the server upserts on `(site_id, original id)`.
+
 **Test Connection sends a real batch with no rows** rather than pinging a separate endpoint, so it proves the address, the key, the token and the network at once and leaves an all-zero row in `sync_batch` that *is* the record of a connection test.
 
 **`positions` advances only after the server confirms.** The payload carries the position it would move to, and `Sync_State` is written when the response arrives — not when the request is sent. Writing it first means the rows in a failed batch are never selected again.
