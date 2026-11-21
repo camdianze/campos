@@ -8,9 +8,14 @@
 #
 #   바탕  #44705D  PrimaryBrush (Pantone 553 C)
 #   글자  #ECEADC  PageBackgroundBrush
-#   글꼴  Fonts/AbrilFatface-Regular.ttf — 로그인 화면의 CAMDIANS와 같은 것
+#   글꼴  Fonts/Inter-Bold.ttf — 화면 본문과 같은 글꼴
 #
 # 색을 바꾸려면 MakeIcon.cs 위쪽의 Back/Fore 두 줄을 App.xaml의 값과 맞춘다.
+#
+# 글꼴은 화면 본문(MainWindow.xaml의 FontFamily)을 따라간다. 전에는 로그인 화면
+# 제목과 같은 Abril Fatface였는데, 그쪽은 획 대비가 큰 Didone이라 16px에서 가는
+# 획이 사라져 흐릿한 고리처럼 보였다. Inter는 획이 고르게 굵어 작은 자리에서 낫다.
+# Bold를 쓰는 이유도 같다 — 아이콘은 글자 한 자뿐이라 본문보다 굵어야 버틴다.
 
 param(
     [string]$Output = (Join-Path $PSScriptRoot "..\CamPOS.Wpf\CamdiansRX.ico")
@@ -19,7 +24,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $source = Join-Path $PSScriptRoot "MakeIcon.cs"
-$font   = Join-Path $PSScriptRoot "..\CamPOS.Wpf\Fonts\AbrilFatface-Regular.ttf"
+$font   = Join-Path $PSScriptRoot "..\CamPOS.Wpf\Fonts\Inter-Bold.ttf"
 
 if (-not (Test-Path $font)) { throw "글꼴을 찾지 못했습니다: $font" }
 

@@ -12,16 +12,34 @@ public static class MakeIcon
     static readonly Color Back = ColorTranslator.FromHtml("#44705D");
     static readonly Color Fore = ColorTranslator.FromHtml("#ECEADC");
 
-    static PrivateFontCollection _fonts;
+    // 경로마다 따로 담는다. 하나만 담아 두고 재사용하면 두 번째로 넘긴 글꼴이
+    // 조용히 무시되고 처음 것으로 계속 그려진다 — 글꼴을 바꿨는데 그림이 그대로라
+    // 눈으로 비교하기 전에는 알 수 없다. 실제로 그렇게 한 번 당했다.
+    static readonly Dictionary<string, FontFamily> _families =
+        new Dictionary<string, FontFamily>(StringComparer.OrdinalIgnoreCase);
+
+    static readonly List<PrivateFontCollection> _keepAlive = new List<PrivateFontCollection>();
 
     static FontFamily Family(string ttfPath)
     {
-        if (_fonts == null)
+        // 문법을 옛 C#에 맞춘다. 이 파일은 PowerShell 5.1의 Add-Type이 컴파일하는데,
+        // 거기 실린 컴파일러는 C# 5라서 out 변수 선언(C# 7)을 읽지 못한다.
+        string key = Path.GetFullPath(ttfPath);
+        FontFamily family;
+
+        if (!_families.TryGetValue(key, out family))
         {
-            _fonts = new PrivateFontCollection();
-            _fonts.AddFontFile(ttfPath);
+            // PrivateFontCollection을 살려 두어야 한다. 수집되면 FontFamily가
+            // 가리키던 글꼴이 사라져 그리는 순간 터진다.
+            var collection = new PrivateFontCollection();
+            collection.AddFontFile(key);
+            _keepAlive.Add(collection);
+
+            family = collection.Families[0];
+            _families[key] = family;
         }
-        return _fonts.Families[0];
+
+        return family;
     }
 
     /// <summary>한 변 size 픽셀의 아이콘 한 장.</summary>
