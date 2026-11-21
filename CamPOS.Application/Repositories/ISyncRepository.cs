@@ -26,9 +26,6 @@ public interface ISyncRepository
     /// </summary>
     Task<IReadOnlyList<SyncInventory>> GetInventoryAsync(string facilityId);
 
-    /// <summary>직원 목록. 이름·역할·상태만 담긴다.</summary>
-    Task<IReadOnlyList<SyncUser>> GetUsersAsync(string facilityId);
-
     /// <summary>
     /// <paramref name="afterRowId"/> 다음에 들어온 원장 행을, 들어온 순서로.
     /// 기준이 transaction_time이 아니라 rowid인 이유는 입고 날짜를 사용자가 고르기
@@ -53,12 +50,7 @@ public interface ISyncRepository
     /// 표시다. 자동 동기화가 조용히 실패하면 앱은 평소와 똑같아 보이는데, 밀린
     /// 수가 늘어나는 것만은 눈에 보인다.
     /// </summary>
-    /// <param name="includePharmacyData">
-    /// 약국 데이터 전송을 끈 약국에서는 false다. 그 행들은 보내지 않기로 했으므로
-    /// "밀린 것"이 아니다 — 세면 영영 줄지 않는 숫자가 화면에 남고, 상단 바
-    /// 배지가 그것을 고장으로 읽어 계속 경고한다.
-    /// </param>
-    Task<int> CountPendingAsync(string facilityId, bool includePharmacyData = true);
+    Task<int> CountPendingAsync(string facilityId);
 
     // ── 사진 ─────────────────────────────────────────────────────────────
     // 사진은 원장과 달리 rowid 워터마크로 고를 수 없다. 덧붙기만 하는 것이

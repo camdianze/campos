@@ -140,7 +140,7 @@ public class UsageEventTests : IDisposable
     /// <summary>
     /// user_id는 특히 일부러 없다. 담으면 이미 올라가 있는 app_user와 이어져
     /// 직원 실명 단위 기록이 되는데, 성과 지표에 필요한 것은 role까지다.
-    /// 속성이 없으면 실수로 채울 수도 없다 — SyncUser와 같은 방어다.
+    /// 속성이 없으면 실수로 채울 수도 없다 — 직원 목록을 통째로 뺀 것과 같은 방어다.
     /// </summary>
     [Fact]
     public void TheEventTypeHasNowhereToPutAPerson()

@@ -27,13 +27,17 @@ public sealed class SyncPayloadBuilder
     /// <summary>
     /// 보낼 묶음 하나를 만든다.
     ///
-    /// <paramref name="includeCatalogue"/>를 끄면 상품·재고·직원을 빼고 원장만 담는다.
+    /// <paramref name="includeCatalogue"/>를 끄면 상품·재고를 빼고 원장만 담는다.
     /// 밀린 행이 한 묶음에 안 들어가 여러 번 보낼 때, 수백 개의 상품을 묶음마다
     /// 다시 보낼 이유가 없기 때문이다. 첫 묶음은 켜서 보낸다.
     ///
     /// <paramref name="includePharmacyData"/>를 끄면 <b>사용 기록만</b> 남는다 —
-    /// 상품·재고·직원·원장·상담이 전부 빠진다. "매출은 보내고 싶지 않다"는 약국을
-    /// 위한 것이고, 둘을 한 통로에 묶어 두면 그런 약국에게서는 아무것도 못 받는다.
+    /// 상품·재고·원장·상담이 전부 빠진다. Auto가 꺼진 약국에서 시계가 도는 경우가
+    /// 그것이고, 그때도 사용 기록은 간다. 둘을 한 통로에 묶어 두면 Auto를 켜지 않은
+    /// 약국에게서는 아무것도 못 받는다.
+    ///
+    /// <b>직원 목록은 어느 쪽에도 담기지 않는다.</b> 보내지 않기로 했고, 읽는
+    /// 쿼리까지 지웠다.
     ///
     /// 통로를 따로 내지 않고 <b>무엇을 담을지</b>만 정하는 이유: 통로가 둘이면
     /// 워터마크도 둘, 실패 지점도 둘이 되고 "사용 기록은 올라오는데 판매는
@@ -88,7 +92,6 @@ public sealed class SyncPayloadBuilder
             ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Products = includeCatalogue ? await _repository.GetProductsAsync() : [],
             Inventory = includeCatalogue ? await _repository.GetInventoryAsync(facilityId) : [],
-            Users = includeCatalogue ? await _repository.GetUsersAsync(facilityId) : [],
             Transactions = transactions.Select(t => t.Row).ToList(),
             CounsellingLogs = counselling.Select(c => c.Row).ToList(),
             UsageEvents = usage.Select(u => u.Row).ToList(),

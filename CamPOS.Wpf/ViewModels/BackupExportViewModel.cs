@@ -238,7 +238,7 @@ public class BackupExportViewModel : ViewModelBase
             SyncPreviewMessage =
                 $"{payload.RowCount:N0} rows written to {Path.GetFileName(path)} "
                 + $"(products {payload.Products.Count:N0}, inventory {payload.Inventory.Count:N0}, "
-                + $"staff {payload.Users.Count:N0}, transactions {payload.Transactions.Count:N0}, "
+                + $"transactions {payload.Transactions.Count:N0}, "
                 + $"counselling {payload.CounsellingLogs.Count:N0})";
         }
         catch (Exception exception)
@@ -286,42 +286,6 @@ public class BackupExportViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 약국 데이터(상품·재고·직원·원장·상담)를 보낼지. 끄면 전송 자체가 멈추는
-    /// 것이 아니라 <b>담기는 것이 줄어든다</b> — 통로는 하나로 둔다.
-    /// </summary>
-    public bool IsPharmacyDataOn
-    {
-        get => _isPharmacyDataOn;
-        set
-        {
-            if (SetProperty(ref _isPharmacyDataOn, value) && !_isLoadingSyncSettings)
-            {
-                _ = SavePharmacyDataAsync(value);
-            }
-        }
-    }
-
-    private async Task SavePharmacyDataAsync(bool on)
-    {
-        try
-        {
-            await _syncService.SetPharmacyDataAsync(on);
-
-            SyncStatusMessage = on
-                ? "Products, stock and sales will be sent to the server."
-                : "Products, stock and sales will not be sent. Nothing is deleted — "
-                  + "they stay on this computer and will be sent if you turn this back on.";
-
-            // 밀린 수가 바로 달라진다 — 끄면 원장이 그 숫자에서 빠진다.
-            await RefreshSyncStateAsync();
-        }
-        catch (Exception exception)
-        {
-            SyncStatusMessage = "The setting could not be saved: " + exception.Message;
-        }
-    }
-
     private async Task SaveAutoSyncAsync(bool on)
     {
         try
@@ -330,7 +294,7 @@ public class BackupExportViewModel : ViewModelBase
 
             SyncStatusMessage = on
                 ? "Automatic sync is on. It sends every 30 minutes."
-                : "Automatic sync is off. Press Synchronize to send.";
+                : "Automatic sync is off. Press Send Data to send.";
         }
         catch (Exception exception)
         {
@@ -339,7 +303,6 @@ public class BackupExportViewModel : ViewModelBase
     }
 
     private bool _isAutoSyncOn = true;
-    private bool _isPharmacyDataOn = true;
     private bool _isLoadingSyncSettings;
     private string _syncLastSuccessText = string.Empty;
     private string _syncPendingText = string.Empty;
@@ -466,7 +429,6 @@ public class BackupExportViewModel : ViewModelBase
             // 읽어 오는 동안 setter가 저장을 부르지 않게 한다. 화면을 열기만 해도
             // 설정이 다시 쓰이는 것은 조용하지만 틀린 일이다.
             IsAutoSyncOn = await _syncService.IsAutomaticAsync();
-            IsPharmacyDataOn = await _syncService.IsPharmacyDataEnabledAsync();
 
             SyncServerUrl = settings.ServerUrl;
             SyncPublishableKey = settings.PublishableKey;

@@ -60,14 +60,14 @@ says nothing when it works.
 | What it says | What it means | What to do |
 |---|---|---|
 | `Connected.` after **Test Connection** | Everything is fine | Nothing |
-| `Automatic sync is off` | Someone turned it off | Turn it on, or press **Synchronize** by hand |
+| `Automatic sync is off` | Auto is not ticked | Tick **Auto**, or press **Send Data** by hand |
 | `Not connected to a server` | The link is missing | Call us |
-| `N rows waiting to be sent.` and the number keeps growing | It has not sent for a while | Check the internet, then press **Synchronize** |
+| `N rows waiting to be sent.` and the number keeps growing | It has not sent for a while | Check the internet, then press **Send Data** |
 | `Nothing waiting.` | Everything has been sent | Nothing |
 
 **Nothing is lost while it cannot send.** The program keeps every sale and sends
 them when the line comes back. A number that stops growing after you press
-Synchronize is the sign that it worked.
+Send Data is the sign that it worked.
 
 The warning never appears when there is nothing waiting — a quiet week is not a
 fault.
@@ -123,8 +123,9 @@ you can read what is recorded in the consent document we gave you.
 We do **not** receive passwords. They never leave this computer in a readable
 form.
 
-If you asked us not to send your sales and stock, that switch is in
-**Data Center → SERVER SYNC**, and you can check it any time.
+Your sales and stock are sent only while **Auto** is ticked, or when someone
+presses **Send Data**. That switch is in **Data Center → SERVER SYNC** and you
+can look at it any time. We do not receive your staff list at all.
 
 ---
 

@@ -276,16 +276,15 @@ public class SyncServiceTests
     /// 아무것도 받지 못한다 — 이 테스트가 그 분리를 지킨다.
     /// </summary>
     [Fact]
-    public async Task WithPharmacyDataOff_OnlyUsageEventsAreSent()
+    public async Task WithAutoOff_TheTimerSendsOnlyUsageEvents()
     {
         var repository = new FakeSyncRepository(transactions: 3, products: 2, usageEvents: 4);
         var client = FakeSyncClient.ThatSucceeds();
-        var settings = new FakeSettings();
-        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
 
-        var service = NewService(repository, client, settings: settings);
+        var service = NewService(repository, client);
 
-        var result = await service.RunAsync(Facility);
+        // Auto가 꺼진 약국에서 시계가 도는 경우가 이것이다.
+        var result = await service.RunAsync(Facility, allowPharmacyData: false);
 
         Assert.True(result.IsSuccess);
 
@@ -294,7 +293,6 @@ public class SyncServiceTests
         Assert.Empty(payload.Transactions);
         Assert.Empty(payload.Products);
         Assert.Empty(payload.Inventory);
-        Assert.Empty(payload.Users);
         Assert.Empty(payload.CounsellingLogs);
     }
 
@@ -303,15 +301,13 @@ public class SyncServiceTests
     /// 선택되지 않고, 약국이 마음을 바꿔 켜도 그동안의 것이 영영 올라가지 않는다.
     /// </summary>
     [Fact]
-    public async Task WithPharmacyDataOff_TheLedgerWatermarkStaysPut()
+    public async Task WithAutoOff_TheLedgerWatermarkStaysPut()
     {
         var repository = new FakeSyncRepository(transactions: 3, usageEvents: 2);
-        var settings = new FakeSettings();
-        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
 
-        var service = NewService(repository, FakeSyncClient.ThatSucceeds(), settings: settings);
+        var service = NewService(repository, FakeSyncClient.ThatSucceeds());
 
-        await service.RunAsync(Facility);
+        await service.RunAsync(Facility, allowPharmacyData: false);
 
         Assert.Equal(0, await repository.GetPositionAsync(SyncStreams.Transactions));
         Assert.Equal(2, await repository.GetPositionAsync(SyncStreams.UsageEvents));
@@ -319,20 +315,17 @@ public class SyncServiceTests
 
     /// <summary>껐다 켜면 그동안 쌓인 것이 전부 올라간다. 잃는 것은 없다.</summary>
     [Fact]
-    public async Task TurningPharmacyDataBackOn_SendsWhatPiledUp()
+    public async Task TurningAutoBackOn_SendsWhatPiledUp()
     {
         var repository = new FakeSyncRepository(transactions: 3, usageEvents: 1);
-        var settings = new FakeSettings();
-        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
 
-        var service = NewService(repository, FakeSyncClient.ThatSucceeds(), settings: settings);
-        await service.RunAsync(Facility);
+        var service = NewService(repository, FakeSyncClient.ThatSucceeds());
+        await service.RunAsync(Facility, allowPharmacyData: false);
 
-        settings.Values[AppSettingKeys.SyncPharmacyData] = "true";
         var client = FakeSyncClient.ThatSucceeds();
-        var reopened = NewService(repository, client, settings: settings);
+        var reopened = NewService(repository, client);
 
-        await reopened.RunAsync(Facility);
+        await reopened.RunAsync(Facility, allowPharmacyData: true);
 
         Assert.Equal(3, client.LastPayload!.Transactions.Count);
         Assert.Equal(3, await repository.GetPositionAsync(SyncStreams.Transactions));
@@ -344,16 +337,14 @@ public class SyncServiceTests
     /// 쌓이면 sync_batch에서 "이 약국이 살아 있나"를 읽을 수 없게 된다.
     /// </summary>
     [Fact]
-    public async Task WithPharmacyDataOffAndNothingToSend_NoRequestIsMade()
+    public async Task WithAutoOffAndNothingToSend_NoRequestIsMade()
     {
         var repository = new FakeSyncRepository(transactions: 5, usageEvents: 0);
         var client = FakeSyncClient.ThatSucceeds();
-        var settings = new FakeSettings();
-        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
 
-        var service = NewService(repository, client, settings: settings);
+        var service = NewService(repository, client);
 
-        await service.RunAsync(Facility);
+        await service.RunAsync(Facility, allowPharmacyData: false);
 
         Assert.Equal(0, client.Sends);
     }
@@ -376,54 +367,49 @@ public class SyncServiceTests
     }
 
     /// <summary>
-    /// 설정이 켜져 있어도 호출이 거절하면 사용 기록만 간다. 둘 중 하나라도
-    /// 아니라고 하면 약국 데이터는 실리지 않는다.
+    /// <b>Auto는 저장된 값이 없으면 꺼진 것이다.</b> 다른 설정들은 읽기 실패가 기능을
+    /// 멈추지 않도록 켜진 쪽으로 떨어지는데 이것만 반대인 이유는, 틀렸을 때의 값이
+    /// 다르기 때문이다 — 안 보낸 것은 나중에 보내면 되고, 보낸 것은 되돌릴 수 없다.
+    ///
+    /// 설치할 때 약국 앞에서 체크하는 그 순간이 동의 순간이라는 설계가 이 한 줄에
+    /// 걸려 있다. 기본이 켜짐으로 돌아가면 아무도 모르는 채로 전송이 시작된다.
     /// </summary>
     [Fact]
-    public async Task PharmacyDataNeedsBothTheSettingAndTheCaller()
+    public async Task WithNothingStored_AutoIsOff()
     {
-        var repository = new FakeSyncRepository(transactions: 2, usageEvents: 1);
-        var client = FakeSyncClient.ThatSucceeds();
-        var settings = new FakeSettings();
-        settings.Values[AppSettingKeys.SyncPharmacyData] = "true";
+        var service = NewService(new FakeSyncRepository(transactions: 0), FakeSyncClient.ThatSucceeds());
 
-        var service = NewService(repository, client, settings: settings);
-
-        await service.RunAsync(Facility, allowPharmacyData: false);
-
-        Assert.Empty(client.LastPayload!.Transactions);
+        Assert.False(await service.IsAutomaticAsync());
     }
 
     /// <summary>
-    /// 설정이 없으면 켜진 것으로 읽는다. 읽을 수 없는 설정이 전송을 멈추게 하면,
-    /// 그 약국의 데이터는 조용히 안 올라간다.
+    /// Send Data 단추는 Auto와 무관하게 보낸다. 사람이 지금 누른 것이고, 그 자체가
+    /// 보내겠다는 뜻이다 — 누르고도 안 나가면 화면이 거짓말을 하는 셈이 된다.
     /// </summary>
     [Fact]
-    public async Task WithNoSettingStored_PharmacyDataIsSent()
+    public async Task TheSendButtonSendsEvenWhenAutoIsOff()
     {
         var repository = new FakeSyncRepository(transactions: 2);
         var client = FakeSyncClient.ThatSucceeds();
 
+        // Auto는 저장된 적이 없으므로 꺼져 있다. 단추는 allowPharmacyData: true로 부른다.
         await NewService(repository, client).RunAsync(Facility);
 
         Assert.Equal(2, client.LastPayload!.Transactions.Count);
     }
 
     /// <summary>
-    /// 보내지 않기로 한 원장은 "밀린 것"이 아니다. 세면 영영 줄지 않는 숫자가
-    /// 남고, 상단 바 배지가 그것을 고장으로 읽어 계속 경고한다 — 그러면 진짜
-    /// 고장 때 아무도 보지 않는다.
+    /// Auto가 꺼져 있어도 원장은 "밀린 것"으로 센다. 버려지는 행이 아니라 Send Data를
+    /// 누르면 올라가는 행이고, 쌓이는 수가 보여야 눌러야 한다는 것을 안다.
     /// </summary>
     [Fact]
-    public async Task WithPharmacyDataOff_TheLedgerIsNotCountedAsPending()
+    public async Task WithAutoOff_TheLedgerIsStillCountedAsPending()
     {
         var repository = new FakeSyncRepository(transactions: 7, usageEvents: 0);
-        var settings = new FakeSettings();
-        settings.Values[AppSettingKeys.SyncPharmacyData] = "false";
 
-        var service = NewService(repository, FakeSyncClient.ThatSucceeds(), settings: settings);
+        var service = NewService(repository, FakeSyncClient.ThatSucceeds());
 
-        Assert.Equal(0, await service.CountPendingAsync(Facility));
+        Assert.Equal(7, await service.CountPendingAsync(Facility));
     }
 
     private static SyncService NewService(
@@ -510,9 +496,6 @@ public class SyncServiceTests
         public Task<IReadOnlyList<SyncInventory>> GetInventoryAsync(string facilityId) =>
             Task.FromResult<IReadOnlyList<SyncInventory>>([]);
 
-        public Task<IReadOnlyList<SyncUser>> GetUsersAsync(string facilityId) =>
-            Task.FromResult<IReadOnlyList<SyncUser>>([]);
-
         public Task<IReadOnlyList<(long RowId, SyncTransaction Row)>> GetTransactionsAfterAsync(
             string facilityId, long afterRowId, int limit) =>
             Task.FromResult<IReadOnlyList<(long, SyncTransaction)>>(
@@ -527,8 +510,7 @@ public class SyncServiceTests
             Task.FromResult<IReadOnlyList<(long, SyncUsageEvent)>>(
                 _usage.Where(r => r.RowId > afterRowId).Take(limit).ToList());
 
-        public Task<int> CountPendingAsync(string facilityId, bool includePharmacyData = true) =>
-            includePharmacyData ? CountEverythingPending() : CountUsagePending();
+        public Task<int> CountPendingAsync(string facilityId) => CountEverythingPending();
 
         private Task<int> CountUsagePending() =>
             Task.FromResult(_usage.Count(

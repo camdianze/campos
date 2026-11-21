@@ -8,7 +8,7 @@ namespace CamPOS.Application.Usage;
 ///
 /// 여기 <b>없는</b> 것이 이 형식의 요점이다: 환자, 입력한 글자, 금액, 상품 이름,
 /// 화면, 키 입력, 그리고 <b>누가 눌렀는지</b>. 속성이 없으면 실수로 채울 수도 없다 —
-/// SyncUser가 네 칸뿐인 것과 같은 방어다.
+/// 직원 목록을 아예 보내지 않기로 한 것과 같은 방어다.
 /// </summary>
 public sealed class UsageEvent
 {

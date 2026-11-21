@@ -112,38 +112,14 @@ public class SyncRepository : ISyncRepository
         return rows;
     }
 
-    public async Task<IReadOnlyList<SyncUser>> GetUsersAsync(string facilityId)
-    {
-        using var connection = _connectionFactory.CreateOpenConnection();
-
-        using var command = connection.CreateCommand();
-
-        // password_hash, 보안 질문·답, 복구 이메일은 이 목록에 없다. 테이블에는 있지만
-        // 여기 적히지 않는 한 묶음에 닿을 수 없다.
-        command.CommandText = """
-            SELECT user_id, username, role, status
-            FROM Users
-            WHERE facility_id = $facilityId
-            ORDER BY user_id;
-            """;
-        command.Parameters.AddWithValue("$facilityId", facilityId);
-
-        using var reader = await command.ExecuteReaderAsync();
-        var rows = new List<SyncUser>();
-
-        while (await reader.ReadAsync())
-        {
-            rows.Add(new SyncUser
-            {
-                UserId = reader.GetString(0),
-                Username = reader.GetString(1),
-                Role = reader.GetString(2),
-                Status = reader.GetString(3)
-            });
-        }
-
-        return rows;
-    }
+    // 직원 목록을 읽는 메서드가 여기 있었다. 서버로 보내지 않기로 해서 지웠다.
+    //
+    // 쿼리째 지운 것이 요점이다. 남겨 두면 "이미 읽고 있으니 담자"가 한 줄이고,
+    // Users 속성을 지운 것과 달리 이쪽은 컴파일러가 막아 주지 않는다.
+    //
+    // 판매 행의 user_id는 그대로 간다 — 한 판매를 묶는 키가 (transaction_time,
+    // user_id)라 빼면 서버에서 영수증 단위가 사라진다. 대신 그 ID가 가리킬 이름이
+    // 서버에 없으므로, 누구인지는 이 PC에만 남는다.
 
     public async Task<IReadOnlyList<(long RowId, SyncTransaction Row)>> GetTransactionsAfterAsync(
         string facilityId, long afterRowId, int limit)
@@ -285,27 +261,11 @@ public class SyncRepository : ISyncRepository
         return rows;
     }
 
-    public async Task<int> CountPendingAsync(string facilityId, bool includePharmacyData = true)
+    public async Task<int> CountPendingAsync(string facilityId)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
 
         using var command = connection.CreateCommand();
-
-        if (!includePharmacyData)
-        {
-            // 원장은 보내지 않기로 한 약국이다. 세면 영영 줄지 않는 숫자가 남는다.
-            command.CommandText = """
-                SELECT COUNT(*) FROM Usage_Event
-                 WHERE rowid > (SELECT COALESCE(
-                       (SELECT position FROM Sync_State WHERE stream = $usage), 0));
-                """;
-            command.Parameters.AddWithValue("$usage", SyncStreams.UsageEvents);
-
-            var usageOnly = await command.ExecuteScalarAsync();
-
-            return usageOnly is null or DBNull ? 0 : Convert.ToInt32(usageOnly);
-        }
-
 
         // 고르는 기준은 보낼 때와 같아야 한다 — rowid다. 여기만 transaction_time을
         // 쓰면 화면의 숫자와 실제로 보내지는 행이 어긋난다.

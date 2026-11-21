@@ -123,7 +123,7 @@ Admin Dashboard → **Data Center → SERVER SYNC**
 
 여기서 **`site_id`가 2단계에서 정한 것과 같은지** 꼭 보세요. 다르면 대장의 일련번호를 잘못 넣은 것이다.
 
-그다음 **Synchronize** 한 번 → Supabase에서 [check.sql](../supabase/check.sql) 실행 → 제품 수가 맞는지.
+**`Auto`를 체크**하고(기본값이 꺼짐이다) **Send Data** 한 번 → Supabase에서 [check.sql](../supabase/check.sql) 실행 → 제품 수가 맞는지.
 
 ### 토큰이 안 채워져 있으면
 

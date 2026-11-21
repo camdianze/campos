@@ -121,20 +121,18 @@ public class SyncPayloadTests : IDisposable
     }
 
     /// <summary>
-    /// 담을 자리가 없으면 실수로 채울 수도 없다 — SyncUser에 계정 보안 속성이
-    /// 아예 없는지를 타입 쪽에서도 확인한다.
+    /// 직원은 아예 나가지 않는다. 전에는 SyncUser가 네 칸뿐인지를 확인했는데,
+    /// 타입째 없앴으므로 이제 확인할 것은 <b>묶음 어디에도 직원이 없다</b>는 쪽이다.
+    ///
+    /// 이름으로 찾는 이유: 속성을 되살리는 것보다 "users"라는 이름으로 뭔가를
+    /// 다시 끼워 넣는 쪽이 쉽고, 그러면 컴파일러가 막아 주지 않는다.
     /// </summary>
     [Fact]
-    public async Task TheUserTypeHasNowhereToPutASecret()
+    public async Task NoStaffListLeaves()
     {
-        var names = typeof(SyncUser)
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Select(p => p.Name)
-            .ToList();
+        using var document = JsonDocument.Parse(await BuildJsonAsync());
 
-        Assert.Equal(new[] { "UserId", "Username", "Role", "Status" }.Order(), names.Order());
-
-        await Task.CompletedTask;
+        Assert.False(document.RootElement.TryGetProperty("users", out _));
     }
 
     /// <summary>
@@ -176,7 +174,7 @@ public class SyncPayloadTests : IDisposable
             {
                 "app_version", "client_time", "counselling_logs",
                 "inventory", "positions", "products", "transactions",
-                "usage_events", "users"
+                "usage_events"
             },
             names);
     }
@@ -230,17 +228,6 @@ public class SyncPayloadTests : IDisposable
         var payload = await new SyncPayloadBuilder(_repository).BuildAsync(FacilityId);
 
         Assert.Equal("8801234567890", Assert.Single(payload.Products).Barcode);
-    }
-
-    /// <summary>직원 이름은 "누가 처리했는지"를 보여주기 위해 보낸다.</summary>
-    [Fact]
-    public async Task TheStaffNameIsIncluded()
-    {
-        var payload = await new SyncPayloadBuilder(_repository).BuildAsync(FacilityId);
-
-        var user = Assert.Single(payload.Users);
-        Assert.Equal("pharmacist", user.Username);
-        Assert.Equal("Administrator", user.Role);
     }
 
     /// <summary>유통기한 0은 "모름"이다. 날짜로 바꾸지 않고 그대로 보낸다.</summary>

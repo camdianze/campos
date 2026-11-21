@@ -72,12 +72,19 @@ public sealed class SyncService
     }
 
     /// <param name="allowPharmacyData">
-    /// 약국 데이터를 담아도 되는 호출인가. 자동 전송이 꺼진 약국에서 시계가
-    /// 도는 경우가 false다 — 그때도 <b>사용 기록은 간다</b>. 그것은 이용 조건이고
-    /// 약국이 고르는 값이 아니다.
+    /// 약국 데이터를 담아도 되는 호출인가.
     ///
-    /// 실제로 담기는지는 <c>sync.pharmacyData</c> 설정과 함께 정해진다. 둘 중
-    /// 하나라도 아니라고 하면 사용 기록만 간다.
+    /// <b>Send Data 단추는 true, 시계는 Auto 설정을 그대로 넘긴다.</b> 단추는 사람이
+    /// 지금 누른 것이라 그 자체가 보내겠다는 뜻이고, 시계는 Auto가 켜져 있을 때만
+    /// 약국 데이터를 담는다.
+    ///
+    /// false일 때도 <b>사용 기록은 간다</b>. 그것은 이용 조건이고 약국이 고르는
+    /// 값이 아니다.
+    ///
+    /// 전에는 여기에 <c>sync.pharmacyData</c> 설정이 AND로 하나 더 붙어 있었다.
+    /// 뗀 이유는 그 둘이 결국 같은 질문이었기 때문이다 — 이제 Auto 하나가
+    /// "자동으로 보낼까"를 정하고, 기본값이 꺼짐이라 아무도 켜지 않으면 아무것도
+    /// 나가지 않는다.
     /// </param>
     public async Task<SyncRunResult> RunAsync(
         string facilityId,
@@ -91,10 +98,7 @@ public sealed class SyncService
 
         try
         {
-            var includePharmacyData =
-                allowPharmacyData && await IsPharmacyDataEnabledAsync();
-
-            return await RunOnceAsync(facilityId, includePharmacyData, cancellationToken);
+            return await RunOnceAsync(facilityId, allowPharmacyData, cancellationToken);
         }
         finally
         {
@@ -178,7 +182,7 @@ public sealed class SyncService
                     ? SyncRunResult.Failure(result.Message)
                     : SyncRunResult.Partial(
                         sent,
-                        await CountPendingSafelyAsync(facilityId, includePharmacyData),
+                        await CountPendingSafelyAsync(facilityId),
                         result.Message);
             }
 
@@ -211,7 +215,7 @@ public sealed class SyncService
 
         await RecordLastSuccessAsync();
 
-        var pending = await CountPendingSafelyAsync(facilityId, includePharmacyData);
+        var pending = await CountPendingSafelyAsync(facilityId);
 
         return SyncRunResult.Success(sent, pending, siteId, photos.Uploaded, await CountPhotosSafelyAsync());
     }
@@ -312,32 +316,40 @@ public sealed class SyncService
     /// <summary>
     /// 화면에 적을 "밀린 행 수". 못 세어도 동기화를 실패로 만들지 않는다.
     ///
-    /// 약국 데이터를 끈 약국에서는 사용 기록만 센다. 보내지 않기로 한 원장을
-    /// 세면 영영 줄지 않는 숫자가 화면에 남고, 상단 바 배지가 그것을 고장으로
-    /// 읽어 계속 경고한다.
+    /// 원장도 함께 센다. Auto가 꺼져 있어도 그 행들은 버려진 것이 아니라 Send Data를
+    /// 누르면 올라가는 것들이고, 쌓이는 수가 보여야 눌러야 한다는 것을 안다.
     /// </summary>
     public async Task<int> CountPendingAsync(string facilityId) =>
-        await CountPendingSafelyAsync(facilityId, await IsPharmacyDataEnabledAsync());
+        await CountPendingSafelyAsync(facilityId);
 
     /// <summary>아직 안 올린 사진 수. 바이트는 읽지 않는다.</summary>
     public async Task<int> CountPhotosPendingAsync() =>
         await CountPhotosSafelyAsync();
 
-    /// <summary>자동 전송이 켜져 있나. 설정이 없으면 켜진 것으로 읽는다.</summary>
+    /// <summary>
+    /// 자동 전송이 켜져 있나. <b>설정이 없으면 꺼진 것으로 읽는다.</b>
+    ///
+    /// 기본이 꺼짐인 이유는 이 스위치가 이제 동의를 겸하기 때문이다. 켜면 약국의
+    /// 상품·재고·판매가 Camdians 서버로 올라가므로, 아무도 손대지 않은 상태가
+    /// "보낸다"여서는 안 된다. 설치할 때 약국 앞에서 체크하는 그 순간이 동의 순간이다.
+    ///
+    /// 읽지 못했을 때도 꺼진 쪽으로 간다. 다른 설정들은 읽기 실패가 기능을 멈추지
+    /// 않도록 켜진 쪽으로 떨어지는데, 여기만 반대인 것은 틀렸을 때의 값이 다르기
+    /// 때문이다 — 안 보낸 것은 나중에 보내면 되고, 보낸 것은 되돌릴 수 없다.
+    /// </summary>
     public async Task<bool> IsAutomaticAsync()
     {
         try
         {
             var stored = await _settings.GetAsync(AppSettingKeys.SyncAutomatic);
 
-            // 저장된 빈 문자열은 값이지 "없음"이 아니지만, 여기서는 둘 다 기본값으로
-            // 간다 — 읽을 수 없는 설정이 전송을 멈추게 해서는 안 된다.
-            return stored is null || stored.Length == 0
-                || !bool.TryParse(stored, out var on) || on;
+            return stored is not null
+                && bool.TryParse(stored, out var on)
+                && on;
         }
         catch
         {
-            return true;
+            return false;
         }
     }
 
@@ -345,34 +357,6 @@ public sealed class SyncService
     {
         await _settings.SetAsync(
             AppSettingKeys.SyncAutomatic,
-            on ? "true" : "false",
-            "bool");
-    }
-
-    /// <summary>
-    /// 약국 데이터를 보내도 되나. 설정이 없으면 켜진 것으로 읽는다 — 거절은
-    /// 약국이 분명히 밝힌 경우에만이고, 읽을 수 없는 설정이 전송을 멈추게
-    /// 해서는 안 된다(자동 전송 설정과 같은 규칙이다).
-    /// </summary>
-    public async Task<bool> IsPharmacyDataEnabledAsync()
-    {
-        try
-        {
-            var stored = await _settings.GetAsync(AppSettingKeys.SyncPharmacyData);
-
-            return stored is null || stored.Length == 0
-                || !bool.TryParse(stored, out var on) || on;
-        }
-        catch
-        {
-            return true;
-        }
-    }
-
-    public async Task SetPharmacyDataAsync(bool on)
-    {
-        await _settings.SetAsync(
-            AppSettingKeys.SyncPharmacyData,
             on ? "true" : "false",
             "bool");
     }
@@ -390,9 +374,7 @@ public sealed class SyncService
                 settings.IsConfigured,
                 await IsAutomaticAsync(),
                 await GetLastSuccessAsync(),
-                // 보내지 않기로 한 원장은 밀린 것이 아니다. 세면 배지가
-                // 영영 경고한 채로 남고, 그러면 진짜 고장 때 아무도 안 본다.
-                await CountPendingSafelyAsync(facilityId, await IsPharmacyDataEnabledAsync())
+                await CountPendingSafelyAsync(facilityId)
                     + await CountPhotosSafelyAsync());
         }
         catch
@@ -435,11 +417,11 @@ public sealed class SyncService
     }
 
     private async Task<int> CountPendingSafelyAsync(
-        string facilityId, bool includePharmacyData = true)
+        string facilityId)
     {
         try
         {
-            return await _repository.CountPendingAsync(facilityId, includePharmacyData);
+            return await _repository.CountPendingAsync(facilityId);
         }
         catch
         {

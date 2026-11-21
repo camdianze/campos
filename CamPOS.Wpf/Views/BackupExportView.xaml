@@ -317,19 +317,22 @@
                                     IsEnabled="{Binding IsSyncIdle}"
                                     Command="{Binding SynchronizeCommand}"/>
 
-                            <!-- 끄면 자동 전송만 멈춘다. 위의 Synchronize는 그대로
-                                 동작하고, 아래 두 줄도 그대로 보인다 — 밀린 수가
-                                 늘어나는 것이 보여야 꺼 둔 사실을 잊지 않는다. -->
-                            <CheckBox Content="Auto"
+                            <!-- 스위치는 이것 하나다. 전에는 "Auto"와 "Send products,
+                                 stock and sales" 둘이었는데, 나란히 두니 무엇이 다른지
+                                 읽히지 않았다 — 하나는 언제, 하나는 무엇을 묻는 것이라
+                                 설명 없이는 구분이 안 된다.
+
+                                 **기본값은 꺼짐이다.** 켜면 약국의 상품·재고·판매가
+                                 Camdians 서버로 올라가므로, 아무도 손대지 않은 상태가
+                                 "보낸다"여서는 안 된다. 설치할 때 약국 앞에서 체크하는
+                                 그 순간이 동의 순간이다.
+
+                                 꺼 둬도 Send Data 단추는 그대로 동작하고, 아래 두 줄도
+                                 그대로 보인다 — 밀린 수가 늘어나는 것이 보여야 꺼 둔
+                                 사실을 잊지 않는다. 그동안의 원장은 지워지지 않고 PC에
+                                 남아 있다가, 켜거나 누르면 전부 올라간다. -->
+                            <CheckBox Content="Auto — send every 30 minutes"
                                       IsChecked="{Binding IsAutoSyncOn}"
-                                      IsEnabled="{Binding IsSyncIdle}"
-                                      Margin="0,0,0,2"/>
-                            <!-- 약국이 "장사 기록은 보내고 싶지 않다"고 할 때 끈다.
-                                 끄면 전송이 멈추는 것이 아니라 담기는 것이 줄어든다 —
-                                 통로는 하나다. 꺼 둔 동안의 원장은 지워지지 않고
-                                 PC에 그대로 남아, 다시 켜면 전부 올라간다. -->
-                            <CheckBox Content="Send products, stock and sales"
-                                      IsChecked="{Binding IsPharmacyDataOn}"
                                       IsEnabled="{Binding IsSyncIdle}"
                                       Margin="0,0,0,2"/>
                             <TextBlock Text="{Binding SyncLastSuccessText}"

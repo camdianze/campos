@@ -24,7 +24,6 @@ public sealed class SyncPayload
 
     public IReadOnlyList<SyncProduct> Products { get; init; } = [];
     public IReadOnlyList<SyncInventory> Inventory { get; init; } = [];
-    public IReadOnlyList<SyncUser> Users { get; init; } = [];
     public IReadOnlyList<SyncTransaction> Transactions { get; init; } = [];
     public IReadOnlyList<SyncCounsellingLog> CounsellingLogs { get; init; } = [];
     public IReadOnlyList<SyncUsageEvent> UsageEvents { get; init; } = [];
@@ -46,7 +45,7 @@ public sealed class SyncPayload
     /// </summary>
     [JsonIgnore]
     public int RowCount =>
-        Products.Count + Inventory.Count + Users.Count + Transactions.Count
+        Products.Count + Inventory.Count + Transactions.Count
         + CounsellingLogs.Count + UsageEvents.Count;
 }
 
@@ -106,18 +105,9 @@ public sealed class SyncInventory
     public required long UpdatedAt { get; init; }
 }
 
-/// <summary>
-/// 직원. 화면에 "누가 처리했는지"를 쓰기 위한 최소한만 보낸다.
-/// <b>비밀번호 해시, 보안 질문과 답, 복구 이메일, 이메일 설정은 담을 자리조차 두지 않는다.</b>
-/// 속성이 없으면 실수로 채울 수도 없다.
-/// </summary>
-public sealed class SyncUser
-{
-    public required string UserId { get; init; }
-    public required string Username { get; init; }
-    public required string Role { get; init; }
-    public required string Status { get; init; }
-}
+// 직원(SyncUser)이 여기 있었다. 서버로 보내지 않기로 해서 타입째 지웠다 —
+// 속성이 없으면 실수로 채울 수도 없다는 규칙을 한 걸음 더 민 것이다.
+// 읽던 쿼리도 SyncRepository에서 함께 지웠다.
 
 /// <summary>
 /// 원장 한 줄. 금액을 포함해 원본 그대로 보낸다.
@@ -184,7 +174,7 @@ public sealed class SyncCounsellingLog
 /// 없는 것이 요점이다: 환자, 입력한 글자, 금액, 상품 이름, 화면, 키 입력, 그리고
 /// <b>누가 눌렀는지</b>. user_id를 담으면 이미 올라가 있는 app_user와 이어져 직원
 /// 실명 단위 기록이 되는데, 성과 지표에 필요한 것은 "관리자와 직원이 각각 얼마나
-/// 쓰는가"까지다. 속성이 없으면 실수로 채울 수도 없다 — SyncUser와 같은 방어이고,
+/// 쓰는가"까지다. 속성이 없으면 실수로 채울 수도 없다 — 직원 목록을 통째로 뺀 것과 같은 방어이고,
 /// 같은 이유로 UsageEventTests가 칸 수를 고정한다.
 /// </summary>
 public sealed class SyncUsageEvent
